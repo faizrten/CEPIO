@@ -1,81 +1,128 @@
-# CEPIO Codex Engineering Brief — v0.3
+# CEPIO Codex Engineering Brief — v0.4
 
 ## Mission
 
 Build CEPIO into an operational ontology platform for Energy & Process Industries with parity-oriented capabilities against Palantir Ontology while remaining Microsoft/Fabric-native and source-system-neutral.
 
-## Current baseline: v0.2
+## Current baseline: v0.3
 
 Do not regress these capabilities:
 
-- object/relationship/event/decision repository contracts;
-- SQLite + in-memory implementations;
+- canonical modular CEPIO domain architecture;
+- SEO/SATORP and AD/ARO normalization rules;
+- IRI-first identity for classes, relationships and datatype properties;
+- ambiguity fail-closed behavior;
+- semantic module versions, dependencies and compatibility snapshots;
+- canonical datatype-property registry with semantic/write authority;
+- property-level provenance, source references and transformation runs;
+- `explain_property(...)` lineage path;
+- immutable object-version history;
+- bitemporal object and relationship queries;
+- deterministic event ordering and projector contract;
+- compressor operating-state reference projector;
+- independent projection checkpoints and replay;
+- SQLite + in-memory reference persistence;
 - optimistic concurrency;
 - immutable action audit;
 - policy evaluated before idempotent replay;
 - actor/action/target-scoped idempotency;
-- RDF type registry and relationship domain/range validation;
 - action preconditions and approval metadata;
-- object/property/action authorization;
 - AI recommend-but-not-execute boundary;
 - typed functions;
 - graph traversal including inverse paths;
-- MCP-ready facade;
+- MCP-ready governed facade;
 - thin Python SDK;
-- dry-run adapter contracts;
+- dry-run external adapter contracts;
 - SHACL validation path;
 - all tests passing.
 
-## Next sprint: v0.3 — Temporal + Provenance Kernel
+## Next sprint: v0.4 — Operational Query + Platform Integration
 
-### P0 — Version history
-- Add immutable object-version snapshots.
-- Support `get_object_at(object_id, timestamp)`.
-- Add relationship version/valid-time history.
-- Never overwrite historical versions.
+### P0 — Typed temporal query contract
 
-### P0 — Provenance
-- Define `SourceReference`, `PropertyProvenance`, `TransformationRun` and `LineageEdge`.
-- Attach source system + external ID + ingestion timestamp to object/property mutations.
-- Allow applications/agents to ask why a property has its current value.
+- Implement a backend-neutral query model for object type, property predicates, relationships and time.
+- Support transaction-time and valid-time filters explicitly.
+- Support bounded graph traversal without introducing a proprietary query language.
+- Add deterministic pagination and ordering.
+- Expose the query contract through Python SDK, REST and MCP.
 
-### P0 — State projection
-- Create projector interface from event stream → current object state.
-- Make projections deterministic and replayable.
-- Add compressor operating-state reference projector.
+### P0 — Ontology migration manifests
 
-### P1 — Ontology lifecycle
-- Add semantic module manifests with version and dependencies.
-- Add compatibility checker for removed/renamed classes, relationships and constraints.
-- Add migration manifest format and CI gate.
+- Define explicit migration manifests for intentional class/property/relationship changes.
+- Support rename, replacement/deprecation and compatible datatype transformations.
+- Require breaking semantic-contract changes to include an approved migration declaration.
+- Add CI validation for migration coverage.
+- Keep migration execution deterministic and auditable.
 
-### P1 — Query
-- Add query/filter contract for object type, properties, relationships and time.
-- Avoid introducing a CEPIO-specific query language until requirements prove it necessary.
+### P1 — Projection provenance and causal state
 
-### P1 — Observability
-- Add structured runtime events for function invocation, policy decision, action and repository latency.
-- Add OpenTelemetry-compatible hook interface without forcing one backend.
+- Link each derived projected property to the source event IDs that produced it.
+- Add projector version and replay/run IDs to provenance.
+- Support multi-object projections without mutating source events.
+- Add causal lineage from Event → State → Decision → Action.
 
-### P2 — Microsoft mapping
-- Add explicit architecture notes and mapping contracts for Fabric/OneLake/Fabric IQ/Purview/Entra/Foundry/Copilot Studio.
-- Keep these mappings outside CEPIO-Core abstractions.
+### P1 — Runtime observability
+
+- Emit structured runtime telemetry for repository latency, query execution, function invocation, policy decision, action execution and projection rebuild.
+- Add an OpenTelemetry-compatible hook interface without forcing one exporter/backend.
+- Ensure telemetry cannot leak properties the actor was not authorized to read.
+
+### P1 — Event ingestion contracts
+
+- Define source-neutral event-ingestion adapter contracts.
+- Add dry-run/reference adapters for Fabric Real-Time Intelligence / Eventstreams and AVEVA PI.
+- Require idempotent ingestion keys and event-time preservation.
+- Preserve source references and ingestion provenance.
+
+### P1 — Microsoft platform mapping
+
+Add explicit mapping contracts for:
+
+- OneLake / Fabric data stores;
+- Fabric IQ / Ontology / Graph;
+- Fabric Real-Time Intelligence;
+- Microsoft Purview lineage/governance;
+- Entra identity/policy boundaries;
+- Microsoft Foundry agents;
+- Copilot Studio;
+- Power Automate / governed action adapters.
+
+Keep Microsoft-specific mappings outside CEPIO-Core/domain ontology semantics.
+
+### P2 — Agent-facing temporal tools
+
+Add MCP tools such as:
+
+- `cepio_get_object_at`;
+- `cepio_get_object_valid_at`;
+- `cepio_query`;
+- `cepio_explain_property`;
+- `cepio_explain_state`;
+- `cepio_rebuild_projection` with governed authorization.
+
+Agents must receive only authorized temporal/property views.
 
 ## Security invariants
 
 1. Policy evaluation precedes every external side effect and idempotent replay.
-2. Agents receive only authorized objects/properties/tools.
+2. Agents receive only authorized objects, properties and tools.
 3. Human approval cannot be represented by an AI role claiming a string flag.
-4. Audit is append-only.
+4. Audit and historical records remain append-only through ordinary APIs.
 5. Provenance must not be writable by ordinary domain action handlers.
 6. Adapter failures must reconcile explicitly; never infer external success from local CEPIO success.
+7. Temporal/history queries must enforce the same property/object authorization as current-state queries.
+8. Observability and lineage outputs must not bypass authorization controls.
+9. Projection rebuilds may alter derived state only; they must never mutate source events.
+10. Breaking ontology changes must fail CI without a migration declaration.
 
-## Definition of done for v0.3
+## Definition of done for v0.4
 
-- all v0.2 tests pass;
-- new temporal/provenance tests pass;
-- object state can be reconstructed at time T;
-- each demo property can identify its source reference;
-- an event stream can deterministically rebuild compressor state;
-- ontology breaking changes fail CI unless accompanied by a migration declaration;
-- no live production side effect is introduced.
+- all v0.3 tests pass;
+- query contract supports type/property/relationship + transaction/valid-time filtering;
+- REST, SDK and MCP expose the same query semantics;
+- deliberate breaking ontology change is rejected without a migration manifest;
+- projection provenance identifies source event IDs and projector version;
+- event ingestion is deterministic/idempotent in reference adapters;
+- OpenTelemetry-compatible hooks exist and are authorization-safe;
+- Microsoft mapping contracts are documented/testable without contaminating CEPIO-Core;
+- no live production side effect is introduced unless explicitly opt-in and policy-gated.
