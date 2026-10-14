@@ -1,0 +1,20 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix rel: <https://cepio.org/ontology/reliability#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+rel:FailureMode a owl:Class ; rdfs:subClassOf cepio:Entity .
+rel:FailureEvent a owl:Class ; rdfs:subClassOf cepio:Event .
+rel:DowntimeEvent a owl:Class ; rdfs:subClassOf cepio:Event .
+rel:ComponentLife a owl:Class ; rdfs:subClassOf cepio:Measurement .
+rel:ConditionSignal a owl:Class ; rdfs:subClassOf cepio:Measurement .
+rel:RemainingUsefulLifeEstimate a owl:Class ; rdfs:subClassOf cepio:Measurement .
+
+rel:failureOfEquipment a owl:ObjectProperty ; rdfs:domain rel:FailureEvent ; rdfs:range ind:Equipment .
+rel:hasFailureMode a owl:ObjectProperty ; rdfs:domain rel:FailureEvent ; rdfs:range rel:FailureMode .
+rel:repairedByWorkOrder a owl:ObjectProperty ; rdfs:domain rel:FailureEvent ; rdfs:range ind:WorkOrder .
+rel:hasComponentLife a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range rel:ComponentLife .
+rel:causesDowntime a owl:ObjectProperty ; rdfs:domain cepio:Event ; rdfs:range rel:DowntimeEvent .
+rel:observedOnEquipment a owl:ObjectProperty ; rdfs:domain rel:ConditionSignal ; rdfs:range ind:Equipment .
+rel:estimatesLifeOf a owl:ObjectProperty ; rdfs:domain rel:RemainingUsefulLifeEstimate ; rdfs:range ind:Equipment .

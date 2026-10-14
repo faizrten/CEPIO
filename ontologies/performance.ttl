@@ -1,0 +1,21 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix perf: <https://cepio.org/ontology/performance#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+perf:KPIObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
+perf:Scorecard a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:ScoreDimension a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:AssetScore a owl:Class ; rdfs:subClassOf cepio:Measurement .
+perf:AssetStatus a owl:Class ; rdfs:subClassOf cepio:State .
+perf:Benchmark a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:CompositeScore a owl:Class ; rdfs:subClassOf cepio:Measurement .
+perf:FleetException a owl:Class ; rdfs:subClassOf cepio:Risk .
+perf:ActionPerformance a owl:Class ; rdfs:subClassOf cepio:Measurement .
+
+perf:observationOfKPI a owl:ObjectProperty ; rdfs:domain perf:KPIObservation ; rdfs:range cepio:KPI .
+perf:observationForEntity a owl:ObjectProperty ; rdfs:domain perf:KPIObservation ; rdfs:range cepio:Entity .
+perf:scorecardFor a owl:ObjectProperty ; rdfs:domain perf:Scorecard ; rdfs:range cepio:Entity .
+perf:hasScoreDimension a owl:ObjectProperty ; rdfs:domain perf:Scorecard ; rdfs:range perf:ScoreDimension .
+perf:benchmarkedAgainst a owl:ObjectProperty ; rdfs:domain cepio:Measurement ; rdfs:range perf:Benchmark .
+perf:hasAssetStatus a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range perf:AssetStatus .

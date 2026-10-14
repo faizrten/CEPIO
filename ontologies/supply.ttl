@@ -1,0 +1,15 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix ent: <https://cepio.org/ontology/enterprise#> .
+@prefix supply: <https://cepio.org/ontology/supply#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+supply:InventoryPosition a owl:Class ; rdfs:subClassOf cepio:Measurement .
+supply:MaterialRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+
+supply:stockPositionFor a owl:ObjectProperty ; rdfs:domain supply:InventoryPosition ; rdfs:range ind:SparePart .
+supply:stockedAtAsset a owl:ObjectProperty ; rdfs:domain supply:InventoryPosition ; rdfs:range cepio:Asset .
+supply:spareSuppliedBy a owl:ObjectProperty ; rdfs:domain ind:SparePart ; rdfs:range ent:Supplier .
+supply:spareServesEquipment a owl:ObjectProperty ; rdfs:domain ind:SparePart ; rdfs:range ind:Equipment .
+supply:materialRequiredBy a owl:ObjectProperty ; rdfs:domain supply:MaterialRequirement ; rdfs:range cepio:WorkItem .

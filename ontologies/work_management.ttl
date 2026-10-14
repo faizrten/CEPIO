@@ -1,0 +1,17 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix work: <https://cepio.org/ontology/work#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+work:WorkOperation a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+work:MaintenanceNotification a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+work:MaintenanceCampaign a owl:Class ; rdfs:subClassOf cepio:Activity .
+work:Turnaround a owl:Class ; rdfs:subClassOf work:MaintenanceCampaign .
+work:WorkPackage a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+
+work:hasOperation a owl:ObjectProperty ; rdfs:domain ind:WorkOrder ; rdfs:range work:WorkOperation .
+work:triggeredByNotification a owl:ObjectProperty ; rdfs:domain ind:WorkOrder ; rdfs:range work:MaintenanceNotification .
+work:workAtAsset a owl:ObjectProperty ; rdfs:domain cepio:WorkItem ; rdfs:range cepio:Asset .
+work:scheduledInCampaign a owl:ObjectProperty ; rdfs:domain cepio:WorkItem ; rdfs:range work:MaintenanceCampaign .
+work:hasWorkPackage a owl:ObjectProperty ; rdfs:domain work:MaintenanceCampaign ; rdfs:range work:WorkPackage .
