@@ -134,6 +134,16 @@ CEPIO's purpose is not merely to describe the enterprise. It is to create a gove
 17. [Roadmap to v1.0](17-Roadmap.md)
 18. [Glossary](18-Glossary.md)
 
+## Documentation governance
+
+Documentation is part of CEPIO's engineering definition of done.
+
+Material changes to ontology semantics, public interfaces, runtime behavior, integrations, deployment, security/governance, examples, release status or roadmap state must update the relevant focused technical documentation and/or wiki page in the **same pull request**.
+
+If a change genuinely has no documentation impact, the PR must explicitly select **No documentation impact** and explain why. The repository pull-request template requires this declaration.
+
+See the [Developer Guide](15-Developer-Guide.md) for the detailed documentation checklist.
+
 ## Canonical source of truth
 
 The GitHub repository remains authoritative for executable contracts and implementation details. This wiki is the **narrative and navigational layer** over those contracts.
