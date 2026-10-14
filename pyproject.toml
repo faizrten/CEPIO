@@ -13,7 +13,8 @@ dependencies = [
   "rdflib>=7.0",
   "PyYAML>=6.0",
   "uvicorn>=0.30",
-  "httpx>=0.27"
+  "httpx>=0.27",
+  "networkx>=3.5"
 ]
 
 [project.optional-dependencies]
