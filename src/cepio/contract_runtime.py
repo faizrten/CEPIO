@@ -13,7 +13,8 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
 
     Existing v0.2 payloads may still contain legacy/unregistered property keys while
     CEPIO migrates. Canonical property APIs always resolve through PropertyRegistry.
-    Set ``strict_properties=True`` to reject unregistered keys on object upsert.
+    Set ``strict_properties=True`` to require and persist canonical property IRIs on
+    object upsert.
     """
 
     def __init__(
@@ -30,16 +31,14 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
         self.strict_properties = strict_properties
 
     def upsert_object(self, obj: OntologyObject, expected_version: int | None = None) -> OntologyObject:
-        if self.property_registry:
+        if self.property_registry and self.strict_properties:
             normalized: dict[str, Any] = {}
             for key, value in obj.properties.items():
                 try:
                     canonical = self.property_registry.resolve(key).iri
-                    normalized[canonical] = value
-                except UnknownPropertyError:
-                    if self.strict_properties:
-                        raise ValueError(f"Undeclared CEPIO datatype property: {key}")
-                    normalized[key] = value
+                except UnknownPropertyError as exc:
+                    raise ValueError(f"Undeclared CEPIO datatype property: {key}") from exc
+                normalized[canonical] = value
             obj = obj.model_copy(update={"properties": normalized})
         return super().upsert_object(obj, expected_version=expected_version)
 
