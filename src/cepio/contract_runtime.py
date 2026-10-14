@@ -6,6 +6,7 @@ from typing import Any
 from cepio.model import OntologyObject, Relationship
 from cepio.property_registry import PropertyRegistry, UnknownPropertyError
 from cepio.provenance import PropertyProvenance, ProvenanceRepository, explain_property
+from cepio.query import ObjectQuery, ObjectQueryResult, QueryEngine
 from cepio.runtime import CEPIORuntime
 
 
@@ -96,6 +97,10 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
             self.property_registry,
             self.provenance_repository,
         )
+
+    def query_objects(self, query: ObjectQuery) -> ObjectQueryResult:
+        """Execute the stable typed CEPIO object-set query contract."""
+        return QueryEngine(self).execute(query)
 
     def get_object_at(self, object_id: str, transaction_time: datetime) -> OntologyObject:
         method = getattr(self.object_repository, "get_object_at", None)

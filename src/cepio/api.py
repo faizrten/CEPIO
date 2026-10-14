@@ -15,6 +15,7 @@ from .graph_analytics import (
     GraphBackendUnavailable,
 )
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship
+from .query import ObjectQuery, ObjectQueryResult
 from .repositories import ConcurrencyError
 from .runtime import AuthorizationError
 
@@ -60,6 +61,17 @@ def get_object(object_id: str) -> OntologyObject:
 @app.get("/objects", response_model=list[OntologyObject])
 def list_objects(object_type: str | None = None) -> list[OntologyObject]:
     return runtime.list_objects(object_type)
+
+
+@app.post("/query/objects", response_model=ObjectQueryResult)
+def query_objects(query: ObjectQuery) -> ObjectQueryResult:
+    try:
+        method = getattr(runtime, "query_objects", None)
+        if method is None:
+            raise RuntimeError("Configured CEPIO runtime does not expose the typed query contract")
+        return method(query)
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail={"code": "query_validation", "message": str(exc)}) from exc
 
 
 @app.post("/relationships", response_model=Relationship)

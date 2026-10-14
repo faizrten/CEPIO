@@ -6,6 +6,7 @@ import httpx
 
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import ActionRequest, ActionResult, OntologyObject, Relationship
+from .query import ObjectQuery, ObjectQueryResult
 
 
 class CEPIOClient:
@@ -28,6 +29,11 @@ class CEPIOClient:
         response = self._client.put(f"/objects/{obj.id}", params=params, json=obj.model_dump(mode="json"))
         response.raise_for_status()
         return OntologyObject.model_validate(response.json())
+
+    def query_objects(self, query: ObjectQuery) -> ObjectQueryResult:
+        response = self._client.post("/query/objects", json=query.model_dump(mode="json"))
+        response.raise_for_status()
+        return ObjectQueryResult.model_validate(response.json())
 
     def add_relationship(self, rel: Relationship) -> Relationship:
         response = self._client.post("/relationships", json=rel.model_dump(mode="json"))
@@ -92,6 +98,6 @@ class CEPIOClient:
         return ActionResult.model_validate(response.json())
 
     def call_function(self, name: str, arguments: dict[str, Any]) -> Any:
-        response = self._client.post(f"/functions/{name}", json=arguments)
+        response = self._client.post(f"/functions/{name}", json={"arguments": arguments})
         response.raise_for_status()
         return response.json()["result"]
