@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "generated_rows": {"seo_property_to_cepio.csv": 441, "ad_property_to_cepio.csv": 526},
+  "artifacts": {
+    "mappings/seo_property_to_cepio.csv": {"sha256": "00c7215d84788998883a2073bf6b68ce2179e27d2a0573cb9c7ec05c65e843dd", "bytes": 135566},
+    "mappings/ad_property_to_cepio.csv": {"sha256": "1d54e0f9fd3983ac2484d30dabb10c2e511c0f74a034f6b93107c9ed33e7c7e5", "bytes": 149427}
+  },
+  "source_packages": {
+    "SEO": {"sha256": "9301f481abb2081e8a3dfb9a1284468f49013f4ed7a84ccff410c732001ff42d", "bytes": 398182},
+    "AD": {"sha256": "9d1341822e09d93742b3c51c1bcc0d51d4bbd3672ca433e9292df245c4e5dedd", "bytes": 168067}
+  }
+}
