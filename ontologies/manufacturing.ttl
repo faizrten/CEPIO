@@ -1,0 +1,159 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix work: <https://cepio.org/ontology/work#> .
+@prefix supply: <https://cepio.org/ontology/supply#> .
+@prefix perf: <https://cepio.org/ontology/performance#> .
+@prefix mfg: <https://cepio.org/ontology/manufacturing#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://cepio.org/ontology/manufacturing> a owl:Ontology ;
+  dcterms:title "CEPIO Manufacturing Domain" ;
+  dcterms:description "ISA-95 / IEC 62264-aligned manufacturing semantics normalized for CEPIO and federated with the Digital Twin Consortium ManufacturingOntologies corpus." ;
+  dcterms:source <https://github.com/digitaltwinconsortium/ManufacturingOntologies> ;
+  dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
+
+# ISA-95 equipment hierarchy and operational scope.
+mfg:HierarchyScope a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:Area a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+mfg:WorkCenter a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+mfg:WorkUnit a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+mfg:ProcessCell a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+mfg:ProductionLine a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+mfg:ProductionUnit a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+mfg:WorkCell a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+mfg:StorageZone a owl:Class ; rdfs:subClassOf cepio:Location .
+mfg:StorageUnit a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+mfg:OperationalLocation a owl:Class ; rdfs:subClassOf cepio:Location .
+mfg:OperationalLocationClass a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Material master and traceability.
+mfg:Material a owl:Class ; rdfs:subClassOf cepio:Resource .
+mfg:MaterialClass a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:MaterialDefinition a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:MaterialLot a owl:Class ; rdfs:subClassOf mfg:Material .
+mfg:MaterialSublot a owl:Class ; rdfs:subClassOf mfg:MaterialLot .
+
+# ISA-95 physical-asset classification. Runtime equipment instances reuse ind:Equipment and cepio:PhysicalAsset.
+mfg:EquipmentClass a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:PhysicalAssetClass a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:EquipmentAssetMapping a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:PersonnelClass a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Process and operations definitions.
+mfg:ProcessSegment a owl:Class ; rdfs:subClassOf cepio:Process .
+mfg:OperationsSegment a owl:Class ; rdfs:subClassOf mfg:ProcessSegment .
+mfg:OperationsSegmentDependency a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:OperationsDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:EquipmentSpecification a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:MaterialSpecification a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:PersonnelSpecification a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:PhysicalAssetSpecification a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:ParameterSpecification a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:OperationsMaterialBill a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:OperationsMaterialBillItem a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Capacity/capability semantics.
+mfg:OperationsCapability a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:EquipmentCapability a owl:Class ; rdfs:subClassOf mfg:OperationsCapability .
+mfg:MaterialCapability a owl:Class ; rdfs:subClassOf mfg:OperationsCapability .
+mfg:PersonnelCapability a owl:Class ; rdfs:subClassOf mfg:OperationsCapability .
+mfg:PhysicalAssetCapability a owl:Class ; rdfs:subClassOf mfg:OperationsCapability .
+mfg:ProcessSegmentCapability a owl:Class ; rdfs:subClassOf mfg:OperationsCapability .
+mfg:OperationsSegmentCapability a owl:Class ; rdfs:subClassOf mfg:OperationsCapability .
+
+# Operations planning and scheduling.
+mfg:OperationsSchedule a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:OperationsRequest a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+mfg:EquipmentRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+mfg:PersonnelRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+mfg:PhysicalAssetRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+mfg:RequestedSegmentResponse a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Execution/performance feedback.
+mfg:OperationsPerformance a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:OperationsResponse a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:SegmentResponse a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Operations event and record model.
+mfg:OperationsEvent a owl:Class ; rdfs:subClassOf cepio:Event .
+mfg:OperationsEventClass a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:OperationsEventDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:OperationsEventRecord a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:OperationsEventRecordEntry a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:OperationsRecord a owl:Class ; rdfs:subClassOf cepio:Document .
+
+# Test/quality model.
+mfg:OperationsTestRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+mfg:TestSpecification a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:TestSpecificationCriteria a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:TestResult a owl:Class ; rdfs:subClassOf cepio:Measurement .
+mfg:PropertyMeasurement a owl:Class ; rdfs:subClassOf cepio:Measurement .
+mfg:EvaluatedProperty a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:ResourceActual a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:TestableObject a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Part 4 work model.
+mfg:WorkDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:WorkMaster a owl:Class ; rdfs:subClassOf mfg:WorkDefinition .
+mfg:WorkDirective a owl:Class ; rdfs:subClassOf mfg:WorkDefinition .
+mfg:WorkCapability a owl:Class ; rdfs:subClassOf mfg:OperationsCapability .
+mfg:WorkMasterCapability a owl:Class ; rdfs:subClassOf mfg:WorkCapability .
+mfg:WorkSchedule a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkRequest a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+mfg:JobList a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:JobOrder a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+mfg:JobOrderParameter a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkPerformance a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkResponse a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:JobResponse a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:JobResponseData a owl:Class ; rdfs:subClassOf cepio:Measurement .
+mfg:JobResponseList a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkAlert a owl:Class ; rdfs:subClassOf cepio:Event .
+mfg:WorkAlertDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:WorkCalendar a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkCalendarDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:WorkCalendarDefinitionEntry a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkCalendarEntry a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkRecord a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:ResourceRelationship a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkflowSpecification a owl:Class ; rdfs:subClassOf cepio:Document .
+
+# Canonical relationships used to connect manufacturing semantics into CEPIO.
+mfg:containsScope a owl:ObjectProperty ; rdfs:domain mfg:HierarchyScope ; rdfs:range mfg:HierarchyScope .
+mfg:scopeForAsset a owl:ObjectProperty ; rdfs:domain mfg:HierarchyScope ; rdfs:range cepio:Asset .
+mfg:classifiedAsEquipment a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range mfg:EquipmentClass .
+mfg:classifiedAsPhysicalAsset a owl:ObjectProperty ; rdfs:domain cepio:PhysicalAsset ; rdfs:range mfg:PhysicalAssetClass .
+mfg:materialDefinedBy a owl:ObjectProperty ; rdfs:domain mfg:Material ; rdfs:range mfg:MaterialDefinition .
+mfg:materialClassifiedAs a owl:ObjectProperty ; rdfs:domain mfg:Material ; rdfs:range mfg:MaterialClass .
+mfg:lotContainsSublot a owl:ObjectProperty ; rdfs:domain mfg:MaterialLot ; rdfs:range mfg:MaterialSublot .
+
+mfg:definitionHasSegment a owl:ObjectProperty ; rdfs:domain mfg:OperationsDefinition ; rdfs:range mfg:OperationsSegment .
+mfg:segmentDependsOn a owl:ObjectProperty ; rdfs:domain mfg:OperationsSegment ; rdfs:range mfg:OperationsSegment .
+mfg:definitionHasMaterialBill a owl:ObjectProperty ; rdfs:domain mfg:OperationsDefinition ; rdfs:range mfg:OperationsMaterialBill .
+mfg:materialBillHasItem a owl:ObjectProperty ; rdfs:domain mfg:OperationsMaterialBill ; rdfs:range mfg:OperationsMaterialBillItem .
+mfg:capabilityForAsset a owl:ObjectProperty ; rdfs:domain mfg:OperationsCapability ; rdfs:range cepio:Asset .
+mfg:capabilityForProcess a owl:ObjectProperty ; rdfs:domain mfg:OperationsCapability ; rdfs:range cepio:Process .
+
+mfg:scheduleHasRequest a owl:ObjectProperty ; rdfs:domain mfg:OperationsSchedule ; rdfs:range mfg:OperationsRequest .
+mfg:requestUsesDefinition a owl:ObjectProperty ; rdfs:domain mfg:OperationsRequest ; rdfs:range mfg:OperationsDefinition .
+mfg:requestRequiresEquipment a owl:ObjectProperty ; rdfs:domain mfg:OperationsRequest ; rdfs:range mfg:EquipmentRequirement .
+mfg:requestRequiresPersonnel a owl:ObjectProperty ; rdfs:domain mfg:OperationsRequest ; rdfs:range mfg:PersonnelRequirement .
+mfg:requestRequiresPhysicalAsset a owl:ObjectProperty ; rdfs:domain mfg:OperationsRequest ; rdfs:range mfg:PhysicalAssetRequirement .
+mfg:requestRequiresMaterial a owl:ObjectProperty ; rdfs:domain mfg:OperationsRequest ; rdfs:range supply:MaterialRequirement .
+mfg:responseForRequest a owl:ObjectProperty ; rdfs:domain mfg:OperationsResponse ; rdfs:range mfg:OperationsRequest .
+
+mfg:workScheduleHasRequest a owl:ObjectProperty ; rdfs:domain mfg:WorkSchedule ; rdfs:range mfg:WorkRequest .
+mfg:workRequestHasJobOrder a owl:ObjectProperty ; rdfs:domain mfg:WorkRequest ; rdfs:range mfg:JobOrder .
+mfg:jobOrderUsesWorkMaster a owl:ObjectProperty ; rdfs:domain mfg:JobOrder ; rdfs:range mfg:WorkMaster .
+mfg:workResponseForRequest a owl:ObjectProperty ; rdfs:domain mfg:WorkResponse ; rdfs:range mfg:WorkRequest .
+mfg:jobResponseForOrder a owl:ObjectProperty ; rdfs:domain mfg:JobResponse ; rdfs:range mfg:JobOrder .
+mfg:workItemScheduledBy a owl:ObjectProperty ; rdfs:domain cepio:WorkItem ; rdfs:range mfg:WorkSchedule .
+
+mfg:eventDefinedBy a owl:ObjectProperty ; rdfs:domain mfg:OperationsEvent ; rdfs:range mfg:OperationsEventDefinition .
+mfg:eventRecordedIn a owl:ObjectProperty ; rdfs:domain mfg:OperationsEvent ; rdfs:range mfg:OperationsEventRecord .
+mfg:testUsesSpecification a owl:ObjectProperty ; rdfs:domain mfg:OperationsTestRequirement ; rdfs:range mfg:TestSpecification .
+mfg:testProducesResult a owl:ObjectProperty ; rdfs:domain mfg:OperationsTestRequirement ; rdfs:range mfg:TestResult .
+mfg:alertDefinedBy a owl:ObjectProperty ; rdfs:domain mfg:WorkAlert ; rdfs:range mfg:WorkAlertDefinition .
+mfg:calendarHasEntry a owl:ObjectProperty ; rdfs:domain mfg:WorkCalendar ; rdfs:range mfg:WorkCalendarEntry .
