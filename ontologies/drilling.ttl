@@ -1,0 +1,26 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix asset: <https://cepio.org/ontology/asset#> .
+@prefix energy: <https://cepio.org/ontology/energy#> .
+@prefix drill: <https://cepio.org/ontology/drilling#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+drill:FleetUnit a owl:Class ; rdfs:subClassOf ind:Facility .
+drill:OperatingRig a owl:Class ; rdfs:subClassOf drill:FleetUnit .
+drill:ConstructionRig a owl:Class ; rdfs:subClassOf drill:FleetUnit .
+drill:RigSystem a owl:Class ; rdfs:subClassOf asset:AssetSystem .
+drill:DrillingEquipment a owl:Class ; rdfs:subClassOf ind:Equipment .
+drill:WellContext a owl:Class ; rdfs:subClassOf cepio:Entity .
+drill:DrillingCampaign a owl:Class ; rdfs:subClassOf cepio:Activity .
+drill:RigOperationalEvent a owl:Class ; rdfs:subClassOf cepio:Event .
+drill:DrillingContract a owl:Class ; rdfs:subClassOf cepio:Contract .
+drill:BareboatCharter a owl:Class ; rdfs:subClassOf cepio:Contract .
+
+drill:hasRigSystem a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range drill:RigSystem .
+drill:hasRigEquipment a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range ind:Equipment .
+drill:workingOnWell a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range energy:Well .
+drill:hasWellContext a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range drill:WellContext .
+drill:assignedContract a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range cepio:Contract .
+drill:eventOnRig a owl:ObjectProperty ; rdfs:domain drill:RigOperationalEvent ; rdfs:range drill:OperatingRig .
+drill:campaignUsesRig a owl:ObjectProperty ; rdfs:domain drill:DrillingCampaign ; rdfs:range drill:OperatingRig .

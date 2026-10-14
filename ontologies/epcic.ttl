@@ -1,0 +1,23 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix asset: <https://cepio.org/ontology/asset#> .
+@prefix epcic: <https://cepio.org/ontology/epcic#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+epcic:DesignTag a owl:Class ; rdfs:subClassOf cepio:DigitalAsset .
+epcic:DesignValue a owl:Class ; rdfs:subClassOf cepio:Measurement .
+epcic:CommissioningSystem a owl:Class ; rdfs:subClassOf asset:AssetSystem .
+epcic:EPCPackage a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+epcic:CommissioningActivity a owl:Class ; rdfs:subClassOf cepio:Activity .
+epcic:HandoverDocument a owl:Class ; rdfs:subClassOf cepio:Document .
+epcic:HandoverFinding a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+epcic:ProjectControlRecord a owl:Class ; rdfs:subClassOf cepio:Measurement .
+
+epcic:realizesDesignTag a owl:ObjectProperty ; rdfs:domain asset:InstalledAsset ; rdfs:range epcic:DesignTag .
+epcic:inCommissioningSystem a owl:ObjectProperty ; rdfs:domain epcic:DesignTag ; rdfs:range epcic:CommissioningSystem .
+epcic:inEPCPackage a owl:ObjectProperty ; rdfs:domain epcic:DesignTag ; rdfs:range epcic:EPCPackage .
+epcic:deliversDesignTag a owl:ObjectProperty ; rdfs:domain epcic:EPCPackage ; rdfs:range epcic:DesignTag .
+epcic:hasDesignValue a owl:ObjectProperty ; rdfs:domain epcic:DesignTag ; rdfs:range epcic:DesignValue .
+epcic:hasHandoverDocument a owl:ObjectProperty ; rdfs:domain epcic:DesignTag ; rdfs:range epcic:HandoverDocument .
+epcic:hasHandoverFinding a owl:ObjectProperty ; rdfs:domain epcic:DesignTag ; rdfs:range epcic:HandoverFinding .
+epcic:commissionsSystem a owl:ObjectProperty ; rdfs:domain epcic:CommissioningActivity ; rdfs:range epcic:CommissioningSystem .
