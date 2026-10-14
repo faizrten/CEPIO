@@ -7,11 +7,12 @@ from .contract_runtime import ContractAwareCEPIORuntime
 from .functions import AssetRiskInput, MarginImpactInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_loss
 from .modules import ModuleCatalogue
 from .policy import RolePolicyEngine
+from .projection import InMemoryProjectionRepository, ProjectionEngine, SQLiteProjectionRepository
 from .property_registry import PropertyRegistry
 from .provenance import InMemoryProvenanceRepository, SQLiteProvenanceRepository
 from .registry import TypeRegistry
-from .repositories import InMemoryRepository, SQLiteRepository
 from .runtime import CEPIORuntime
+from .temporal import TemporalInMemoryRepository, TemporalSQLiteRepository
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -23,7 +24,7 @@ def build_runtime(
     validate_properties: bool = True,
     strict_properties: bool = False,
 ) -> CEPIORuntime:
-    repo = SQLiteRepository(sqlite_path) if sqlite_path is not None else InMemoryRepository()
+    repo = TemporalSQLiteRepository(sqlite_path) if sqlite_path is not None else TemporalInMemoryRepository()
     registry = TypeRegistry.from_ontology_dir(ROOT / "ontologies") if validate_types else None
 
     property_registry = None
@@ -59,3 +60,16 @@ def build_runtime(
     runtime.register_function("calculateAssetRisk", calculate_asset_risk, input_model=AssetRiskInput, output_type=float)
     runtime.register_function("calculateMarginImpact", calculate_margin_impact, input_model=MarginImpactInput, output_type=float)
     return runtime
+
+
+def build_projection_engine(runtime: CEPIORuntime, *, sqlite_path: str | Path | None = None) -> ProjectionEngine:
+    checkpoint_repository = (
+        SQLiteProjectionRepository(sqlite_path)
+        if sqlite_path is not None
+        else InMemoryProjectionRepository()
+    )
+    return ProjectionEngine(
+        runtime.object_repository,
+        runtime.event_repository,
+        checkpoint_repository,
+    )
