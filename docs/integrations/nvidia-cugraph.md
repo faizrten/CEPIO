@@ -38,12 +38,17 @@ export CEPIO_GRAPH_BACKEND=cugraph
 
 CEPIO does not install CUDA/RAPIDS packages as a core dependency because CPU CI, developer laptops, App Service profiles, and non-GPU deployments must remain supported.
 
-Follow the RAPIDS install selector for the target CUDA/Python combination. Typical stable pip installation uses the NVIDIA Python package index, for example:
+Follow the RAPIDS install selector for the target CUDA/Python combination. The repository includes ready-to-use NVIDIA package profiles:
 
 ```bash
-# Example for a CUDA 12 deployment; verify the current RAPIDS compatibility matrix first.
-python -m pip install nx-cugraph-cu12 --extra-index-url https://pypi.nvidia.com
+# CUDA 12 profile
+python -m pip install -r deploy/nvidia/requirements-cu12.txt
+
+# CUDA 13 profile
+python -m pip install -r deploy/nvidia/requirements-cu13.txt
 ```
+
+Those requirement files use NVIDIA's Python package index and install the corresponding `nx-cugraph` backend. Verify the current RAPIDS compatibility matrix for the target Python, CUDA, Linux, driver, and GPU combination before building a production image.
 
 The current `nx-cugraph` project supports NetworkX backend dispatch. CEPIO uses that contract rather than importing cuGraph-specific graph types into the CEPIO kernel.
 
