@@ -1,0 +1,7 @@
+schema_version: '1'
+accepted_contract:
+  ref: f29c5b43dcb94a997c7ab201dd64e4849ce721d2
+  label: v0.4-p0-complete-contract
+  manifest: ontology-modules.yaml
+  accepted_at: '2026-10-14'
+migrations_dir: compatibility/migrations
