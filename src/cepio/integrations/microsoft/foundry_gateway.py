@@ -11,6 +11,15 @@ from ...model import ActionRequest, ActionResult, ObjectRef, OntologyObject, Pol
 from ...query import ObjectQuery, ObjectQueryResult
 from ...runtime import AuthorizationError, CEPIORuntime
 
+AuthMode = Literal[
+    "agentic-identity",
+    "project-managed-identity",
+    "oauth2",
+    "user-entra-token",
+    "development",
+]
+PrincipalType = Literal["user", "agent", "service"]
+
 
 class ActorContext(BaseModel):
     """Authenticated principal context injected by the hosting/authentication layer.
@@ -21,14 +30,8 @@ class ActorContext(BaseModel):
 
     subject_id: str
     roles: set[str] = Field(default_factory=set)
-    principal_type: Literal["user", "agent", "service"] = "agent"
-    auth_mode: Literal[
-        "agentic-identity",
-        "project-managed-identity",
-        "oauth2",
-        "user-entra-token",
-        "development",
-    ] = "development"
+    principal_type: PrincipalType = "agent"
+    auth_mode: AuthMode = "development"
     tenant_id: str | None = None
     client_id: str | None = None
 
@@ -89,8 +92,8 @@ class EntraClaimsMapper:
         self,
         claims: dict[str, Any],
         *,
-        principal_type: Literal["user", "agent", "service"],
-        auth_mode: ActorContext.__annotations__["auth_mode"],  # type: ignore[valid-type]
+        principal_type: PrincipalType,
+        auth_mode: AuthMode,
     ) -> ActorContext:
         subject = claims.get("oid") or claims.get("sub")
         if not subject:
@@ -155,17 +158,24 @@ class CEPIOMCPGateway:
 
     def query_objects(self, query: ObjectQuery) -> ObjectQueryResult:
         actor = self._actor()
+        if query.object_type is None:
+            raise ValueError("Agent-facing CEPIO queries require an explicit object_type")
+        if not self.runtime.policy_engine.can_read_type(actor.roles, query.object_type):
+            raise AuthorizationError(
+                f"Actor {actor.subject_id} is not authorized to query object type {query.object_type}"
+            )
         method = getattr(self.runtime, "query_objects", None)
         if method is None:
             raise RuntimeError("Configured CEPIO runtime does not expose ObjectQuery")
         raw = method(query)
-        visible: list[OntologyObject] = []
-        for obj in raw.items:
-            if self.runtime.policy_engine.can_read_type(actor.roles, obj.type):
-                visible.append(self.runtime.policy_engine.filter_properties(actor.roles, obj))
+        visible = [
+            self.runtime.policy_engine.filter_properties(actor.roles, obj)
+            for obj in raw.items
+            if self.runtime.policy_engine.can_read_type(actor.roles, obj.type)
+        ]
         return ObjectQueryResult(
             items=visible,
-            total=len(visible),
+            total=raw.total,
             offset=raw.offset,
             limit=raw.limit,
         )
