@@ -1,15 +1,16 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
-from cepio.model import OntologyObject
+from cepio.model import OntologyObject, Relationship
 from cepio.property_registry import PropertyRegistry, UnknownPropertyError
 from cepio.provenance import PropertyProvenance, ProvenanceRepository, explain_property
 from cepio.runtime import CEPIORuntime
 
 
 class ContractAwareCEPIORuntime(CEPIORuntime):
-    """CEPIO runtime with IRI-first datatype-property semantics.
+    """CEPIO runtime with IRI-first datatype-property and temporal semantics.
 
     Existing v0.2 payloads may still contain legacy/unregistered property keys while
     CEPIO migrates. Canonical property APIs always resolve through PropertyRegistry.
@@ -49,7 +50,6 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
         obj = self.get_object(object_id)
         if definition.iri in obj.properties:
             return obj.properties[definition.iri]
-        # Transitional compatibility for objects stored before canonicalization.
         for alias in (definition.qname, definition.local_name):
             if alias in obj.properties:
                 return obj.properties[alias]
@@ -96,3 +96,57 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
             self.property_registry,
             self.provenance_repository,
         )
+
+    def get_object_at(self, object_id: str, transaction_time: datetime) -> OntologyObject:
+        method = getattr(self.object_repository, "get_object_at", None)
+        if method is None:
+            raise RuntimeError("Configured repository does not support temporal object history")
+        obj = method(object_id, transaction_time)
+        if obj is None:
+            raise KeyError(f"No CEPIO object {object_id} existed at transaction time {transaction_time.isoformat()}")
+        return obj
+
+    def get_object_valid_at(
+        self,
+        object_id: str,
+        valid_time: datetime,
+        *,
+        as_of_transaction: datetime | None = None,
+    ) -> OntologyObject:
+        method = getattr(self.object_repository, "get_object_valid_at", None)
+        if method is None:
+            raise RuntimeError("Configured repository does not support valid-time object history")
+        obj = method(object_id, valid_time, as_of_transaction=as_of_transaction)
+        if obj is None:
+            raise KeyError(f"No CEPIO object {object_id} was valid at {valid_time.isoformat()}")
+        return obj
+
+    def relationships_at(
+        self,
+        object_id: str,
+        valid_time: datetime,
+        *,
+        direction: str = "out",
+        as_of_transaction: datetime | None = None,
+    ) -> list[Relationship]:
+        method = getattr(self.object_repository, "relationships_at", None)
+        if method is None:
+            raise RuntimeError("Configured repository does not support temporal relationship history")
+        return method(
+            object_id,
+            valid_time,
+            direction=direction,
+            as_of_transaction=as_of_transaction,
+        )
+
+    def object_history(self, object_id: str):
+        method = getattr(self.object_repository, "object_history", None)
+        if method is None:
+            raise RuntimeError("Configured repository does not support object history")
+        return method(object_id)
+
+    def relationship_history(self, relationship_id: str):
+        method = getattr(self.object_repository, "relationship_history", None)
+        if method is None:
+            raise RuntimeError("Configured repository does not support relationship history")
+        return method(relationship_id)
