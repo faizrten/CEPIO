@@ -14,8 +14,9 @@ examples/               Executable examples/reference scenarios
 actions/                Action definitions/contracts
 integrations/           Integration implementation assets
 deploy/                  Deployment assets
- deployments/            Platform deployment contracts
+deployments/             Platform deployment contracts
 docs/                    Architecture/technical documentation
+docs/wiki/               Reader-oriented explanatory wiki
 compatibility/           Semantic compatibility baselines/contracts
 policies/                Policy-related assets
 ```
@@ -29,6 +30,46 @@ make validate
 ```
 
 The validation path should be treated as part of the semantic product, not only code quality.
+
+## Documentation is part of the definition of done
+
+A material CEPIO capability change is incomplete until the corresponding documentation is updated in the **same pull request**.
+
+Changes that normally require documentation updates include:
+
+- ontology modules, classes, properties, relationships and profiles;
+- REST API, Python SDK, CLI, MCP tools and query behavior;
+- runtime, persistence, temporal/provenance, graph and policy behavior;
+- functions, decisions, actions and authorization semantics;
+- Microsoft/NVIDIA integrations and industrial source adapters;
+- deployment, security, observability and governance;
+- migration/versioning/compatibility contracts;
+- standards federation and supported mappings;
+- examples, reference scenarios and applications;
+- release status and roadmap milestones.
+
+CEPIO documentation has two complementary layers:
+
+1. **Authoritative technical contracts** — ontology files, code, mappings, SHACL shapes and focused technical docs.
+2. **`docs/wiki/`** — the navigable explanatory layer for developers, architects and users.
+
+Both must remain consistent.
+
+When no documentation update is necessary, the pull request must explicitly select **No documentation impact** and explain why. The repository pull-request template requires this declaration.
+
+### PR definition-of-done checklist
+
+```text
+[ ] implementation is tested
+[ ] semantic validation passes where applicable
+[ ] compatibility is preserved or migration is declared
+[ ] authorization boundaries remain intact
+[ ] examples/reference scenarios are updated where needed
+[ ] relevant focused technical docs are updated
+[ ] relevant docs/wiki page(s) are updated
+[ ] README/docs navigation is updated when discoverability changes
+[ ] roadmap/release status reflects reality when implementation status changes
+```
 
 ## Adding a canonical ontology concept
 
