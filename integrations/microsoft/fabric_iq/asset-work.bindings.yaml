@@ -1,0 +1,46 @@
+schema_version: '0.1'
+entity_bindings:
+  - entity_iri: https://cepio.org/ontology/industrial#Equipment
+    mode: static
+    source_type: lakehouse
+    workspace_id: FABRIC_WORKSPACE_ID
+    item_id: ASSET_LAKEHOUSE_ITEM_ID
+    source_name: asset-master
+    schema_name: dbo
+    table_name: equipment
+    entity_key:
+      - https://cepio.org/ontology/asset#assetTag
+    property_map:
+      https://cepio.org/ontology/asset#assetTag: AssetTag
+      https://cepio.org/ontology/asset#criticality: Criticality
+      https://cepio.org/ontology/asset#manufacturer: Manufacturer
+      https://cepio.org/ontology/asset#serialNumber: SerialNumber
+  - entity_iri: https://cepio.org/ontology/industrial#WorkOrder
+    mode: static
+    source_type: warehouse
+    workspace_id: FABRIC_WORKSPACE_ID
+    item_id: MAINTENANCE_WAREHOUSE_ITEM_ID
+    source_name: maintenance-warehouse
+    schema_name: dbo
+    table_name: work_orders
+    entity_key:
+      - https://cepio.org/ontology/core#sourceId
+    property_map:
+      https://cepio.org/ontology/core#sourceId: WorkOrderId
+      https://cepio.org/ontology/core#status: Status
+      https://cepio.org/ontology/core#priority: Priority
+      https://cepio.org/ontology/work#orderType: OrderType
+      https://cepio.org/ontology/work#scheduledStart: ScheduledStart
+      https://cepio.org/ontology/work#scheduledEnd: ScheduledEnd
+relationship_bindings:
+  - relationship_iri: https://cepio.org/ontology/industrial#hasWorkOrder
+    source_type: lakehouse
+    workspace_id: FABRIC_WORKSPACE_ID
+    item_id: ASSET_LAKEHOUSE_ITEM_ID
+    source_name: asset-work-relations
+    schema_name: dbo
+    table_name: equipment_work_orders
+    source_key_map:
+      https://cepio.org/ontology/asset#assetTag: AssetTag
+    target_key_map:
+      https://cepio.org/ontology/core#sourceId: WorkOrderId
