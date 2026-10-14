@@ -2,6 +2,7 @@ policies:
   operator:
     read_types: [Equipment, ProcessUnit, Measurement, KPI, Event]
     actions: []
+    functions: [calculateProductionLoss]
   maintenance_engineer:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI]
     read_properties:
@@ -9,23 +10,29 @@ policies:
       WorkOrder: "*"
       Inspection: "*"
     actions: [CreateWorkOrder, CreateInspection]
+    functions: [calculateProductionLoss, calculateAssetRisk]
   maintenance_planner:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI]
     actions: [CreateWorkOrder]
+    functions: [calculateProductionLoss]
   reliability_engineer:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
     read_properties:
       Equipment: "*"
     actions: [CreateInspection, EscalateRisk]
+    functions: [calculateProductionLoss, calculateAssetRisk, calculateMarginImpact]
   operations_supervisor:
     read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
     actions: [EscalateRisk]
+    functions: [calculateProductionLoss, calculateMarginImpact]
   maintenance_manager:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
     actions: [ApproveMaintenanceDeferral]
+    functions: [calculateProductionLoss, calculateAssetRisk, calculateMarginImpact]
   operations_manager:
     read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
     actions: [ApproveMaintenanceDeferral]
+    functions: [calculateProductionLoss, calculateAssetRisk, calculateMarginImpact]
   ai_agent_recommender:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
     read_properties:
@@ -33,7 +40,9 @@ policies:
       WorkOrder: [status, priority]
     actions: []
     can_recommend: [CreateWorkOrder, CreateInspection, EscalateRisk]
+    functions: [calculateProductionLoss, calculateAssetRisk, calculateMarginImpact]
   autonomous_control_agent:
     read_types: [Equipment, Event, State, KPI]
     actions: []
+    functions: []
     note: "No direct control action is permitted in v0.2. Fail closed."
