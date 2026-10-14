@@ -151,7 +151,7 @@ class QueryEngine:
         if registry is not None:
             try:
                 definition = registry.resolve(name)
-            except ValueError:
+            except (KeyError, ValueError):
                 definition = None
             if definition is not None:
                 for candidate in (definition.iri, definition.qname, definition.local_name):
