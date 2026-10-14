@@ -1,0 +1,169 @@
+schema_version: '1.0'
+source:
+  name: Digital Twin Consortium ManufacturingOntologies
+  repository: https://github.com/digitaltwinconsortium/ManufacturingOntologies
+  commit: f6b45fc83c922177fa7590c530339c4876b677c6
+  license: CC-BY-4.0
+  license_url: https://creativecommons.org/licenses/by/4.0/
+  standard: ISA-95 / IEC 62264
+  dtdl_root: Ontologies/ISA95
+  wot_root: Ontologies/ISA95-WoT
+  identifier_namespace: 'dtmi:digitaltwins:isa95:'
+
+federation_policy:
+  canonical_authority: CEPIO
+  source_representations: [DTDL, W3C-WoT-ThingModel]
+  vendor_source_files: false
+  property_object_rule:
+    match_suffix: Property
+    disposition: canonical_property_contract
+    rationale: >-
+      ISA-95 generated *Property interfaces are source-schema modeling mechanics.
+      CEPIO normalizes their values into canonical datatype properties, observations,
+      relationships and provenance rather than promoting each *Property model as a
+      business object type.
+  default_disposition: review_before_promotion
+
+families:
+  part2:
+    - Material
+    - OperationalLocation
+    - OperationsCapability
+    - OperationsDefinition
+    - OperationsEvent
+    - OperationsPerformance
+    - OperationsRecord
+    - OperationsSchedule
+    - OperationsTest
+    - Personnel
+    - PhysicalAssetAndEquipment
+    - ProcessSegment
+  part4:
+    - ResourceRelationship
+    - WorkAlert
+    - WorkCalendar
+    - WorkCapability
+    - WorkDefinition
+    - WorkPerformance
+    - WorkRecord
+    - WorkSchedule
+    - WorkflowSpecification
+
+mappings:
+  # Common + hierarchy
+  - {source_concept: BaseModel, source_id: 'dtmi:digitaltwins:isa95:BaseModel;1', canonical_iri: 'https://cepio.org/ontology/core#Entity', mapping_kind: generalization}
+  - {source_concept: HierarchyScope, source_id: 'dtmi:digitaltwins:isa95:HierarchyScope;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#HierarchyScope', mapping_kind: normalized}
+
+  # Physical assets and people reuse CEPIO industrial-common semantics.
+  - {source_concept: Equipment, source_id: 'dtmi:digitaltwins:isa95:Equipment;1', canonical_iri: 'https://cepio.org/ontology/industrial#Equipment', mapping_kind: equivalent}
+  - {source_concept: EquipmentClass, source_id: 'dtmi:digitaltwins:isa95:EquipmentClass;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#EquipmentClass', mapping_kind: normalized}
+  - {source_concept: PhysicalAsset, source_id: 'dtmi:digitaltwins:isa95:PhysicalAsset;1', canonical_iri: 'https://cepio.org/ontology/core#PhysicalAsset', mapping_kind: equivalent}
+  - {source_concept: PhysicalAssetClass, source_id: 'dtmi:digitaltwins:isa95:PhysicalAssetClass;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PhysicalAssetClass', mapping_kind: normalized}
+  - {source_concept: EquipmentAssetMapping, source_id: 'dtmi:digitaltwins:isa95:EquipmentAssetMapping;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#EquipmentAssetMapping', mapping_kind: normalized}
+  - {source_concept: Person, source_id: 'dtmi:digitaltwins:isa95:Person;1', canonical_iri: 'https://cepio.org/ontology/core#Person', mapping_kind: equivalent}
+  - {source_concept: PersonnelClass, source_id: 'dtmi:digitaltwins:isa95:PersonnelClass;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PersonnelClass', mapping_kind: normalized}
+  - {source_concept: OperationalLocation, source_id: 'dtmi:digitaltwins:isa95:OperationalLocation;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationalLocation', mapping_kind: normalized}
+  - {source_concept: OperationalLocationClass, source_id: 'dtmi:digitaltwins:isa95:OperationalLocationClass;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationalLocationClass', mapping_kind: normalized}
+
+  # Material model
+  - {source_concept: MaterialClass, source_id: 'dtmi:digitaltwins:isa95:MaterialClass;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#MaterialClass', mapping_kind: normalized}
+  - {source_concept: MaterialDefinition, source_id: 'dtmi:digitaltwins:isa95:MaterialDefinition;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#MaterialDefinition', mapping_kind: normalized}
+  - {source_concept: MaterialLot, source_id: 'dtmi:digitaltwins:isa95:MaterialLot;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#MaterialLot', mapping_kind: normalized}
+  - {source_concept: MaterialSublot, source_id: 'dtmi:digitaltwins:isa95:MaterialSublot;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#MaterialSublot', mapping_kind: normalized}
+
+  # Operations capability
+  - {source_concept: OperationsCapability, source_id: 'dtmi:digitaltwins:isa95:OperationsCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsCapability', mapping_kind: normalized}
+  - {source_concept: EquipmentCapability, source_id: 'dtmi:digitaltwins:isa95:EquipmentCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#EquipmentCapability', mapping_kind: normalized}
+  - {source_concept: MaterialCapability, source_id: 'dtmi:digitaltwins:isa95:MaterialCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#MaterialCapability', mapping_kind: normalized}
+  - {source_concept: PersonnelCapability, source_id: 'dtmi:digitaltwins:isa95:PersonnelCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PersonnelCapability', mapping_kind: normalized}
+  - {source_concept: PhysicalAssetCapability, source_id: 'dtmi:digitaltwins:isa95:PhysicalAssetCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PhysicalAssetCapability', mapping_kind: normalized}
+  - {source_concept: ProcessSegmentCapability, source_id: 'dtmi:digitaltwins:isa95:ProcessSegmentCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#ProcessSegmentCapability', mapping_kind: normalized}
+  - {source_concept: OperationsSegmentCapability, source_id: 'dtmi:digitaltwins:isa95:OperationsSegmentCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsSegmentCapability', mapping_kind: normalized}
+
+  # Operations definition
+  - {source_concept: ProcessSegment, source_id: 'dtmi:digitaltwins:isa95:ProcessSegment;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#ProcessSegment', mapping_kind: normalized}
+  - {source_concept: OperationsSegment, source_id: 'dtmi:digitaltwins:isa95:OperationsSegment;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsSegment', mapping_kind: normalized}
+  - {source_concept: OperationsSegmentDependency, source_id: 'dtmi:digitaltwins:isa95:OperationsSegmentDependency;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsSegmentDependency', mapping_kind: normalized}
+  - {source_concept: OperationsDefinition, source_id: 'dtmi:digitaltwins:isa95:OperationsDefinition;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsDefinition', mapping_kind: normalized}
+  - {source_concept: EquipmentSpecification, source_id: 'dtmi:digitaltwins:isa95:EquipmentSpecification;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#EquipmentSpecification', mapping_kind: normalized}
+  - {source_concept: MaterialSpecification, source_id: 'dtmi:digitaltwins:isa95:MaterialSpecification;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#MaterialSpecification', mapping_kind: normalized}
+  - {source_concept: PersonnelSpecification, source_id: 'dtmi:digitaltwins:isa95:PersonnelSpecification;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PersonnelSpecification', mapping_kind: normalized}
+  - {source_concept: ParameterSpecification, source_id: 'dtmi:digitaltwins:isa95:ParameterSpecification;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#ParameterSpecification', mapping_kind: normalized}
+  - {source_concept: OperationsMaterialBill, source_id: 'dtmi:digitaltwins:isa95:OperationsMaterialBill;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsMaterialBill', mapping_kind: normalized}
+  - {source_concept: OperationsMaterialBillItem, source_id: 'dtmi:digitaltwins:isa95:OperationsMaterialBillItem;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsMaterialBillItem', mapping_kind: normalized}
+
+  # Operations schedule/request
+  - {source_concept: OperationsSchedule, source_id: 'dtmi:digitaltwins:isa95:OperationsSchedule;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsSchedule', mapping_kind: normalized}
+  - {source_concept: OperationsRequest, source_id: 'dtmi:digitaltwins:isa95:OperationsRequest;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsRequest', mapping_kind: normalized}
+  - {source_concept: EquipmentRequirement, source_id: 'dtmi:digitaltwins:isa95:EquipmentRequirement;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#EquipmentRequirement', mapping_kind: normalized}
+  - {source_concept: MaterialRequirement, source_id: 'dtmi:digitaltwins:isa95:MaterialRequirement;1', canonical_iri: 'https://cepio.org/ontology/supply#MaterialRequirement', mapping_kind: convergence}
+  - {source_concept: PersonnelRequirement, source_id: 'dtmi:digitaltwins:isa95:PersonnelRequirement;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PersonnelRequirement', mapping_kind: normalized}
+  - {source_concept: PhysicalAssetRequirement, source_id: 'dtmi:digitaltwins:isa95:PhysicalAssetRequirement;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PhysicalAssetRequirement', mapping_kind: normalized}
+  - {source_concept: RequestedSegmentResponse, source_id: 'dtmi:digitaltwins:isa95:RequestedSegmentResponse;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#RequestedSegmentResponse', mapping_kind: normalized}
+
+  # Operations performance/actuals
+  - {source_concept: OperationsPerformance, source_id: 'dtmi:digitaltwins:isa95:OperationsPerformance;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsPerformance', mapping_kind: normalized}
+  - {source_concept: OperationsResponse, source_id: 'dtmi:digitaltwins:isa95:OperationsResponse;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsResponse', mapping_kind: normalized}
+  - {source_concept: EquipmentActual, source_id: 'dtmi:digitaltwins:isa95:EquipmentActual;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#EquipmentActual', mapping_kind: normalized}
+  - {source_concept: MaterialActual, source_id: 'dtmi:digitaltwins:isa95:MaterialActual;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#MaterialActual', mapping_kind: normalized}
+  - {source_concept: PersonnelActual, source_id: 'dtmi:digitaltwins:isa95:PersonnelActual;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PersonnelActual', mapping_kind: normalized}
+  - {source_concept: PhysicalAssetActual, source_id: 'dtmi:digitaltwins:isa95:PhysicalAssetActual;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PhysicalAssetActual', mapping_kind: normalized}
+  - {source_concept: SegmentData, source_id: 'dtmi:digitaltwins:isa95:SegmentData;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#SegmentData', mapping_kind: normalized}
+
+  # Events and records
+  - {source_concept: OperationsEvent, source_id: 'dtmi:digitaltwins:isa95:OperationsEvent;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsEvent', mapping_kind: normalized}
+  - {source_concept: OperationsEventClass, source_id: 'dtmi:digitaltwins:isa95:OperationsEventClass;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsEventClass', mapping_kind: normalized}
+  - {source_concept: OperationsEventDefinition, source_id: 'dtmi:digitaltwins:isa95:OperationsEventDefinition;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsEventDefinition', mapping_kind: normalized}
+  - {source_concept: OperationsEventRecord, source_id: 'dtmi:digitaltwins:isa95:OperationsEventRecord;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsEventRecord', mapping_kind: normalized}
+  - {source_concept: OperationsEventRecordEntry, source_id: 'dtmi:digitaltwins:isa95:OperationsEventRecordEntry;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsEventRecordEntry', mapping_kind: normalized}
+  - {source_concept: OperationsRecordTemplate, source_id: 'dtmi:digitaltwins:isa95:OperationsRecordTemplate;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsRecordTemplate', mapping_kind: normalized}
+  - {source_concept: OperationsRecordEntryTemplate, source_id: 'dtmi:digitaltwins:isa95:OperationsRecordEntryTemplate;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsRecordEntryTemplate', mapping_kind: normalized}
+  - {source_concept: OperationsRecordSpecificationTemplate, source_id: 'dtmi:digitaltwins:isa95:OperationsRecordSpecificationTemplate;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsRecordSpecificationTemplate', mapping_kind: normalized}
+
+  # Quality/test
+  - {source_concept: OperationsTestRequirement, source_id: 'dtmi:digitaltwins:isa95:OperationsTestRequirement;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#OperationsTestRequirement', mapping_kind: normalized}
+  - {source_concept: TestSpecification, source_id: 'dtmi:digitaltwins:isa95:TestSpecification;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#TestSpecification', mapping_kind: normalized}
+  - {source_concept: TestSpecificationCriteria, source_id: 'dtmi:digitaltwins:isa95:TestSpecificationCriteria;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#TestSpecificationCriteria', mapping_kind: normalized}
+  - {source_concept: TestResult, source_id: 'dtmi:digitaltwins:isa95:TestResult;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#TestResult', mapping_kind: normalized}
+  - {source_concept: PropertyMeasurement, source_id: 'dtmi:digitaltwins:isa95:PropertyMeasurement;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#PropertyMeasurement', mapping_kind: normalized}
+  - {source_concept: EvaluatedProperty, source_id: 'dtmi:digitaltwins:isa95:EvaluatedProperty;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#EvaluatedProperty', mapping_kind: normalized}
+  - {source_concept: ResourceActual, source_id: 'dtmi:digitaltwins:isa95:ResourceActual;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#ResourceActual', mapping_kind: normalized}
+  - {source_concept: TestableObject, source_id: 'dtmi:digitaltwins:isa95:TestableObject;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#TestableObject', mapping_kind: normalized}
+
+  # Part 4 work definition/capability/schedule/performance
+  - {source_concept: WorkDefinition, source_id: 'dtmi:digitaltwins:isa95:WorkDefinition;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkDefinition', mapping_kind: normalized}
+  - {source_concept: WorkMaster, source_id: 'dtmi:digitaltwins:isa95:WorkMaster;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkMaster', mapping_kind: normalized}
+  - {source_concept: WorkDirective, source_id: 'dtmi:digitaltwins:isa95:WorkDirective;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkDirective', mapping_kind: normalized}
+  - {source_concept: WorkCapability, source_id: 'dtmi:digitaltwins:isa95:WorkCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkCapability', mapping_kind: normalized}
+  - {source_concept: WorkMasterCapability, source_id: 'dtmi:digitaltwins:isa95:WorkMasterCapability;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkMasterCapability', mapping_kind: normalized}
+  - {source_concept: WorkSchedule, source_id: 'dtmi:digitaltwins:isa95:WorkSchedule;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkSchedule', mapping_kind: normalized}
+  - {source_concept: WorkRequest, source_id: 'dtmi:digitaltwins:isa95:WorkRequest;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkRequest', mapping_kind: normalized}
+  - {source_concept: JobList, source_id: 'dtmi:digitaltwins:isa95:JobList;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#JobList', mapping_kind: normalized}
+  - {source_concept: JobOrder, source_id: 'dtmi:digitaltwins:isa95:JobOrder;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#JobOrder', mapping_kind: normalized}
+  - {source_concept: JobOrderParameter, source_id: 'dtmi:digitaltwins:isa95:JobOrderParameter;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#JobOrderParameter', mapping_kind: normalized}
+  - {source_concept: WorkPerformance, source_id: 'dtmi:digitaltwins:isa95:WorkPerformance;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkPerformance', mapping_kind: normalized}
+  - {source_concept: WorkResponse, source_id: 'dtmi:digitaltwins:isa95:WorkResponse;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkResponse', mapping_kind: normalized}
+  - {source_concept: JobResponse, source_id: 'dtmi:digitaltwins:isa95:JobResponse;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#JobResponse', mapping_kind: normalized}
+  - {source_concept: JobResponseData, source_id: 'dtmi:digitaltwins:isa95:JobResponseData;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#JobResponseData', mapping_kind: normalized}
+  - {source_concept: JobResponseList, source_id: 'dtmi:digitaltwins:isa95:JobResponseList;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#JobResponseList', mapping_kind: normalized}
+
+  # Part 4 alerts/calendars/records/workflow/resource networks
+  - {source_concept: WorkAlert, source_id: 'dtmi:digitaltwins:isa95:WorkAlert;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkAlert', mapping_kind: normalized}
+  - {source_concept: WorkAlertDefinition, source_id: 'dtmi:digitaltwins:isa95:WorkAlertDefinition;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkAlertDefinition', mapping_kind: normalized}
+  - {source_concept: WorkCalendar, source_id: 'dtmi:digitaltwins:isa95:WorkCalendar;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkCalendar', mapping_kind: normalized}
+  - {source_concept: WorkCalendarDefinition, source_id: 'dtmi:digitaltwins:isa95:WorkCalendarDefinition;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkCalendarDefinition', mapping_kind: normalized}
+  - {source_concept: WorkCalendarDefinitionEntry, source_id: 'dtmi:digitaltwins:isa95:WorkCalendarDefinitionEntry;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkCalendarDefinitionEntry', mapping_kind: normalized}
+  - {source_concept: WorkCalendarEntry, source_id: 'dtmi:digitaltwins:isa95:WorkCalendarEntry;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkCalendarEntry', mapping_kind: normalized}
+  - {source_concept: WorkRecord, source_id: 'dtmi:digitaltwins:isa95:WorkRecord;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkRecord', mapping_kind: normalized}
+  - {source_concept: WorkRecordEntry, source_id: 'dtmi:digitaltwins:isa95:WorkRecordEntry;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkRecordEntry', mapping_kind: normalized}
+  - {source_concept: WorkRecordSpecification, source_id: 'dtmi:digitaltwins:isa95:WorkRecordSpecification;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkRecordSpecification', mapping_kind: normalized}
+  - {source_concept: WorkflowSpecification, source_id: 'dtmi:digitaltwins:isa95:WorkflowSpecification;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkflowSpecification', mapping_kind: normalized}
+  - {source_concept: WorkflowSpecificationConnection, source_id: 'dtmi:digitaltwins:isa95:WorkflowSpecificationConnection;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkflowSpecificationConnection', mapping_kind: normalized}
+  - {source_concept: WorkflowSpecificationConnectionType, source_id: 'dtmi:digitaltwins:isa95:WorkflowSpecificationConnectionType;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkflowSpecificationConnectionType', mapping_kind: normalized}
+  - {source_concept: WorkflowSpecificationNode, source_id: 'dtmi:digitaltwins:isa95:WorkflowSpecificationNode;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkflowSpecificationNode', mapping_kind: normalized}
+  - {source_concept: WorkflowSpecificationNodeType, source_id: 'dtmi:digitaltwins:isa95:WorkflowSpecificationNodeType;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#WorkflowSpecificationNodeType', mapping_kind: normalized}
+  - {source_concept: ResourceRelationshipNetwork, source_id: 'dtmi:digitaltwins:isa95:ResourceRelationshipNetwork;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#ResourceRelationshipNetwork', mapping_kind: normalized}
+  - {source_concept: ResourceNetworkConnection, source_id: 'dtmi:digitaltwins:isa95:ResourceNetworkConnection;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#ResourceNetworkConnection', mapping_kind: normalized}
+  - {source_concept: ResourceNetworkConnectionType, source_id: 'dtmi:digitaltwins:isa95:ResourceNetworkConnectionType;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#ResourceNetworkConnectionType', mapping_kind: normalized}
+  - {source_concept: FromResourceReference, source_id: 'dtmi:digitaltwins:isa95:FromResourceReference;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#FromResourceReference', mapping_kind: normalized}
+  - {source_concept: ToResourceReference, source_id: 'dtmi:digitaltwins:isa95:ToResourceReference;1', canonical_iri: 'https://cepio.org/ontology/manufacturing#ToResourceReference', mapping_kind: normalized}
