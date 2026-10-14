@@ -4,6 +4,7 @@ from typing import Any
 
 import httpx
 
+from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import ActionRequest, ActionResult, OntologyObject, Relationship
 
 
@@ -32,6 +33,58 @@ class CEPIOClient:
         response = self._client.post("/relationships", json=rel.model_dump(mode="json"))
         response.raise_for_status()
         return Relationship.model_validate(response.json())
+
+    def graph_backend(self) -> GraphBackendInfo:
+        response = self._client.get("/graph/backend")
+        response.raise_for_status()
+        return GraphBackendInfo.model_validate(response.json())
+
+    def graph_centrality(
+        self,
+        algorithm: str = "pagerank",
+        *,
+        relationship_types: list[str] | None = None,
+        object_types: list[str] | None = None,
+        limit: int = 50,
+        sample_size: int | None = None,
+    ) -> CentralityResult:
+        params: list[tuple[str, str | int]] = [("algorithm", algorithm), ("limit", limit)]
+        if sample_size is not None:
+            params.append(("sample_size", sample_size))
+        params.extend(("relationship_type", value) for value in relationship_types or [])
+        params.extend(("object_type", value) for value in object_types or [])
+        response = self._client.get("/graph/centrality", params=params)
+        response.raise_for_status()
+        return CentralityResult.model_validate(response.json())
+
+    def graph_blast_radius(
+        self,
+        object_id: str,
+        *,
+        max_hops: int = 3,
+        direction: str = "out",
+        relationship_types: list[str] | None = None,
+        object_types: list[str] | None = None,
+    ) -> BlastRadiusResult:
+        params: list[tuple[str, str | int]] = [("max_hops", max_hops), ("direction", direction)]
+        params.extend(("relationship_type", value) for value in relationship_types or [])
+        params.extend(("object_type", value) for value in object_types or [])
+        response = self._client.get(f"/graph/blast-radius/{object_id}", params=params)
+        response.raise_for_status()
+        return BlastRadiusResult.model_validate(response.json())
+
+    def graph_communities(
+        self,
+        *,
+        relationship_types: list[str] | None = None,
+        object_types: list[str] | None = None,
+    ) -> CommunityResult:
+        params: list[tuple[str, str]] = []
+        params.extend(("relationship_type", value) for value in relationship_types or [])
+        params.extend(("object_type", value) for value in object_types or [])
+        response = self._client.get("/graph/communities", params=params)
+        response.raise_for_status()
+        return CommunityResult.model_validate(response.json())
 
     def execute_action(self, request: ActionRequest) -> ActionResult:
         response = self._client.post("/actions", json=request.model_dump(mode="json"))

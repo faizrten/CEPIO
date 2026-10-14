@@ -1,0 +1,2 @@
+--extra-index-url https://pypi.nvidia.com
+nx-cugraph-cu13
