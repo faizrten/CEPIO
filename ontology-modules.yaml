@@ -1,10 +1,13 @@
-schema_version: '1.0'
+schema_version: '1.1'
 architecture:
   foundation: [core, lifecycle, kinetic]
   industrial_common: [industrial, asset, work_management, reliability, hse, supply, performance, workforce, agentic_operations]
   domain: [energy, process_industry, epcic, drilling]
   enterprise: [enterprise, commercial]
   profiles: [SEO/SATORP, AD/ARO]
+contract_files:
+  - ontologies/canonical_properties.ttl
+property_contract: mappings/canonical_properties.yaml
 modules:
   - {id: core, namespace: 'https://cepio.org/ontology/core#', version: 0.2.0, file: ontologies/core.ttl, tier: foundation, stability: stable}
   - id: lifecycle
