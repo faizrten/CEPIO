@@ -1,0 +1,49 @@
+schema_version: '0.1'
+kind: cepio-foundry-mcp-registration
+name: CEPIO Industrial Operating Gateway
+server:
+  label: cepio
+  url: https://<cepio-mcp-host>/mcp
+  transport: streamable-http
+  authentication:
+    recommended: agentic-identity
+    alternatives: [project-managed-identity, oauth2]
+    audience: api://<cepio-mcp-app-registration>
+foundry:
+  connection_kind: remote-tool
+  toolbox:
+    recommended: true
+    versioning: managed-by-foundry
+  require_approval:
+    always: [cepio_execute_action]
+  enabled_tools:
+    - cepio_get_object
+    - cepio_query_objects
+    - cepio_get_state_at
+    - cepio_explain_property
+    - cepio_call_function
+    - cepio_recommend_action
+    - cepio_execute_action
+identity:
+  source: verified-microsoft-entra-claims
+  actor_arguments_in_tool_schema: false
+  role_mapping: deployment-specific
+  fail_closed_when_unmapped: true
+security_boundary:
+  exposed:
+    - CEPIO typed query contract
+    - CEPIO temporal state
+    - CEPIO property provenance
+    - policy-authorized CEPIO functions
+    - governed CEPIO recommendations and actions
+  never_exposed:
+    - object_repository
+    - Fabric data source credentials
+    - Fabric adapters
+    - SQL handles
+    - SAP/PI/P6 writeback clients
+    - raw policy bypass APIs
+notes:
+  - This file is a CEPIO deployment contract, not a Microsoft-importable Toolbox file format.
+  - Foundry connection/toolbox APIs can evolve independently of CEPIO canonical semantics.
+  - Foundry approval is defense-in-depth; CEPIO runtime authorization remains mandatory.
