@@ -1,0 +1,22 @@
+actions:
+  CreateWorkOrder:
+    target_interfaces: [MaintainableAsset]
+    allowed_roles: [maintenance_engineer, maintenance_planner]
+    risk: medium
+    side_effect: "Create a work order in the configured EAM adapter"
+  CreateInspection:
+    target_interfaces: [Inspectable]
+    allowed_roles: [maintenance_engineer, reliability_engineer]
+    risk: low
+    side_effect: "Create an inspection request"
+  EscalateRisk:
+    target_interfaces: [RiskBearing]
+    allowed_roles: [reliability_engineer, operations_supervisor]
+    risk: medium
+    side_effect: "Update risk status and notify configured workflow"
+  ApproveMaintenanceDeferral:
+    target_types: [WorkOrder]
+    allowed_roles: [maintenance_manager, operations_manager]
+    risk: high
+    requires_human_approval: true
+    side_effect: "Approve a governed maintenance deferral"

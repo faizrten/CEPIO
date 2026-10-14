@@ -1,0 +1,39 @@
+policies:
+  operator:
+    read_types: [Equipment, ProcessUnit, Measurement, KPI, Event]
+    actions: []
+  maintenance_engineer:
+    read_types: [Equipment, WorkOrder, Inspection, Event, KPI]
+    read_properties:
+      Equipment: "*"
+      WorkOrder: "*"
+      Inspection: "*"
+    actions: [CreateWorkOrder, CreateInspection]
+  maintenance_planner:
+    read_types: [Equipment, WorkOrder, Inspection, Event, KPI]
+    actions: [CreateWorkOrder]
+  reliability_engineer:
+    read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
+    read_properties:
+      Equipment: "*"
+    actions: [CreateInspection, EscalateRisk]
+  operations_supervisor:
+    read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
+    actions: [EscalateRisk]
+  maintenance_manager:
+    read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
+    actions: [ApproveMaintenanceDeferral]
+  operations_manager:
+    read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
+    actions: [ApproveMaintenanceDeferral]
+  ai_agent_recommender:
+    read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
+    read_properties:
+      Equipment: [criticality, operatingState, riskStatus]
+      WorkOrder: [status, priority]
+    actions: []
+    can_recommend: [CreateWorkOrder, CreateInspection, EscalateRisk]
+  autonomous_control_agent:
+    read_types: [Equipment, Event, State, KPI]
+    actions: []
+    note: "No direct control action is permitted in v0.2. Fail closed."

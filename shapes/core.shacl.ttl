@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix energy: <https://cepio.org/ontology/energy#> .
+@prefix ent: <https://cepio.org/ontology/enterprise#> .
+
+ind:CompressorShape a sh:NodeShape ;
+  sh:targetClass ind:Compressor ;
+  sh:property [
+    sh:path rdfs:label ;
+    sh:minCount 1 ;
+  ] .
+
+energy:RefineryShape a sh:NodeShape ;
+  sh:targetClass energy:Refinery ;
+  sh:property [
+    sh:path rdfs:label ;
+    sh:minCount 1 ;
+  ] .
+
+ent:PerformanceIndicatorShape a sh:NodeShape ;
+  sh:targetClass ent:PerformanceIndicator ;
+  sh:property [
+    sh:path rdfs:label ;
+    sh:minCount 1 ;
+  ] .
