@@ -1,0 +1,99 @@
+from __future__ import annotations
+
+from typing import Any
+
+from cepio.model import OntologyObject
+from cepio.property_registry import PropertyRegistry, UnknownPropertyError
+from cepio.provenance import PropertyProvenance, ProvenanceRepository, explain_property
+from cepio.runtime import CEPIORuntime
+
+
+class ContractAwareCEPIORuntime(CEPIORuntime):
+    """CEPIO runtime with IRI-first datatype-property semantics.
+
+    Existing v0.2 payloads may still contain legacy/unregistered property keys while
+    CEPIO migrates. Canonical property APIs always resolve through PropertyRegistry.
+    Set ``strict_properties=True`` to reject unregistered keys on object upsert.
+    """
+
+    def __init__(
+        self,
+        *args: Any,
+        property_registry: PropertyRegistry | None = None,
+        provenance_repository: ProvenanceRepository | None = None,
+        strict_properties: bool = False,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.property_registry = property_registry
+        self.provenance_repository = provenance_repository
+        self.strict_properties = strict_properties
+
+    def upsert_object(self, obj: OntologyObject, expected_version: int | None = None) -> OntologyObject:
+        if self.property_registry:
+            normalized: dict[str, Any] = {}
+            for key, value in obj.properties.items():
+                try:
+                    canonical = self.property_registry.resolve(key).iri
+                    normalized[canonical] = value
+                except UnknownPropertyError:
+                    if self.strict_properties:
+                        raise ValueError(f"Undeclared CEPIO datatype property: {key}")
+                    normalized[key] = value
+            obj = obj.model_copy(update={"properties": normalized})
+        return super().upsert_object(obj, expected_version=expected_version)
+
+    def get_property(self, object_id: str, property_name: str) -> Any:
+        if not self.property_registry:
+            return self.get_object(object_id).properties[property_name]
+        definition = self.property_registry.resolve(property_name)
+        obj = self.get_object(object_id)
+        if definition.iri in obj.properties:
+            return obj.properties[definition.iri]
+        # Transitional compatibility for objects stored before canonicalization.
+        for alias in (definition.qname, definition.local_name):
+            if alias in obj.properties:
+                return obj.properties[alias]
+        raise KeyError(f"Object {object_id} has no value for canonical property {definition.iri}")
+
+    def set_property(
+        self,
+        object_id: str,
+        property_name: str,
+        value: Any,
+        *,
+        expected_version: int | None = None,
+        provenance: PropertyProvenance | None = None,
+    ) -> OntologyObject:
+        if not self.property_registry:
+            raise RuntimeError("Canonical property registry is not configured")
+        definition = self.property_registry.resolve(property_name)
+        obj = self.get_object(object_id)
+        properties = dict(obj.properties)
+        properties[definition.iri] = value
+        properties.pop(definition.qname, None)
+        properties.pop(definition.local_name, None)
+        updated = obj.model_copy(update={"properties": properties})
+        stored = super().upsert_object(
+            updated,
+            expected_version=obj.version if expected_version is None else expected_version,
+        )
+        if provenance:
+            if not self.provenance_repository:
+                raise RuntimeError("Provenance repository is not configured")
+            if provenance.object_id != object_id:
+                raise ValueError("Property provenance object_id does not match target object")
+            if provenance.property_iri != definition.iri:
+                raise ValueError("Property provenance IRI does not match canonical property")
+            self.provenance_repository.append_property(provenance)
+        return stored
+
+    def explain_property(self, object_id: str, property_name: str) -> dict[str, Any]:
+        if not self.property_registry or not self.provenance_repository:
+            raise RuntimeError("Property registry and provenance repository are required")
+        return explain_property(
+            object_id,
+            property_name,
+            self.property_registry,
+            self.provenance_repository,
+        )
