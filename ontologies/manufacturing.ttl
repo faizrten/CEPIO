@@ -1,8 +1,6 @@
 @prefix cepio: <https://cepio.org/ontology/core#> .
 @prefix ind: <https://cepio.org/ontology/industrial#> .
-@prefix work: <https://cepio.org/ontology/work#> .
 @prefix supply: <https://cepio.org/ontology/supply#> .
-@prefix perf: <https://cepio.org/ontology/performance#> .
 @prefix mfg: <https://cepio.org/ontology/manufacturing#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -35,7 +33,7 @@ mfg:MaterialDefinition a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:MaterialLot a owl:Class ; rdfs:subClassOf mfg:Material .
 mfg:MaterialSublot a owl:Class ; rdfs:subClassOf mfg:MaterialLot .
 
-# ISA-95 physical-asset classification. Runtime equipment instances reuse ind:Equipment and cepio:PhysicalAsset.
+# ISA-95 physical-asset/person classification. Runtime instances reuse CEPIO common types.
 mfg:EquipmentClass a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:PhysicalAssetClass a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:EquipmentAssetMapping a owl:Class ; rdfs:subClassOf cepio:Entity .
@@ -75,14 +73,25 @@ mfg:RequestedSegmentResponse a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:OperationsPerformance a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:OperationsResponse a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:SegmentResponse a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:SegmentData a owl:Class ; rdfs:subClassOf cepio:Measurement .
+mfg:ResourceActual a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:EquipmentActual a owl:Class ; rdfs:subClassOf mfg:ResourceActual .
+mfg:MaterialActual a owl:Class ; rdfs:subClassOf mfg:ResourceActual .
+mfg:PersonnelActual a owl:Class ; rdfs:subClassOf mfg:ResourceActual .
+mfg:PhysicalAssetActual a owl:Class ; rdfs:subClassOf mfg:ResourceActual .
 
 # Operations event and record model.
 mfg:OperationsEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 mfg:OperationsEventClass a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:OperationsEventDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:OperationsEventClassRecordSpecification a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:OperationsEventDefinitionRecordSpecification a owl:Class ; rdfs:subClassOf cepio:Document .
 mfg:OperationsEventRecord a owl:Class ; rdfs:subClassOf cepio:Document .
 mfg:OperationsEventRecordEntry a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:OperationsRecord a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:OperationsRecordTemplate a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:OperationsRecordEntryTemplate a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:OperationsRecordSpecificationTemplate a owl:Class ; rdfs:subClassOf cepio:Document .
 
 # Test/quality model.
 mfg:OperationsTestRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
@@ -91,10 +100,9 @@ mfg:TestSpecificationCriteria a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:TestResult a owl:Class ; rdfs:subClassOf cepio:Measurement .
 mfg:PropertyMeasurement a owl:Class ; rdfs:subClassOf cepio:Measurement .
 mfg:EvaluatedProperty a owl:Class ; rdfs:subClassOf cepio:Entity .
-mfg:ResourceActual a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:TestableObject a owl:Class ; rdfs:subClassOf cepio:Entity .
 
-# Part 4 work model.
+# ISA-95 Part 4 work model.
 mfg:WorkDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
 mfg:WorkMaster a owl:Class ; rdfs:subClassOf mfg:WorkDefinition .
 mfg:WorkDirective a owl:Class ; rdfs:subClassOf mfg:WorkDefinition .
@@ -117,8 +125,23 @@ mfg:WorkCalendarDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
 mfg:WorkCalendarDefinitionEntry a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:WorkCalendarEntry a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:WorkRecord a owl:Class ; rdfs:subClassOf cepio:Document .
-mfg:ResourceRelationship a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkRecordEntry a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkRecordSpecification a owl:Class ; rdfs:subClassOf cepio:Document .
+
+# Workflow specification model.
 mfg:WorkflowSpecification a owl:Class ; rdfs:subClassOf cepio:Document .
+mfg:WorkflowSpecificationConnection a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkflowSpecificationConnectionType a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkflowSpecificationNode a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:WorkflowSpecificationNodeType a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Resource relationship/network model.
+mfg:ResourceRelationship a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:ResourceRelationshipNetwork a owl:Class ; rdfs:subClassOf mfg:ResourceRelationship .
+mfg:ResourceNetworkConnection a owl:Class ; rdfs:subClassOf mfg:ResourceRelationship .
+mfg:ResourceNetworkConnectionType a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:FromResourceReference a owl:Class ; rdfs:subClassOf cepio:Entity .
+mfg:ToResourceReference a owl:Class ; rdfs:subClassOf cepio:Entity .
 
 # Canonical relationships used to connect manufacturing semantics into CEPIO.
 mfg:containsScope a owl:ObjectProperty ; rdfs:domain mfg:HierarchyScope ; rdfs:range mfg:HierarchyScope .
@@ -157,3 +180,9 @@ mfg:testUsesSpecification a owl:ObjectProperty ; rdfs:domain mfg:OperationsTestR
 mfg:testProducesResult a owl:ObjectProperty ; rdfs:domain mfg:OperationsTestRequirement ; rdfs:range mfg:TestResult .
 mfg:alertDefinedBy a owl:ObjectProperty ; rdfs:domain mfg:WorkAlert ; rdfs:range mfg:WorkAlertDefinition .
 mfg:calendarHasEntry a owl:ObjectProperty ; rdfs:domain mfg:WorkCalendar ; rdfs:range mfg:WorkCalendarEntry .
+
+mfg:workflowHasNode a owl:ObjectProperty ; rdfs:domain mfg:WorkflowSpecification ; rdfs:range mfg:WorkflowSpecificationNode .
+mfg:workflowHasConnection a owl:ObjectProperty ; rdfs:domain mfg:WorkflowSpecification ; rdfs:range mfg:WorkflowSpecificationConnection .
+mfg:resourceNetworkHasConnection a owl:ObjectProperty ; rdfs:domain mfg:ResourceRelationshipNetwork ; rdfs:range mfg:ResourceNetworkConnection .
+mfg:connectionFromResource a owl:ObjectProperty ; rdfs:domain mfg:ResourceNetworkConnection ; rdfs:range cepio:Resource .
+mfg:connectionToResource a owl:ObjectProperty ; rdfs:domain mfg:ResourceNetworkConnection ; rdfs:range cepio:Resource .
