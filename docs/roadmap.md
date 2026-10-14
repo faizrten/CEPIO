@@ -4,7 +4,7 @@
 
 > **Aim for CEPIO to provide the same class of enterprise operating abstraction that Palantir Ontology provides — specialized for Energy & Process Industries and native to the Microsoft ecosystem.**
 
-CEPIO owns the canonical industrial semantic and operational contract. Microsoft services provide the data, semantic materialization, AI, governance, application hosting and infrastructure planes on which that contract is realized.
+CEPIO owns the canonical industrial semantic and operational contract. Microsoft services provide the data, semantic materialization, AI, application hosting and infrastructure planes on which that contract is realized.
 
 `CEPIO semantic contract -> Microsoft platform bindings -> customer deployment`
 
@@ -59,7 +59,6 @@ CEPIO owns the canonical industrial semantic and operational contract. Microsoft
 - IRI-first identity for classes, relationships and datatype properties;
 - fail-closed alias ambiguity;
 - semantic module namespaces, versions and dependencies;
-- compatibility snapshots for classes, relationships and properties;
 - canonical property registry with datatype and authority metadata.
 
 ### Provenance + time
@@ -78,11 +77,7 @@ CEPIO owns the canonical industrial semantic and operational contract. Microsoft
 - independent projection checkpoints;
 - delete/rebuild derived state from immutable source events.
 
-### Platform positioning
-- CEPIO established as a Microsoft Data + AI platform extension across Fabric, Fabric IQ, Foundry, Purview, App Service, AKS and Entra;
-- Microsoft services may implement CEPIO capabilities, but they do not define CEPIO industrial semantics.
-
-**Gate achieved:** CEPIO can answer: `what is true -> where did it come from -> what was true/known at time T -> what events caused the state -> what governed action can follow?`
+**Gate achieved:** CEPIO can answer `what is true -> where did it come from -> what was true/known at time T -> what events caused the state -> what governed action can follow?`
 
 ---
 
@@ -90,92 +85,114 @@ CEPIO owns the canonical industrial semantic and operational contract. Microsoft
 
 **Outcome:** make CEPIO natively consumable across the Microsoft Data + AI platform while preserving a portable, source-system-neutral canonical contract.
 
-## P0 — Operational query contract
+## Completed P0
 
-Tracked by **#5**.
+### #5 — Typed operational query contract ✓
 
-- typed query model for object type, property predicates, relationships, pagination and time;
-- current-state and point-in-time queries;
-- repository-neutral query API;
-- FastAPI + Python SDK exposure;
-- no premature CEPIO-specific textual query language.
+- typed object type/subtype queries;
+- property predicates;
+- relationship constraints;
+- valid-time and transaction-time filters;
+- deterministic sorting and pagination;
+- in-memory and SQLite parity;
+- FastAPI and Python SDK exposure.
 
-## P0 — Fabric + Fabric IQ semantic binding
+### #7 — Microsoft platform extension architecture ✓
 
-Tracked by **#18**.
+- CEPIO established as the canonical industrial semantic/operational contract;
+- Microsoft services implement CEPIO capabilities without defining CEPIO industrial semantics;
+- durable boundaries for Fabric, Fabric IQ, Foundry, Entra, App Service, AKS and optional Purview integration.
+
+### #18 — Fabric + Fabric IQ semantic binding ✓
 
 - deterministic CEPIO -> Fabric IQ binding manifest;
-- map CEPIO classes, properties and relationships to Fabric IQ ontology constructs;
-- preserve canonical CEPIO IRI + module version metadata;
-- bind Fabric Lakehouse / Warehouse / SQL / Real-Time Intelligence sources where appropriate;
-- graph/GQL mapping where appropriate;
-- drift detection between CEPIO canonical contract and deployed Fabric IQ representation;
+- importable ontology TTL generation;
+- canonical IRI + module/version preservation;
+- Lakehouse, Warehouse, Eventhouse/KQL, SQL, mirrored DB and semantic-model source contracts;
+- Graph eligibility metadata;
+- semantic drift detection;
 - offline validation without Fabric credentials.
 
-## P0 — Foundry + MCP agent binding
+### #19 — Foundry + governed CEPIO MCP ✓
 
-Tracked by **#19**.
-
-- expose CEPIO query, temporal, provenance, function and action surfaces as MCP-compatible tools;
-- Foundry tool/toolbox registration contract;
+- CEPIO read/query/time/provenance/function/action tools exposed through MCP;
 - Entra/Foundry identity -> CEPIO actor context;
-- separate recommend-action from execute-action permissions;
-- agent-facing lineage and state explanation tools;
-- no agent bypass of CEPIO policy or source adapters.
+- actor identity and roles excluded from model-callable tool arguments;
+- explicit function authorization;
+- recommendation separated from execution;
+- no agent bypass of CEPIO policy or enterprise adapters.
 
-## P1 — Ontology lifecycle + migration manifests
+## Completed P1
 
-Tracked by **#4**.
+### #4 — Ontology migration manifests + compatibility gates ✓
 
-- complete migration-manifest format;
-- CI gate for intentional breaking semantic changes;
-- executable/reviewable module migration contracts;
-- preserve additive compatibility by default.
+- accepted ontology baseline pinned to immutable Git history;
+- compatibility analysis across modules, namespaces, classes, relationships, properties, hierarchy and range/domain constraints;
+- semantic-version enforcement;
+- explicit migration-manifest format for intentional breaking changes;
+- stale/duplicate migration declarations fail closed;
+- compatibility gate enforced in GitHub Actions.
 
-## P1 — Runtime observability
+## Current priority
 
-Tracked by **#6**.
+### #21 — App Service + AKS reference deployment profiles
 
-- structured events for query, repository, function, policy, action and adapter execution;
+**Goal:** make the current CEPIO runtime deployable as a coherent Microsoft-native reference system.
+
+#### App Service
+- CEPIO REST/MCP APIs and lightweight domain applications;
+- managed identity / Entra integration boundary;
+- VNet/private connectivity patterns;
+- health/readiness endpoints;
+- deployment slots and autoscale guidance;
+- configuration and secretless patterns.
+
+#### AKS
+- scale-out CEPIO runtime, adapters, projectors and event workers;
+- Entra Workload Identity;
+- private networking and Key Vault integration;
+- probes and autoscaling;
+- workload isolation;
+- auditable rollout patterns;
+- optional NVIDIA GPU profile remains separate and non-blocking.
+
+## Next priority
+
+### #6 — Runtime observability / OpenTelemetry
+
+- structured events for query, repository, function, policy, MCP, action and adapter execution;
 - latency / success / failure metrics;
+- distributed trace correlation across Foundry -> MCP -> CEPIO -> adapter;
 - OpenTelemetry-compatible hook boundary;
 - no unauthorized industrial data in telemetry payloads.
 
-## P1 — Purview governance + lineage bridge
+## Deferred / non-blocking
 
-Tracked by **#20**.
+### #20 — Purview governance + lineage bridge
 
+Purview remains useful for enterprise catalog, classification and governance but is **not a current v0.4 release blocker**.
+
+Future scope may include:
 - Purview/Data Map asset -> CEPIO SourceReference mapping;
-- governance/classification/domain metadata in CEPIO explanation context;
-- CEPIO transformation -> Purview lineage publication artifact;
-- preserve CEPIO runtime provenance as the operationally precise lineage layer;
-- governance metadata must not bypass CEPIO authorization.
+- governance/classification/domain metadata in explanation context;
+- CEPIO transformation -> Purview lineage publication artifacts;
+- preservation of CEPIO runtime provenance as the operationally precise lineage layer.
 
-## P1 — App Service + AKS deployment profiles
+## v0.4 release gate
 
-Tracked by **#21**.
+A Microsoft-native reference deployment should demonstrate:
 
-### App Service
-- CEPIO REST/MCP APIs and lightweight domain apps;
-- managed identity / Entra;
-- VNet/private connectivity;
-- health, slots, autoscale and telemetry patterns.
-
-### AKS
-- scale-out CEPIO runtime, adapters, projectors and event workers;
-- Entra Workload Identity;
-- private networking and Key Vault/secretless patterns;
-- probes, autoscaling, workload isolation and auditable rollout.
-
-## v0.4 gate
-
-A Microsoft-native reference deployment must demonstrate:
-
-1. CEPIO canonical semantics materialized through a Fabric/Fabric IQ binding;
+1. CEPIO canonical semantics materialized through the Fabric/Fabric IQ binding;
 2. a Foundry agent querying CEPIO through MCP without bypassing CEPIO policy;
-3. provenance linked to Purview governance identity;
-4. the same CEPIO runtime deployable through an App Service or AKS reference profile;
+3. ontology evolution protected by migration manifests and CI compatibility gates;
+4. the same CEPIO runtime deployable through App Service or AKS reference profiles;
 5. all CEPIO core tests remaining cloud-independent and executable offline.
+
+Purview is explicitly deferred and non-blocking for this release path.
+
+Sequence:
+
+`Query ✓ -> Fabric/IQ ✓ -> Foundry/MCP ✓ -> Migration compatibility ✓ -> App Service/AKS -> Observability`
 
 ---
 
@@ -218,23 +235,37 @@ A Microsoft-native reference deployment must demonstrate:
 
 ---
 
-# v1.0 Platformization
+# Platformization path
 
-**Outcome:** CEPIO becomes an adoptable industrial operating ontology platform rather than a reference implementation.
+## v0.7 — Developer Platform
 
-- production graph/search backend;
-- generated SDKs for Python, .NET and TypeScript;
-- production MCP server and governed tool registry;
-- ontology/module package registry;
-- visual ontology / mapping / workflow studio;
-- multi-tenancy and namespace governance;
-- performance benchmark and SLO program;
-- deployment automation and upgrade tooling;
+- SDK maturity;
+- CLI;
+- package/module registry;
+- MCP/OpenAPI tooling;
+- ontology-as-code workflows;
+- developer tooling and documentation.
+
+## v0.8 — Enterprise Runtime
+
+- production persistence;
+- scale and high availability;
+- multi-tenancy;
+- security hardening;
+- production observability;
+- SLO/performance program.
+
+## v0.9 — Enterprise Adoption
+
+**Gate:** a second Energy & Process enterprise can adopt CEPIO primarily through mapping, configuration and approved extensions rather than redesigning the runtime.
+
+## v1.0 — Production Platform
+
+- compatibility and upgrade guarantees;
+- deployment automation;
+- production SRE/security controls;
 - partner extension/certification model;
-- standards mapping packs for OSDU, ISO 15926, CFIHOS, ISA-95, FIBO, DEXPI and IFC;
-- customer profile packaging and compatibility certification.
-
-**Gate:** a second enterprise can adopt CEPIO primarily through mapping, configuration and approved extensions rather than redesigning the ontology/runtime.
+- repeatable enterprise adoption.
 
 ---
 
@@ -245,24 +276,32 @@ A Microsoft-native reference deployment must demonstrate:
 - v0.2 Operational Kernel
 - v0.3 Temporal + Provenance Kernel
 - SEO/AD domain normalization
+- DTC ISA-95 manufacturing federation
 - IRI-first semantic identity
 - property provenance
 - bitemporal object/relationship history
 - deterministic event/state projection
-- Microsoft platform extension architecture
-
-### NOW — v0.4 P0
-- #5 Typed query + temporal filter contract
+- graph intelligence + optional cuGraph acceleration
+- #5 typed query + temporal filter contract
+- #7 Microsoft platform extension architecture
 - #18 Fabric + Fabric IQ semantic binding
 - #19 Foundry + CEPIO MCP binding
+- #4 migration manifests + compatibility gates
 
-### NEXT — v0.4 P1
-- #4 Migration manifests / ontology lifecycle
-- #6 Runtime observability / OpenTelemetry
-- #20 Purview governance + lineage bridge
+### NOW
 - #21 App Service + AKS deployment profiles
+
+### NEXT
+- #6 Runtime observability / OpenTelemetry
+
+### DEFERRED / NON-BLOCKING
+- #20 Purview governance + lineage bridge
+- #25 GPU AKS cuGraph validation / benchmarking
 
 ### LATER
 - v0.5 Live Industrial Integration
 - v0.6 Reference Industrial Applications
-- v1.0 Platformization
+- v0.7 Developer Platform
+- v0.8 Enterprise Runtime
+- v0.9 Enterprise Adoption
+- v1.0 Production Platform
