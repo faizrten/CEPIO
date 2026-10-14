@@ -1,0 +1,197 @@
+from __future__ import annotations
+
+import asyncio
+
+import pytest
+
+from cepio.bootstrap import build_runtime
+from cepio.integrations.microsoft.foundry_gateway import (
+    ActorContext,
+    CEPIOMCPGateway,
+    EntraClaimsMapper,
+    FixedActorProvider,
+)
+from cepio.integrations.microsoft.foundry_mcp import build_mcp_server
+from cepio.model import OntologyObject, PolicyEffect
+from cepio.query import ObjectQuery, PropertyPredicate
+from cepio.runtime import AuthorizationError
+
+
+def _runtime():
+    runtime = build_runtime()
+    runtime.upsert_object(
+        OntologyObject(
+            id="K-MCP",
+            type="Compressor",
+            name="MCP Compressor",
+            properties={
+                "criticality": "high",
+                "operatingState": "degraded",
+                "riskStatus": "elevated",
+                "manufacturer": "Example OEM",
+            },
+            interfaces={"MaintainableAsset", "Inspectable", "RiskBearing"},
+        )
+    )
+    runtime.upsert_object(
+        OntologyObject(
+            id="UNIT-MCP",
+            type="ProcessUnit",
+            name="MCP Process Unit",
+            properties={"status": "online"},
+        )
+    )
+    return runtime
+
+
+def _ai_actor() -> ActorContext:
+    return ActorContext(
+        subject_id="agent-foundry-01",
+        roles={"ai_agent_recommender"},
+        principal_type="agent",
+        auth_mode="agentic-identity",
+        tenant_id="tenant-01",
+        client_id="agent-client-01",
+    )
+
+
+def test_gateway_filters_object_and_query_results_by_cepio_policy():
+    runtime = _runtime()
+    gateway = CEPIOMCPGateway(runtime, FixedActorProvider(_ai_actor()))
+
+    obj = gateway.get_object("K-MCP")
+    assert obj.properties["criticality"] == "high"
+    assert "manufacturer" not in obj.properties
+
+    result = gateway.query_objects(
+        ObjectQuery(
+            object_type="Equipment",
+            predicates=[PropertyPredicate(property="criticality", operator="eq", value="high")],
+        )
+    )
+    assert result.total == 1
+    assert result.items[0].id == "K-MCP"
+    assert "manufacturer" not in result.items[0].properties
+
+
+def test_function_calls_are_explicitly_policy_authorized():
+    runtime = _runtime()
+    ai_gateway = CEPIOMCPGateway(runtime, FixedActorProvider(_ai_actor()))
+    risk = ai_gateway.call_function("calculateAssetRisk", {"asset_id": "K-MCP"})
+    assert isinstance(risk, float)
+
+    blocked_actor = ActorContext(
+        subject_id="autonomous-01",
+        roles={"autonomous_control_agent"},
+        principal_type="agent",
+        auth_mode="agentic-identity",
+    )
+    blocked_gateway = CEPIOMCPGateway(runtime, FixedActorProvider(blocked_actor))
+    with pytest.raises(AuthorizationError):
+        blocked_gateway.call_function("calculateAssetRisk", {"asset_id": "K-MCP"})
+
+
+def test_recommendation_and_execution_are_separate_permissions():
+    runtime = _runtime()
+    ai_gateway = CEPIOMCPGateway(runtime, FixedActorProvider(_ai_actor()))
+
+    recommendation = ai_gateway.recommend_action(
+        "CreateWorkOrder",
+        "K-MCP",
+        parameters={"title": "Inspect K-MCP"},
+    )
+    assert recommendation.policy.effect == PolicyEffect.recommend_only
+    assert recommendation.recommendation_permitted is True
+    assert recommendation.executable_by_current_actor is False
+
+    with pytest.raises(AuthorizationError):
+        ai_gateway.execute_action(
+            "CreateWorkOrder",
+            "K-MCP",
+            parameters={"title": "Inspect K-MCP"},
+        )
+
+    engineer = ActorContext(
+        subject_id="engineer-01",
+        roles={"maintenance_engineer"},
+        principal_type="user",
+        auth_mode="oauth2",
+    )
+    engineer_gateway = CEPIOMCPGateway(runtime, FixedActorProvider(engineer))
+    result = engineer_gateway.execute_action(
+        "CreateWorkOrder",
+        "K-MCP",
+        parameters={"title": "Inspect K-MCP", "work_order_id": "WO-MCP-001"},
+        idempotency_key="mcp-test-1",
+    )
+    assert result.status.value == "executed"
+    assert runtime.get_object("WO-MCP-001").properties["createdBy"] == "engineer-01"
+
+
+def test_entra_claims_mapper_maps_verified_claims_and_fails_closed():
+    mapper = EntraClaimsMapper(
+        role_map={"CEPIO.Agent.Recommender": "ai_agent_recommender"},
+        group_role_map={"group-maint": "maintenance_engineer"},
+    )
+    actor = mapper.map_claims(
+        {
+            "oid": "principal-123",
+            "tid": "tenant-123",
+            "azp": "client-123",
+            "roles": ["CEPIO.Agent.Recommender"],
+            "groups": ["group-maint"],
+        },
+        principal_type="agent",
+        auth_mode="agentic-identity",
+    )
+    assert actor.subject_id == "principal-123"
+    assert actor.roles == {"ai_agent_recommender", "maintenance_engineer"}
+
+    with pytest.raises(AuthorizationError):
+        mapper.map_claims(
+            {"oid": "principal-456", "roles": ["Unmapped.Role"]},
+            principal_type="agent",
+            auth_mode="agentic-identity",
+        )
+
+
+def test_actual_mcp_protocol_lists_governed_tools_and_hides_actor_arguments():
+    from mcp import Client
+
+    runtime = _runtime()
+    server = build_mcp_server(runtime, FixedActorProvider(_ai_actor()))
+
+    async def _exercise() -> None:
+        async with Client(server, raise_exceptions=True) as client:
+            listed = await client.list_tools()
+            tools = {tool.name: tool for tool in listed.tools}
+            assert set(tools) == {
+                "cepio_get_object",
+                "cepio_query_objects",
+                "cepio_get_state_at",
+                "cepio_explain_property",
+                "cepio_call_function",
+                "cepio_recommend_action",
+                "cepio_execute_action",
+            }
+            execute_schema = tools["cepio_execute_action"].input_schema
+            assert "actor_id" not in execute_schema.get("properties", {})
+            assert "actor_roles" not in execute_schema.get("properties", {})
+
+            obj_result = await client.call_tool("cepio_get_object", {"object_id": "K-MCP"})
+            assert obj_result.is_error is False
+            assert obj_result.structured_content["id"] == "K-MCP"
+            assert "manufacturer" not in obj_result.structured_content["properties"]
+
+            rec_result = await client.call_tool(
+                "cepio_recommend_action",
+                {
+                    "action_type": "CreateWorkOrder",
+                    "target_id": "K-MCP",
+                    "parameters": {"title": "Inspect via MCP"},
+                },
+            )
+            assert rec_result.is_error is False
+            assert rec_result.structured_content["policy"]["effect"] == "recommend_only"
+
+    asyncio.run(_exercise())
