@@ -1,0 +1,19 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix wf: <https://cepio.org/ontology/workforce#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+wf:CrewMember a owl:Class ; rdfs:subClassOf cepio:Person .
+wf:CrewAssignment a owl:Class ; rdfs:subClassOf cepio:Entity .
+wf:Certification a owl:Class ; rdfs:subClassOf cepio:Document .
+wf:TrainingRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+wf:TrainingCompliance a owl:Class ; rdfs:subClassOf cepio:Measurement .
+wf:CompetencyAssessment a owl:Class ; rdfs:subClassOf cepio:Measurement .
+wf:CompetencyEvidence a owl:Class ; rdfs:subClassOf cepio:Document .
+
+wf:assignmentOf a owl:ObjectProperty ; rdfs:domain wf:CrewAssignment ; rdfs:range wf:CrewMember .
+wf:assignedToAsset a owl:ObjectProperty ; rdfs:domain wf:CrewAssignment ; rdfs:range cepio:Asset .
+wf:hasCertification a owl:ObjectProperty ; rdfs:domain wf:CrewMember ; rdfs:range wf:Certification .
+wf:evidenceForRequirement a owl:ObjectProperty ; rdfs:domain wf:CompetencyEvidence ; rdfs:range wf:TrainingRequirement .
+wf:evidenceAboutPerson a owl:ObjectProperty ; rdfs:domain wf:CompetencyEvidence ; rdfs:range cepio:Person .
+wf:assessmentOfPerson a owl:ObjectProperty ; rdfs:domain wf:CompetencyAssessment ; rdfs:range cepio:Person .

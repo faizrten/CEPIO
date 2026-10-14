@@ -1,0 +1,60 @@
+source,source_concept,source_features,canonical_module,canonical_concept,mapping_type,promotion_level,notes
+AD,FleetUnit,Entity,drilling,drill:FleetUnit,equivalent,domain,Base class for operating/construction rig.
+AD,OperatingRig,"Entity, Ranked",drilling,drill:OperatingRig,equivalent,domain,Operating rig asset/facility.
+AD,ConstructionHull,Entity,drilling,drill:ConstructionRig,rename,domain,Construction-stage rig/fleet unit.
+AD,Contract,"Entity, RigLinked, Scheduled",core/commercial,cepio:Contract,equivalent,foundation,Use CEPIO core Contract.
+AD,ContractObligation,"Entity, RigLinked",commercial,comm:ContractObligation,equivalent,enterprise,Contractual obligation/threshold.
+AD,CrewRecord,"Entity, RigLinked",workforce,wf:CrewAssignment,rename,industrial-common,Crew assignment/composition.
+AD,CrewCertification,"Entity, RigLinked",workforce,wf:Certification,equivalent,industrial-common,Crew certification.
+AD,CrewMember,RigLinked,workforce,wf:CrewMember,equivalent,industrial-common,Person assigned to asset/rig.
+AD,PersonEvidence,"Entity, RigLinked",workforce,wf:CompetencyEvidence,rename,industrial-common,Evidence proving person/requirement compliance.
+AD,TrainingRequirement,Entity,workforce,wf:TrainingRequirement,equivalent,industrial-common,Training requirement.
+AD,TrainingCompliance,"Entity, RigLinked",workforce,wf:TrainingCompliance,equivalent,industrial-common,Training compliance measurement.
+AD,DrillerAssessment,"Entity, RigLinked",workforce,wf:CompetencyAssessment,profile-specialization,domain,Competency assessment for driller role.
+AD,EquipmentItem,"Entity, RigLinked",asset,ind:Equipment,equivalent,industrial-common,Canonical equipment; rig link supplies context.
+AD,SparePart,Entity,supply,ind:SparePart,equivalent,industrial-common,Shared exact concept across SEO and AD.
+AD,Supplier,Entity,enterprise,ent:Supplier,equivalent,enterprise,Use CEPIO enterprise Supplier.
+AD,PartStock,"Entity, RigLinked",supply,supply:InventoryPosition,rename,industrial-common,Stock position for a spare at a rig/site.
+AD,Campaign,"Entity, Scheduled",drilling,drill:DrillingCampaign,equivalent,domain,Drilling campaign requiring rig class/certification/equipment.
+AD,WellContext,"Entity, RigLinked",drilling,drill:WellContext,equivalent,domain,Operational well context.
+AD,RigSystem,,drilling,drill:RigSystem,equivalent,domain,Functional rig system.
+AD,RigEvent,"Entity, RigLinked",drilling,drill:RigOperationalEvent,equivalent,domain,Operational event in rig context.
+AD,ControlPoint,Entity,agentic,agentic:ControlPoint,equivalent,industrial-common,Human/system control point.
+AD,Recommendation,"Entity, RigLinked, AgentAttributed",agentic,agentic:Recommendation,equivalent,industrial-common,Recommendation before governed action.
+AD,FleetException,"Entity, RigLinked, AgentAttributed",performance,perf:FleetException,equivalent,domain,Fleet-level exception/risk signal.
+AD,DowntimeEvent,"Entity, RigLinked, DatedEvent",reliability,rel:DowntimeEvent,equivalent,industrial-common,Asset downtime event.
+AD,CostLine,"Entity, RigLinked",commercial,comm:CostRecord,rename,enterprise,Generic cost record.
+AD,CapitalItem,"Entity, RigLinked",commercial,comm:CapitalItem,equivalent,enterprise,Capital investment item.
+AD,PermitRecord,"Entity, RigLinked, Validity",hse,hse:WorkPermit,equivalent,industrial-common,Unified with SEO Permit.
+AD,IncidentRecord,"Entity, RigLinked, DatedEvent",hse,hse:Incident,rename,industrial-common,Incident occurrence.
+AD,DrillRequirement,"Entity, RigLinked",hse,hse:EmergencyDrillRequirement,rename,industrial-common,Required safety/emergency drill.
+AD,DrillRecord,"Entity, RigLinked, DatedEvent",hse,hse:EmergencyDrillRecord,rename,industrial-common,"Emergency/safety drill, not drilling operation."
+AD,SecurityRecord,"Entity, RigLinked, DatedEvent",hse,hse:SecurityRecord,equivalent,industrial-common,Security assurance/event record.
+AD,WorkOrder,"Entity, RigLinked",work,ind:WorkOrder,equivalent,industrial-common,Shared exact concept across SEO and AD.
+AD,CertificateRecord,"Entity, RigLinked, Validity",workforce/hse,wf:Certification,broader-target,industrial-common,Certificate artifact with validity.
+AD,RevenueRecord,"Entity, RigLinked",commercial,comm:RevenueRecord,equivalent,enterprise,Rig revenue/availability record.
+AD,ActionCase,"Entity, RigLinked, AgentAttributed",agentic,agentic:ActionCase,equivalent,industrial-common,Governed case raised from recommendation.
+AD,AuditEntry,"Entity, RigLinked",agentic/provenance,agentic:AuditEntry,equivalent,industrial-common,Align with future provenance kernel.
+AD,SafetyCase,"RigLinked, DatedEvent, TableSourced",hse,hse:SafetyCase,equivalent,industrial-common,Safety case/investigation record.
+AD,RiskRating,Entity,hse,hse:RiskAssessment,broader-target,industrial-common,Risk rating is output/state of risk assessment.
+AD,ProcessSafetyEvent,Entity,hse,hse:ProcessSafetyEvent,equivalent,industrial-common,Shared exact concept across SEO and AD.
+AD,DroppedObjectEvent,Entity,hse,hse:DroppedObjectEvent,equivalent,industrial-common,HSE incident subtype.
+AD,ExposureHours,"Entity, RigLinked, TableSourced",hse,hse:ExposureObservation,rename,industrial-common,Exposure measurement used by safety KPIs.
+AD,SafetyRate,"Entity, RigLinked, MeasureSourced",performance,perf:KPIObservation,profile-specialization,industrial-common,Safety-rate KPI observation.
+AD,SafetyBenchmark,"Entity, TableSourced",performance,perf:Benchmark,profile-specialization,industrial-common,Safety benchmark series.
+AD,CorrectiveAction,"RigLinked, TableSourced",hse/work,hse:CorrectiveAction,equivalent,industrial-common,Corrective action from case/finding.
+AD,ActionPerformance,"Entity, RigLinked",performance,perf:ActionPerformance,equivalent,industrial-common,Performance of corrective/operational actions.
+AD,LeadershipRiskProfile,"Entity, RigLinked",performance/hse,perf:Scorecard,profile-specialization,customer-profile,ARO leadership risk scorecard.
+AD,LeadershipPillarResult,"Entity, MeasureSourced",performance,perf:ScoreDimension,profile-specialization,customer-profile,ARO leadership score dimension.
+AD,AccountabilityBreakdown,Entity,performance,perf:ScoreDimension,profile-specialization,customer-profile,ARO leadership/accountability breakdown.
+AD,AuditFinding,"Entity, RigLinked",hse,hse:AuditFinding,equivalent,industrial-common,Audit/inspection finding.
+AD,ManagementVisit,"Entity, RigLinked, DatedEvent",hse,hse:ExternalInspection,broader-target,industrial-common,Assurance/management inspection.
+AD,OapProtocolCheck,"Entity, RigLinked, DatedEvent",hse,hse:ComplianceCheck,profile-specialization,customer-profile,OAP-specific compliance check.
+AD,AramcoInspection,"Entity, RigLinked, DatedEvent",hse,hse:ExternalInspection,profile-specialization,customer-profile,Authority is Aramco; generic concept is external inspection.
+AD,ReiScore,"Entity, RigLinked",performance,perf:CompositeScore,profile-specialization,customer-profile,REI-specific composite score.
+AD,ReiCategoryScore,Entity,performance,perf:ScoreDimension,profile-specialization,customer-profile,REI-specific category score.
+AD,ReiHseComponent,"Entity, MeasureSourced",performance,perf:ScoreDimension,profile-specialization,customer-profile,REI-specific HSE component.
+AD,AroReiPerformance,Entity,performance,perf:Scorecard,profile-specialization,customer-profile,ARO REI is a named scorecard profile.
+AD,RigScorecard,"Entity, RigLinked, Ranked",performance,perf:Scorecard,profile-specialization,domain,Asset scorecard applied to rig.
+AD,ComponentLife,"Entity, RigLinked",reliability,rel:ComponentLife,equivalent,industrial-common,Component life/RUL assessment.
+AD,FailureMode,Entity,reliability,rel:FailureMode,equivalent,industrial-common,Shared exact concept across SEO and AD.

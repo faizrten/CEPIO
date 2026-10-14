@@ -1,0 +1,115 @@
+# Generated canonical CEPIO datatype-property contract.
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix asset: <https://cepio.org/ontology/asset#> .
+@prefix work: <https://cepio.org/ontology/work#> .
+@prefix rel: <https://cepio.org/ontology/reliability#> .
+@prefix hse: <https://cepio.org/ontology/hse#> .
+@prefix supply: <https://cepio.org/ontology/supply#> .
+@prefix perf: <https://cepio.org/ontology/performance#> .
+@prefix wf: <https://cepio.org/ontology/workforce#> .
+@prefix comm: <https://cepio.org/ontology/commercial#> .
+@prefix process: <https://cepio.org/ontology/process#> .
+@prefix epcic: <https://cepio.org/ontology/epcic#> .
+@prefix drill: <https://cepio.org/ontology/drilling#> .
+@prefix agentic: <https://cepio.org/ontology/agentic#> .
+
+agentic:agentId a owl:DatatypeProperty ; rdfs:range xsd:string .
+agentic:decisionBy a owl:DatatypeProperty ; rdfs:range xsd:string .
+agentic:modelVersion a owl:DatatypeProperty ; rdfs:range xsd:string .
+asset:assetTag a owl:DatatypeProperty ; rdfs:range xsd:string .
+asset:conditionPercent a owl:DatatypeProperty ; rdfs:range xsd:double .
+asset:criticality a owl:DatatypeProperty ; rdfs:range xsd:string .
+asset:locationText a owl:DatatypeProperty ; rdfs:range xsd:string .
+asset:manufacturer a owl:DatatypeProperty ; rdfs:range xsd:string .
+asset:serialNumber a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:alias a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:booleanFlag a owl:DatatypeProperty ; rdfs:range xsd:boolean .
+cepio:category a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:confidence a owl:DatatypeProperty ; rdfs:range xsd:double .
+cepio:description a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:endTime a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+cepio:lifecycle a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:name a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:observedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+cepio:priority a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:severity a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:sourceCreatedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+cepio:sourceId a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:sourceMeasure a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:sourceSystem a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:sourceTable a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:sourceUpdatedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+cepio:startTime a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+cepio:status a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:unitSymbol a owl:DatatypeProperty ; rdfs:range xsd:string .
+cepio:validFrom a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+cepio:validTo a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+cepio:value a owl:DatatypeProperty ; rdfs:range xsd:double .
+comm:amount a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+comm:costCenter a owl:DatatypeProperty ; rdfs:range xsd:string .
+comm:currency a owl:DatatypeProperty ; rdfs:range xsd:string .
+comm:dayRate a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+comm:documentNumber a owl:DatatypeProperty ; rdfs:range xsd:string .
+comm:revenueAtRisk a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+drill:commissionedYear a owl:DatatypeProperty ; rdfs:range xsd:integer .
+drill:ratedDepthM a owl:DatatypeProperty ; rdfs:range xsd:integer .
+drill:rigClass a owl:DatatypeProperty ; rdfs:range xsd:string .
+drill:waterDepthM a owl:DatatypeProperty ; rdfs:range xsd:integer .
+epcic:cpi a owl:DatatypeProperty ; rdfs:range xsd:double .
+epcic:datumValue a owl:DatatypeProperty ; rdfs:range xsd:double .
+epcic:designStatus a owl:DatatypeProperty ; rdfs:range xsd:string .
+epcic:quantityKind a owl:DatatypeProperty ; rdfs:range xsd:string .
+epcic:revision a owl:DatatypeProperty ; rdfs:range xsd:string .
+epcic:spi a owl:DatatypeProperty ; rdfs:range xsd:double .
+epcic:wbs a owl:DatatypeProperty ; rdfs:range xsd:string .
+hse:closeOutOnTime a owl:DatatypeProperty ; rdfs:range xsd:boolean .
+hse:expiresOn a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+hse:exposureHours a owl:DatatypeProperty ; rdfs:range xsd:double .
+hse:issuedOn a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+hse:overdue a owl:DatatypeProperty ; rdfs:range xsd:boolean .
+hse:permitType a owl:DatatypeProperty ; rdfs:range xsd:string .
+hse:riskLevel a owl:DatatypeProperty ; rdfs:range xsd:string .
+hse:tier a owl:DatatypeProperty ; rdfs:range xsd:string .
+perf:period a owl:DatatypeProperty ; rdfs:range xsd:string .
+perf:rank a owl:DatatypeProperty ; rdfs:range xsd:integer .
+perf:score a owl:DatatypeProperty ; rdfs:range xsd:double .
+perf:scoreBand a owl:DatatypeProperty ; rdfs:range xsd:string .
+perf:target a owl:DatatypeProperty ; rdfs:range xsd:double .
+perf:trend a owl:DatatypeProperty ; rdfs:range xsd:double .
+perf:weightPercent a owl:DatatypeProperty ; rdfs:range xsd:double .
+process:flow a owl:DatatypeProperty ; rdfs:range xsd:double .
+process:medium a owl:DatatypeProperty ; rdfs:range xsd:string .
+process:pressure a owl:DatatypeProperty ; rdfs:range xsd:double .
+process:purity a owl:DatatypeProperty ; rdfs:range xsd:double .
+process:qualityProperty a owl:DatatypeProperty ; rdfs:range xsd:string .
+rel:cause a owl:DatatypeProperty ; rdfs:range xsd:string .
+rel:detection a owl:DatatypeProperty ; rdfs:range xsd:string .
+rel:downtimeHours a owl:DatatypeProperty ; rdfs:range xsd:double .
+rel:effect a owl:DatatypeProperty ; rdfs:range xsd:string .
+rel:failureModeCode a owl:DatatypeProperty ; rdfs:range xsd:string .
+rel:healthIndex a owl:DatatypeProperty ; rdfs:range xsd:double .
+rel:remainingUsefulLife a owl:DatatypeProperty ; rdfs:range xsd:double .
+rel:riskPriorityNumber a owl:DatatypeProperty ; rdfs:range xsd:integer .
+supply:leadTimeDays a owl:DatatypeProperty ; rdfs:range xsd:double .
+supply:materialNumber a owl:DatatypeProperty ; rdfs:range xsd:string .
+supply:minimumQuantity a owl:DatatypeProperty ; rdfs:range xsd:double .
+supply:onHandQuantity a owl:DatatypeProperty ; rdfs:range xsd:double .
+supply:reservedQuantity a owl:DatatypeProperty ; rdfs:range xsd:double .
+supply:shortfallQuantity a owl:DatatypeProperty ; rdfs:range xsd:double .
+supply:singleSource a owl:DatatypeProperty ; rdfs:range xsd:boolean .
+wf:certificationStatus a owl:DatatypeProperty ; rdfs:range xsd:string .
+wf:competencyLevel a owl:DatatypeProperty ; rdfs:range xsd:string .
+wf:department a owl:DatatypeProperty ; rdfs:range xsd:string .
+wf:role a owl:DatatypeProperty ; rdfs:range xsd:string .
+work:discipline a owl:DatatypeProperty ; rdfs:range xsd:string .
+work:orderType a owl:DatatypeProperty ; rdfs:range xsd:string .
+work:personHours a owl:DatatypeProperty ; rdfs:range xsd:double .
+work:phase a owl:DatatypeProperty ; rdfs:range xsd:string .
+work:progressPercent a owl:DatatypeProperty ; rdfs:range xsd:double .
+work:scheduledEnd a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+work:scheduledStart a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+work:scope a owl:DatatypeProperty ; rdfs:range xsd:string .
+work:sequence a owl:DatatypeProperty ; rdfs:range xsd:integer .

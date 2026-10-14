@@ -1,0 +1,20 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix comm: <https://cepio.org/ontology/commercial#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+comm:ContractObligation a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+comm:FinancialActual a owl:Class ; rdfs:subClassOf cepio:Measurement .
+comm:RevenueRecord a owl:Class ; rdfs:subClassOf cepio:Measurement .
+comm:CostRecord a owl:Class ; rdfs:subClassOf cepio:Measurement .
+comm:CapitalItem a owl:Class ; rdfs:subClassOf cepio:Resource .
+comm:EconomicEvent a owl:Class ; rdfs:subClassOf cepio:Event .
+comm:ValueAtRisk a owl:Class ; rdfs:subClassOf cepio:Risk .
+comm:PriceDeck a owl:Class ; rdfs:subClassOf cepio:Entity .
+comm:EconomicScenario a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+comm:obligationOfContract a owl:ObjectProperty ; rdfs:domain comm:ContractObligation ; rdfs:range cepio:Contract .
+comm:financialActualFor a owl:ObjectProperty ; rdfs:domain comm:FinancialActual ; rdfs:range cepio:Entity .
+comm:revenueFor a owl:ObjectProperty ; rdfs:domain comm:RevenueRecord ; rdfs:range cepio:Entity .
+comm:costFor a owl:ObjectProperty ; rdfs:domain comm:CostRecord ; rdfs:range cepio:Entity .
+comm:capitalItemFor a owl:ObjectProperty ; rdfs:domain comm:CapitalItem ; rdfs:range cepio:Asset .

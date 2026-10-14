@@ -1,0 +1,43 @@
+source,source_concept,source_module,canonical_module,canonical_concept,mapping_type,promotion_level,notes
+SEO,Site,seo-org,asset,asset:Site,equivalent,industrial-common,Horizontal asset/location concept.
+SEO,Area,seo-asset,asset,asset:Area,equivalent,industrial-common,Functional-location level below Site.
+SEO,ProcessUnit,seo-proc,process,ind:ProcessUnit,equivalent,domain,Retain CEPIO ProcessUnit; process module owns usage.
+SEO,Equipment,seo-asset,asset,ind:Equipment,equivalent,industrial-common,Canonical maintainable physical equipment.
+SEO,ProcessStream,seo-proc,process,process:ProcessStream,equivalent,domain,Material/utility flow between process units.
+SEO,WorkOrder,ind_process,work,ind:WorkOrder,equivalent,industrial-common,Canonical maintenance work order.
+SEO,Operation,ind_process,work,work:WorkOperation,rename,industrial-common,Avoid clash with lifecycle Operation stage.
+SEO,Notification,ind_process,work,work:MaintenanceNotification,rename,industrial-common,Explicit maintenance semantics.
+SEO,Permit,ind_core,hse,hse:WorkPermit,rename,industrial-common,Unified with AD PermitRecord.
+SEO,Document,ind_core,core,cepio:Document,equivalent,foundation,Use CEPIO core Document.
+SEO,FailureMode,seo-rel,reliability,rel:FailureMode,equivalent,industrial-common,Shared exact concept across SEO and AD.
+SEO,FailureEvent,seo-rel,reliability,rel:FailureEvent,equivalent,industrial-common,Operational failure occurrence.
+SEO,Inspection,seo-rel,hse/reliability,ind:Inspection,equivalent,industrial-common,Existing CEPIO Inspection; specialize by purpose.
+SEO,Turnaround,seo-rel,work,work:Turnaround,equivalent,domain,Major maintenance campaign.
+SEO,ProcessSafetyEvent,seo-hse,hse,hse:ProcessSafetyEvent,equivalent,industrial-common,Shared exact concept across SEO and AD.
+SEO,LogSignal,ind_core,reliability,rel:ConditionSignal,rename,industrial-common,Treat anomaly/log signal as condition observation.
+SEO,SparePart,seo-supply,supply,ind:SparePart,equivalent,industrial-common,Shared exact concept across SEO and AD.
+SEO,UtilityMeter,seo-energy,process,process:UtilityMeter,equivalent,domain,Continuous-process utility balance node.
+SEO,Emission,seo-energy,process/hse,process:EmissionObservation,rename,domain,Model as observation rather than asset.
+SEO,QualityResult,ind_core,process,process:QualityObservation,rename,domain,Quality measurement/observation.
+SEO,DesignTag,seo-cap,epcic,epcic:DesignTag,equivalent,domain,As-designed prescriptive tag.
+SEO,InstalledItem,seo-asset,asset/epcic,asset:InstalledAsset,broader-target,industrial-common,Installed physical item; realization link belongs in EPCIC.
+SEO,AmiralAsset,seo-asset,profile-seo,asset:InstalledAsset,profile-specialization,customer-profile,Keep Amiral naming in SATORP profile.
+SEO,CommissioningSystem,seo-cap,epcic,epcic:CommissioningSystem,equivalent,domain,Commissioning/handover system.
+SEO,EpcPackage,seo-cap,epcic,epcic:EPCPackage,rename,domain,Canonical acronym casing.
+SEO,CommissioningActivity,seo-cap,epcic,epcic:CommissioningActivity,equivalent,domain,Commissioning activity.
+SEO,HandoverDocument,seo-cap,epcic,epcic:HandoverDocument,equivalent,domain,Lifecycle handover artifact.
+SEO,HandoverFinding,seo-cap,epcic,epcic:HandoverFinding,equivalent,domain,Handover completeness/quality finding.
+SEO,DesignValue,seo-cap,epcic,epcic:DesignValue,equivalent,domain,Prescriptive/design measurement.
+SEO,ProjectControl,seo-cap,epcic,epcic:ProjectControlRecord,rename,domain,"A period record, not the control discipline."
+SEO,OperationalEvent,seo-ops,process,process:OperationalEvent,equivalent,domain,Process-industry operational event.
+SEO,EconomicEvent,seo-econ,commercial,comm:EconomicEvent,equivalent,enterprise,Economic event.
+SEO,ValueAtRisk,seo-econ,commercial,comm:ValueAtRisk,equivalent,enterprise,Economic/financial risk exposure.
+SEO,FinancialActual,seo-econ,commercial,comm:FinancialActual,equivalent,enterprise,Period financial actual.
+SEO,OptimisationForecast,seo-ops,process,process:OptimizationForecast,rename,domain,Normalize spelling and domain placement.
+SEO,Scenario,seo-core,commercial,comm:EconomicScenario,narrow-target,enterprise,SEO scenario is decision/economic context.
+SEO,PriceDeck,seo-comm,commercial,comm:PriceDeck,equivalent,enterprise,Price assumptions/deck.
+SEO,Kpi,seo-perf,performance,cepio:KPI,equivalent,foundation,Promote to CEPIO core KPI.
+SEO,KpiObservation,seo-perf,performance,perf:KPIObservation,equivalent,industrial-common,Context-specific KPI observation.
+SEO,ScoreDimension,seo-perf,performance,perf:ScoreDimension,equivalent,industrial-common,Reusable scorecard dimension.
+SEO,UnitScore,seo-perf,performance,perf:AssetScore,broader-target,industrial-common,Generic score applicable to unit/rig/asset.
+SEO,UnitStatus,seo-perf,performance,perf:AssetStatus,broader-target,industrial-common,Generic assessed asset status.

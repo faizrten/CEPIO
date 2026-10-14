@@ -1,0 +1,18 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix kin: <https://cepio.org/ontology/kinetic#> .
+@prefix agentic: <https://cepio.org/ontology/agentic#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+agentic:Agent a owl:Class ; rdfs:subClassOf cepio:DigitalAsset .
+agentic:Recommendation a owl:Class ; rdfs:subClassOf kin:Decision .
+agentic:ActionCase a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+agentic:ControlPoint a owl:Class ; rdfs:subClassOf cepio:Entity .
+agentic:AgentRun a owl:Class ; rdfs:subClassOf cepio:Activity .
+agentic:AuditEntry a owl:Class ; rdfs:subClassOf cepio:Document .
+
+agentic:recommendationFor a owl:ObjectProperty ; rdfs:domain agentic:Recommendation ; rdfs:range cepio:Entity .
+agentic:producedByAgent a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range agentic:Agent .
+agentic:governedAtControlPoint a owl:ObjectProperty ; rdfs:domain agentic:Recommendation ; rdfs:range agentic:ControlPoint .
+agentic:caseFromRecommendation a owl:ObjectProperty ; rdfs:domain agentic:ActionCase ; rdfs:range agentic:Recommendation .
+agentic:hasAuditEntry a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range agentic:AuditEntry .

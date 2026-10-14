@@ -1,0 +1,23 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix asset: <https://cepio.org/ontology/asset#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Horizontal asset semantics shared across process plants, drilling fleets and other asset-heavy industries.
+asset:FunctionalLocation a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+asset:Site a owl:Class ; rdfs:subClassOf ind:Facility, cepio:Location .
+asset:Area a owl:Class ; rdfs:subClassOf asset:FunctionalLocation .
+asset:AssetSystem a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+asset:InstalledAsset a owl:Class ; rdfs:subClassOf cepio:PhysicalAsset .
+asset:AssetPosition a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+
+ind:Facility rdfs:subClassOf asset:InstalledAsset .
+ind:Equipment rdfs:subClassOf asset:InstalledAsset .
+ind:ProcessUnit rdfs:subClassOf asset:AssetSystem .
+
+asset:hasArea a owl:ObjectProperty ; rdfs:domain asset:Site ; rdfs:range asset:Area .
+asset:hasFunctionalPart a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Asset .
+asset:hasSystem a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range asset:AssetSystem .
+asset:installedAt a owl:ObjectProperty ; rdfs:domain asset:InstalledAsset ; rdfs:range asset:FunctionalLocation .
+asset:occupiesPosition a owl:ObjectProperty ; rdfs:domain asset:InstalledAsset ; rdfs:range asset:AssetPosition .

@@ -1,0 +1,29 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix hse: <https://cepio.org/ontology/hse#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+hse:WorkPermit a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+hse:SafetyCase a owl:Class ; rdfs:subClassOf cepio:Document .
+hse:RiskAssessment a owl:Class ; rdfs:subClassOf cepio:Risk .
+hse:ProcessSafetyEvent a owl:Class ; rdfs:subClassOf cepio:Event .
+hse:Incident a owl:Class ; rdfs:subClassOf cepio:Event .
+hse:DroppedObjectEvent a owl:Class ; rdfs:subClassOf hse:Incident .
+hse:CorrectiveAction a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+hse:AuditFinding a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+hse:ExternalInspection a owl:Class ; rdfs:subClassOf ind:Inspection .
+hse:ComplianceCheck a owl:Class ; rdfs:subClassOf ind:Inspection .
+hse:EmergencyDrillRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+hse:EmergencyDrillRecord a owl:Class ; rdfs:subClassOf cepio:Event .
+hse:ExposureObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
+hse:SecurityRecord a owl:Class ; rdfs:subClassOf cepio:Event .
+
+hse:permitForAsset a owl:ObjectProperty ; rdfs:domain hse:WorkPermit ; rdfs:range cepio:Asset .
+hse:hasSafetyCase a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range hse:SafetyCase .
+hse:hasRiskAssessment a owl:ObjectProperty ; rdfs:domain hse:SafetyCase ; rdfs:range hse:RiskAssessment .
+hse:eventAtAsset a owl:ObjectProperty ; rdfs:domain cepio:Event ; rdfs:range cepio:Asset .
+hse:hasCorrectiveAction a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range hse:CorrectiveAction .
+hse:hasAuditFinding a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range hse:AuditFinding .
+hse:inspectionOfAsset a owl:ObjectProperty ; rdfs:domain ind:Inspection ; rdfs:range cepio:Asset .
+hse:fulfillsDrillRequirement a owl:ObjectProperty ; rdfs:domain hse:EmergencyDrillRecord ; rdfs:range hse:EmergencyDrillRequirement .

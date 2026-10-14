@@ -1,0 +1,22 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix process: <https://cepio.org/ontology/process#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+process:ProcessStream a owl:Class ; rdfs:subClassOf cepio:Entity .
+process:MaterialStream a owl:Class ; rdfs:subClassOf process:ProcessStream .
+process:UtilityStream a owl:Class ; rdfs:subClassOf process:ProcessStream .
+process:UtilityMeter a owl:Class ; rdfs:subClassOf ind:Equipment .
+process:EmissionObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
+process:QualityObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
+process:OperationalEvent a owl:Class ; rdfs:subClassOf cepio:Event .
+process:OptimizationForecast a owl:Class ; rdfs:subClassOf cepio:Measurement .
+
+process:streamFromUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
+process:streamToUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
+process:meterAtUnit a owl:ObjectProperty ; rdfs:domain process:UtilityMeter ; rdfs:range ind:ProcessUnit .
+process:emissionFromUnit a owl:ObjectProperty ; rdfs:domain process:EmissionObservation ; rdfs:range ind:ProcessUnit .
+process:sampledAtUnit a owl:ObjectProperty ; rdfs:domain process:QualityObservation ; rdfs:range ind:ProcessUnit .
+process:eventAtUnit a owl:ObjectProperty ; rdfs:domain process:OperationalEvent ; rdfs:range ind:ProcessUnit .
+process:forecastForUnit a owl:ObjectProperty ; rdfs:domain process:OptimizationForecast ; rdfs:range ind:ProcessUnit .
