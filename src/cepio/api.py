@@ -20,7 +20,12 @@ from .runtime import AuthorizationError
 
 app = FastAPI(title="CEPIO Operational Ontology API", version="0.3.0", description="Semantic + kinetic runtime for Energy & Process Industry ontology applications.")
 runtime = build_runtime()
-graph_analytics = GraphAnalyticsEngine(runtime.object_repository)
+
+
+def _graph_analytics() -> GraphAnalyticsEngine:
+    # Resolve lazily so runtime/repository swaps (tests, tenants, deployments) do not
+    # leave graph analytics bound to stale state.
+    return GraphAnalyticsEngine(runtime.object_repository)
 
 
 class FunctionBody(BaseModel):
@@ -77,7 +82,7 @@ def neighbors(object_id: str, relationship_type: str | None = None) -> list[Onto
 
 @app.get("/graph/backend", response_model=GraphBackendInfo)
 def graph_backend() -> GraphBackendInfo:
-    return graph_analytics.backend_info()
+    return _graph_analytics().backend_info()
 
 
 @app.get("/graph/centrality", response_model=CentralityResult)
@@ -89,7 +94,7 @@ def graph_centrality(
     sample_size: int | None = Query(default=None, ge=1),
 ) -> CentralityResult:
     try:
-        return graph_analytics.centrality(
+        return _graph_analytics().centrality(
             algorithm,  # type: ignore[arg-type]
             relationship_types=relationship_type,
             object_types=object_type,
@@ -111,7 +116,7 @@ def graph_blast_radius(
     object_type: list[str] | None = Query(default=None),
 ) -> BlastRadiusResult:
     try:
-        return graph_analytics.blast_radius(
+        return _graph_analytics().blast_radius(
             object_id,
             max_hops=max_hops,
             direction=direction,  # type: ignore[arg-type]
@@ -132,7 +137,7 @@ def graph_communities(
     object_type: list[str] | None = Query(default=None),
 ) -> CommunityResult:
     try:
-        return graph_analytics.communities(
+        return _graph_analytics().communities(
             relationship_types=relationship_type,
             object_types=object_type,
         )
