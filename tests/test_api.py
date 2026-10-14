@@ -7,7 +7,7 @@ from cepio.bootstrap import build_runtime
 def test_api_health_and_policy_rejection_are_explicit_and_audited():
     api_module.runtime = build_runtime()
     client = TestClient(api_module.app)
-    assert client.get("/health").json()["version"] == "0.2.0"
+    assert client.get("/health").json()["version"] == "0.3.0"
 
     obj = {
         "id": "K-API",
@@ -32,3 +32,14 @@ def test_api_health_and_policy_rejection_are_explicit_and_audited():
     audit = client.get("/audit").json()
     assert len(audit) == 1
     assert audit[0]["status"] == "rejected"
+
+
+def test_graph_backend_endpoint_is_cpu_safe():
+    api_module.runtime = build_runtime()
+    client = TestClient(api_module.app)
+
+    response = client.get("/graph/backend")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["selected"] in {"networkx", "cugraph"}
+    assert "cugraph_installed" in payload
