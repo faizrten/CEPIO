@@ -1,0 +1,18 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix kin: <https://cepio.org/ontology/kinetic#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+kin:ActionType a owl:Class ; rdfs:subClassOf cepio:Entity .
+kin:Decision a owl:Class ; rdfs:subClassOf cepio:Entity .
+kin:Function a owl:Class ; rdfs:subClassOf cepio:Entity .
+kin:Rule a owl:Class ; rdfs:subClassOf cepio:Entity .
+kin:Constraint a owl:Class ; rdfs:subClassOf cepio:Entity .
+kin:Workflow a owl:Class ; rdfs:subClassOf cepio:Process .
+kin:Approval a owl:Class ; rdfs:subClassOf cepio:Event .
+
+kin:permitsAction a owl:ObjectProperty .
+kin:requiresApproval a owl:ObjectProperty .
+kin:invokesFunction a owl:ObjectProperty .
+kin:governedBy a owl:ObjectProperty .
+kin:resultsIn a owl:ObjectProperty .

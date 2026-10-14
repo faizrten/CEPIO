@@ -1,0 +1,20 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ent: <https://cepio.org/ontology/enterprise#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ent:BusinessCapability a owl:Class ; rdfs:subClassOf cepio:Entity .
+ent:BusinessProcess a owl:Class ; rdfs:subClassOf cepio:Process .
+ent:FinancialAccount a owl:Class ; rdfs:subClassOf cepio:Entity .
+ent:CostCenter a owl:Class ; rdfs:subClassOf cepio:Entity .
+ent:Supplier a owl:Class ; rdfs:subClassOf cepio:Organization .
+ent:Customer a owl:Class ; rdfs:subClassOf cepio:Organization .
+ent:PerformanceIndicator a owl:Class ; rdfs:subClassOf cepio:KPI .
+ent:EnterpriseRisk a owl:Class ; rdfs:subClassOf cepio:Risk .
+ent:BusinessObjective a owl:Class ; rdfs:subClassOf cepio:Objective .
+
+ent:realizesCapability a owl:ObjectProperty .
+ent:contributesToObjective a owl:ObjectProperty .
+ent:incursCost a owl:ObjectProperty .
+ent:exposedToRisk a owl:ObjectProperty .
+ent:suppliedBy a owl:ObjectProperty ; rdfs:domain cepio:Resource ; rdfs:range cepio:Organization .

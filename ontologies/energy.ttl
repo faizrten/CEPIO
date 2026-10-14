@@ -1,0 +1,13 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix energy: <https://cepio.org/ontology/energy#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+energy:UpstreamAsset a owl:Class ; rdfs:subClassOf cepio:Asset .
+energy:Well a owl:Class ; rdfs:subClassOf energy:UpstreamAsset .
+energy:Reservoir a owl:Class ; rdfs:subClassOf energy:UpstreamAsset .
+energy:Pipeline a owl:Class ; rdfs:subClassOf ind:Equipment .
+energy:Refinery a owl:Class ; rdfs:subClassOf ind:Facility .
+energy:Hydrocracker a owl:Class ; rdfs:subClassOf ind:ProcessUnit .
+energy:PetrochemicalComplex a owl:Class ; rdfs:subClassOf ind:Facility .

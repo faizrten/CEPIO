@@ -1,0 +1,51 @@
+{
+  "objects": [
+    {
+      "id": "REF-01",
+      "type": "Refinery",
+      "name": "Reference Refinery",
+      "properties": {"site": "Jubail"}
+    },
+    {
+      "id": "HCU-01",
+      "type": "Hydrocracker",
+      "name": "Hydrocracking Unit",
+      "properties": {"throughput_bpd": 120000}
+    },
+    {
+      "id": "K-201",
+      "type": "Compressor",
+      "name": "Recycle Gas Compressor K-201",
+      "properties": {"criticality": "high", "operatingState": "degraded", "replacementValueUSD": 8200000},
+      "interfaces": ["MaintainableAsset", "Inspectable", "RiskBearing"]
+    },
+    {
+      "id": "KPI-MARGIN",
+      "type": "PerformanceIndicator",
+      "name": "Hydrocracker Margin",
+      "properties": {"unit": "USD/bbl", "value": 11.4, "target": 13.0}
+    },
+    {
+      "id": "SPARE-BRG-201",
+      "type": "SparePart",
+      "name": "K-201 Bearing Cartridge",
+      "properties": {"stockOnHand": 0, "leadTimeDays": 21, "criticalSpare": true}
+    },
+    {
+      "id": "SUP-BRG-01",
+      "type": "Supplier",
+      "name": "Reference Rotating Equipment Supplier",
+      "properties": {"country": "DE"}
+    }
+  ],
+  "relationships": [
+    {"type": "contains", "source": {"id": "REF-01", "type": "Refinery"}, "target": {"id": "HCU-01", "type": "Hydrocracker"}},
+    {"type": "contains", "source": {"id": "HCU-01", "type": "Hydrocracker"}, "target": {"id": "K-201", "type": "Compressor"}},
+    {"type": "measuredBy", "source": {"id": "HCU-01", "type": "Hydrocracker"}, "target": {"id": "KPI-MARGIN", "type": "PerformanceIndicator"}},
+    {"type": "suppliedBy", "source": {"id": "SPARE-BRG-201", "type": "SparePart"}, "target": {"id": "SUP-BRG-01", "type": "Supplier"}}
+  ],
+  "events": [
+    {"type": "TripEvent", "subject": {"id": "K-201", "type": "Compressor"}, "severity": "high", "properties": {"cause": "high vibration", "duration_hours": 3.5}, "source_system": "AVEVA-PI"},
+    {"type": "TripEvent", "subject": {"id": "K-201", "type": "Compressor"}, "severity": "medium", "properties": {"cause": "bearing temperature", "duration_hours": 1.2}, "source_system": "AVEVA-PI"}
+  ]
+}

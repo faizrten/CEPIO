@@ -1,0 +1,23 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ind:Facility a owl:Class ; rdfs:subClassOf cepio:PhysicalAsset .
+ind:ProcessUnit a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+ind:Equipment a owl:Class ; rdfs:subClassOf cepio:PhysicalAsset .
+ind:RotatingEquipment a owl:Class ; rdfs:subClassOf ind:Equipment .
+ind:Compressor a owl:Class ; rdfs:subClassOf ind:RotatingEquipment .
+ind:Pump a owl:Class ; rdfs:subClassOf ind:RotatingEquipment .
+ind:WorkOrder a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+ind:Inspection a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+ind:TripEvent a owl:Class ; rdfs:subClassOf cepio:Event .
+ind:SparePart a owl:Class ; rdfs:subClassOf cepio:Resource .
+
+ind:contains a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Asset .
+ind:feeds a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Asset .
+ind:produces a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Entity .
+ind:consumes a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Entity .
+ind:hasWorkOrder a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range ind:WorkOrder .
+ind:hasInspection a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range ind:Inspection .
+ind:requiresSpare a owl:ObjectProperty ; rdfs:domain ind:WorkOrder ; rdfs:range ind:SparePart .

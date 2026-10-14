@@ -1,0 +1,35 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+cepio:Entity a owl:Class .
+cepio:Asset a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:PhysicalAsset a owl:Class ; rdfs:subClassOf cepio:Asset .
+cepio:DigitalAsset a owl:Class ; rdfs:subClassOf cepio:Asset .
+cepio:FunctionalAsset a owl:Class ; rdfs:subClassOf cepio:Asset .
+cepio:Activity a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Process a owl:Class ; rdfs:subClassOf cepio:Activity .
+cepio:Event a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:State a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Party a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Organization a owl:Class ; rdfs:subClassOf cepio:Party .
+cepio:Person a owl:Class ; rdfs:subClassOf cepio:Party .
+cepio:Location a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Resource a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Measurement a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:KPI a owl:Class ; rdfs:subClassOf cepio:Measurement .
+cepio:Risk a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Objective a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Document a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Contract a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:WorkItem a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+cepio:partOf a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
+cepio:locatedAt a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Location .
+cepio:ownedBy a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Party .
+cepio:operatedBy a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Party .
+cepio:measuredBy a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Measurement .
+cepio:impacts a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
+cepio:dependsOn a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
+cepio:causedBy a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
+cepio:contributesTo a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .

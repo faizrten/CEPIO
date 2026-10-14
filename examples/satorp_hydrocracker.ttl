@@ -1,0 +1,13 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix energy: <https://cepio.org/ontology/energy#> .
+@prefix ent: <https://cepio.org/ontology/enterprise#> .
+@prefix ex: <https://cepio.org/example/satorp#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:REF-01 a energy:Refinery ; rdfs:label "Reference Refinery" ; ind:contains ex:HCU-01 .
+ex:HCU-01 a energy:Hydrocracker ; rdfs:label "Hydrocracking Unit" ; ind:contains ex:K-201 ; cepio:measuredBy ex:KPI-MARGIN .
+ex:K-201 a ind:Compressor ; rdfs:label "Recycle Gas Compressor K-201" .
+ex:KPI-MARGIN a ent:PerformanceIndicator ; rdfs:label "Hydrocracker Margin" .
+ex:SPARE-BRG-201 a ind:SparePart ; rdfs:label "K-201 Bearing Cartridge" ; ent:suppliedBy ex:SUP-BRG-01 .
+ex:SUP-BRG-01 a ent:Supplier ; rdfs:label "Reference Rotating Equipment Supplier" .

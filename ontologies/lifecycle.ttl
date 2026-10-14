@@ -1,0 +1,16 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix life: <https://cepio.org/ontology/lifecycle#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+life:LifecycleStage a owl:Class ; rdfs:subClassOf cepio:State .
+life:Concept a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:FEED a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:Engineering a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:Procurement a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:Construction a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:Commissioning a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:Operation a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:Maintenance a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:Decommissioning a owl:Class ; rdfs:subClassOf life:LifecycleStage .
+life:hasLifecycleStage a owl:ObjectProperty .
