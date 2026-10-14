@@ -1,0 +1,21 @@
+source,source_entity,source_property,canonical_property,canonical_property_iri,mapping_kind,source_datatype,canonical_datatype,temporal_semantics,write_authority,relationship_target,observation_metric,notes
+SEO,Equipment,EquipmentId,cepio:sourceId,https://cepio.org/ontology/core#sourceId,canonical-property,string,string,identity,source-system,,,Entity source key
+SEO,Equipment,Criticality,asset:criticality,https://cepio.org/ontology/asset#criticality,canonical-property,string,string,current-state-with-history,domain,,,
+SEO,Site,MaxTempC,cepio:value,https://cepio.org/ontology/core#value,observation-value,double,double,event-time,source-system,,MaxTempC,
+SEO,WorkOrder,EquipmentId,,,relationship-key,string,,structural,source-system,Activity.equipment,,Resolve source foreign key to an object relationship
+SEO,FailureEvent,DowntimeH,rel:downtimeHours,https://cepio.org/ontology/reliability#downtimeHours,canonical-property,double,double,current-state-with-history,derived,,,
+SEO,SparePart,OnHandQty,supply:onHandQuantity,https://cepio.org/ontology/supply#onHandQuantity,observation-value,integer,double,event-time,source-system,,OnHandQty,
+SEO,DesignTag,DesignStatus,epcic:designStatus,https://cepio.org/ontology/epcic#designStatus,canonical-property,string,string,current-state-with-history,domain,,,
+SEO,OperationalEvent,Confidence,cepio:confidence,https://cepio.org/ontology/core#confidence,canonical-property,double,double,observation/period,derived,,,
+SEO,FinancialActual,Currency,comm:currency,https://cepio.org/ontology/commercial#currency,canonical-property,string,string,current-state-with-history,domain,,,
+AD,OperatingRig,rigClass,drill:rigClass,https://cepio.org/ontology/drilling#rigClass,canonical-property,string,string,current-state-with-history,domain,,,
+AD,OperatingRig,revenueAtRisk,comm:revenueAtRisk,https://cepio.org/ontology/commercial#revenueAtRisk,canonical-property,decimal,decimal,current-state-with-history,derived,,,
+AD,OperatingRig,aramcoRigNumber,profile:ad.OperatingRig.aramcoRigNumber,,profile-property,string,string,source-record,source-system,,,AD-specific property retained in profile pending promotion evidence
+AD,EquipmentItem,conditionPct,asset:conditionPercent,https://cepio.org/ontology/asset#conditionPercent,canonical-property,integer,double,current-state-with-history,derived,,,
+AD,WorkOrder,materialCost,comm:amount,https://cepio.org/ontology/commercial#amount,canonical-property,decimal,decimal,current-state-with-history,source-system,,,
+AD,PermitRecord,closeOutOnTime,hse:closeOutOnTime,https://cepio.org/ontology/hse#closeOutOnTime,canonical-property,boolean,boolean,current-state-with-history,derived,,,
+AD,PartStock,shortfall,supply:shortfallQuantity,https://cepio.org/ontology/supply#shortfallQuantity,canonical-property,integer,double,current-state-with-history,derived,,,
+AD,FailureMode,rpn,rel:riskPriorityNumber,https://cepio.org/ontology/reliability#riskPriorityNumber,canonical-property,integer,integer,current-state-with-history,derived,,,
+AD,Recommendation,agentId,agentic:agentId,https://cepio.org/ontology/agentic#agentId,canonical-property,string,string,current-state-with-history,system,,,
+AD,SafetyCase,sourceTable,cepio:sourceTable,https://cepio.org/ontology/core#sourceTable,canonical-property,string,string,current-state-with-history,source-system,,,
+AD,ReiScore,rank,perf:rank,https://cepio.org/ontology/performance#rank,canonical-property,integer,integer,observation/period,derived,,,
