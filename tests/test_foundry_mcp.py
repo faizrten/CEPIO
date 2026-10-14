@@ -13,6 +13,7 @@ from cepio.integrations.microsoft.foundry_gateway import (
 )
 from cepio.integrations.microsoft.foundry_mcp import build_mcp_server
 from cepio.model import OntologyObject, PolicyEffect
+from cepio.provenance import PropertyProvenance, SourceReference
 from cepio.query import ObjectQuery, PropertyPredicate
 from cepio.runtime import AuthorizationError
 
@@ -41,6 +42,21 @@ def _runtime():
             properties={"status": "online"},
         )
     )
+    provenance = PropertyProvenance.create(
+        object_id="K-MCP",
+        property_name="asset:criticality",
+        property_registry=runtime.property_registry,
+        source=SourceReference(
+            source_system="SAP",
+            source_entity="Equipment",
+            source_field="Criticality",
+            source_record_id="K-MCP",
+        ),
+        mapping_kind="direct",
+        mapping_version="1.0.0",
+        source_value="high",
+    )
+    runtime.provenance_repository.append_property(provenance)
     return runtime
 
 
@@ -72,6 +88,11 @@ def test_gateway_filters_object_and_query_results_by_cepio_policy():
     assert result.total == 1
     assert result.items[0].id == "K-MCP"
     assert "manufacturer" not in result.items[0].properties
+
+    with pytest.raises(ValueError):
+        gateway.query_objects(ObjectQuery())
+    with pytest.raises(AuthorizationError):
+        gateway.query_objects(ObjectQuery(object_type="ProcessUnit"))
 
 
 def test_function_calls_are_explicitly_policy_authorized():
@@ -160,6 +181,7 @@ def test_actual_mcp_protocol_lists_governed_tools_and_hides_actor_arguments():
 
     runtime = _runtime()
     server = build_mcp_server(runtime, FixedActorProvider(_ai_actor()))
+    state_time = runtime.get_object("K-MCP").updated_at.isoformat()
 
     async def _exercise() -> None:
         async with Client(server, raise_exceptions=True) as client:
@@ -182,6 +204,36 @@ def test_actual_mcp_protocol_lists_governed_tools_and_hides_actor_arguments():
             assert obj_result.is_error is False
             assert obj_result.structured_content["id"] == "K-MCP"
             assert "manufacturer" not in obj_result.structured_content["properties"]
+
+            query_result = await client.call_tool(
+                "cepio_query_objects",
+                {
+                    "query": {
+                        "object_type": "Equipment",
+                        "predicates": [
+                            {"property": "criticality", "operator": "eq", "value": "high"}
+                        ],
+                    }
+                },
+            )
+            assert query_result.is_error is False
+            assert query_result.structured_content["total"] == 1
+            assert query_result.structured_content["items"][0]["id"] == "K-MCP"
+
+            state_result = await client.call_tool(
+                "cepio_get_state_at",
+                {"object_id": "K-MCP", "as_of_transaction": state_time},
+            )
+            assert state_result.is_error is False
+            assert state_result.structured_content["id"] == "K-MCP"
+
+            explain_result = await client.call_tool(
+                "cepio_explain_property",
+                {"object_id": "K-MCP", "property_name": "asset:criticality"},
+            )
+            assert explain_result.is_error is False
+            assert explain_result.structured_content["object_id"] == "K-MCP"
+            assert explain_result.structured_content["records"][0]["source"]["source_system"] == "SAP"
 
             rec_result = await client.call_tool(
                 "cepio_recommend_action",
