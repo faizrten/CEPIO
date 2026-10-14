@@ -1,0 +1,20 @@
+schema_version: '0.1'
+architecture:
+  foundation: [core, lifecycle, kinetic]
+  industrial_common: [asset, industrial, work_management, reliability, hse, supply, performance, workforce, agentic_operations]
+  domain: [process_industry, epcic, drilling, energy]
+  enterprise: [enterprise, commercial]
+  profiles: [SEO/SATORP, AD/ARO]
+modules:
+- {name: asset, file: ontologies/asset.ttl, tier: industrial-common, depends_on: [core, industrial]}
+- {name: work_management, file: ontologies/work_management.ttl, tier: industrial-common, depends_on: [core, industrial]}
+- {name: reliability, file: ontologies/reliability.ttl, tier: industrial-common, depends_on: [core, industrial]}
+- {name: hse, file: ontologies/hse.ttl, tier: industrial-common, depends_on: [core, industrial]}
+- {name: supply, file: ontologies/supply.ttl, tier: industrial-common, depends_on: [core, industrial, enterprise]}
+- {name: performance, file: ontologies/performance.ttl, tier: industrial-common, depends_on: [core]}
+- {name: workforce, file: ontologies/workforce.ttl, tier: industrial-common, depends_on: [core]}
+- {name: commercial, file: ontologies/commercial.ttl, tier: enterprise, depends_on: [core]}
+- {name: process_industry, file: ontologies/process_industry.ttl, tier: domain, depends_on: [core, industrial, asset]}
+- {name: epcic, file: ontologies/epcic.ttl, tier: domain, depends_on: [core, asset, lifecycle]}
+- {name: drilling, file: ontologies/drilling.ttl, tier: domain, depends_on: [core, industrial, asset, energy]}
+- {name: agentic_operations, file: ontologies/agentic_operations.ttl, tier: industrial-common, depends_on: [core, kinetic]}
