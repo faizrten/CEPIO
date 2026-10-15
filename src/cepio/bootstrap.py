@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from rdflib import Graph
+
 from .action_handlers import approve_maintenance_deferral, create_inspection, create_work_order, escalate_risk, require_interface, require_parameter, require_target_type, restore_risk_status
 from .config import RuntimeSettings
 from .contract_runtime import ContractAwareCEPIORuntime
 from .functions import AssetRiskInput, MarginImpactInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_loss
 from .modules import ModuleCatalogue
 from .policy import RolePolicyEngine
+from .profiles import ProfileRegistry
 from .projection import InMemoryProjectionRepository, ProjectionEngine, SQLiteProjectionRepository
 from .property_registry import PropertyRegistry
 from .provenance import InMemoryProvenanceRepository, SQLiteProvenanceRepository
@@ -25,16 +28,26 @@ def build_runtime(
     strict_properties: bool = False,
     resource_root: str | Path | None = None,
     ontology_dir: str | Path | None = None,
+    profiles: tuple[str, ...] | list[str] = (),
 ) -> CEPIORuntime:
     root = resolve_resource_root(resource_root)
     ontology_path = Path(ontology_dir).expanduser().resolve() if ontology_dir else root / "ontologies"
     if not ontology_path.exists():
         raise RuntimeError(f"CEPIO ontology directory does not exist: {ontology_path}")
 
-    repo = TemporalSQLiteRepository(sqlite_path) if sqlite_path is not None else TemporalInMemoryRepository()
-    registry = TypeRegistry.from_ontology_dir(ontology_path) if validate_types else None
-
     catalogue = ModuleCatalogue.load(root / "ontology-modules.yaml")
+    selected_profiles = ProfileRegistry(root / "profiles", catalogue).load(profiles) if profiles else []
+
+    registry = None
+    if validate_types:
+        graph = Graph()
+        for path in sorted(ontology_path.glob("*.ttl")):
+            graph.parse(path, format="turtle")
+        for profile in selected_profiles:
+            profile.add_ontology_to_graph(graph)
+        registry = TypeRegistry.from_graph(graph)
+
+    repo = TemporalSQLiteRepository(sqlite_path) if sqlite_path is not None else TemporalInMemoryRepository()
     property_registry = None
     if validate_properties:
         if not catalogue.property_contract:
@@ -69,7 +82,8 @@ def build_runtime(
 
     runtime.resource_root = root  # type: ignore[attr-defined]
     runtime.module_catalogue = catalogue  # type: ignore[attr-defined]
-    runtime.profile_versions = {}  # type: ignore[attr-defined]
+    runtime.profiles = selected_profiles  # type: ignore[attr-defined]
+    runtime.profile_versions = {profile.profile_id: profile.version for profile in selected_profiles}  # type: ignore[attr-defined]
     return runtime
 
 
@@ -83,6 +97,7 @@ def build_runtime_from_settings(settings: RuntimeSettings | None = None) -> CEPI
         strict_properties=settings.strict_properties,
         resource_root=settings.resource_root,
         ontology_dir=settings.ontology_dir,
+        profiles=settings.profiles,
     )
 
 
