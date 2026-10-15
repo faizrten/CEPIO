@@ -46,6 +46,13 @@ async def request_context(request: Request, call_next):
 
 @app.exception_handler(HTTPException)
 async def public_http_error(request: Request, exc: HTTPException):
+    if not request.url.path.startswith("/api/v1/"):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=exc.headers,
+        )
+
     detail = exc.detail
     if isinstance(detail, dict):
         code = str(detail.get("code") or f"http_{exc.status_code}")
@@ -76,6 +83,8 @@ async def public_http_error(request: Request, exc: HTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def public_validation_error(request: Request, exc: RequestValidationError):
+    if not request.url.path.startswith("/api/v1/"):
+        return JSONResponse(status_code=422, content={"detail": exc.errors()})
     return JSONResponse(
         status_code=422,
         content=_error_payload(
