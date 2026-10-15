@@ -8,6 +8,10 @@ CEPIO owns the canonical industrial semantic and operational contract. Microsoft
 
 `CEPIO semantic contract -> Microsoft platform bindings -> customer deployment`
 
+The governing product rule from v0.4 onward is:
+
+> **Every CEPIO release must prove a stronger operating capability, not merely introduce more ontology vocabulary.**
+
 ---
 
 ## Completed — v0.1 Semantic Scaffold
@@ -52,8 +56,7 @@ CEPIO owns the canonical industrial semantic and operational contract. Microsoft
 - domain modules for Process Industry, EPCIC and Drilling;
 - SEO refinery/petrochemical + EPC ontology normalized into CEPIO;
 - AD asset-heavy/drilling ontology normalized into CEPIO;
-- 42/42 SEO entities and 59/59 AD core entities mapped;
-- 967 source-property occurrences classified into canonical properties, relationship keys, observations, provenance or profile-specific semantics.
+- source-property occurrences classified into canonical properties, relationship keys, observations, provenance or profile-specific semantics.
 
 ### Semantic contract
 - IRI-first identity for classes, relationships and datatype properties;
@@ -81,82 +84,62 @@ CEPIO owns the canonical industrial semantic and operational contract. Microsoft
 
 ---
 
-# Current — v0.4 Microsoft Platform Extension
+# Current — v0.4 Microsoft Platform Extension + Developer Preview
 
-**Outcome:** make CEPIO natively consumable across the Microsoft Data + AI platform while preserving a portable, source-system-neutral canonical contract.
+**Epic:** #22  
+**Release gate:** #50
 
-## Completed P0
+**Outcome:** make CEPIO natively consumable across the Microsoft Data + AI platform while preserving a portable, source-system-neutral canonical contract, then qualify the result as a Developer Preview.
 
-### #5 — Typed operational query contract ✓
+## Completed platform foundation
 
-- typed object type/subtype queries;
-- property predicates;
-- relationship constraints;
-- valid-time and transaction-time filters;
-- deterministic sorting and pagination;
-- in-memory and SQLite parity;
-- FastAPI and Python SDK exposure.
+- #5 Typed query and temporal filter contract — completed via PR #28.
+- #7 Microsoft platform extension architecture — completed via PR #17.
+- #18 Fabric and Fabric IQ semantic binding — completed via PR #29.
+- #19 Foundry agent and CEPIO MCP binding — completed via PR #30.
+- #4 Ontology migration manifests and compatibility gates — completed via PR #31.
 
-### #7 — Microsoft platform extension architecture ✓
+## Completed product hardening
 
-- CEPIO established as the canonical industrial semantic/operational contract;
-- Microsoft services implement CEPIO capabilities without defining CEPIO industrial semantics;
-- durable boundaries for Fabric, Fabric IQ, Foundry, Entra, App Service, AKS and optional Purview integration.
+- #34 / #35 Entra REST identity, anti-spoofing and actor-scoped read authorization — completed via PR #38.
+- #36 production runtime configuration, package resources and version source — completed via PR #45.
+- #37 first-class customer profile architecture — completed via PR #46.
+- #41 versioned `/api/v1` and OpenAPI contract — completed via PR #48.
+- #42 standard API errors, ETag/If-Match and idempotency semantics — completed via PR #49.
 
-### #18 — Fabric + Fabric IQ semantic binding ✓
+## Current critical path
 
-- deterministic CEPIO -> Fabric IQ binding manifest;
-- importable ontology TTL generation;
-- canonical IRI + module/version preservation;
-- Lakehouse, Warehouse, Eventhouse/KQL, SQL, mirrored DB and semantic-model source contracts;
-- Graph eligibility metadata;
-- semantic drift detection;
-- offline validation without Fabric credentials.
+### #43 — Repository query pushdown and cursor pagination
 
-### #19 — Foundry + governed CEPIO MCP ✓
+**Goal:** make the public typed query contract executable at enterprise scale without normal full object materialization in Python.
 
-- CEPIO read/query/time/provenance/function/action tools exposed through MCP;
-- Entra/Foundry identity -> CEPIO actor context;
-- actor identity and roles excluded from model-callable tool arguments;
-- explicit function authorization;
-- recommendation separated from execution;
-- no agent bypass of CEPIO policy or enterprise adapters.
+Required outcomes:
+- repository-level typed query interface;
+- SQLite/reference SQL pushdown;
+- deterministic opaque cursor pagination;
+- authorization before count/cursor/result construction;
+- query budgets for page size, traversal depth, result limits and execution time;
+- parity tests against in-memory semantic reference implementation;
+- load baseline.
 
-## Completed P1
+### #21 — App Service and AKS reference deployment profiles
 
-### #4 — Ontology migration manifests + compatibility gates ✓
+**Goal:** deploy the current CEPIO runtime as a coherent Microsoft-native reference system.
 
-- accepted ontology baseline pinned to immutable Git history;
-- compatibility analysis across modules, namespaces, classes, relationships, properties, hierarchy and range/domain constraints;
-- semantic-version enforcement;
-- explicit migration-manifest format for intentional breaking changes;
-- stale/duplicate migration declarations fail closed;
-- compatibility gate enforced in GitHub Actions.
-
-## Current priority
-
-### #21 — App Service + AKS reference deployment profiles
-
-**Goal:** make the current CEPIO runtime deployable as a coherent Microsoft-native reference system.
-
-#### App Service
-- CEPIO REST/MCP APIs and lightweight domain applications;
+App Service:
+- REST/MCP APIs and lightweight domain applications;
 - managed identity / Entra integration boundary;
-- VNet/private connectivity patterns;
+- VNet/private connectivity;
 - health/readiness endpoints;
-- deployment slots and autoscale guidance;
+- deployment slots/autoscale guidance;
 - configuration and secretless patterns.
 
-#### AKS
-- scale-out CEPIO runtime, adapters, projectors and event workers;
+AKS:
+- scale-out runtime, adapters, projectors and event workers;
 - Entra Workload Identity;
 - private networking and Key Vault integration;
-- probes and autoscaling;
-- workload isolation;
-- auditable rollout patterns;
-- optional NVIDIA GPU profile remains separate and non-blocking.
-
-## Next priority
+- probes/autoscaling/workload isolation;
+- auditable rollout patterns.
 
 ### #6 — Runtime observability / OpenTelemetry
 
@@ -166,142 +149,286 @@ CEPIO owns the canonical industrial semantic and operational contract. Microsoft
 - OpenTelemetry-compatible hook boundary;
 - no unauthorized industrial data in telemetry payloads.
 
-## Deferred / non-blocking
+### #50 — Developer Preview release gate
 
-### #20 — Purview governance + lineage bridge
+Required artifacts:
+- stable `/api/v1` and committed OpenAPI baseline;
+- Python and TypeScript client validation/generation;
+- authentication guide;
+- pagination/query guide;
+- error, ETag/If-Match and idempotency guide;
+- App Service or AKS deployment quickstart;
+- diagnostics/OpenTelemetry quickstart;
+- representative API examples;
+- measured query/load baseline.
 
-Purview remains useful for enterprise catalog, classification and governance but is **not a current v0.4 release blocker**.
+## Deferred / non-blocking for v0.4
 
-Future scope may include:
-- Purview/Data Map asset -> CEPIO SourceReference mapping;
-- governance/classification/domain metadata in explanation context;
-- CEPIO transformation -> Purview lineage publication artifacts;
-- preservation of CEPIO runtime provenance as the operationally precise lineage layer.
+- #20 Purview governance and lineage bridge.
+- #25 GPU AKS / cuGraph validation and benchmarking.
 
 ## v0.4 release gate
 
 A Microsoft-native reference deployment should demonstrate:
 
-1. CEPIO canonical semantics materialized through the Fabric/Fabric IQ binding;
-2. a Foundry agent querying CEPIO through MCP without bypassing CEPIO policy;
-3. ontology evolution protected by migration manifests and CI compatibility gates;
-4. the same CEPIO runtime deployable through App Service or AKS reference profiles;
-5. all CEPIO core tests remaining cloud-independent and executable offline.
-
-Purview is explicitly deferred and non-blocking for this release path.
+1. CEPIO canonical semantics materialized through Fabric/Fabric IQ;
+2. Foundry/MCP consumption without bypassing CEPIO policy;
+3. Entra-authenticated `/api/v1` with stable OpenAPI, error, concurrency and pagination contracts;
+4. production query execution without normal full in-process scans;
+5. App Service or AKS reference deployment;
+6. runtime observability through OpenTelemetry-compatible hooks;
+7. all CEPIO core tests remain cloud-independent and executable offline;
+8. #50 Developer Preview gate passes.
 
 Sequence:
 
-`Query ✓ -> Fabric/IQ ✓ -> Foundry/MCP ✓ -> Migration compatibility ✓ -> App Service/AKS -> Observability`
+`API hardening ✓ -> #43 query scale -> #21 deployment -> #6 observability -> #50 Developer Preview gate -> v0.4 tag`
+
+Release designation: **CEPIO v0.4 — Developer Preview**.
 
 ---
 
-# Next — v0.5 Live Industrial Integration
+# v0.5 — Live Industrial Integration
 
-**Outcome:** prove that CEPIO abstracts real industrial source systems and closes the governed writeback loop.
+**Epic:** #51
 
-- SAP S/4HANA / EAM production-grade adapter;
-- AVEVA PI / historian streaming adapter;
-- OSDU upstream adapter and semantic mapping;
-- Primavera P6 schedule adapter;
-- Fabric/OneLake operational materialization where required;
-- real-time event ingestion and reconciliation;
-- governed writeback with explicit external acknowledgement;
-- retry, dead-letter and reconciliation handling;
-- secrets/configuration boundary and environment isolation;
-- customer/source identity resolution.
+**Outcome:** prove that CEPIO can operate over real industrial systems and close the governed writeback loop.
 
-**Gate:** one CEPIO application traverses at least three live enterprise sources and performs one governed, auditable and reconciled enterprise writeback.
+## Work packages
+
+- #52 Integration adapter SDK and connector contract.
+- #53 SAP S/4HANA maintenance and enterprise adapter.
+- #54 AVEVA PI operational state adapter.
+- #55 OSDU subsurface and upstream context adapter.
+- #56 Primavera P6 project and schedule adapter.
+- #57 External identity reconciliation and governed writeback.
+- #58 Live industrial compressor reference scenario.
+
+## Recommended dependency order
+
+`#52 -> (#53 + #54) -> #57 -> #58`
+
+Then add at least one engineering/project context path:
+
+`#55 or #56 -> #58`
+
+## Reference architecture
+
+`SAP + PI + OSDU/P6 -> CEPIO identity/state/provenance -> reasoning/decision -> policy -> action -> source-system writeback -> reconciliation/audit`
+
+## Adapter contract
+
+Every live source adapter should implement equivalent capabilities for:
+
+`discover() -> read() -> subscribe() -> map() -> reconcile() -> write() -> verify()`
+
+with source identity, timestamps, mapping version, provenance, reconciliation status and stable error/retry semantics.
+
+## Reference proof
+
+For one compressor, CEPIO should combine:
+- enterprise identity/maintenance context from SAP;
+- operational measurements/events/state from PI;
+- engineering/project context from OSDU or P6;
+- CEPIO provenance, reasoning, Decision and Action records;
+- one human-authorized external maintenance writeback;
+- source-system verification and reconciliation.
+
+Reference flow:
+
+`PI anomaly -> CEPIO event/state -> reliability reasoning -> Decision -> human authorization -> CEPIO Action -> SAP work order -> verification -> reconciliation/audit`
+
+## v0.5 release gate
+
+One industrial asset is represented using context from at least three source-system domains, material values/state are explainable through provenance, and one external writeback is authorized, idempotent, verified and reconciled.
 
 ---
 
-# Later — v0.6 Reference Industrial Applications
+# v0.6 — Reference Industrial Applications
 
-**Outcome:** prove measurable operating value rather than semantic elegance.
+**Epic:** #59
 
-## Asset Reliability
-- condition -> risk -> failure mode -> work -> spare -> action;
-- maintenance decision and outcome feedback loop.
+**Outcome:** prove that CEPIO enables meaningful industrial workflows without requiring users to understand where each source fact physically resides.
 
-## Refinery Margin Optimization
-- margin KPI -> process unit -> constraint/event -> operating decision -> financial impact;
-- connect process, reliability and finance semantics.
+## Lighthouse application — Asset Reliability / Maintenance Command Center
 
-## Turnaround Planning
-- scope -> asset/work package -> materials -> workforce -> schedule -> risk;
-- multi-agent planning and governed human approvals.
+Primary personas:
+- Reliability Engineer;
+- Maintenance Planner;
+- Operations Engineer;
+- Maintenance Manager;
+- Plant Manager.
 
-**Gate:** at least one reference application demonstrates measurable business impact with a complete observe -> reason -> decide -> authorize -> act -> learn loop.
+Core workflow:
+1. detect degradation;
+2. explain affected asset/context;
+3. assess operational consequence and risk;
+4. inspect work, maintenance and materials context;
+5. generate intervention options;
+6. compare risk/cost/availability impact;
+7. recommend action;
+8. authorize;
+9. issue governed action/work order;
+10. observe outcome.
+
+Prefer bounded agents such as Reliability, Maintenance Planning, Operations Risk, Materials and Cost agents, all operating through CEPIO policy and contracts.
+
+Follow-on applications:
+- Refinery Margin / Constraint Optimization;
+- Turnaround Planning.
+
+**Gate:** one reference application demonstrates the complete `Observe -> Understand -> Reason -> Decide -> Authorize -> Act -> Observe outcome` loop over live v0.5 integrations.
 
 ---
 
-# Platformization path
+# v0.7 — Developer Platform
 
-## v0.7 — Developer Platform
+**Epic:** #60
 
-- SDK maturity;
+**Outcome:** independent engineering teams can extend CEPIO without modifying CEPIO-Core.
+
+Key deliverables:
+- Python SDK;
+- TypeScript SDK;
 - CLI;
-- package/module registry;
-- MCP/OpenAPI tooling;
-- ontology-as-code workflows;
-- developer tooling and documentation.
+- profile/adapter/application scaffolding;
+- package/module/profile conventions;
+- generated API/SDK documentation;
+- ontology/profile validation tooling;
+- developer templates and examples.
 
-## v0.8 — Enterprise Runtime
+Target developer flows:
+- `cepio new-profile <name>`
+- `cepio new-adapter <system>`
+- `cepio new-app <name>`
+- `cepio validate`
+- `cepio query`
+- `cepio migrate`
+- `cepio deploy`
 
-- production persistence;
-- scale and high availability;
-- multi-tenancy;
-- security hardening;
-- production observability;
-- SLO/performance program.
-
-## v0.9 — Enterprise Adoption
-
-**Gate:** a second Energy & Process enterprise can adopt CEPIO primarily through mapping, configuration and approved extensions rather than redesigning the runtime.
-
-## v1.0 — Production Platform
-
-- compatibility and upgrade guarantees;
-- deployment automation;
-- production SRE/security controls;
-- partner extension/certification model;
-- repeatable enterprise adoption.
+**Gate:** a clean-room developer can build a simple customer profile, adapter and application through supported tooling without editing canonical core modules.
 
 ---
 
-## Project-board view
+# v0.8 — Enterprise Runtime
 
-### DONE
-- v0.1 Semantic Scaffold
-- v0.2 Operational Kernel
-- v0.3 Temporal + Provenance Kernel
-- SEO/AD domain normalization
-- DTC ISA-95 manufacturing federation
-- IRI-first semantic identity
-- property provenance
-- bitemporal object/relationship history
-- deterministic event/state projection
-- graph intelligence + optional cuGraph acceleration
-- #5 typed query + temporal filter contract
-- #7 Microsoft platform extension architecture
-- #18 Fabric + Fabric IQ semantic binding
-- #19 Foundry + CEPIO MCP binding
-- #4 migration manifests + compatibility gates
+**Epic:** #61
+
+**Outcome:** qualify CEPIO for sustained enterprise operation.
+
+Key workstreams:
+- horizontal scale and stateless service patterns;
+- HA persistence;
+- queue/event processing, retries and dead-letter handling;
+- adapter circuit breakers and backpressure;
+- workload identity/private networking/Key Vault;
+- immutable and auditable action history;
+- security testing;
+- backup/restore and disaster recovery;
+- operational dashboards and SLO/error-budget program.
+
+Tenancy position: prefer one enterprise deployment boundary initially while preserving explicit tenant/isolation primitives for future shared deployments.
+
+**Gate:** CEPIO survives node/service restart, duplicate messages, stale writes and adapter/dependency outages without semantic corruption, with measured SLOs and operational runbooks.
+
+---
+
+# v0.9 — Second Enterprise Adoption
+
+**Epic:** #62
+
+**Outcome:** prove that CEPIO is portable across materially different Energy & Process Industry enterprises.
+
+Preferred proof: use a substantially different operating model from the refinery/process reference. ARO Drilling is a strong candidate because it tests offshore drilling semantics, workflows and personas against the same canonical platform.
+
+Measure:
+- canonical class reuse;
+- canonical relationship reuse;
+- profile-specific additions;
+- CEPIO-Core code modifications required;
+- adapter reuse;
+- application/workflow reuse;
+- migration impact on customer #1.
+
+**Gate:** customer #2 is implemented primarily through profiles, adapters and application configuration, and customer #1 remains stable.
+
+---
+
+# v1.0 — Production Platform
+
+**Epic:** #63
+
+**Outcome:** establish explicit production guarantees rather than simply add more features.
+
+Required guarantees:
+
+### Semantic compatibility
+- versioned ontology/module contracts;
+- explicit migrations for breaking semantic changes;
+- stable profile dependency/version rules.
+
+### API compatibility
+- stable `/api/v1`;
+- documented deprecation policy;
+- SDK compatibility tests.
+
+### Security
+- authenticated identity and actor-scoped authorization;
+- no client-supplied privilege authority;
+- immutable/auditable governed action history;
+- security review/penetration testing.
+
+### Runtime
+- repeatable deployment;
+- HA/scale qualification;
+- backup/restore and disaster recovery;
+- telemetry/runbooks;
+- defined and measured SLOs.
+
+### Integration
+- production-quality SAP and PI baseline;
+- OSDU/P6 according to reference deployments;
+- governed and reconciled external writeback.
+
+### Adoption
+- at least two materially different enterprise profiles/deployments;
+- customer #2 does not destabilize customer #1;
+- published documentation supports teams other than original authors.
+
+**Gate:** v0.4-v0.9 gates complete, compatibility/security/SLO/DR guarantees are qualified, two-enterprise portability evidence exists, and a clean-room deployment succeeds from published documentation.
+
+---
+
+# Program view
+
+| Release | Product claim | GitHub epic |
+| --- | --- | --- |
+| v0.4 | deployable Microsoft-native industrial semantic runtime | #22 / gate #50 |
+| v0.5 | live operation over industrial source systems | #51 |
+| v0.6 | real industrial workflows/applications | #59 |
+| v0.7 | independent developers can extend CEPIO | #60 |
+| v0.8 | enterprise-operable runtime | #61 |
+| v0.9 | portable across enterprises | #62 |
+| v1.0 | production guarantees | #63 |
+
+## Current execution order
 
 ### NOW
-- #21 App Service + AKS deployment profiles
+- #43 Repository query pushdown and cursor pagination.
 
 ### NEXT
-- #6 Runtime observability / OpenTelemetry
+- #21 App Service and AKS deployment profiles.
+- #6 Runtime observability / OpenTelemetry.
+- #50 Developer Preview release gate.
+
+### THEN — v0.5
+- #52 adapter contract.
+- #53 SAP adapter.
+- #54 PI adapter.
+- #57 identity reconciliation/governed writeback.
+- #55 or #56 engineering/project context adapter.
+- #58 live compressor reference scenario.
 
 ### DEFERRED / NON-BLOCKING
-- #20 Purview governance + lineage bridge
-- #25 GPU AKS cuGraph validation / benchmarking
-
-### LATER
-- v0.5 Live Industrial Integration
-- v0.6 Reference Industrial Applications
-- v0.7 Developer Platform
-- v0.8 Enterprise Runtime
-- v0.9 Enterprise Adoption
-- v1.0 Production Platform
+- #20 Purview governance + lineage bridge.
+- #25 GPU AKS cuGraph validation / benchmarking.
