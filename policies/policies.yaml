@@ -1,4 +1,19 @@
 policies:
+  cepio_admin:
+    read_types: ["*"]
+    read_properties: {}
+    actions: []
+    functions: ["*"]
+  auditor:
+    read_types: ["*"]
+    read_properties: {}
+    actions: []
+    functions: []
+  graph_analyst:
+    read_types: ["*"]
+    read_properties: {}
+    actions: []
+    functions: []
   operator:
     read_types: [Equipment, ProcessUnit, Measurement, KPI, Event]
     actions: []
