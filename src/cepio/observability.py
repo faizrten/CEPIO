@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from functools import wraps
@@ -7,6 +9,8 @@ from time import perf_counter
 from typing import Any, Protocol
 
 from .model import PolicyEffect
+
+TelemetryValue = str | int | float | bool
 
 
 def _utcnow() -> datetime:
@@ -20,7 +24,7 @@ class TelemetryEvent:
     success: bool
     duration_ms: float
     occurred_at: datetime = field(default_factory=_utcnow)
-    attributes: dict[str, str | int | float | bool] = field(default_factory=dict)
+    attributes: dict[str, TelemetryValue] = field(default_factory=dict)
 
 
 class TelemetrySink(Protocol):
@@ -54,7 +58,7 @@ class OpenTelemetrySink:
         try:
             from opentelemetry import trace
             from opentelemetry.trace import Status, StatusCode
-        except ImportError as exc:  # pragma: no cover - exercised only without optional extra
+        except ImportError as exc:  # pragma: no cover - optional integration
             raise RuntimeError("OpenTelemetrySink requires `pip install cepio[otel]`") from exc
         self._tracer = trace.get_tracer(tracer_name)
         self._status_cls = Status
@@ -78,6 +82,38 @@ class OpenTelemetrySink:
             span.end()
 
 
+@contextmanager
+def telemetry_operation(
+    sink: TelemetrySink,
+    *,
+    category: str,
+    operation: str,
+    attributes: dict[str, TelemetryValue] | None = None,
+) -> Iterator[None]:
+    """Measure an integration/runtime operation without recording payloads.
+
+    This is the public adapter boundary for future SAP/PI/OSDU/P6 integrations.
+    Callers must pass identifiers/status metadata only, never source records or
+    protected CEPIO properties.
+    """
+
+    started = perf_counter()
+    success = False
+    try:
+        yield
+        success = True
+    finally:
+        sink.emit(
+            TelemetryEvent(
+                category=category,
+                operation=operation,
+                success=success,
+                duration_ms=(perf_counter() - started) * 1000,
+                attributes=dict(attributes or {}),
+            )
+        )
+
+
 class _RepositoryTelemetryProxy:
     def __init__(self, repository: Any, kind: str, sink: TelemetrySink) -> None:
         self._repository = repository
@@ -91,22 +127,13 @@ class _RepositoryTelemetryProxy:
 
         @wraps(target)
         def observed(*args: Any, **kwargs: Any) -> Any:
-            started = perf_counter()
-            success = False
-            try:
-                result = target(*args, **kwargs)
-                success = True
-                return result
-            finally:
-                self._sink.emit(
-                    TelemetryEvent(
-                        category="repository",
-                        operation=name,
-                        success=success,
-                        duration_ms=(perf_counter() - started) * 1000,
-                        attributes={"repository_kind": self._kind},
-                    )
-                )
+            with telemetry_operation(
+                self._sink,
+                category="repository",
+                operation=name,
+                attributes={"repository_kind": self._kind},
+            ):
+                return target(*args, **kwargs)
 
         return observed
 
@@ -127,7 +154,7 @@ class _PolicyTelemetryProxy:
             return decision
         finally:
             duration_ms = (perf_counter() - started) * 1000
-            attributes: dict[str, str | int | float | bool] = {
+            attributes: dict[str, TelemetryValue] = {
                 "action_type": request.action_type,
                 "target_id": request.target.id,
                 "actor_id": request.actor_id,
@@ -201,21 +228,8 @@ def _wrap_action_handler(name: str, handler: Any, sink: TelemetrySink) -> Any:
 def _wrap_function_handler(name: str, handler: Any, sink: TelemetrySink) -> Any:
     @wraps(handler)
     def observed(*args: Any, **kwargs: Any) -> Any:
-        started = perf_counter()
-        success = False
-        try:
-            result = handler(*args, **kwargs)
-            success = True
-            return result
-        finally:
-            sink.emit(
-                TelemetryEvent(
-                    category="function",
-                    operation=name,
-                    success=success,
-                    duration_ms=(perf_counter() - started) * 1000,
-                )
-            )
+        with telemetry_operation(sink, category="function", operation=name):
+            return handler(*args, **kwargs)
 
     return observed
 
@@ -239,5 +253,20 @@ def instrument_runtime(runtime: Any, sink: TelemetrySink) -> Any:
     for name, definition in runtime._functions.items():
         definition.handler = _wrap_function_handler(name, definition.handler, sink)
 
+    original_register_action = runtime.register_action
+    original_register_function = runtime.register_function
+
+    def register_action(name: str, handler: Any, *args: Any, **kwargs: Any) -> Any:
+        result = original_register_action(name, handler, *args, **kwargs)
+        runtime._actions[name].handler = _wrap_action_handler(name, runtime._actions[name].handler, sink)
+        return result
+
+    def register_function(name: str, handler: Any, *args: Any, **kwargs: Any) -> Any:
+        result = original_register_function(name, handler, *args, **kwargs)
+        runtime._functions[name].handler = _wrap_function_handler(name, runtime._functions[name].handler, sink)
+        return result
+
+    runtime.register_action = register_action
+    runtime.register_function = register_function
     runtime.telemetry_sink = sink
     return runtime
