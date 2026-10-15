@@ -116,22 +116,53 @@ class SQLiteObjectQueryBackend:
         if field in _BUILTIN_FIELDS:
             expression = f"o.{field}"
             expression_params: list[Any] = []
+            exists_clause = "1=1"
+            exists_params: list[Any] = []
             if op == "exists":
                 return ("1=1" if value is not False else "1=0"), []
         else:
             if op == "exists":
                 return self._property_exists_clause(keys, value is not False)
             expression, expression_params = self._property_expression(keys)
+            exists_clause, exists_params = self._property_exists_clause(keys, True)
+
+        # Python semantics distinguish a missing property from an explicitly present
+        # JSON null. SQL NULL comparisons do not, so eq/ne/in need existence guards.
+        if op == "eq":
+            if value is None:
+                return f"({exists_clause}) AND ({expression} IS NULL)", exists_params + expression_params
+            return f"{expression} = ?", expression_params + [value]
+
+        if op == "ne":
+            if value is None:
+                return f"({exists_clause}) AND ({expression} IS NOT NULL)", exists_params + expression_params
+            return (
+                f"({exists_clause}) AND (({expression} != ?) OR ({expression} IS NULL))",
+                exists_params + expression_params + [value] + expression_params,
+            )
 
         if op == "in":
             values = list(value or [])
             if not values:
                 return "1=0", []
-            placeholders = ",".join("?" for _ in values)
-            return f"{expression} IN ({placeholders})", expression_params + values
+            includes_null = any(item is None for item in values)
+            non_null = [item for item in values if item is not None]
+            alternatives: list[str] = []
+            params: list[Any] = list(exists_params)
+            if non_null:
+                placeholders = ",".join("?" for _ in non_null)
+                alternatives.append(f"{expression} IN ({placeholders})")
+                params.extend(expression_params)
+                params.extend(non_null)
+            if includes_null:
+                alternatives.append(f"{expression} IS NULL")
+                params.extend(expression_params)
+            return f"({exists_clause}) AND ({' OR '.join(alternatives)})", params
+
         if op == "contains":
             return f"instr(CAST({expression} AS TEXT), CAST(? AS TEXT)) > 0", expression_params + [value]
-        operators = {"eq": "=", "ne": "!=", "gt": ">", "gte": ">=", "lt": "<", "lte": "<="}
+
+        operators = {"gt": ">", "gte": ">=", "lt": "<", "lte": "<="}
         if op not in operators:
             raise ValueError(f"Unsupported pushdown query operator: {op}")
         return f"{expression} {operators[op]} ?", expression_params + [value]
