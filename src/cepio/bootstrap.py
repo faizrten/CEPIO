@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .action_handlers import approve_maintenance_deferral, create_inspection, create_work_order, escalate_risk, require_interface, require_parameter, require_target_type, restore_risk_status
+from .config import RuntimeSettings
 from .contract_runtime import ContractAwareCEPIORuntime
 from .functions import AssetRiskInput, MarginImpactInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_loss
 from .modules import ModuleCatalogue
@@ -11,10 +12,9 @@ from .projection import InMemoryProjectionRepository, ProjectionEngine, SQLitePr
 from .property_registry import PropertyRegistry
 from .provenance import InMemoryProvenanceRepository, SQLiteProvenanceRepository
 from .registry import TypeRegistry
+from .resource_paths import resolve_resource_root
 from .runtime import CEPIORuntime
 from .temporal import TemporalInMemoryRepository, TemporalSQLiteRepository
-
-ROOT = Path(__file__).resolve().parents[2]
 
 
 def build_runtime(
@@ -23,16 +23,23 @@ def build_runtime(
     validate_types: bool = True,
     validate_properties: bool = True,
     strict_properties: bool = False,
+    resource_root: str | Path | None = None,
+    ontology_dir: str | Path | None = None,
 ) -> CEPIORuntime:
-    repo = TemporalSQLiteRepository(sqlite_path) if sqlite_path is not None else TemporalInMemoryRepository()
-    registry = TypeRegistry.from_ontology_dir(ROOT / "ontologies") if validate_types else None
+    root = resolve_resource_root(resource_root)
+    ontology_path = Path(ontology_dir).expanduser().resolve() if ontology_dir else root / "ontologies"
+    if not ontology_path.exists():
+        raise RuntimeError(f"CEPIO ontology directory does not exist: {ontology_path}")
 
+    repo = TemporalSQLiteRepository(sqlite_path) if sqlite_path is not None else TemporalInMemoryRepository()
+    registry = TypeRegistry.from_ontology_dir(ontology_path) if validate_types else None
+
+    catalogue = ModuleCatalogue.load(root / "ontology-modules.yaml")
     property_registry = None
     if validate_properties:
-        catalogue = ModuleCatalogue.load(ROOT / "ontology-modules.yaml")
         if not catalogue.property_contract:
             raise ValueError("ontology-modules.yaml does not declare property_contract")
-        property_registry = PropertyRegistry.from_yaml(ROOT / catalogue.property_contract)
+        property_registry = PropertyRegistry.from_yaml(root / catalogue.property_contract)
         property_registry.validate_against_catalogue(catalogue)
 
     provenance_repository = (
@@ -40,7 +47,7 @@ def build_runtime(
         if sqlite_path is not None
         else InMemoryProvenanceRepository()
     )
-    policy = RolePolicyEngine.from_yaml(ROOT / "policies" / "policies.yaml", type_registry=registry)
+    policy = RolePolicyEngine.from_yaml(root / "policies" / "policies.yaml", type_registry=registry)
     runtime = ContractAwareCEPIORuntime(
         object_repository=repo,
         event_repository=repo,
@@ -59,7 +66,24 @@ def build_runtime(
     runtime.register_function("calculateProductionLoss", calculate_production_loss, input_model=ProductionLossInput, output_type=float)
     runtime.register_function("calculateAssetRisk", calculate_asset_risk, input_model=AssetRiskInput, output_type=float)
     runtime.register_function("calculateMarginImpact", calculate_margin_impact, input_model=MarginImpactInput, output_type=float)
+
+    runtime.resource_root = root  # type: ignore[attr-defined]
+    runtime.module_catalogue = catalogue  # type: ignore[attr-defined]
+    runtime.profile_versions = {}  # type: ignore[attr-defined]
     return runtime
+
+
+def build_runtime_from_settings(settings: RuntimeSettings | None = None) -> CEPIORuntime:
+    settings = settings or RuntimeSettings.from_env()
+    sqlite_path = settings.sqlite_path()
+    return build_runtime(
+        sqlite_path=sqlite_path,
+        validate_types=settings.validate_types,
+        validate_properties=settings.validate_properties,
+        strict_properties=settings.strict_properties,
+        resource_root=settings.resource_root,
+        ontology_dir=settings.ontology_dir,
+    )
 
 
 def build_projection_engine(runtime: CEPIORuntime, *, sqlite_path: str | Path | None = None) -> ProjectionEngine:
