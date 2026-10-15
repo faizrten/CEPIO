@@ -8,6 +8,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.
 - **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
+- **[Generalization & Competency Harness](generalization-harness.md)** — agentic validation architecture and the deterministic drilling-contractor v0.1 benchmark.
 
 ## v0.4 public API and operations
 
@@ -30,6 +31,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - [Type identity and versioning](type-identity-and-versioning.md)
 - [Property normalization](property-normalization.md)
 - [Domain module normalization](domain-module-normalization.md)
+- [Generalization & Competency Harness](generalization-harness.md)
 
 ## Integrations
 
