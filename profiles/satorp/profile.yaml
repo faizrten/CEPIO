@@ -1,0 +1,21 @@
+schema_version: '1'
+id: satorp
+version: 0.1.0
+description: >-
+  SATORP / SEO customer profile. Customer-specific names and bindings extend
+  canonical CEPIO without redefining the common Energy & Process Industry contract.
+depends_on:
+  core: '>=0.2.0'
+  industrial: '>=0.2.0'
+  asset: '>=0.1.0'
+  process_industry: '>=0.1.0'
+  epcic: '>=0.1.0'
+  performance: '>=0.1.0'
+  commercial: '>=0.1.0'
+files:
+  ontology:
+    - ontology.ttl
+  mappings:
+    - mappings/seo_customer_to_cepio.csv
+  bindings:
+    fabric_iq: bindings/fabric-iq.yaml
