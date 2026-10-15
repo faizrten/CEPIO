@@ -17,3 +17,25 @@ jobs:
       - run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
+      - name: Build wheel
+        run: python -m build --wheel
+      - name: Smoke test installed wheel outside repository
+        shell: bash
+        run: |
+          python -m venv /tmp/cepio-wheel-venv
+          /tmp/cepio-wheel-venv/bin/python -m pip install --upgrade pip
+          /tmp/cepio-wheel-venv/bin/python -m pip install dist/cepio-*.whl
+          cd /tmp
+          CEPIO_ENVIRONMENT=test CEPIO_DB_URL=memory:// /tmp/cepio-wheel-venv/bin/python - <<'PY'
+          import cepio
+          from cepio.bootstrap import build_runtime_from_settings
+          from cepio.resource_paths import resolve_resource_root
+
+          root = resolve_resource_root()
+          assert (root / "ontology-modules.yaml").exists()
+          assert (root / "ontologies").is_dir()
+          runtime = build_runtime_from_settings()
+          assert runtime.module_catalogue.modules
+          print(cepio.__version__)
+          print(root)
+          PY
