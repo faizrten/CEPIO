@@ -34,6 +34,7 @@ resource app 'Microsoft.Web/sites@2023-12-01' = {
       appSettings: [
         { name: 'PORT', value: '8000' }
         { name: 'WEBSITES_PORT', value: '8000' }
+        { name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE', value: 'true' }
         { name: 'CEPIO_ENVIRONMENT', value: 'production' }
         { name: 'CEPIO_DB_URL', value: 'sqlite:////home/data/cepio.db' }
         { name: 'CEPIO_AUTH_MODE', value: 'entra' }
