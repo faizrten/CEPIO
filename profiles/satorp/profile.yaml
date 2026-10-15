@@ -1,6 +1,7 @@
 schema_version: '1'
 id: satorp
 version: 0.1.0
+namespace: https://cepio.org/profile/satorp#
 description: >-
   SATORP / SEO customer profile. Customer-specific names and bindings extend
   canonical CEPIO without redefining the common Energy & Process Industry contract.
