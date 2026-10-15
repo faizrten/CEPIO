@@ -79,8 +79,9 @@ class QueryEngine:
     """Repository-neutral CEPIO object-set query evaluator.
 
     The reference engine keeps query semantics backend-neutral while enforcing actor
-    visibility before result counts and pagination. Production repositories can push
-    this contract down to SQL/KQL/Graph without changing application semantics.
+    visibility before predicates, result counts, sorting and pagination. Production
+    repositories can push this contract down to SQL/KQL/Graph without changing
+    application semantics.
     """
 
     def __init__(self, runtime: "CEPIORuntime") -> None:
@@ -88,12 +89,15 @@ class QueryEngine:
 
     def execute(self, query: ObjectQuery, *, actor_roles: set[str] | None = None) -> ObjectQueryResult:
         candidates = self._candidate_objects(query, actor_roles)
+        if actor_roles is not None:
+            candidates = [
+                self.runtime.policy_engine.filter_properties(actor_roles, obj)
+                for obj in candidates
+            ]
         filtered = [obj for obj in candidates if self._matches(obj, query, actor_roles)]
         ordered = self._sort(filtered, query.sort)
         total = len(ordered)
         items = ordered[query.offset : query.offset + query.limit]
-        if actor_roles is not None:
-            items = [self.runtime.policy_engine.filter_properties(actor_roles, obj) for obj in items]
         return ObjectQueryResult(items=items, total=total, offset=query.offset, limit=query.limit)
 
     def _candidate_objects(self, query: ObjectQuery, actor_roles: set[str] | None) -> list[OntologyObject]:
@@ -195,7 +199,7 @@ class QueryEngine:
         if query.valid_at is not None or query.as_of_transaction is not None:
             method = getattr(self.runtime, "relationships_at", None)
             if method is None:
-                raise RuntimeError("Configured CEPIO runtime does not support temporal relationship queries")
+                raise RuntimeError("Configured CEPIO runtime does not support temporal relationship history")
             valid_time = query.valid_at or query.as_of_transaction
             assert valid_time is not None
             return method(
