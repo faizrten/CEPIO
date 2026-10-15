@@ -8,7 +8,7 @@ from setuptools.command.build_py import build_py as _build_py
 
 
 ROOT = Path(__file__).parent
-RESOURCE_DIRS = ("ontologies", "mappings", "shapes", "actions", "policies")
+RESOURCE_DIRS = ("ontologies", "mappings", "shapes", "actions", "policies", "profiles")
 RESOURCE_FILES = ("ontology-modules.yaml",)
 
 
