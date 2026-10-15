@@ -16,6 +16,8 @@ jobs:
       - run: pytest -q
       - name: Query pushdown load baseline
         run: PYTHONPATH=src python scripts/query_load_baseline.py --objects 5000 --max-ms 5000
+      - name: Validate deployment profiles
+        run: PYTHONPATH=src python scripts/validate_deployment_profiles.py
       - run: PYTHONPATH=src python scripts/check_api_contract.py
       - run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
       - run: make validate
