@@ -24,6 +24,8 @@ jobs:
         run: PYTHONPATH=src python scripts/check_client_contract.py
       - name: Validate ontology compatibility
         run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
+      - name: Run drilling generalization harness v0.1
+        run: PYTHONPATH=src python scripts/run_generalization_harness.py --json-out generalization-report.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
       - name: Build wheel
