@@ -9,6 +9,7 @@ from .config import RuntimeSettings
 from .contract_runtime import ContractAwareCEPIORuntime
 from .functions import AssetRiskInput, MarginImpactInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_loss
 from .modules import ModuleCatalogue
+from .observability import TelemetrySink, instrument_runtime
 from .policy import RolePolicyEngine
 from .profiles import ProfileRegistry
 from .projection import InMemoryProjectionRepository, ProjectionEngine, SQLiteProjectionRepository
@@ -29,6 +30,7 @@ def build_runtime(
     resource_root: str | Path | None = None,
     ontology_dir: str | Path | None = None,
     profiles: tuple[str, ...] | list[str] = (),
+    telemetry_sink: TelemetrySink | None = None,
 ) -> CEPIORuntime:
     root = resolve_resource_root(resource_root)
     ontology_path = Path(ontology_dir).expanduser().resolve() if ontology_dir else root / "ontologies"
@@ -84,6 +86,8 @@ def build_runtime(
     runtime.module_catalogue = catalogue  # type: ignore[attr-defined]
     runtime.profiles = selected_profiles  # type: ignore[attr-defined]
     runtime.profile_versions = {profile.profile_id: profile.version for profile in selected_profiles}  # type: ignore[attr-defined]
+    if telemetry_sink is not None:
+        runtime = instrument_runtime(runtime, telemetry_sink)
     return runtime
 
 

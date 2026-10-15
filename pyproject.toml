@@ -22,6 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 mcp = ["mcp>=2.0,<3"]
+otel = ["opentelemetry-api>=1.27,<2"]
 dev = ["pytest>=8.0", "pyshacl>=0.30", "mcp>=2.0,<3", "build>=1.2"]
 
 [tool.setuptools.dynamic]
