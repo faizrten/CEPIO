@@ -7,7 +7,7 @@ CEPIO uses one portable runtime image and keeps hosting concerns outside CEPIO o
 Build from the repository root:
 
 ```bash
-docker build -t cepio:dev .
+docker build -t cepio:v0.4-dev-preview .
 ```
 
 The image starts:
@@ -18,6 +18,8 @@ uvicorn cepio.public_api:app --host 0.0.0.0 --port $PORT
 
 Required production configuration includes `CEPIO_ENVIRONMENT=production`, an explicit `CEPIO_DB_URL`, and Entra authentication settings.
 
+CI builds the image and starts it independently before probing `/api/v1/health` as part of the Developer Preview release gate.
+
 ## App Service profile
 
 `deploy/appservice/main.bicep` provisions a Linux Premium App Service with:
@@ -26,7 +28,7 @@ Required production configuration includes `CEPIO_ENVIRONMENT=production`, an ex
 - HTTPS-only transport;
 - `/api/v1/health` health check;
 - Entra-backed CEPIO runtime configuration;
-- persistent `/home/data` reference storage;
+- App Service container storage explicitly enabled for persistent `/home/data` reference storage;
 - one CEPIO container image contract shared with AKS.
 
 Example:
@@ -38,7 +40,9 @@ az deployment group create \
   --parameters appName=<name> containerImage=<registry/image:tag> tenantId=<tenant> apiAudience=<audience>
 ```
 
-VNet integration, private endpoints, ACR pull roles, Key Vault access and deployment slots are environment-level bindings and should be added by the target platform landing zone rather than CEPIO-Core.
+The reference profile sets `WEBSITES_ENABLE_APP_SERVICE_STORAGE=true` because the SQLite reference URL is `sqlite:////home/data/cepio.db`.
+
+VNet integration, private endpoints, ACR pull roles, Key Vault access, Application Insights connection and deployment slots are environment-level bindings and should be added by the target platform landing zone rather than CEPIO-Core.
 
 ## AKS profile
 
@@ -74,4 +78,10 @@ Both profiles use `/api/v1/health` for runtime health. Deployment metadata, imag
 
 ## Observability
 
-The deployment profiles expose the hooks needed for Azure Monitor/Application Insights integration, but runtime OpenTelemetry instrumentation is implemented separately in #6. That work is the next v0.4 gate.
+CEPIO v0.4 includes the backend-neutral telemetry hooks completed in #6. Repository, policy, function and action activity can emit sanitized telemetry, and an optional OpenTelemetry adapter is available without coupling CEPIO-Core to a specific backend.
+
+Azure Monitor/Application Insights exporter/distro configuration remains a deployment concern. See [Observability](observability.md).
+
+## Developer Preview qualification boundary
+
+These profiles establish a **reproducible Microsoft-hosted reference architecture** and portable runtime image. v0.4 does not claim that a specific live customer environment has been deployed or that SQLite satisfies production HA/scale requirements. See [Developer Preview](developer-preview.md) and [RELEASE.md](../RELEASE.md) for the release boundary.
