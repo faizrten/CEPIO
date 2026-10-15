@@ -1,7 +1,9 @@
 from fastapi.testclient import TestClient
+import pytest
 
 import cepio.api as legacy_api
 import cepio.public_api as public_api
+from cepio.auth import AuthSettings
 from cepio.bootstrap import build_runtime
 from cepio.model import OntologyObject
 
@@ -40,13 +42,18 @@ def test_legacy_and_v1_routes_share_secured_runtime_semantics(monkeypatch):
     assert versioned.json() == legacy.json()
 
 
-def test_v1_routes_remain_authenticated(monkeypatch):
+def test_v1_dev_identity_is_explicitly_non_production(monkeypatch):
     monkeypatch.setenv("CEPIO_ENVIRONMENT", "test")
     monkeypatch.setenv("CEPIO_AUTH_MODE", "dev")
     legacy_api.runtime = build_runtime()
     client = TestClient(public_api.app)
+
     response = client.get("/api/v1/objects")
-    assert response.status_code in {401, 403}
+    assert response.status_code == 200
+
+    monkeypatch.setenv("CEPIO_ENVIRONMENT", "production")
+    with pytest.raises(RuntimeError, match="permitted only"):
+        AuthSettings.from_env()
 
 
 def test_operation_ids_are_stable_for_sdk_generation():
