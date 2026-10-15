@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-import sqlite3
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
 
@@ -12,12 +10,16 @@ if TYPE_CHECKING:
     from .repositories import SQLiteRepository
 
 
+_BUILTIN_FIELDS = {"id", "type", "name", "version", "created_at", "updated_at"}
+
+
 class SQLiteObjectQueryBackend:
     """SQL pushdown for current-state CEPIO object queries.
 
-    The backend deliberately owns only source-neutral query execution. Actor visibility,
-    property filtering, cursor validation, budgets and temporal fallbacks remain in the
-    QueryEngine so security semantics are identical across repositories.
+    Pushdown is intentionally conservative: it may admit extra candidates that the
+    QueryEngine later rejects, but it must never remove a candidate that CEPIO's
+    canonical semantic evaluator would accept. Actor visibility, property filtering,
+    cursor validation, budgets and temporal semantics remain in QueryEngine.
     """
 
     def __init__(self, repository: "SQLiteRepository") -> None:
@@ -28,13 +30,24 @@ class SQLiteObjectQueryBackend:
         query: "ObjectQuery",
         *,
         allowed_types: set[str] | None = None,
+        property_keys: dict[str, tuple[str, ...]] | None = None,
     ) -> Iterator[OntologyObject]:
-        sql, params = self._compile(query, allowed_types=allowed_types)
+        sql, params = self._compile(
+            query,
+            allowed_types=allowed_types,
+            property_keys=property_keys or {},
+        )
         cursor = self.repository._conn.execute(sql, params)  # reference backend boundary
         for row in cursor:
             yield OntologyObject.model_validate_json(row["payload"])
 
-    def _compile(self, query: "ObjectQuery", *, allowed_types: set[str] | None) -> tuple[str, list[Any]]:
+    def _compile(
+        self,
+        query: "ObjectQuery",
+        *,
+        allowed_types: set[str] | None,
+        property_keys: dict[str, tuple[str, ...]],
+    ) -> tuple[str, list[Any]]:
         clauses: list[str] = []
         params: list[Any] = []
 
@@ -47,7 +60,8 @@ class SQLiteObjectQueryBackend:
             params.append(query.object_type)
 
         for predicate in query.predicates:
-            clause, values = self._property_clause(predicate)
+            keys = property_keys.get(predicate.property, (predicate.property,))
+            clause, values = self._property_clause(predicate, keys)
             clauses.append(clause)
             params.extend(values)
 
@@ -57,7 +71,7 @@ class SQLiteObjectQueryBackend:
             params.extend(values)
 
         where = " WHERE " + " AND ".join(clauses) if clauses else ""
-        order_sql, order_params = self._order_by(query.sort)
+        order_sql, order_params = self._order_by(query.sort, property_keys)
         params.extend(order_params)
         return f"SELECT o.payload FROM objects o{where}{order_sql}", params
 
@@ -66,36 +80,70 @@ class SQLiteObjectQueryBackend:
         escaped = property_name.replace('"', '\\"')
         return f'$.properties."{escaped}"'
 
-    def _property_clause(self, predicate: "PropertyPredicate") -> tuple[str, list[Any]]:
-        field = predicate.property
-        if field in {"id", "type", "name", "version", "created_at", "updated_at"}:
-            expression = f"o.{field}"
-            path_params: list[Any] = []
-        else:
-            expression = "json_extract(o.payload, ?)"
-            path_params = [self._json_path(field)]
+    def _property_expression(self, keys: tuple[str, ...]) -> tuple[str, list[Any]]:
+        """Return an exact-precedence CEPIO property expression.
 
+        QueryEngine resolves an exact stored key before registry aliases. The CASE
+        expression mirrors that rule, including explicit JSON null values: an explicit
+        null is considered present and therefore stops alias fallback.
+        """
+        cases: list[str] = []
+        params: list[Any] = []
+        for key in keys:
+            path = self._json_path(key)
+            cases.append("WHEN json_type(o.payload, ?) IS NOT NULL THEN json_extract(o.payload, ?)")
+            params.extend([path, path])
+        return "CASE " + " ".join(cases) + " ELSE NULL END", params
+
+    def _property_exists_clause(self, keys: tuple[str, ...], exists: bool) -> tuple[str, list[Any]]:
+        checks: list[str] = []
+        params: list[Any] = []
+        for key in keys:
+            checks.append("json_type(o.payload, ?) IS NOT NULL")
+            params.append(self._json_path(key))
+        joined = " OR ".join(checks) if checks else "0"
+        return (f"({joined})" if exists else f"NOT ({joined})"), params
+
+    def _property_clause(
+        self,
+        predicate: "PropertyPredicate",
+        keys: tuple[str, ...],
+    ) -> tuple[str, list[Any]]:
+        field = predicate.property
         op = predicate.operator.value
         value = predicate.value
-        if op == "exists":
-            if field in {"id", "type", "name", "version", "created_at", "updated_at"}:
+
+        if field in _BUILTIN_FIELDS:
+            expression = f"o.{field}"
+            expression_params: list[Any] = []
+            if op == "exists":
                 return ("1=1" if value is not False else "1=0"), []
-            expected = 0 if value is False else 1
-            return "json_type(o.payload, ?) IS " + ("NULL" if expected == 0 else "NOT NULL"), path_params
+        else:
+            if op == "exists":
+                return self._property_exists_clause(keys, value is not False)
+            expression, expression_params = self._property_expression(keys)
+
         if op == "in":
             values = list(value or [])
             if not values:
                 return "1=0", []
             placeholders = ",".join("?" for _ in values)
-            return f"{expression} IN ({placeholders})", path_params + values
+            return f"{expression} IN ({placeholders})", expression_params + values
         if op == "contains":
-            return f"instr(CAST({expression} AS TEXT), CAST(? AS TEXT)) > 0", path_params + [value]
+            return f"instr(CAST({expression} AS TEXT), CAST(? AS TEXT)) > 0", expression_params + [value]
         operators = {"eq": "=", "ne": "!=", "gt": ">", "gte": ">=", "lt": "<", "lte": "<="}
         if op not in operators:
             raise ValueError(f"Unsupported pushdown query operator: {op}")
-        return f"{expression} {operators[op]} ?", path_params + [value]
+        return f"{expression} {operators[op]} ?", expression_params + [value]
 
     def _relationship_clause(self, predicate: "RelationshipPredicate", index: int) -> tuple[str, list[Any]]:
+        """Push down only constraints that are exact under all CEPIO aliases/subtypes.
+
+        Relationship type and other-type matching are ontology-aware in QueryEngine.
+        Exact SQL comparisons could false-negative an alias or subtype, so SQL only
+        narrows by graph direction and stable object identity. QueryEngine performs the
+        complete relationship semantic check afterward.
+        """
         alias = f"r{index}"
         other = f"other{index}"
         if predicate.direction == "out":
@@ -106,33 +154,38 @@ class SQLiteObjectQueryBackend:
             other_join = f"{other}.id = {alias}.source_id"
         conditions = [endpoint]
         params: list[Any] = []
-        if predicate.relationship_type:
-            conditions.append(f"{alias}.type = ?")
-            params.append(predicate.relationship_type)
         if predicate.other_id:
             conditions.append(f"{other}.id = ?")
             params.append(predicate.other_id)
-        if predicate.other_type:
-            conditions.append(f"{other}.type = ?")
-            params.append(predicate.other_type)
         joined = " AND ".join(conditions)
         return (
             f"EXISTS (SELECT 1 FROM relationships {alias} JOIN objects {other} ON {other_join} WHERE {joined})",
             params,
         )
 
-    def _order_by(self, fields: list["SortField"]) -> tuple[str, list[Any]]:
+    def _order_by(
+        self,
+        fields: list["SortField"],
+        property_keys: dict[str, tuple[str, ...]],
+    ) -> tuple[str, list[Any]]:
         parts: list[str] = []
         params: list[Any] = []
         for spec in fields:
-            if spec.field in {"id", "type", "name", "version", "created_at", "updated_at"}:
-                expression = f"o.{spec.field}"
-            else:
-                expression = "json_extract(o.payload, ?)"
-                params.append(self._json_path(spec.field))
             direction = "DESC" if spec.direction == "desc" else "ASC"
-            parts.append(f"({expression} IS NULL) ASC")
-            parts.append(f"{expression} {direction}")
+            if spec.field in _BUILTIN_FIELDS:
+                expression = f"o.{spec.field}"
+                parts.append(f"({expression} IS NULL) ASC")
+                parts.append(f"{expression} {direction}")
+                continue
+
+            keys = property_keys.get(spec.field, (spec.field,))
+            null_expression, null_params = self._property_expression(keys)
+            sort_expression, sort_params = self._property_expression(keys)
+            parts.append(f"({null_expression} IS NULL) ASC")
+            parts.append(f"{sort_expression} {direction}")
+            params.extend(null_params)
+            params.extend(sort_params)
+
         parts.append("o.id ASC")
         return " ORDER BY " + ", ".join(parts), params
 
