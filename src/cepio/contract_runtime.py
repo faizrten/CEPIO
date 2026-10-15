@@ -102,6 +102,10 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
         """Execute the stable typed CEPIO object-set query contract."""
         return QueryEngine(self).execute(query)
 
+    def query_objects_for_actor(self, query: ObjectQuery, roles: set[str]) -> ObjectQueryResult:
+        """Execute a typed query with actor visibility applied before totals/pagination."""
+        return QueryEngine(self).execute(query, actor_roles=roles)
+
     def get_object_at(self, object_id: str, transaction_time: datetime) -> OntologyObject:
         method = getattr(self.object_repository, "get_object_at", None)
         if method is None:
@@ -130,8 +134,7 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
         self,
         object_id: str,
         valid_time: datetime,
-        *,
-        direction: str = "out",
+        *,        direction: str = "out",
         as_of_transaction: datetime | None = None,
     ) -> list[Relationship]:
         method = getattr(self.object_repository, "relationships_at", None)
