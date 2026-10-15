@@ -36,6 +36,32 @@ Do not regress these capabilities:
 - SHACL validation path;
 - all tests passing.
 
+## Documentation policy
+
+Documentation is part of the product contract, not an afterthought.
+
+Any PR that changes a user-visible or developer-visible CEPIO capability MUST update the corresponding documentation in the same PR, or explicitly state why there is no documentation impact.
+
+Changes that normally require documentation updates include:
+
+- ontology modules, classes, properties, relationships or profiles;
+- API, SDK, CLI, MCP tools or query behavior;
+- runtime architecture, persistence, policy, action or decision behavior;
+- source-system adapters and platform integrations;
+- deployment, identity, security, observability or governance behavior;
+- compatibility, migration or versioning rules;
+- supported standards and federation mappings;
+- reference applications, examples, scenarios or release status;
+- roadmap milestones when implementation status changes.
+
+Documentation hierarchy:
+
+1. implementation contracts, code, ontology files, mappings, shapes and focused technical docs are authoritative;
+2. `docs/wiki/` is the explanatory and navigation layer and must accurately reflect those contracts;
+3. `README.md` and `docs/README.md` provide repository-level orientation and must remain consistent with the wiki.
+
+A feature is not complete when its implementation lands but its public explanation remains stale.
+
 ## Next sprint: v0.4 — Operational Query + Platform Integration
 
 ### P0 — Typed temporal query contract
@@ -125,4 +151,5 @@ Agents must receive only authorized temporal/property views.
 - event ingestion is deterministic/idempotent in reference adapters;
 - OpenTelemetry-compatible hooks exist and are authorization-safe;
 - Microsoft mapping contracts are documented/testable without contaminating CEPIO-Core;
-- no live production side effect is introduced unless explicitly opt-in and policy-gated.
+- no live production side effect is introduced unless explicitly opt-in and policy-gated;
+- relevant `docs/wiki/` pages and focused technical documentation are updated in the same PR for every material capability change, or the PR explicitly documents why there is no documentation impact.
