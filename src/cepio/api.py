@@ -7,8 +7,9 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from ._version import __version__
 from .auth import ActorContext, get_actor_context
-from .bootstrap import build_runtime
+from .bootstrap import build_runtime_from_settings
 from .graph_analytics import (
     BlastRadiusResult,
     CentralityResult,
@@ -34,10 +35,10 @@ from .runtime import AuthorizationError
 
 app = FastAPI(
     title="CEPIO Operational Ontology API",
-    version="0.3.0",
+    version=__version__,
     description="Semantic + kinetic runtime for Energy & Process Industry ontology applications.",
 )
-runtime = build_runtime()
+runtime = build_runtime_from_settings()
 
 
 def _graph_analytics() -> GraphAnalyticsEngine:
@@ -93,7 +94,19 @@ def _audit_spoof_attempt(body: ActionBody, actor: ActorContext) -> None:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "version": "0.3.0"}
+    catalogue = getattr(runtime, "module_catalogue", None)
+    module_versions = (
+        {module_id: module.version for module_id, module in catalogue.modules.items()}
+        if catalogue is not None
+        else {}
+    )
+    return {
+        "status": "ok",
+        "version": __version__,
+        "ontology_catalogue_schema": getattr(catalogue, "schema_version", None),
+        "ontology_modules": module_versions,
+        "profiles": getattr(runtime, "profile_versions", {}),
+    }
 
 
 @app.put("/objects/{object_id}", response_model=OntologyObject)
