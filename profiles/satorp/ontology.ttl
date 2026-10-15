@@ -1,0 +1,12 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix asset: <https://cepio.org/ontology/asset#> .
+@prefix satorp: <https://cepio.org/profile/satorp#> .
+
+<https://cepio.org/profile/satorp> a owl:Ontology ;
+    rdfs:label "CEPIO SATORP customer profile" .
+
+satorp:AmiralAsset a owl:Class ;
+    rdfs:label "Amiral Asset" ;
+    rdfs:comment "SATORP/Amiral customer-specific specialization of the canonical InstalledAsset." ;
+    rdfs:subClassOf asset:InstalledAsset .
