@@ -1,0 +1,35 @@
+id: generalization-agents-v0.1
+version: "0.1"
+trust_rule: >
+  Agents may generate hypotheses, questions and interpretations. They may not create
+  CEPIO-supported enterprise facts. Evidence must come from CEPIO or an explicitly
+  permitted external semantic reference.
+agents:
+  - id: test-director
+    purpose: Select archetype, personas, challenge budget and frozen evaluation batch.
+    permissions: [read_specs, propose_batch]
+  - id: challenger
+    purpose: Generate realistic business questions and adversarial scenarios from an industry/persona perspective.
+    permissions: [read_archetype, read_personas, read_public_standards]
+  - id: competency-curator
+    purpose: Normalize, deduplicate, classify and prioritize candidate competency questions.
+    permissions: [read_candidate_questions, propose_competency_pack]
+  - id: cepio-operator
+    purpose: Attempt to answer a frozen question using only governed CEPIO tools.
+    permissions: [cepio_read_tools]
+    prohibitions: [web_search, hidden_scenario_answers, unsupported_enterprise_assertions]
+    insufficient_evidence_response: INSUFFICIENT_CEPIO_EVIDENCE
+  - id: semantic-judge
+    purpose: Judge whether the CEPIO-backed answer addresses the business question.
+    permissions: [read_question, read_answer, read_evidence_bundle]
+  - id: evidence-auditor
+    purpose: Check that cited CEPIO evidence actually supports the answer and preserves time/provenance boundaries.
+    permissions: [read_evidence_bundle, validate_trace]
+  - id: gap-classifier
+    purpose: Classify gaps as CORE, DOMAIN, PROFILE, MAPPING or REJECT and propose—not apply—changes.
+    permissions: [read_failures, propose_disposition]
+    prohibitions: [mutate_ontology, merge_pull_request]
+v0_1_execution:
+  live_llm_in_ci: false
+  deterministic_semantic_readiness_only: true
+  future_live_flow: challenge -> curate -> freeze -> operate -> evidence -> judge -> classify -> regress
