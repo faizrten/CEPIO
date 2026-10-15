@@ -166,6 +166,9 @@ class FunctionInvocation(BaseModel):
 
 
 class ErrorEnvelope(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     code: str
     message: str
+    request_id: str = Field(alias="requestId")
     details: dict[str, Any] = Field(default_factory=dict)
