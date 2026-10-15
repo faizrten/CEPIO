@@ -1,0 +1,2 @@
+source,source_concept,source_module,canonical_module,canonical_concept,mapping_type,promotion_level,notes
+SEO,AmiralAsset,seo-asset,profile-satorp,satorp:AmiralAsset,profile-specialization,customer-profile,Customer-specific Amiral naming remains in the SATORP profile and subclasses canonical asset:InstalledAsset.
