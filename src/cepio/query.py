@@ -107,7 +107,7 @@ class QueryEngine:
             historical = self._object_in_context(obj.id, query)
             if historical is None:
                 continue
-            if actor_roles is not None and not self.runtime.policy_engine.can_read_type(actor_roles, historical.type):
+            if actor_roles is not None and not self.runtime.policy_engine.can_read_object(actor_roles, historical):
                 continue
             result.append(historical)
         return result
@@ -230,7 +230,7 @@ class QueryEngine:
             other = self._object_in_context(other_ref.id, query)
             if other is None:
                 continue
-            if actor_roles is not None and not self.runtime.policy_engine.can_read_type(actor_roles, other.type):
+            if actor_roles is not None and not self.runtime.policy_engine.can_read_object(actor_roles, other):
                 continue
             if predicate.other_id and other_ref.id != predicate.other_id:
                 continue
