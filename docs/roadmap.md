@@ -106,40 +106,10 @@ The governing product rule from v0.4 onward is:
 - #37 first-class customer profile architecture — completed via PR #46.
 - #41 versioned `/api/v1` and OpenAPI contract — completed via PR #48.
 - #42 standard API errors, ETag/If-Match and idempotency semantics — completed via PR #49.
+- #43 repository query pushdown and cursor pagination — completed via PR #64.
+- #21 App Service and AKS reference deployment profiles — completed via PR #65.
 
 ## Current critical path
-
-### #43 — Repository query pushdown and cursor pagination
-
-**Goal:** make the public typed query contract executable at enterprise scale without normal full object materialization in Python.
-
-Required outcomes:
-- repository-level typed query interface;
-- SQLite/reference SQL pushdown;
-- deterministic opaque cursor pagination;
-- authorization before count/cursor/result construction;
-- query budgets for page size, traversal depth, result limits and execution time;
-- parity tests against in-memory semantic reference implementation;
-- load baseline.
-
-### #21 — App Service and AKS reference deployment profiles
-
-**Goal:** deploy the current CEPIO runtime as a coherent Microsoft-native reference system.
-
-App Service:
-- REST/MCP APIs and lightweight domain applications;
-- managed identity / Entra integration boundary;
-- VNet/private connectivity;
-- health/readiness endpoints;
-- deployment slots/autoscale guidance;
-- configuration and secretless patterns.
-
-AKS:
-- scale-out runtime, adapters, projectors and event workers;
-- Entra Workload Identity;
-- private networking and Key Vault integration;
-- probes/autoscaling/workload isolation;
-- auditable rollout patterns.
 
 ### #6 — Runtime observability / OpenTelemetry
 
@@ -148,6 +118,8 @@ AKS:
 - distributed trace correlation across Foundry -> MCP -> CEPIO -> adapter;
 - OpenTelemetry-compatible hook boundary;
 - no unauthorized industrial data in telemetry payloads.
+
+Implementation is in PR #66 and must pass CI before #6 is complete.
 
 ### #50 — Developer Preview release gate
 
@@ -182,7 +154,7 @@ A Microsoft-native reference deployment should demonstrate:
 
 Sequence:
 
-`API hardening ✓ -> #43 query scale -> #21 deployment -> #6 observability -> #50 Developer Preview gate -> v0.4 tag`
+`API hardening ✓ -> query scale ✓ -> deployment ✓ -> #6 observability -> #50 Developer Preview gate -> v0.4 tag`
 
 Release designation: **CEPIO v0.4 — Developer Preview**.
 
@@ -193,6 +165,10 @@ Release designation: **CEPIO v0.4 — Developer Preview**.
 **Epic:** #51
 
 **Outcome:** prove that CEPIO can operate over real industrial systems and close the governed writeback loop.
+
+## Prerequisite
+
+- #2 Property provenance and lineage kernel must be completed before broad live-system onboarding.
 
 ## Work packages
 
@@ -206,7 +182,7 @@ Release designation: **CEPIO v0.4 — Developer Preview**.
 
 ## Recommended dependency order
 
-`#52 -> (#53 + #54) -> #57 -> #58`
+`#2 -> #52 -> (#53 + #54) -> #57 -> #58`
 
 Then add at least one engineering/project context path:
 
@@ -244,11 +220,66 @@ One industrial asset is represented using context from at least three source-sys
 
 ---
 
-# v0.6 — Reference Industrial Applications
+# v0.6 — Kinetic Runtime + Reference Industrial Applications
 
-**Epic:** #59
+**Application epic:** #59  
+**Kinetic runtime:** #67
 
-**Outcome:** prove that CEPIO enables meaningful industrial workflows without requiring users to understand where each source fact physically resides.
+**Outcome:** turn CEPIO from an ontology/runtime that can execute isolated functions and actions into a controlled enterprise operating abstraction that can orchestrate complete industrial business processes, then prove that capability in a reference industrial application.
+
+## #67 — Kinetic runtime and workflow orchestration
+
+CEPIO already has typed Functions, Decision records, governed Actions, preconditions, policy authorization, idempotency, audit and basic compensation. The missing layer is first-class orchestration across those capabilities.
+
+### Primary kinetic model
+
+`Event/State -> Trigger -> Workflow -> Function -> Decision -> Approval -> Action -> Verify -> Outcome`
+
+First-class kinetic concepts:
+- Function;
+- Decision;
+- Action;
+- Workflow;
+- Trigger;
+- Task;
+- Approval;
+- Constraint;
+- Policy;
+- Compensation;
+- Outcome.
+
+### Required runtime capabilities
+
+- `WorkflowDefinition` and durable `WorkflowInstance` contracts;
+- event, state, time and authenticated manual triggers;
+- ordered workflow steps that invoke CEPIO Functions, Decisions and Actions;
+- human approval tasks with pause/resume semantics;
+- async and long-running Action execution;
+- retries, timeout, cancellation and terminal-failure states;
+- compensation / rollback orchestration;
+- completion and Outcome tracking;
+- deterministic workflow history and audit linkage;
+- policy evaluation at every governed step;
+- replay-safe/idempotent execution;
+- sanitized telemetry through the CEPIO observability contract;
+- external side effects only through governed adapter/action/writeback paths.
+
+### Architecture rules
+
+- semantic object/state remains separate from workflow execution state;
+- workflows reference canonical CEPIO objects/functions/actions rather than source-specific types;
+- no workflow or agent path may bypass CEPIO identity, policy, Action Runtime or audit;
+- long-running workflow state must survive process restart;
+- external side effects use #57 reconciliation/writeback and are verified before the workflow records successful completion;
+- agent-initiated workflows remain bounded by the same permissions and approval requirements as human/API callers.
+
+### Kinetic runtime gate
+
+A reliability/maintenance workflow can be triggered by an operational event, call a typed Function, persist a Decision, pause for human approval, execute a governed Action, verify an external result, record an Outcome, survive restart/replay and expose a complete audit/telemetry chain.
+
+Recommended sequence:
+
+`v0.5 live integrations -> #57 governed writeback/reconciliation -> #67 kinetic runtime -> #59 reference application`
 
 ## Lighthouse application — Asset Reliability / Maintenance Command Center
 
@@ -269,15 +300,15 @@ Core workflow:
 7. recommend action;
 8. authorize;
 9. issue governed action/work order;
-10. observe outcome.
+10. observe and verify outcome.
 
-Prefer bounded agents such as Reliability, Maintenance Planning, Operations Risk, Materials and Cost agents, all operating through CEPIO policy and contracts.
+Prefer bounded agents such as Reliability, Maintenance Planning, Operations Risk, Materials and Cost agents, all operating through CEPIO policy, workflow and action contracts.
 
 Follow-on applications:
 - Refinery Margin / Constraint Optimization;
 - Turnaround Planning.
 
-**Gate:** one reference application demonstrates the complete `Observe -> Understand -> Reason -> Decide -> Authorize -> Act -> Observe outcome` loop over live v0.5 integrations.
+**v0.6 gate:** one reference application demonstrates the complete `Observe -> Understand -> Reason -> Decide -> Authorize -> Act -> Observe outcome` loop over live v0.5 integrations using the first-class kinetic runtime rather than application-specific orchestration.
 
 ---
 
@@ -322,14 +353,14 @@ Key workstreams:
 - queue/event processing, retries and dead-letter handling;
 - adapter circuit breakers and backpressure;
 - workload identity/private networking/Key Vault;
-- immutable and auditable action history;
+- immutable and auditable action/workflow history;
 - security testing;
 - backup/restore and disaster recovery;
 - operational dashboards and SLO/error-budget program.
 
 Tenancy position: prefer one enterprise deployment boundary initially while preserving explicit tenant/isolation primitives for future shared deployments.
 
-**Gate:** CEPIO survives node/service restart, duplicate messages, stale writes and adapter/dependency outages without semantic corruption, with measured SLOs and operational runbooks.
+**Gate:** CEPIO survives node/service restart, duplicate messages, stale writes and adapter/dependency outages without semantic or workflow corruption, with measured SLOs and operational runbooks.
 
 ---
 
@@ -375,7 +406,7 @@ Required guarantees:
 ### Security
 - authenticated identity and actor-scoped authorization;
 - no client-supplied privilege authority;
-- immutable/auditable governed action history;
+- immutable/auditable governed action and workflow history;
 - security review/penetration testing.
 
 ### Runtime
@@ -389,6 +420,13 @@ Required guarantees:
 - production-quality SAP and PI baseline;
 - OSDU/P6 according to reference deployments;
 - governed and reconciled external writeback.
+
+### Kinetic execution
+- durable workflow execution;
+- replay/idempotency guarantees across workflow steps;
+- human approval and policy enforcement;
+- async/long-running action handling;
+- compensation and verified outcome tracking.
 
 ### Adoption
 - at least two materially different enterprise profiles/deployments;
@@ -405,7 +443,7 @@ Required guarantees:
 | --- | --- | --- |
 | v0.4 | deployable Microsoft-native industrial semantic runtime | #22 / gate #50 |
 | v0.5 | live operation over industrial source systems | #51 |
-| v0.6 | real industrial workflows/applications | #59 |
+| v0.6 | durable kinetic orchestration + reference industrial applications | #67 + #59 |
 | v0.7 | independent developers can extend CEPIO | #60 |
 | v0.8 | enterprise-operable runtime | #61 |
 | v0.9 | portable across enterprises | #62 |
@@ -413,21 +451,22 @@ Required guarantees:
 
 ## Current execution order
 
-### NOW
-- #43 Repository query pushdown and cursor pagination.
-
-### NEXT
-- #21 App Service and AKS deployment profiles.
-- #6 Runtime observability / OpenTelemetry.
+### NOW — finish v0.4
+- #6 Runtime observability / OpenTelemetry — implementation PR #66.
 - #50 Developer Preview release gate.
 
-### THEN — v0.5
+### THEN — v0.5 live integration
+- #2 Property provenance and lineage kernel.
 - #52 adapter contract.
 - #53 SAP adapter.
 - #54 PI adapter.
 - #57 identity reconciliation/governed writeback.
 - #55 or #56 engineering/project context adapter.
 - #58 live compressor reference scenario.
+
+### THEN — v0.6 kinetic + application
+- #67 Kinetic runtime and workflow orchestration.
+- #59 Asset Reliability / Maintenance Command Center.
 
 ### DEFERRED / NON-BLOCKING
 - #20 Purview governance + lineage bridge.
