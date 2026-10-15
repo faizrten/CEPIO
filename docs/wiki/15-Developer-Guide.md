@@ -10,6 +10,7 @@ ontology-modules.yaml   Module catalogue and dependencies
 mappings/               Source mappings + property contract
 shapes/                 SHACL validation
 src/cepio/              Runtime implementation
+generalization/         Archetypes, personas, competency packs and standards benchmarks
 examples/               Executable examples/reference scenarios
 actions/                Action definitions/contracts
 integrations/           Integration implementation assets
@@ -27,9 +28,26 @@ policies/                Policy-related assets
 python -m pip install -e '.[dev]'
 pytest -q
 make validate
+PYTHONPATH=src python scripts/run_generalization_harness.py
 ```
 
 The validation path should be treated as part of the semantic product, not only code quality.
+
+## Generalization and competency testing
+
+The Generalization Lab tests whether CEPIO's canonical/domain semantics can support materially different Energy & Process Industry operating questions without silently relying on LLM world knowledge or customer-specific concepts.
+
+Harness v0.1 provides a frozen drilling-contractor competency pack and deterministic semantic-readiness evaluator. A result is tied to both a frozen-batch hash and the ontology-module hash. `PASS` means the required ontology terms and edge contracts exist; it does not yet prove runtime data or answer correctness.
+
+When a valid competency exposes a gap, do not immediately add vocabulary. Classify the gap first as:
+
+```text
+CORE | DOMAIN | PROFILE | MAPPING | REJECT
+```
+
+Future live challenger/operator/judge agents remain evidence-constrained: model output alone is not enterprise truth and no harness agent may autonomously promote a gap into canonical CEPIO Core.
+
+See [Generalization & Competency Harness](../generalization-harness.md).
 
 ## Documentation is part of the definition of done
 
