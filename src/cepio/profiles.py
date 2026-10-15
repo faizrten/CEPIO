@@ -59,6 +59,7 @@ class ProfileManifest:
     profile_id: str
     version: str
     schema_version: str
+    namespace: str | None
     description: str | None
     depends_on: dict[str, str]
     files: ProfileFiles
@@ -72,10 +73,14 @@ class ProfileManifest:
         version = raw.get("version")
         if not profile_id or not version:
             raise ValueError(f"Profile manifest {path} requires id and version")
+        namespace = str(raw["namespace"]) if raw.get("namespace") else None
+        if namespace and not (namespace.startswith("http://") or namespace.startswith("https://")):
+            raise ValueError(f"Profile {profile_id} namespace must be an absolute HTTP(S) IRI")
         manifest = cls(
             profile_id=str(profile_id),
             version=str(version),
             schema_version=str(raw.get("schema_version", "1")),
+            namespace=namespace,
             description=str(raw["description"]) if raw.get("description") else None,
             depends_on={str(k): str(v) for k, v in (raw.get("depends_on") or {}).items()},
             files=ProfileFiles.from_raw(raw.get("files")),
@@ -110,6 +115,9 @@ class ProfileManifest:
     def binding_path(self, target: str) -> Path | None:
         relative = self.files.bindings.get(target)
         return self.root / relative if relative else None
+
+    def owns_iri(self, iri: str) -> bool:
+        return bool(self.namespace and iri.startswith(self.namespace))
 
 
 class ProfileRegistry:
