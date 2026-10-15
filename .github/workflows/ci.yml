@@ -26,7 +26,7 @@ jobs:
           /tmp/cepio-wheel-venv/bin/python -m pip install --upgrade pip
           /tmp/cepio-wheel-venv/bin/python -m pip install dist/cepio-*.whl
           cd /tmp
-          CEPIO_ENVIRONMENT=test CEPIO_DB_URL=memory:// /tmp/cepio-wheel-venv/bin/python - <<'PY'
+          CEPIO_ENVIRONMENT=test CEPIO_DB_URL=memory:// CEPIO_PROFILES=satorp /tmp/cepio-wheel-venv/bin/python - <<'PY'
           import cepio
           from cepio.bootstrap import build_runtime_from_settings
           from cepio.resource_paths import resolve_resource_root
@@ -34,8 +34,12 @@ jobs:
           root = resolve_resource_root()
           assert (root / "ontology-modules.yaml").exists()
           assert (root / "ontologies").is_dir()
+          assert (root / "profiles" / "satorp" / "profile.yaml").exists()
           runtime = build_runtime_from_settings()
           assert runtime.module_catalogue.modules
+          assert runtime.profile_versions == {"satorp": "0.1.0"}
+          assert runtime.type_registry.is_declared_type("https://cepio.org/profile/satorp#AmiralAsset")
           print(cepio.__version__)
           print(root)
+          print(runtime.profile_versions)
           PY
