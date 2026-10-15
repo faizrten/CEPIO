@@ -7,7 +7,7 @@ from cepio.model import OntologyObject, Relationship
 from cepio.property_registry import PropertyRegistry, UnknownPropertyError
 from cepio.provenance import PropertyProvenance, ProvenanceRepository, explain_property
 from cepio.query import ObjectQuery, ObjectQueryResult, QueryEngine
-from cepio.runtime import CEPIORuntime
+from cepio.runtime import AuthorizationError, CEPIORuntime
 
 
 class ContractAwareCEPIORuntime(CEPIORuntime):
@@ -98,9 +98,21 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
             self.provenance_repository,
         )
 
+    def read_object_for_actor(self, object_id: str, roles: set[str]) -> OntologyObject:
+        obj = self.get_object(object_id)
+        if not self.policy_engine.can_read_object(roles, obj):
+            raise AuthorizationError(
+                f"Actor roles are not authorized to read object {object_id} of type {obj.type}"
+            )
+        return self.policy_engine.filter_properties(roles, obj)
+
     def query_objects(self, query: ObjectQuery) -> ObjectQueryResult:
         """Execute the stable typed CEPIO object-set query contract."""
         return QueryEngine(self).execute(query)
+
+    def query_objects_for_actor(self, query: ObjectQuery, roles: set[str]) -> ObjectQueryResult:
+        """Execute a typed query with actor visibility applied before totals/pagination."""
+        return QueryEngine(self).execute(query, actor_roles=roles)
 
     def get_object_at(self, object_id: str, transaction_time: datetime) -> OntologyObject:
         method = getattr(self.object_repository, "get_object_at", None)

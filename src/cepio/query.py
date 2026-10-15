@@ -78,32 +78,38 @@ class ObjectQueryResult(BaseModel):
 class QueryEngine:
     """Repository-neutral CEPIO object-set query evaluator.
 
-    The contract is intentionally typed and backend-neutral. Reference execution is
-    performed over the runtime repository APIs so in-memory and SQLite behave the
-    same. Future Fabric/Graph/search bindings can translate this contract without
-    changing application or agent query semantics.
+    The reference engine keeps query semantics backend-neutral while enforcing actor
+    visibility before predicates, result counts, sorting and pagination. Production
+    repositories can push this contract down to SQL/KQL/Graph without changing
+    application semantics.
     """
 
     def __init__(self, runtime: "CEPIORuntime") -> None:
         self.runtime = runtime
 
-    def execute(self, query: ObjectQuery) -> ObjectQueryResult:
-        candidates = self._candidate_objects(query)
-        filtered = [obj for obj in candidates if self._matches(obj, query)]
+    def execute(self, query: ObjectQuery, *, actor_roles: set[str] | None = None) -> ObjectQueryResult:
+        candidates = self._candidate_objects(query, actor_roles)
+        if actor_roles is not None:
+            candidates = [
+                self.runtime.policy_engine.filter_properties(actor_roles, obj)
+                for obj in candidates
+            ]
+        filtered = [obj for obj in candidates if self._matches(obj, query, actor_roles)]
         ordered = self._sort(filtered, query.sort)
         total = len(ordered)
         items = ordered[query.offset : query.offset + query.limit]
         return ObjectQueryResult(items=items, total=total, offset=query.offset, limit=query.limit)
 
-    def _candidate_objects(self, query: ObjectQuery) -> list[OntologyObject]:
-        # No delete operation exists in the reference runtime, so current object IDs
-        # are a stable index over which historical snapshots can be reconstructed.
+    def _candidate_objects(self, query: ObjectQuery, actor_roles: set[str] | None) -> list[OntologyObject]:
         current = self.runtime.list_objects()
         result: list[OntologyObject] = []
         for obj in current:
             historical = self._object_in_context(obj.id, query)
-            if historical is not None:
-                result.append(historical)
+            if historical is None:
+                continue
+            if actor_roles is not None and not self.runtime.policy_engine.can_read_object(actor_roles, historical):
+                continue
+            result.append(historical)
         return result
 
     def _object_in_context(self, object_id: str, query: ObjectQuery) -> OntologyObject | None:
@@ -126,12 +132,12 @@ class QueryEngine:
         except KeyError:
             return None
 
-    def _matches(self, obj: OntologyObject, query: ObjectQuery) -> bool:
+    def _matches(self, obj: OntologyObject, query: ObjectQuery, actor_roles: set[str] | None) -> bool:
         if query.object_type and not self._type_matches(obj.type, query.object_type, query.include_subtypes):
             return False
         if not all(self._matches_property(obj, predicate) for predicate in query.predicates):
             return False
-        if not all(self._matches_relationship(obj, predicate, query) for predicate in query.relationships):
+        if not all(self._matches_relationship(obj, predicate, query, actor_roles) for predicate in query.relationships):
             return False
         return True
 
@@ -193,7 +199,7 @@ class QueryEngine:
         if query.valid_at is not None or query.as_of_transaction is not None:
             method = getattr(self.runtime, "relationships_at", None)
             if method is None:
-                raise RuntimeError("Configured CEPIO runtime does not support temporal relationship queries")
+                raise RuntimeError("Configured CEPIO runtime does not support temporal relationship history")
             valid_time = query.valid_at or query.as_of_transaction
             assert valid_time is not None
             return method(
@@ -210,23 +216,31 @@ class QueryEngine:
             return actual == expected
         return registry.same_relationship(actual, expected)
 
-    def _matches_relationship(self, obj: OntologyObject, predicate: RelationshipPredicate, query: ObjectQuery) -> bool:
+    def _matches_relationship(
+        self,
+        obj: OntologyObject,
+        predicate: RelationshipPredicate,
+        query: ObjectQuery,
+        actor_roles: set[str] | None,
+    ) -> bool:
         for rel in self._relationships_for(obj, predicate, query):
             if predicate.relationship_type and not self._relationship_type_matches(rel.type, predicate.relationship_type):
                 continue
             other_ref = rel.target if predicate.direction == "out" else rel.source
+            other = self._object_in_context(other_ref.id, query)
+            if other is None:
+                continue
+            if actor_roles is not None and not self.runtime.policy_engine.can_read_object(actor_roles, other):
+                continue
             if predicate.other_id and other_ref.id != predicate.other_id:
                 continue
-            if predicate.other_type:
-                other = self._object_in_context(other_ref.id, query)
-                if other is None or not self._type_matches(other.type, predicate.other_type, include_subtypes=True):
-                    continue
+            if predicate.other_type and not self._type_matches(other.type, predicate.other_type, include_subtypes=True):
+                continue
             return True
         return False
 
     def _sort(self, objects: list[OntologyObject], fields: list[SortField]) -> list[OntologyObject]:
         ordered = sorted(objects, key=lambda obj: obj.id)
-        # Stable sorts applied in reverse preserve the requested multi-key order.
         for spec in reversed(fields):
             reverse = spec.direction == "desc"
             ordered.sort(key=lambda obj: self._sort_value(obj, spec.field), reverse=reverse)
@@ -236,6 +250,4 @@ class QueryEngine:
         exists, value = self._property_value(obj, field)
         if not exists or value is None:
             return (1, "", "")
-        # Type name avoids Python 3 cross-type comparison failures while preserving
-        # natural ordering within homogeneous industrial properties.
         return (0, type(value).__name__, value)

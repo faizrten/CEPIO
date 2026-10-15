@@ -145,7 +145,9 @@ def test_valid_time_query_applies_relationship_validity(tmp_path, sqlite):
     assert runtime.query_objects(expired).items == []
 
 
-def test_query_api_accepts_structured_contract():
+def test_query_api_accepts_structured_contract(monkeypatch):
+    monkeypatch.setenv("CEPIO_ENVIRONMENT", "test")
+    monkeypatch.setenv("CEPIO_AUTH_MODE", "dev")
     api_module.runtime = build_runtime()
     api_module.runtime.upsert_object(
         OntologyObject(id="K-API-Q", type="Compressor", name="Query API Compressor", properties={"criticality": "high"})
@@ -154,6 +156,10 @@ def test_query_api_accepts_structured_contract():
 
     response = client.post(
         "/query/objects",
+        headers={
+            "X-CEPIO-Dev-Actor": "query-test",
+            "X-CEPIO-Dev-Roles": "maintenance_engineer",
+        },
         json={
             "object_type": "Compressor",
             "predicates": [{"property": "criticality", "operator": "eq", "value": "high"}],
