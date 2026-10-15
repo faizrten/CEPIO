@@ -21,7 +21,6 @@ SEO,Emission,seo-energy,process/hse,process:EmissionObservation,rename,domain,Mo
 SEO,QualityResult,ind_core,process,process:QualityObservation,rename,domain,Quality measurement/observation.
 SEO,DesignTag,seo-cap,epcic,epcic:DesignTag,equivalent,domain,As-designed prescriptive tag.
 SEO,InstalledItem,seo-asset,asset/epcic,asset:InstalledAsset,broader-target,industrial-common,Installed physical item; realization link belongs in EPCIC.
-SEO,AmiralAsset,seo-asset,profile-seo,asset:InstalledAsset,profile-specialization,customer-profile,Keep Amiral naming in SATORP profile.
 SEO,CommissioningSystem,seo-cap,epcic,epcic:CommissioningSystem,equivalent,domain,Commissioning/handover system.
 SEO,EpcPackage,seo-cap,epcic,epcic:EPCPackage,rename,domain,Canonical acronym casing.
 SEO,CommissioningActivity,seo-cap,epcic,epcic:CommissioningActivity,equivalent,domain,Commissioning activity.
