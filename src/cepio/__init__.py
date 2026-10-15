@@ -1,7 +1,6 @@
 """CEPIO - Common Energy & Process Industry Ontology runtime."""
 
-__version__ = "0.3.0"
-
+from ._version import __version__
 from .bootstrap import build_runtime
 from .graph_analytics import GraphAnalyticsEngine
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cepio"
-version = "0.3.0"
+dynamic = ["version"]
 description = "Common Energy & Process Industry Ontology operational runtime"
 requires-python = ">=3.11"
 dependencies = [
@@ -22,7 +22,10 @@ dependencies = [
 
 [project.optional-dependencies]
 mcp = ["mcp>=2.0,<3"]
-dev = ["pytest>=8.0", "pyshacl>=0.30", "mcp>=2.0,<3"]
+dev = ["pytest>=8.0", "pyshacl>=0.30", "mcp>=2.0,<3", "build>=1.2"]
+
+[tool.setuptools.dynamic]
+version = {attr = "cepio._version.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 import cepio.api as api_module
+from cepio import __version__
 from cepio.bootstrap import build_runtime
 
 
@@ -16,7 +17,7 @@ def test_api_health_and_policy_rejection_are_explicit_and_audited(monkeypatch):
     monkeypatch.setenv("CEPIO_AUTH_MODE", "dev")
     api_module.runtime = build_runtime()
     client = TestClient(api_module.app)
-    assert client.get("/health").json()["version"] == "0.3.0"
+    assert client.get("/health").json()["version"] == __version__
 
     obj = {
         "id": "K-API",
