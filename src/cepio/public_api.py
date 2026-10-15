@@ -12,7 +12,7 @@ from . import api as legacy
 from .auth import ActorContext, get_actor_context
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import Decision, ErrorEnvelope, OntologyObject, OperationalEvent, Relationship
-from .query import ObjectQueryResult
+from .query import InvalidQueryCursor, ObjectQuery, ObjectQueryResult, QueryBudgetExceeded
 
 
 app: FastAPI = legacy.app
@@ -138,6 +138,32 @@ def v1_upsert_object(
     return stored
 
 
+def v1_query_objects(
+    query: ObjectQuery,
+    actor: ActorContext = Depends(get_actor_context),
+) -> ObjectQueryResult:
+    try:
+        method = getattr(legacy.runtime, "query_objects_for_actor", None)
+        if method is None:
+            raise RuntimeError("Configured CEPIO runtime does not expose actor-scoped typed queries")
+        return method(query, actor.roles)
+    except QueryBudgetExceeded as exc:
+        raise HTTPException(
+            status_code=429,
+            detail={"code": QueryBudgetExceeded.code, "message": str(exc)},
+        ) from exc
+    except InvalidQueryCursor as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": InvalidQueryCursor.code, "message": str(exc)},
+        ) from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "query_validation", "message": str(exc)},
+        ) from exc
+
+
 def v1_execute_action(
     body: legacy.ActionBody,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
@@ -161,7 +187,7 @@ V1_ROUTES: tuple[tuple[str, Any, list[str], Any, str, str], ...] = (
     ("/objects/{object_id}", v1_upsert_object, ["PUT"], OntologyObject, "upsertObject", "objects"),
     ("/objects/{object_id}", v1_get_object, ["GET"], OntologyObject, "getObject", "objects"),
     ("/objects", legacy.list_objects, ["GET"], list[OntologyObject], "listObjects", "objects"),
-    ("/query/objects", legacy.query_objects, ["POST"], ObjectQueryResult, "queryObjects", "query"),
+    ("/query/objects", v1_query_objects, ["POST"], ObjectQueryResult, "queryObjects", "query"),
     ("/relationships", legacy.add_relationship, ["POST"], Relationship, "addRelationship", "relationships"),
     ("/objects/{object_id}/neighbors", legacy.neighbors, ["GET"], list[OntologyObject], "getNeighbors", "relationships"),
     ("/graph/backend", legacy.graph_backend, ["GET"], GraphBackendInfo, "getGraphBackend", "graph"),
