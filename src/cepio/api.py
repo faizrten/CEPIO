@@ -5,7 +5,8 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from .bootstrap import build_runtime
+from ._version import __version__
+from .bootstrap import build_runtime_from_settings
 from .graph_analytics import (
     BlastRadiusResult,
     CentralityResult,
@@ -19,13 +20,15 @@ from .query import ObjectQuery, ObjectQueryResult
 from .repositories import ConcurrencyError
 from .runtime import AuthorizationError
 
-app = FastAPI(title="CEPIO Operational Ontology API", version="0.3.0", description="Semantic + kinetic runtime for Energy & Process Industry ontology applications.")
-runtime = build_runtime()
+app = FastAPI(
+    title="CEPIO Operational Ontology API",
+    version=__version__,
+    description="Semantic + kinetic runtime for Energy & Process Industry ontology applications.",
+)
+runtime = build_runtime_from_settings()
 
 
 def _graph_analytics() -> GraphAnalyticsEngine:
-    # Resolve lazily so runtime/repository swaps (tests, tenants, deployments) do not
-    # leave graph analytics bound to stale state.
     return GraphAnalyticsEngine(runtime.object_repository)
 
 
@@ -35,7 +38,19 @@ class FunctionBody(BaseModel):
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "version": "0.3.0"}
+    catalogue = getattr(runtime, "module_catalogue", None)
+    module_versions = (
+        {module_id: module.version for module_id, module in catalogue.modules.items()}
+        if catalogue is not None
+        else {}
+    )
+    return {
+        "status": "ok",
+        "version": __version__,
+        "ontology_catalogue_schema": getattr(catalogue, "schema_version", None),
+        "ontology_modules": module_versions,
+        "profiles": getattr(runtime, "profile_versions", {}),
+    }
 
 
 @app.put("/objects/{object_id}", response_model=OntologyObject)
