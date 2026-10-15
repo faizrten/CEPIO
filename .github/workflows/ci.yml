@@ -14,6 +14,8 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install -e '.[dev]'
       - run: pytest -q
+      - name: Check CEPIO API v1 contract
+        run: PYTHONPATH=src CEPIO_ENVIRONMENT=test CEPIO_DB_URL=memory:// python scripts/check_api_contract.py
       - run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
