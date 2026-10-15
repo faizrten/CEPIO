@@ -4,13 +4,25 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 ## Start here
 
+- **[CEPIO v0.4 Developer Preview](developer-preview.md)** — clean-environment install, startup, qualification and release boundary.
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.
 - **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
 
+## v0.4 public API and operations
+
+- [API v1 client guide](api-client-guide.md)
+- [API reliability semantics](api-reliability.md)
+- [Representative API examples](api-examples.md)
+- [REST security / Microsoft Entra](rest-security.md)
+- [Typed query contract](query-contract.md)
+- [Query load baseline](query-load-baseline.md)
+- [API versioning](api-versioning.md)
+- [Reference deployment profiles](deployment-profiles.md)
+- [Observability / OpenTelemetry](observability.md)
+
 ## Key technical contracts
 
-- [Typed query contract](query-contract.md)
 - [Temporal state projection](temporal-state-projection.md)
 - [Microsoft platform extension](microsoft-platform-extension.md)
 - [Foundry + MCP](foundry-mcp.md)
