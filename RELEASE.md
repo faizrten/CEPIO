@@ -1,93 +1,147 @@
-# CEPIO v0.3 Release Manifest
+# CEPIO v0.4 Developer Preview Release Manifest
 
-Release: **0.3.0 — Temporal + Provenance Kernel**
+Release: **0.4.0 — Developer Preview**
 
-## Release scope
+## Product claim
 
-v0.3 promotes CEPIO from a v0.2 operational runtime into a versioned industrial semantic contract with provenance, bitemporal history and deterministic state reconstruction.
+CEPIO v0.4 is a Microsoft-native, source-system-neutral industrial semantic + kinetic runtime that can be consumed through a versioned public API, Entra-authenticated policy boundary, reference Microsoft hosting profiles, Fabric/Fabric IQ bindings and Foundry/MCP integration.
 
-### Domain normalization
+This release is a **Developer Preview**. It qualifies a coherent developer/runtime contract; it does not claim enterprise production HA, production-distributed persistence or live industrial-system writeback.
 
-- Canonical industrial-common modules for Asset, Work Management, Reliability, HSE, Supply, Performance, Workforce and Agentic Operations.
-- Domain/enterprise modules for Process Industry, EPCIC, Drilling and Commercial semantics.
-- 42/42 SEO refinery/petrochemical/EPC entities mapped.
-- 59/59 AD drilling/asset-heavy core entities mapped.
-- 967 SEO/AD source-property occurrences classified.
-- Customer-specific concepts remain profile semantics instead of polluting CEPIO common modules.
+## Supported Developer Preview surface
 
-### Semantic contract
+### Canonical runtime
 
-- Full RDF IRI is canonical identity for classes, object relationships and datatype properties.
-- Local/QName aliases resolve only when unambiguous.
-- Ontology modules declare namespace, semantic version, tier, stability and dependencies.
-- Compatibility snapshots detect breaking class/property/relationship removals and range changes.
-- Canonical datatype properties declare datatype and semantic/write authority.
+- canonical Energy & Process Industry ontology modules and first-class customer profiles;
+- IRI-first semantic identity, relationship validation and canonical property contract;
+- immutable provenance and temporal/history capabilities established in v0.3;
+- deterministic event/state projection;
+- typed functions, Decisions, governed Actions, preconditions, audit and scoped idempotency.
 
-### Provenance
+### Public API v1
 
-- `SourceReference`.
-- `TransformationRun`.
-- `PropertyProvenance`.
-- Source-value hashing without persisting raw source values.
-- In-memory and SQLite provenance repositories.
-- `explain_property(...)` lineage explanation path for applications and agents.
+- supported public namespace under `/api/v1`;
+- committed `openapi/cepio-v1.yaml` baseline;
+- 18 route/method/operation-ID contracts checked in CI;
+- actor-scoped reads and typed queries;
+- standardized public error envelope and `X-Request-ID` correlation;
+- object `ETag` and `If-Match` optimistic concurrency;
+- action `Idempotency-Key` semantics;
+- cursor pagination and query-budget errors.
 
-### Temporal history
+The v0.4 OpenAPI compatibility gate is intentionally **route-contract based plus selected product-critical semantics**. Full request/response schema compatibility generation is not yet a v0.4 guarantee.
 
-- Immutable object-version snapshots.
-- `get_object_at(id, transaction_time)` transaction-time reconstruction.
-- `get_object_valid_at(id, valid_time, as_of_transaction=...)` bitemporal object queries.
-- Immutable relationship revision history.
-- `relationships_at(..., as_of_transaction=...)` bitemporal graph queries.
-- Explicit transaction-time vs valid-time semantics.
-- Retroactive corrections append history instead of overwriting it.
+### Clients
 
-### Deterministic state projection
+- Python `CEPIOClient` shipped in the wheel and aligned to `/api/v1`;
+- TypeScript reference client source in `clients/typescript/cepio.ts`;
+- CI validation of both client operation maps against the accepted OpenAPI route contract.
 
-- Stable event ordering by `(occurred_at, event_id)`.
-- Projector interface for immutable events → derived ontology state.
-- Reference compressor operating-state projector.
-- Projection checkpoints stored separately from source events.
-- State hash, projector/version, event count, last event and rebuild timestamp persisted.
-- Derived state can be deleted and rebuilt from immutable event history.
+The TypeScript client is reference source in v0.4; it is not yet a published npm package or fully generated SDK.
 
-## Verification
+### Security
 
-Validated in GitHub Actions on Python 3.11:
+- Microsoft Entra token signature, issuer, audience and lifetime validation for production mode;
+- caller identity derived from token claims rather than request-supplied authority;
+- explicit development-auth mode that fails closed in production configuration;
+- object type, sharing-scope, property, function and action policy controls;
+- authorization applied before exposed query counts, sorting, cursor positions and page results;
+- spoofed action identity attempts rejected and audited.
 
-- **36 pytest tests pass**.
-- SHACL validation conforms with pySHACL.
-- Existing refinery cross-domain demo executes end-to-end.
-- SQLite object/provenance/history/projection persistence survives restart.
-- Optimistic concurrency still rejects stale writes.
-- Existing action, policy, idempotency, audit, function and MCP security invariants remain intact.
+### Query execution
 
-## Security and governance invariants
+- repository-level typed-query execution for the SQLite reference backend;
+- deterministic opaque cursor pagination;
+- conservative SQL pushdown with semantic revalidation;
+- configured query complexity/execution budgets;
+- in-memory/SQLite semantic parity tests;
+- repeatable 5,000-object CI regression baseline.
 
-1. Historical snapshots are not mutable through ordinary domain APIs.
-2. Source events are immutable; projections are disposable/rebuildable derived state.
-3. Policy evaluation still precedes governed external side effects and idempotent replay.
-4. AI recommenders cannot cross execution boundaries without authorized identity/policy.
-5. Provenance is separate from ordinary domain mutation authority.
-6. Ambiguous semantic aliases fail closed.
+### Microsoft platform bindings
 
-## Known limits
+- Fabric/Fabric IQ semantic binding contracts;
+- Foundry/MCP actor-scoped query/function/action integration;
+- App Service reference deployment profile;
+- AKS reference deployment profile;
+- one portable CEPIO container contract across reference hosts.
 
-- SQLite is a reference backend, not the target production distributed graph store.
-- Projection checkpoint persistence and ontology state updates are recoverable through replay but are not yet a distributed transaction.
-- External adapters remain dry-run only; no live SAP/PI/OSDU writeback is enabled.
-- Temporal filtering is not yet exposed through the full typed query/MCP surface.
-- Ontology breaking changes are detectable, but intentional migration-manifest execution is a follow-on.
-- OpenTelemetry/runtime observability hooks are not yet implemented.
+### Observability
+
+- backend-neutral telemetry sink/event contract;
+- repository, policy, function and action duration/success/failure telemetry;
+- sanitized rejected-action telemetry;
+- optional OpenTelemetry adapter without a mandatory OpenTelemetry core dependency;
+- adapter telemetry boundary for future live connectors.
+
+## Release qualification
+
+The v0.4 gate requires successful CI for:
+
+- full pytest suite;
+- SHACL validation;
+- public API v1 contract check;
+- Python/TypeScript route-contract validation;
+- ontology compatibility gate;
+- deployment-profile validation;
+- cross-domain reasoning demo;
+- SQLite typed-query load regression;
+- clean wheel build and install outside the source checkout;
+- clean container build, startup and `/api/v1/health` check.
+
+The final qualifying CI run for this release PR is the authoritative evidence for test count and release-gate success.
+
+## Reference query baseline
+
+A pre-release CI reference run on 2026-10-15 queried 5,000 SQLite-backed compressor objects in **6.306 ms** for the configured regression case, returned a 100-object page, and explicitly prohibited fallback through `runtime.list_objects()`.
+
+This is a regression reference, not a production SLO. See `docs/query-load-baseline.md`.
+
+## Experimental / reference-only surfaces
+
+The following are useful for development and evaluation but are not production guarantees in v0.4:
+
+- SQLite persistence beyond the documented single-writer reference topology;
+- legacy unversioned REST routes retained temporarily for compatibility;
+- full-schema OpenAPI-generated client compatibility beyond the checked route contract;
+- TypeScript packaging/npm distribution;
+- graph analytics at enterprise distributed-graph scale;
+- Fabric/Fabric IQ and Foundry integration behavior outside the documented CEPIO contracts;
+- customer-profile content beyond its declared profile/module version;
+- application-specific UI/workspaces.
+
+## Deferred beyond v0.4
+
+- live SAP S/4HANA, AVEVA PI, OSDU and Primavera P6 adapters;
+- governed external writeback, verification and reconciliation;
+- source-neutral extractor/onboarding runtime;
+- full production HA/distributed persistence;
+- queue workers, DLQ/circuit-breaker/backpressure program;
+- formal production SLO/error budgets and disaster recovery qualification;
+- first-class long-running kinetic workflow orchestration (#67);
+- Purview governance/lineage bridge (#20);
+- GPU/cuGraph production qualification (#25).
+
+## Known deployment limits
+
+1. SQLite is a single-writer reference backend and must not be horizontally scaled as a shared production data plane.
+2. The supplied AKS SQLite profile therefore uses one replica and `ReadWriteOnce` storage.
+3. App Service/AKS manifests are reproducible reference profiles; target landing-zone networking, secrets, private endpoints, monitoring and production repository services remain environment concerns.
+4. External industrial source adapters are dry-run/reference contracts until v0.5 live-integration work lands.
+5. Enterprise production security review, penetration testing, HA, DR and SLO qualification are not claimed by this Developer Preview.
+
+## Documentation entry points
+
+- `docs/developer-preview.md` — clean-environment qualification guide;
+- `docs/rest-security.md` — Entra and authorization boundary;
+- `docs/api-client-guide.md` — Python and TypeScript clients;
+- `docs/api-reliability.md` — errors, request IDs, ETag/If-Match and idempotency;
+- `docs/api-examples.md` — representative v1 requests;
+- `docs/query-contract.md` — typed-query and cursor semantics;
+- `docs/query-load-baseline.md` — measured reference regression;
+- `docs/deployment-profiles.md` — App Service and AKS reference deployment;
+- `docs/observability.md` — telemetry/OpenTelemetry integration;
+- `docs/roadmap.md` — v0.5+ execution roadmap.
 
 ## Next release
 
-v0.4 targets the **Operational Query + Platform Integration** layer:
-
-- typed temporal/relationship/property query contract;
-- ontology migration manifests and CI migration gates;
-- OpenTelemetry-compatible runtime observability;
-- projection provenance and multi-object causal projections;
-- explicit Fabric / Fabric IQ / Purview / Foundry / Entra mapping contracts;
-- event-ingestion adapters for Fabric Real-Time Intelligence / Eventstreams and AVEVA PI;
-- richer MCP tools for time-travel, lineage and governed industrial reasoning.
+v0.5 moves from platform qualification to **Live Industrial Integration**: provenance-backed data onboarding, a source-neutral connector/extractor foundation, SAP/PI and additional industrial adapters, external identity reconciliation, governed writeback and a live compressor reference scenario.

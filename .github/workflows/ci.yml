@@ -18,8 +18,12 @@ jobs:
         run: PYTHONPATH=src python scripts/query_load_baseline.py --objects 5000 --max-ms 5000
       - name: Validate deployment profiles
         run: PYTHONPATH=src python scripts/validate_deployment_profiles.py
-      - run: PYTHONPATH=src python scripts/check_api_contract.py
-      - run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
+      - name: Validate public API contract
+        run: PYTHONPATH=src python scripts/check_api_contract.py
+      - name: Validate Python and TypeScript clients against API v1
+        run: PYTHONPATH=src python scripts/check_client_contract.py
+      - name: Validate ontology compatibility
+        run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
       - name: Build wheel
@@ -37,6 +41,7 @@ jobs:
           from cepio.resource_paths import resolve_resource_root
 
           root = resolve_resource_root()
+          assert cepio.__version__ == "0.4.0"
           assert (root / "ontology-modules.yaml").exists()
           assert (root / "ontologies").is_dir()
           assert (root / "profiles" / "satorp" / "profile.yaml").exists()
@@ -48,3 +53,25 @@ jobs:
           print(root)
           print(runtime.profile_versions)
           PY
+      - name: Build Developer Preview container
+        run: docker build -t cepio:ci .
+      - name: Smoke test container outside Python checkout
+        shell: bash
+        run: |
+          cid=$(docker run -d \
+            -p 18000:8000 \
+            -e CEPIO_ENVIRONMENT=test \
+            -e CEPIO_DB_URL=memory:// \
+            -e CEPIO_AUTH_MODE=dev \
+            cepio:ci)
+          trap 'docker logs "$cid" || true; docker rm -f "$cid" >/dev/null 2>&1 || true' EXIT
+          healthy=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:18000/api/v1/health > /tmp/cepio-health.json; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          cat /tmp/cepio-health.json 2>/dev/null || true
+          test "$healthy" -eq 1

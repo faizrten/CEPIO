@@ -1,3 +1,24 @@
+FROM python:3.11-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /build
+
+RUN python -m pip install --no-cache-dir --upgrade pip build
+
+COPY pyproject.toml setup.py /build/
+COPY src /build/src
+COPY ontologies /build/ontologies
+COPY mappings /build/mappings
+COPY shapes /build/shapes
+COPY actions /build/actions
+COPY policies /build/policies
+COPY profiles /build/profiles
+COPY ontology-modules.yaml /build/ontology-modules.yaml
+
+RUN python -m build --wheel
+
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -8,11 +29,12 @@ WORKDIR /app
 
 RUN addgroup --system cepio && adduser --system --ingroup cepio cepio
 
-COPY . /app
+COPY --from=builder /build/dist/cepio-*.whl /tmp/
 RUN python -m pip install --no-cache-dir --upgrade pip \
-    && python -m pip install --no-cache-dir .
+    && python -m pip install --no-cache-dir /tmp/cepio-*.whl \
+    && rm -f /tmp/cepio-*.whl
 
-RUN mkdir -p /data && chown -R cepio:cepio /app /data
+RUN mkdir -p /app /data && chown -R cepio:cepio /app /data
 USER cepio
 
 EXPOSE 8000
