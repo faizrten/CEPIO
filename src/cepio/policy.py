@@ -22,6 +22,8 @@ class PolicyEngine(Protocol):
 
     def can_read_type(self, roles: set[str], object_type: str) -> bool: ...
 
+    def can_read_object(self, roles: set[str], obj: OntologyObject) -> bool: ...
+
     def filter_properties(
         self, roles: set[str], obj: OntologyObject
     ) -> OntologyObject: ...
@@ -34,8 +36,8 @@ class RolePolicyEngine:
 
     This implementation is intentionally replaceable by Entra, OPA, Cedar or another
     enterprise authorization service. It supports action RBAC, recommend-only agent
-    roles, object-type read controls, property allowlists, and explicit function-call
-    permissions for governed tool/runtime surfaces.
+    roles, object-type read controls, object sharing scopes, property allowlists, and
+    explicit function-call permissions for governed tool/runtime surfaces.
     """
 
     def __init__(
@@ -89,6 +91,21 @@ class RolePolicyEngine:
             if "*" in read_types or object_type in read_types:
                 return True
             if self.type_registry and any(self.type_registry.is_a(object_type, allowed) for allowed in read_types):
+                return True
+        return False
+
+    def can_read_object(self, roles: set[str], obj: OntologyObject) -> bool:
+        if not self.can_read_type(roles, obj.type):
+            return False
+
+        scope = obj.properties.get("sharingScope", obj.properties.get("sharing_scope"))
+        if scope is None:
+            return True
+        scopes = {str(scope)} if not isinstance(scope, (list, tuple, set)) else {str(value) for value in scope}
+
+        for role in roles:
+            allowed = set(self.policies.get(role, {}).get("read_scopes", []))
+            if "*" in allowed or allowed.intersection(scopes):
                 return True
         return False
 
