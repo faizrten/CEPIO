@@ -1,0 +1,59 @@
+id: refinery-process-manufacturing-personas-v0.1
+version: "0.1"
+personas:
+  - id: plant-manager
+    role: Plant Manager
+    objectives: [safe production, margin delivery, resilient operations]
+    information_needs: [unit state, production constraints, HSE exposure, maintenance risk, economics]
+  - id: operations-manager
+    role: Operations Manager
+    objectives: [stable unit operation, manage abnormal situations, coordinate production]
+    information_needs: [unit status, process deviations, shift issues, permits, production impact]
+  - id: console-operator
+    role: Console Operator
+    objectives: [operate within safe limits, detect deviation early, execute approved responses]
+    information_needs: [current process state, operating limits, alarms, active work, shift handover]
+  - id: shift-supervisor
+    role: Shift Supervisor
+    objectives: [coordinate shift execution, maintain handover continuity, manage operating risk]
+    information_needs: [handover state, unresolved work, permits, unit constraints, crew assignments]
+  - id: process-engineer
+    role: Process Engineer
+    objectives: [optimize yield and stability, diagnose process constraints, protect operating envelope]
+    information_needs: [streams, unit conditions, quality, energy, constraints, optimization forecasts]
+  - id: reliability-engineer
+    role: Reliability Engineer
+    objectives: [prevent failures, prioritize condition-based work, protect unit availability]
+    information_needs: [condition signals, failure events, downtime, work orders, critical spares]
+  - id: maintenance-planner
+    role: Maintenance Planner
+    objectives: [prepare executable work, coordinate permits and isolations, protect schedule]
+    information_needs: [work backlog, asset hierarchy, isolation state, permits, materials, responsibilities]
+  - id: process-safety-manager
+    role: Process Safety Manager
+    objectives: [maintain barriers, control major-accident risk, assure safe change]
+    information_needs: [barrier health, process safety events, risk assessments, MOC, corrective actions]
+  - id: quality-manager
+    role: Quality Manager
+    objectives: [protect product specification, control off-spec disposition, assure traceability]
+    information_needs: [quality observations, product lots, specifications, disposition decisions, affected production]
+  - id: energy-manager
+    role: Energy Manager
+    objectives: [reduce energy intensity, optimize utilities, explain consumption variance]
+    information_needs: [utility meters, unit throughput, energy intensity, optimization forecasts, cost]
+  - id: environmental-manager
+    role: Environmental Manager
+    objectives: [maintain environmental compliance, explain exceedances, close corrective actions]
+    information_needs: [emission observations, limits, obligations, events, corrective actions]
+  - id: turnaround-manager
+    role: Turnaround Manager
+    objectives: [deliver outage scope safely, control critical path, assure restart readiness]
+    information_needs: [turnaround scope, work packages, isolations, materials, contractors, readiness constraints]
+  - id: contractor-services-manager
+    role: Contractor and Services Manager
+    objectives: [assure contractor delivery, manage acceptance, protect contractual value]
+    information_needs: [service execution, evidence, acceptance, obligations, supplier performance]
+  - id: finance-controller
+    role: Finance Controller
+    objectives: [explain production loss and margin impact, forecast value leakage, support tradeoffs]
+    information_needs: [downtime, throughput loss, revenue, cost, price assumptions, unit constraints]
