@@ -117,7 +117,7 @@ class RESTToolGateway:
         self,
         settings: RestGatewaySettings,
         *,
-        transport: Callable[[str, str, dict[str, Any] | None, dict[str, str]], dict[str, Any]] | None = None,
+        transport: Callable[[str, str, dict[str, Any] | None, dict[str, str]], Any] | None = None,
     ) -> None:
         self.settings = settings
         self._transport = transport or self._http_transport
@@ -181,7 +181,8 @@ class RESTToolGateway:
 
         if name == "cepio_get_object":
             object_id = parse.quote(str(arguments["object_id"]), safe="")
-            return self._transport("GET", f"/objects/{object_id}", None, headers)
+            value = self._transport("GET", f"/objects/{object_id}", None, headers)
+            return value if isinstance(value, dict) else {"result": value}
 
         if name == "cepio_neighbors":
             object_id = parse.quote(str(arguments["object_id"]), safe="")
@@ -190,21 +191,24 @@ class RESTToolGateway:
             if relationship_type:
                 path += "?" + parse.urlencode({"relationship_type": relationship_type})
             value = self._transport("GET", path, None, headers)
-            return {"objects": value} if isinstance(value, list) else value
+            if isinstance(value, list):
+                return {"objects": value}
+            return value if isinstance(value, dict) else {"result": value}
 
         if name == "cepio_call_function":
             function_name = parse.quote(str(arguments["function"]), safe="")
-            return self._transport(
+            value = self._transport(
                 "POST",
                 f"/functions/{function_name}",
                 {"arguments": arguments.get("arguments", {})},
                 headers,
             )
+            return value if isinstance(value, dict) else {"result": value}
 
         if name == "cepio_execute_action":
-            return self._transport(
+            value = self._transport(
                 "POST",
-                "/actions/execute",
+                "/actions",
                 {
                     "action_type": arguments["action_type"],
                     "target": {"id": arguments["target_id"], "type": arguments["target_type"]},
@@ -213,6 +217,7 @@ class RESTToolGateway:
                 },
                 headers,
             )
+            return value if isinstance(value, dict) else {"result": value}
 
         raise KeyError(f"Unknown CEPIO REST Operator tool: {name}")
 
@@ -222,7 +227,7 @@ class RESTToolGateway:
         path: str,
         body: dict[str, Any] | None,
         headers: dict[str, str],
-    ) -> dict[str, Any]:
+    ) -> Any:
         url = self.settings.base_url.rstrip("/") + path
         data = None
         request_headers = dict(headers)
@@ -231,10 +236,7 @@ class RESTToolGateway:
             request_headers["Content-Type"] = "application/json"
         req = request.Request(url, data=data, headers=request_headers, method=method)
         with request.urlopen(req, timeout=self.settings.timeout_seconds) as response:  # nosec B310 - URL is explicit CEPIO endpoint
-            payload = json.loads(response.read().decode("utf-8"))
-        if isinstance(payload, dict):
-            return payload
-        return {"result": payload}
+            return json.loads(response.read().decode("utf-8"))
 
 
 def _stable_evidence_id(tool_name: str, arguments: dict[str, Any], payload: dict[str, Any]) -> str:
