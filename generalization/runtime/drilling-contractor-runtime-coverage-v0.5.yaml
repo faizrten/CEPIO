@@ -1,0 +1,314 @@
+id: drilling-contractor-runtime-coverage-v0.5
+version: "0.5"
+archetype_id: drilling-contractor-v0.1
+competency_pack: generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml
+description: >
+  Full deterministic runtime-evidence coverage for the frozen 14-question drilling
+  persona capability pack. Fixtures are synthetic and source-neutral. They prove that
+  CEPIO can materialize and retrieve the approved semantic compositions; they do not
+  claim customer production readiness or replace the v0.4 temporal/provenance/policy gates.
+questions:
+  - question_id: DC-PC-001
+    claim: Resolve current offshore command authority and its HSE bounds.
+    capabilities: [scoped-command-authority, hse-command-bounds]
+    objects:
+      - {id: RIG-001, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Reference Rig 001}
+      - {id: AUTH-001, type: "https://cepio.org/ontology/workforce#AuthorityAssignment", name: OIM authority assignment}
+      - {id: OIM-001, type: "https://cepio.org/ontology/workforce#CrewMember", name: Reference OIM, properties: {wf:role: OIM}}
+      - {id: PERMIT-001, type: "https://cepio.org/ontology/hse#WorkPermit", name: Active work permit, properties: {cepio:status: ACTIVE}}
+      - {id: SC-001, type: "https://cepio.org/ontology/hse#SafetyCase", name: Rig safety case, properties: {cepio:status: VALID}}
+    relationships:
+      - {id: authority-rig, type: "https://cepio.org/ontology/workforce#authorityForAsset", source: AUTH-001, target: RIG-001}
+      - {id: authority-holder, type: "https://cepio.org/ontology/workforce#authorityHolder", source: AUTH-001, target: OIM-001}
+      - {id: permit-rig, type: "https://cepio.org/ontology/hse#permitForAsset", source: PERMIT-001, target: RIG-001}
+      - {id: rig-safety-case, type: "https://cepio.org/ontology/hse#hasSafetyCase", source: RIG-001, target: SC-001}
+    probes:
+      - {id: resolve-authority, kind: relationship, start_id: RIG-001, relationship_type: "https://cepio.org/ontology/workforce#authorityForAsset", direction: in, expected_ids: [AUTH-001]}
+      - {id: resolve-holder, kind: relationship, start_id: AUTH-001, relationship_type: "https://cepio.org/ontology/workforce#authorityHolder", expected_ids: [OIM-001]}
+      - {id: resolve-permit, kind: relationship, start_id: RIG-001, relationship_type: "https://cepio.org/ontology/hse#permitForAsset", direction: in, expected_ids: [PERMIT-001]}
+      - {id: resolve-safety-case, kind: relationship, start_id: RIG-001, relationship_type: "https://cepio.org/ontology/hse#hasSafetyCase", expected_ids: [SC-001]}
+
+  - question_id: DC-PC-002
+    claim: Resolve current drilling activity, assigned driller, rig, well and condition deviation.
+    capabilities: [drilling-activity-context, temporally-scoped-activity-staffing, equipment-condition-awareness]
+    objects:
+      - {id: ACT-002, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Drill ahead interval, properties: {cepio:status: ACTIVE}}
+      - {id: RIG-002, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Reference Rig 002}
+      - {id: WELL-002, type: "https://cepio.org/ontology/energy#Well", name: Reference Well 002}
+      - {id: ASG-002, type: "https://cepio.org/ontology/workforce#CrewAssignment", name: Driller tour assignment}
+      - {id: DRILLER-002, type: "https://cepio.org/ontology/workforce#CrewMember", name: Reference Driller, properties: {wf:role: Driller}}
+      - {id: SIG-002, type: "https://cepio.org/ontology/reliability#ConditionSignal", name: Top drive vibration high, properties: {cepio:severity: HIGH}}
+      - {id: EQ-002, type: "https://cepio.org/ontology/drilling#DrillingEquipment", name: Top drive}
+    relationships:
+      - {id: activity-rig, type: "https://cepio.org/ontology/drilling#activityOnRig", source: ACT-002, target: RIG-002}
+      - {id: activity-well, type: "https://cepio.org/ontology/drilling#activityForWell", source: ACT-002, target: WELL-002}
+      - {id: assignment-activity, type: "https://cepio.org/ontology/workforce#assignmentForActivity", source: ASG-002, target: ACT-002}
+      - {id: assignment-person, type: "https://cepio.org/ontology/workforce#assignmentOf", source: ASG-002, target: DRILLER-002}
+      - {id: signal-equipment, type: "https://cepio.org/ontology/reliability#observedOnEquipment", source: SIG-002, target: EQ-002}
+    probes:
+      - {id: activity-rig, kind: relationship, start_id: ACT-002, relationship_type: "https://cepio.org/ontology/drilling#activityOnRig", expected_ids: [RIG-002]}
+      - {id: activity-well, kind: relationship, start_id: ACT-002, relationship_type: "https://cepio.org/ontology/drilling#activityForWell", expected_ids: [WELL-002]}
+      - {id: assigned-tour, kind: relationship, start_id: ACT-002, relationship_type: "https://cepio.org/ontology/workforce#assignmentForActivity", direction: in, expected_ids: [ASG-002]}
+      - {id: assigned-driller, kind: relationship, start_id: ASG-002, relationship_type: "https://cepio.org/ontology/workforce#assignmentOf", expected_ids: [DRILLER-002]}
+      - {id: condition-equipment, kind: relationship, start_id: SIG-002, relationship_type: "https://cepio.org/ontology/reliability#observedOnEquipment", expected_ids: [EQ-002]}
+
+  - question_id: DC-PC-003
+    claim: Reconstruct shift handover continuity and unresolved work.
+    capabilities: [shift-handover-continuity]
+    objects:
+      - {id: HO-003, type: "https://cepio.org/ontology/workforce#ShiftHandover", name: Tour handover 003}
+      - {id: ASG-OUT-003, type: "https://cepio.org/ontology/workforce#CrewAssignment", name: Outgoing driller assignment}
+      - {id: ASG-IN-003, type: "https://cepio.org/ontology/workforce#CrewAssignment", name: Incoming assistant driller assignment}
+      - {id: ACT-003, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Circulate and condition mud}
+      - {id: WORK-003, type: "https://cepio.org/ontology/core#WorkItem", name: Investigate standpipe pressure fluctuation, properties: {cepio:status: OPEN}}
+    relationships:
+      - {id: handover-from, type: "https://cepio.org/ontology/workforce#handoverFromAssignment", source: HO-003, target: ASG-OUT-003}
+      - {id: handover-to, type: "https://cepio.org/ontology/workforce#handoverToAssignment", source: HO-003, target: ASG-IN-003}
+      - {id: handover-activity, type: "https://cepio.org/ontology/workforce#handoverForActivity", source: HO-003, target: ACT-003}
+      - {id: handover-work, type: "https://cepio.org/ontology/workforce#handoverCarriesWork", source: HO-003, target: WORK-003}
+    probes:
+      - {id: outgoing, kind: relationship, start_id: HO-003, relationship_type: "https://cepio.org/ontology/workforce#handoverFromAssignment", expected_ids: [ASG-OUT-003]}
+      - {id: incoming, kind: relationship, start_id: HO-003, relationship_type: "https://cepio.org/ontology/workforce#handoverToAssignment", expected_ids: [ASG-IN-003]}
+      - {id: activity, kind: relationship, start_id: HO-003, relationship_type: "https://cepio.org/ontology/workforce#handoverForActivity", expected_ids: [ACT-003]}
+      - {id: unresolved-work, kind: relationship, start_id: HO-003, relationship_type: "https://cepio.org/ontology/workforce#handoverCarriesWork", expected_ids: [WORK-003]}
+
+  - question_id: DC-PC-004
+    claim: Resolve BOP readiness evidence and restoration accountability.
+    capabilities: [well-control-assurance, restoration-accountability]
+    objects:
+      - {id: BOP-004, type: "https://cepio.org/ontology/drilling#BlowoutPreventer", name: BOP Stack 004, properties: {cepio:status: NOT_READY}}
+      - {id: TEST-004, type: "https://cepio.org/ontology/drilling#WellControlTest", name: BOP pressure test, properties: {cepio:status: FAILED}}
+      - {id: CA-004, type: "https://cepio.org/ontology/hse#CorrectiveAction", name: Restore annular preventer readiness, properties: {cepio:status: OPEN}}
+      - {id: RESP-004, type: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", name: Restoration responsibility}
+      - {id: SUBSEA-004, type: "https://cepio.org/ontology/workforce#CrewMember", name: Subsea engineer, properties: {wf:role: SubseaEngineer}}
+    relationships:
+      - {id: test-bop, type: "https://cepio.org/ontology/drilling#testsWellControlEquipment", source: TEST-004, target: BOP-004}
+      - {id: responsibility-work, type: "https://cepio.org/ontology/workforce#responsibilityForWork", source: RESP-004, target: CA-004}
+      - {id: responsibility-holder, type: "https://cepio.org/ontology/workforce#responsibilityHolder", source: RESP-004, target: SUBSEA-004}
+    probes:
+      - {id: test-evidence, kind: relationship, start_id: BOP-004, relationship_type: "https://cepio.org/ontology/drilling#testsWellControlEquipment", direction: in, expected_ids: [TEST-004]}
+      - {id: accountable-work, kind: relationship, start_id: RESP-004, relationship_type: "https://cepio.org/ontology/workforce#responsibilityForWork", expected_ids: [CA-004]}
+      - {id: accountable-party, kind: relationship, start_id: RESP-004, relationship_type: "https://cepio.org/ontology/workforce#responsibilityHolder", expected_ids: [SUBSEA-004]}
+      - {id: bop-status, kind: property, object_id: BOP-004, property_name: cepio:status, expected_value: NOT_READY}
+
+  - question_id: DC-PC-005
+    claim: Trace mechanical failure exposure to work ownership.
+    capabilities: [equipment-work-failure-chain, work-responsibility]
+    objects:
+      - {id: EQ-005, type: "https://cepio.org/ontology/drilling#DrillingEquipment", name: Mud pump 1, properties: {asset:criticality: HIGH}}
+      - {id: WO-005, type: "https://cepio.org/ontology/industrial#WorkOrder", name: Replace mud pump liner, properties: {cepio:status: OPEN}}
+      - {id: FAIL-005, type: "https://cepio.org/ontology/reliability#FailureEvent", name: Mud pump liner failure, properties: {rel:downtimeHours: 5.5}}
+      - {id: RESP-005, type: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", name: Chief mechanic work ownership}
+      - {id: MECH-005, type: "https://cepio.org/ontology/workforce#CrewMember", name: Chief mechanic, properties: {wf:role: ChiefMechanic}}
+    relationships:
+      - {id: equipment-work, type: "https://cepio.org/ontology/industrial#hasWorkOrder", source: EQ-005, target: WO-005}
+      - {id: failure-equipment, type: "https://cepio.org/ontology/reliability#failureOfEquipment", source: FAIL-005, target: EQ-005}
+      - {id: responsibility-work, type: "https://cepio.org/ontology/workforce#responsibilityForWork", source: RESP-005, target: WO-005}
+      - {id: responsibility-holder, type: "https://cepio.org/ontology/workforce#responsibilityHolder", source: RESP-005, target: MECH-005}
+    probes:
+      - {id: work-order, kind: relationship, start_id: EQ-005, relationship_type: "https://cepio.org/ontology/industrial#hasWorkOrder", expected_ids: [WO-005]}
+      - {id: failure, kind: relationship, start_id: EQ-005, relationship_type: "https://cepio.org/ontology/reliability#failureOfEquipment", direction: in, expected_ids: [FAIL-005]}
+      - {id: owner, kind: relationship, start_id: RESP-005, relationship_type: "https://cepio.org/ontology/workforce#responsibilityHolder", expected_ids: [MECH-005]}
+      - {id: owned-work, kind: relationship, start_id: RESP-005, relationship_type: "https://cepio.org/ontology/workforce#responsibilityForWork", expected_ids: [WO-005]}
+
+  - question_id: DC-PC-006
+    claim: Resolve electrical isolation, blocked work and verification authority.
+    capabilities: [energy-isolation-control, isolation-verification]
+    objects:
+      - {id: ISO-006, type: "https://cepio.org/ontology/hse#EnergyIsolation", name: Top drive electrical isolation, properties: {cepio:status: ACTIVE}}
+      - {id: EQ-006, type: "https://cepio.org/ontology/drilling#DrillingEquipment", name: Top drive MCC}
+      - {id: WO-006, type: "https://cepio.org/ontology/industrial#WorkOrder", name: Inspect top drive MCC, properties: {cepio:status: BLOCKED}}
+      - {id: ELEC-006, type: "https://cepio.org/ontology/workforce#CrewMember", name: Chief electrician, properties: {wf:role: ChiefElectrician}}
+    relationships:
+      - {id: isolation-asset, type: "https://cepio.org/ontology/hse#isolationForAsset", source: ISO-006, target: EQ-006}
+      - {id: isolation-work, type: "https://cepio.org/ontology/hse#isolationGovernsWork", source: ISO-006, target: WO-006}
+      - {id: isolation-verifier, type: "https://cepio.org/ontology/hse#isolationVerifiedBy", source: ISO-006, target: ELEC-006}
+    probes:
+      - {id: isolated-equipment, kind: relationship, start_id: ISO-006, relationship_type: "https://cepio.org/ontology/hse#isolationForAsset", expected_ids: [EQ-006]}
+      - {id: blocked-work, kind: relationship, start_id: ISO-006, relationship_type: "https://cepio.org/ontology/hse#isolationGovernsWork", expected_ids: [WO-006]}
+      - {id: verifier, kind: relationship, start_id: ISO-006, relationship_type: "https://cepio.org/ontology/hse#isolationVerifiedBy", expected_ids: [ELEC-006]}
+
+  - question_id: DC-PC-007
+    claim: Resolve service-company execution, evidence, obligation and customer acceptance.
+    capabilities: [contracted-service-execution, service-delivery-evidence, service-acceptance]
+    objects:
+      - {id: SVC-007, type: "https://cepio.org/ontology/commercial#ServiceExecution", name: Directional drilling service execution}
+      - {id: ACT-007, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Directional drilling trajectory interval}
+      - {id: SUP-007, type: "https://cepio.org/ontology/enterprise#Supplier", name: Reference directional drilling supplier}
+      - {id: OBL-007, type: "https://cepio.org/ontology/commercial#ContractObligation", name: Trajectory delivery obligation}
+      - {id: EVID-007, type: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", name: Survey delivery evidence, properties: {cepio:status: DELIVERED}}
+      - {id: ACC-007, type: "https://cepio.org/ontology/commercial#ServiceAcceptance", name: Operator service acceptance}
+      - {id: CUST-007, type: "https://cepio.org/ontology/enterprise#Customer", name: Reference operator}
+    relationships:
+      - {id: service-activity, type: "https://cepio.org/ontology/commercial#serviceExecutionForActivity", source: SVC-007, target: ACT-007}
+      - {id: service-supplier, type: "https://cepio.org/ontology/commercial#performedBy", source: SVC-007, target: SUP-007}
+      - {id: service-obligation, type: "https://cepio.org/ontology/commercial#governedByObligation", source: SVC-007, target: OBL-007}
+      - {id: service-evidence, type: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", source: SVC-007, target: EVID-007}
+      - {id: acceptance-service, type: "https://cepio.org/ontology/commercial#acceptanceOfService", source: ACC-007, target: SVC-007}
+      - {id: acceptance-customer, type: "https://cepio.org/ontology/commercial#acceptedBy", source: ACC-007, target: CUST-007}
+    probes:
+      - {id: activity, kind: relationship, start_id: SVC-007, relationship_type: "https://cepio.org/ontology/commercial#serviceExecutionForActivity", expected_ids: [ACT-007]}
+      - {id: supplier, kind: relationship, start_id: SVC-007, relationship_type: "https://cepio.org/ontology/commercial#performedBy", expected_ids: [SUP-007]}
+      - {id: obligation, kind: relationship, start_id: SVC-007, relationship_type: "https://cepio.org/ontology/commercial#governedByObligation", expected_ids: [OBL-007]}
+      - {id: evidence, kind: relationship, start_id: SVC-007, relationship_type: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", expected_ids: [EVID-007]}
+      - {id: acceptance, kind: relationship, start_id: SVC-007, relationship_type: "https://cepio.org/ontology/commercial#acceptanceOfService", direction: in, expected_ids: [ACC-007]}
+      - {id: accepted-by, kind: relationship, start_id: ACC-007, relationship_type: "https://cepio.org/ontology/commercial#acceptedBy", expected_ids: [CUST-007]}
+
+  - question_id: DC-PC-008
+    claim: Resolve drilling-fluid deviation and material readiness evidence.
+    capabilities: [drilling-fluid-observation-context, material-readiness-evidence]
+    objects:
+      - {id: ACT-008, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Condition drilling fluid interval}
+      - {id: OBS-008, type: "https://cepio.org/ontology/drilling#DrillingFluidObservation", name: Mud-weight observation, properties: {cepio:value: 11.8, cepio:unitSymbol: ppg, cepio:status: OUT_OF_ENVELOPE}}
+      - {id: MAT-008, type: "https://cepio.org/ontology/supply#MaterialRequirement", name: Barite treatment requirement, properties: {supply:materialNumber: BARITE, cepio:status: READY}}
+      - {id: INV-008, type: "https://cepio.org/ontology/supply#InventoryPosition", name: Barite inventory position, properties: {supply:materialNumber: BARITE, supply:onHandQuantity: 120.0, supply:shortfallQuantity: 0.0}}
+    relationships:
+      - {id: activity-observation, type: "https://cepio.org/ontology/core#measuredBy", source: ACT-008, target: OBS-008}
+    probes:
+      - {id: observation, kind: relationship, start_id: ACT-008, relationship_type: "https://cepio.org/ontology/core#measuredBy", expected_ids: [OBS-008]}
+      - {id: deviation-status, kind: property, object_id: OBS-008, property_name: cepio:status, expected_value: OUT_OF_ENVELOPE}
+      - {id: material-ready, kind: property, object_id: MAT-008, property_name: cepio:status, expected_value: READY}
+      - {id: stock, kind: property, object_id: INV-008, property_name: supply:onHandQuantity, expected_value: 120.0}
+      - {id: no-shortfall, kind: property, object_id: INV-008, property_name: supply:shortfallQuantity, expected_value: 0.0}
+
+  - question_id: DC-PC-009
+    claim: Resolve cementing execution readiness, program, material and delivery-quality evidence.
+    capabilities: [cement-program-execution, cement-service-evidence, cement-material-requirement]
+    objects:
+      - {id: JOB-009, type: "https://cepio.org/ontology/drilling#CementingJob", name: Production casing cement job, properties: {cepio:status: READY}}
+      - {id: PROG-009, type: "https://cepio.org/ontology/drilling#CementProgram", name: Approved cement program, properties: {cepio:status: APPROVED}}
+      - {id: SVC-009, type: "https://cepio.org/ontology/commercial#ServiceExecution", name: Cementing service execution}
+      - {id: EVID-009, type: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", name: Cement job quality record, properties: {cepio:status: AVAILABLE}}
+      - {id: MAT-009, type: "https://cepio.org/ontology/supply#MaterialRequirement", name: Cement blend material requirement, properties: {cepio:status: AVAILABLE}}
+    relationships:
+      - {id: job-program, type: "https://cepio.org/ontology/drilling#executesProgram", source: JOB-009, target: PROG-009}
+      - {id: service-job, type: "https://cepio.org/ontology/commercial#serviceExecutionForActivity", source: SVC-009, target: JOB-009}
+      - {id: service-evidence, type: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", source: SVC-009, target: EVID-009}
+    probes:
+      - {id: program, kind: relationship, start_id: JOB-009, relationship_type: "https://cepio.org/ontology/drilling#executesProgram", expected_ids: [PROG-009]}
+      - {id: service, kind: relationship, start_id: JOB-009, relationship_type: "https://cepio.org/ontology/commercial#serviceExecutionForActivity", direction: in, expected_ids: [SVC-009]}
+      - {id: quality-evidence, kind: relationship, start_id: SVC-009, relationship_type: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", expected_ids: [EVID-009]}
+      - {id: job-ready, kind: property, object_id: JOB-009, property_name: cepio:status, expected_value: READY}
+      - {id: material-ready, kind: property, object_id: MAT-009, property_name: cepio:status, expected_value: AVAILABLE}
+
+  - question_id: DC-PC-010
+    claim: Resolve program deviation impact, recommendation and bounded operator authorization.
+    capabilities: [plan-deviation-impact, deviation-plan-context, operator-authorization]
+    objects:
+      - {id: DEV-010, type: "https://cepio.org/ontology/work#PlanDeviation", name: BHA change deviation, properties: {cepio:status: AWAITING_ACCEPTANCE}}
+      - {id: OBL-010, type: "https://cepio.org/ontology/commercial#ContractObligation", name: Planned drilling service obligation}
+      - {id: PLAN-010, type: "https://cepio.org/ontology/core#Document", name: Approved drilling program}
+      - {id: AUTH-010, type: "https://cepio.org/ontology/workforce#AuthorityAssignment", name: Operator deviation authority}
+      - {id: CUST-010, type: "https://cepio.org/ontology/enterprise#Customer", name: Operator company representative}
+      - {id: REC-010, type: "https://cepio.org/ontology/agentic#Recommendation", name: Recommend BHA change}
+      - {id: AGENT-010, type: "https://cepio.org/ontology/agentic#Agent", name: Drilling optimization agent}
+    relationships:
+      - {id: deviation-obligation, type: "https://cepio.org/ontology/core#impacts", source: DEV-010, target: OBL-010}
+      - {id: deviation-plan, type: "https://cepio.org/ontology/work#deviationFromPlan", source: DEV-010, target: PLAN-010}
+      - {id: authority-deviation, type: "https://cepio.org/ontology/workforce#authorityForWork", source: AUTH-010, target: DEV-010}
+      - {id: authority-holder, type: "https://cepio.org/ontology/workforce#authorityHolder", source: AUTH-010, target: CUST-010}
+      - {id: recommendation-deviation, type: "https://cepio.org/ontology/agentic#recommendationFor", source: REC-010, target: DEV-010}
+      - {id: recommendation-agent, type: "https://cepio.org/ontology/agentic#producedByAgent", source: REC-010, target: AGENT-010}
+    probes:
+      - {id: obligation-impact, kind: relationship, start_id: DEV-010, relationship_type: "https://cepio.org/ontology/core#impacts", expected_ids: [OBL-010]}
+      - {id: governing-plan, kind: relationship, start_id: DEV-010, relationship_type: "https://cepio.org/ontology/work#deviationFromPlan", expected_ids: [PLAN-010]}
+      - {id: authority, kind: relationship, start_id: DEV-010, relationship_type: "https://cepio.org/ontology/workforce#authorityForWork", direction: in, expected_ids: [AUTH-010]}
+      - {id: authorizer, kind: relationship, start_id: AUTH-010, relationship_type: "https://cepio.org/ontology/workforce#authorityHolder", expected_ids: [CUST-010]}
+      - {id: recommendation, kind: relationship, start_id: DEV-010, relationship_type: "https://cepio.org/ontology/agentic#recommendationFor", direction: in, expected_ids: [REC-010]}
+      - {id: recommender, kind: relationship, start_id: REC-010, relationship_type: "https://cepio.org/ontology/agentic#producedByAgent", expected_ids: [AGENT-010]}
+
+  - question_id: DC-PC-011
+    claim: Resolve contract rate, revenue, cost and value-at-risk evidence for rig economics.
+    capabilities: [contract-rate-economics, economic-exposure]
+    objects:
+      - {id: CONTRACT-011, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Reference drilling contract}
+      - {id: RATE-011, type: "https://cepio.org/ontology/commercial#ContractRate", name: Current day rate, properties: {comm:dayRate: 185000.0, comm:currency: USD}}
+      - {id: BASIS-011, type: "https://cepio.org/ontology/commercial#RateBasis", name: Operating day rate basis}
+      - {id: REV-011, type: "https://cepio.org/ontology/commercial#RevenueRecord", name: Current-period revenue, properties: {comm:amount: 5550000.0, comm:currency: USD}}
+      - {id: COST-011, type: "https://cepio.org/ontology/commercial#CostRecord", name: Current-period operating cost, properties: {comm:amount: 3300000.0, comm:currency: USD}}
+      - {id: VAR-011, type: "https://cepio.org/ontology/commercial#ValueAtRisk", name: Downtime revenue exposure, properties: {comm:revenueAtRisk: 370000.0, comm:currency: USD}}
+    relationships:
+      - {id: rate-contract, type: "https://cepio.org/ontology/commercial#rateForContract", source: RATE-011, target: CONTRACT-011}
+      - {id: rate-basis, type: "https://cepio.org/ontology/commercial#hasRateBasis", source: RATE-011, target: BASIS-011}
+      - {id: revenue-contract, type: "https://cepio.org/ontology/commercial#revenueFor", source: REV-011, target: CONTRACT-011}
+      - {id: cost-contract, type: "https://cepio.org/ontology/commercial#costFor", source: COST-011, target: CONTRACT-011}
+      - {id: exposure-contract, type: "https://cepio.org/ontology/core#impacts", source: VAR-011, target: CONTRACT-011}
+    probes:
+      - {id: rate, kind: relationship, start_id: CONTRACT-011, relationship_type: "https://cepio.org/ontology/commercial#rateForContract", direction: in, expected_ids: [RATE-011]}
+      - {id: revenue, kind: relationship, start_id: CONTRACT-011, relationship_type: "https://cepio.org/ontology/commercial#revenueFor", direction: in, expected_ids: [REV-011]}
+      - {id: cost, kind: relationship, start_id: CONTRACT-011, relationship_type: "https://cepio.org/ontology/commercial#costFor", direction: in, expected_ids: [COST-011]}
+      - {id: exposure, kind: relationship, start_id: CONTRACT-011, relationship_type: "https://cepio.org/ontology/core#impacts", direction: in, expected_ids: [VAR-011]}
+      - {id: day-rate-value, kind: property, object_id: RATE-011, property_name: comm:dayRate, expected_value: 185000.0}
+      - {id: revenue-at-risk, kind: property, object_id: VAR-011, property_name: comm:revenueAtRisk, expected_value: 370000.0}
+
+  - question_id: DC-PC-012
+    claim: Resolve upcoming crew rotation readiness from competency and certification evidence.
+    capabilities: [crew-rotation-context, competency-readiness-evidence]
+    objects:
+      - {id: RIG-012, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Reference Rig 012}
+      - {id: ROT-012, type: "https://cepio.org/ontology/workforce#CrewRotation", name: Upcoming tour rotation}
+      - {id: ASG-OLD-012, type: "https://cepio.org/ontology/workforce#CrewAssignment", name: Outgoing assignment}
+      - {id: ASG-NEW-012, type: "https://cepio.org/ontology/workforce#CrewAssignment", name: Incoming assignment}
+      - {id: REQ-012, type: "https://cepio.org/ontology/workforce#CompetencyRequirement", name: Well-control competency requirement}
+      - {id: ASSESS-012, type: "https://cepio.org/ontology/workforce#CompetencyAssessment", name: Incoming crew competency assessment, properties: {wf:competencyLevel: QUALIFIED}}
+      - {id: PERSON-012, type: "https://cepio.org/ontology/workforce#CrewMember", name: Incoming driller}
+      - {id: CERT-012, type: "https://cepio.org/ontology/workforce#Certification", name: Well-control certificate, properties: {wf:certificationStatus: VALID}}
+    relationships:
+      - {id: rotation-rig, type: "https://cepio.org/ontology/workforce#rotationForAsset", source: ROT-012, target: RIG-012}
+      - {id: rotation-from, type: "https://cepio.org/ontology/workforce#rotationFromAssignment", source: ROT-012, target: ASG-OLD-012}
+      - {id: rotation-to, type: "https://cepio.org/ontology/workforce#rotationToAssignment", source: ROT-012, target: ASG-NEW-012}
+      - {id: assignment-requirement, type: "https://cepio.org/ontology/workforce#assignmentRequiresCompetency", source: ASG-NEW-012, target: REQ-012}
+      - {id: assessment-requirement, type: "https://cepio.org/ontology/workforce#assessmentAgainstRequirement", source: ASSESS-012, target: REQ-012}
+      - {id: assessment-person, type: "https://cepio.org/ontology/workforce#assessmentOfPerson", source: ASSESS-012, target: PERSON-012}
+      - {id: person-cert, type: "https://cepio.org/ontology/workforce#hasCertification", source: PERSON-012, target: CERT-012}
+    probes:
+      - {id: rig, kind: relationship, start_id: ROT-012, relationship_type: "https://cepio.org/ontology/workforce#rotationForAsset", expected_ids: [RIG-012]}
+      - {id: incoming-assignment, kind: relationship, start_id: ROT-012, relationship_type: "https://cepio.org/ontology/workforce#rotationToAssignment", expected_ids: [ASG-NEW-012]}
+      - {id: requirement, kind: relationship, start_id: ASG-NEW-012, relationship_type: "https://cepio.org/ontology/workforce#assignmentRequiresCompetency", expected_ids: [REQ-012]}
+      - {id: assessment, kind: relationship, start_id: REQ-012, relationship_type: "https://cepio.org/ontology/workforce#assessmentAgainstRequirement", direction: in, expected_ids: [ASSESS-012]}
+      - {id: assessed-person, kind: relationship, start_id: ASSESS-012, relationship_type: "https://cepio.org/ontology/workforce#assessmentOfPerson", expected_ids: [PERSON-012]}
+      - {id: certificate, kind: relationship, start_id: PERSON-012, relationship_type: "https://cepio.org/ontology/workforce#hasCertification", expected_ids: [CERT-012]}
+      - {id: certificate-status, kind: property, object_id: CERT-012, property_name: wf:certificationStatus, expected_value: VALID}
+
+  - question_id: DC-PC-013
+    claim: Resolve jack-up move readiness, marine support, location and geotechnical risk evidence.
+    capabilities: [jackup-move-assurance, marine-support-dependency, move-location-context]
+    objects:
+      - {id: MOVE-013, type: "https://cepio.org/ontology/drilling#JackUpMove", name: Planned jack-up move, properties: {cepio:status: READY}}
+      - {id: RIG-013, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Reference Jack-up Rig 013}
+      - {id: PRELOAD-013, type: "https://cepio.org/ontology/drilling#PreloadAssessment", name: Preload assessment, properties: {cepio:status: ACCEPTABLE}}
+      - {id: RISK-013, type: "https://cepio.org/ontology/drilling#PunchThroughRisk", name: Punch-through risk, properties: {hse:riskLevel: LOW}}
+      - {id: MARINE-013, type: "https://cepio.org/ontology/drilling#MarineSupportAsset", name: Anchor handling support vessel, properties: {cepio:status: AVAILABLE}}
+      - {id: LOC-013, type: "https://cepio.org/ontology/core#Location", name: Planned well location, properties: {cepio:status: APPROVED}}
+    relationships:
+      - {id: move-rig, type: "https://cepio.org/ontology/drilling#moveOfRig", source: MOVE-013, target: RIG-013}
+      - {id: preload-move, type: "https://cepio.org/ontology/drilling#preloadAssessmentForMove", source: PRELOAD-013, target: MOVE-013}
+      - {id: move-risk, type: "https://cepio.org/ontology/drilling#hasPunchThroughRisk", source: MOVE-013, target: RISK-013}
+      - {id: move-marine, type: "https://cepio.org/ontology/core#dependsOn", source: MOVE-013, target: MARINE-013}
+      - {id: move-location, type: "https://cepio.org/ontology/core#locatedAt", source: MOVE-013, target: LOC-013}
+    probes:
+      - {id: rig, kind: relationship, start_id: MOVE-013, relationship_type: "https://cepio.org/ontology/drilling#moveOfRig", expected_ids: [RIG-013]}
+      - {id: preload, kind: relationship, start_id: MOVE-013, relationship_type: "https://cepio.org/ontology/drilling#preloadAssessmentForMove", direction: in, expected_ids: [PRELOAD-013]}
+      - {id: risk, kind: relationship, start_id: MOVE-013, relationship_type: "https://cepio.org/ontology/drilling#hasPunchThroughRisk", expected_ids: [RISK-013]}
+      - {id: marine, kind: relationship, start_id: MOVE-013, relationship_type: "https://cepio.org/ontology/core#dependsOn", expected_ids: [MARINE-013]}
+      - {id: location, kind: relationship, start_id: MOVE-013, relationship_type: "https://cepio.org/ontology/core#locatedAt", expected_ids: [LOC-013]}
+      - {id: move-ready, kind: property, object_id: MOVE-013, property_name: cepio:status, expected_value: READY}
+
+  - question_id: DC-PC-014
+    claim: Resolve procurement exposure from supplier through material requirement to affected rig work.
+    capabilities: [purchase-order-exposure, procurement-work-impact]
+    objects:
+      - {id: PO-014, type: "https://cepio.org/ontology/supply#PurchaseOrder", name: Critical top-drive spare purchase order, properties: {cepio:status: LATE, supply:leadTimeDays: 21.0}}
+      - {id: SUP-014, type: "https://cepio.org/ontology/enterprise#Supplier", name: Critical equipment supplier}
+      - {id: REQ-014, type: "https://cepio.org/ontology/supply#MaterialRequirement", name: Top-drive bearing requirement, properties: {supply:shortfallQuantity: 1.0}}
+      - {id: WO-014, type: "https://cepio.org/ontology/industrial#WorkOrder", name: Top-drive bearing replacement, properties: {cepio:priority: CRITICAL}}
+    relationships:
+      - {id: po-supplier, type: "https://cepio.org/ontology/supply#purchaseOrderSupplier", source: PO-014, target: SUP-014}
+      - {id: po-requirement, type: "https://cepio.org/ontology/supply#purchaseOrderForRequirement", source: PO-014, target: REQ-014}
+      - {id: requirement-work, type: "https://cepio.org/ontology/supply#materialRequiredBy", source: REQ-014, target: WO-014}
+    probes:
+      - {id: supplier, kind: relationship, start_id: PO-014, relationship_type: "https://cepio.org/ontology/supply#purchaseOrderSupplier", expected_ids: [SUP-014]}
+      - {id: requirement, kind: relationship, start_id: PO-014, relationship_type: "https://cepio.org/ontology/supply#purchaseOrderForRequirement", expected_ids: [REQ-014]}
+      - {id: impacted-work, kind: relationship, start_id: REQ-014, relationship_type: "https://cepio.org/ontology/supply#materialRequiredBy", expected_ids: [WO-014]}
+      - {id: shortfall, kind: property, object_id: REQ-014, property_name: supply:shortfallQuantity, expected_value: 1.0}
+      - {id: lead-time, kind: property, object_id: PO-014, property_name: supply:leadTimeDays, expected_value: 21.0}
