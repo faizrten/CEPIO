@@ -8,6 +8,7 @@ wf:CrewAssignment a owl:Class ; rdfs:subClassOf cepio:Entity .
 wf:AuthorityAssignment a owl:Class ; rdfs:subClassOf cepio:Entity .
 wf:ResponsibilityAssignment a owl:Class ; rdfs:subClassOf cepio:Entity .
 wf:ShiftHandover a owl:Class ; rdfs:subClassOf cepio:Event .
+wf:CrewRotation a owl:Class ; rdfs:subClassOf cepio:Activity .
 wf:Certification a owl:Class ; rdfs:subClassOf cepio:Document .
 wf:TrainingRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 wf:CompetencyRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
@@ -38,3 +39,7 @@ wf:handoverFromAssignment a owl:ObjectProperty ; rdfs:domain wf:ShiftHandover ; 
 wf:handoverToAssignment a owl:ObjectProperty ; rdfs:domain wf:ShiftHandover ; rdfs:range wf:CrewAssignment .
 wf:handoverForActivity a owl:ObjectProperty ; rdfs:domain wf:ShiftHandover ; rdfs:range cepio:Activity .
 wf:handoverCarriesWork a owl:ObjectProperty ; rdfs:domain wf:ShiftHandover ; rdfs:range cepio:WorkItem .
+
+wf:rotationForAsset a owl:ObjectProperty ; rdfs:domain wf:CrewRotation ; rdfs:range cepio:Asset .
+wf:rotationFromAssignment a owl:ObjectProperty ; rdfs:domain wf:CrewRotation ; rdfs:range wf:CrewAssignment .
+wf:rotationToAssignment a owl:ObjectProperty ; rdfs:domain wf:CrewRotation ; rdfs:range wf:CrewAssignment .
