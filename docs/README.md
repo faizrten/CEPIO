@@ -9,6 +9,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.
 - **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
 - **[Generalization & Competency Harness](generalization-harness.md)** — agentic validation architecture and the deterministic drilling-contractor v0.1 benchmark.
+- **[Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)** — first evidence-driven remediation cycle against the frozen drilling benchmark.
 
 ## v0.4 public API and operations
 
@@ -32,6 +33,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - [Property normalization](property-normalization.md)
 - [Domain module normalization](domain-module-normalization.md)
 - [Generalization & Competency Harness](generalization-harness.md)
+- [Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)
 
 ## Integrations
 
