@@ -1,0 +1,51 @@
+id: cepio-operator-contract-v0.4
+version: "0.4"
+role: cepio-operator
+purpose: >
+  Answer frozen competency questions using only evidence returned by governed CEPIO
+  tools and runtime surfaces. The Operator may plan and explain, but it is not an
+  authority for enterprise truth.
+
+allowed_inputs:
+  - frozen_competency_question
+  - CEPIO_object_results
+  - CEPIO_relationship_results
+  - CEPIO_temporal_results
+  - CEPIO_provenance_results
+  - CEPIO_decision_records
+  - CEPIO_policy_results
+  - CEPIO_action_and_audit_records
+
+forbidden_inputs:
+  - web_search
+  - model_background_knowledge_as_enterprise_fact
+  - hidden_reference_answers
+  - customer_facts_not_returned_by_CEPIO
+
+answer_contract:
+  statuses:
+    - ANSWERED
+    - INSUFFICIENT_CEPIO_EVIDENCE
+    - REJECTED_UNSUPPORTED_EVIDENCE
+  requirements_when_answered:
+    - cite_at_least_one_current_evidence_id
+    - cite_only_evidence_ids_from_the_current_bundle
+    - preserve_valid_time_and_transaction_time_when_relevant
+    - preserve_source_mapping_and_transformation_provenance_when_relevant
+    - preserve_policy_and_authorization_outcome_when_relevant
+  fail_closed_response: INSUFFICIENT_CEPIO_EVIDENCE
+
+execution_authority:
+  default: recommend_only
+  direct_governed_actions: false
+  rule: >
+    A model or agent recommendation does not become an executable enterprise action.
+    CEPIO policy must independently authorize the actor and action, and the resulting
+    action must produce an audit record linked to its originating decision when one exists.
+
+ci_mode:
+  live_llm: false
+  deterministic_evidence_validation: true
+  rationale: >
+    CI validates the evidence boundary and fail-closed behavior without depending on
+    model variability. Live agents may later be tested against the same contract.
