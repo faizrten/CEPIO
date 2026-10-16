@@ -10,6 +10,7 @@ ontology-modules.yaml   Module catalogue and dependencies
 mappings/               Source mappings + property contract
 shapes/                 SHACL validation
 src/cepio/              Runtime implementation
+generalization/         Archetypes, personas, competency packs, standards benchmarks and accepted gap triage
 examples/               Executable examples/reference scenarios
 actions/                Action definitions/contracts
 integrations/           Integration implementation assets
@@ -27,9 +28,34 @@ policies/                Policy-related assets
 python -m pip install -e '.[dev]'
 pytest -q
 make validate
+PYTHONPATH=src python scripts/run_generalization_harness.py
 ```
 
 The validation path should be treated as part of the semantic product, not only code quality.
+
+## Generalization and competency testing
+
+The Generalization Lab tests whether CEPIO's canonical/domain semantics can support materially different Energy & Process Industry operating questions without silently relying on LLM world knowledge or customer-specific concepts.
+
+Harness v0.1 provides a frozen drilling-contractor competency pack and deterministic semantic-readiness evaluator. A result is tied to a frozen-batch hash, the ontology-module hash and, when supplied, an accepted gap-triage hash. `PASS` means the required ontology terms and edge contracts exist; it does not yet prove runtime data or answer correctness.
+
+When a valid competency exposes a gap, do not immediately add vocabulary. Classify each missing semantic first as:
+
+```text
+CORE | DOMAIN | PROFILE | MAPPING | REJECT
+```
+
+- `CORE` means reusable canonical semantics across Energy & Process Industry archetypes; ownership may sit in a common module such as `workforce` or `commercial`, not necessarily `core.ttl`.
+- `DOMAIN` means source-neutral drilling/domain specialization.
+- `PROFILE` means customer, fleet or deployment-specific semantics.
+- `MAPPING` means an external taxonomy, codeset or source vocabulary that CEPIO should federate rather than copy.
+- `REJECT` means the literal missing term or relationship is the wrong abstraction; the decision may name a better `replacement_layer`.
+
+Accepted triage is executable. CI requires every current `PARTIAL/FAIL` missing semantic to be covered exactly once, rejects duplicate coverage and rejects stale entries after the ontology changes. An ontology remediation therefore updates its gap decision in the same PR.
+
+Future live challenger/operator/judge agents remain evidence-constrained: model output alone is not enterprise truth and no harness agent may autonomously promote a gap into canonical CEPIO Core.
+
+See [Generalization & Competency Harness](../generalization-harness.md).
 
 ## Documentation is part of the definition of done
 
@@ -46,6 +72,7 @@ Changes that normally require documentation updates include:
 - migration/versioning/compatibility contracts;
 - standards federation and supported mappings;
 - examples, reference scenarios and applications;
+- generalization-harness competency packs and accepted gap decisions;
 - release status and roadmap milestones.
 
 CEPIO documentation has two complementary layers:
@@ -81,6 +108,7 @@ Before adding a new class or property, ask:
 4. Which module owns it?
 5. What relationships connect it to existing CEPIO primitives?
 6. Does it require a migration/version change?
+7. Does the Generalization Harness expose the same need in more than one archetype, or is there another independent reason for canonicalization?
 
 ## Adding a property
 
@@ -94,6 +122,8 @@ A property should define:
 - mapping behavior;
 - provenance requirements.
 
+Avoid domain-only scalar properties when the concept is naturally a reusable value object with units, currency, validity or provenance.
+
 ## Adding a relationship
 
 Define:
@@ -105,6 +135,8 @@ Define:
 - inverse relationship if appropriate;
 - temporal behavior;
 - intended traversal semantics.
+
+Do not strengthen evidence into a stronger assertion without justification. For example, a certification may support competency evidence but should not automatically assert demonstrated competence.
 
 ## Adding a function
 

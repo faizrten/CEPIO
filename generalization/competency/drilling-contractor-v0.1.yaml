@@ -1,0 +1,261 @@
+id: drilling-contractor-cq-v0.1
+version: "0.1"
+archetype_id: drilling-contractor-v0.1
+frozen: true
+questions:
+  - id: DC-CQ-001
+    question: Which rig is assigned to this well and drilling campaign?
+    priority: critical
+    personas: [drilling-superintendent, rig-manager]
+    standards: [ppdm-well-status-v3, osdu-data-definitions]
+    capability_tags: [identity, rig-well, campaign]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/energy#Well", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingCampaign", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/drilling#workingOnWell", target: "https://cepio.org/ontology/energy#Well"}
+      - {source: "https://cepio.org/ontology/drilling#DrillingCampaign", predicate: "https://cepio.org/ontology/drilling#campaignUsesRig", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+
+  - id: DC-CQ-002
+    question: Which rig systems and equipment have open maintenance work?
+    priority: critical
+    personas: [rig-manager, maintenance-planner, reliability-engineer]
+    standards: [iadc-drilling-manual-13]
+    capability_tags: [asset-hierarchy, maintenance]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#RigSystem", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/drilling#hasRigSystem", target: "https://cepio.org/ontology/drilling#RigSystem"}
+      - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/drilling#hasRigEquipment", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+      - {source: "https://cepio.org/ontology/drilling#DrillingEquipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+
+  - id: DC-CQ-003
+    question: Which operational events caused NPT or downtime, and which equipment failure was responsible?
+    priority: critical
+    personas: [drilling-superintendent, reliability-engineer]
+    standards: [iadc-ddr-plus-v2]
+    capability_tags: [npt, downtime, reliability]
+    terms:
+      - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#DowntimeEvent", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#NonProductiveTimeEvent", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/reliability#failureOfEquipment", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+      - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/reliability#causesDowntime", target: "https://cepio.org/ontology/reliability#DowntimeEvent"}
+
+  - id: DC-CQ-004
+    question: How was rig time allocated by drilling activity and sub-activity, and which allocation created the fleet performance exception?
+    priority: required
+    personas: [drilling-superintendent, fleet-executive]
+    standards: [iadc-ddr-plus-v2]
+    capability_tags: [daily-drilling-report, activity-code, performance]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#DailyDrillingReport", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#ActivityCode", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#FleetException", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#ActivityInterval", predicate: "https://cepio.org/ontology/drilling#classifiedByActivityCode", target: "https://cepio.org/ontology/drilling#ActivityCode"}
+
+  - id: DC-CQ-005
+    question: Is the crew assigned to this rig competent and currently certified for the work they are expected to perform?
+    priority: critical
+    personas: [rig-manager, toolpusher, competency-manager]
+    standards: [iadc-ksa]
+    capability_tags: [crew, certification, competency]
+    terms:
+      - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#CrewAssignment", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#Certification", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#CompetencyRequirement", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignmentOf", target: "https://cepio.org/ontology/workforce#CrewMember"}
+      - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignedToAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - {source: "https://cepio.org/ontology/workforce#CrewMember", predicate: "https://cepio.org/ontology/workforce#hasCertification", target: "https://cepio.org/ontology/workforce#Certification"}
+      - {source: "https://cepio.org/ontology/workforce#Certification", predicate: "https://cepio.org/ontology/workforce#meetsCompetencyRequirement", target: "https://cepio.org/ontology/workforce#CompetencyRequirement"}
+
+  - id: DC-CQ-006
+    question: Which permit, safety case, risk assessment and corrective actions currently control work on this rig?
+    priority: critical
+    personas: [rig-manager, toolpusher, hse-manager]
+    standards: [api-rp54-4]
+    capability_tags: [hse, permit, risk, corrective-action]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#WorkPermit", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#SafetyCase", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#RiskAssessment", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#CorrectiveAction", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/hse#WorkPermit", predicate: "https://cepio.org/ontology/hse#permitForAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/hse#hasSafetyCase", target: "https://cepio.org/ontology/hse#SafetyCase"}
+      - {source: "https://cepio.org/ontology/hse#SafetyCase", predicate: "https://cepio.org/ontology/hse#hasRiskAssessment", target: "https://cepio.org/ontology/hse#RiskAssessment"}
+      - {source: "https://cepio.org/ontology/hse#RiskAssessment", predicate: "https://cepio.org/ontology/hse#hasCorrectiveAction", target: "https://cepio.org/ontology/hse#CorrectiveAction"}
+
+  - id: DC-CQ-007
+    question: Is the BOP system ready for the planned well-control operation, with required tests and drills evidenced?
+    priority: critical
+    personas: [rig-manager, drilling-superintendent, hse-manager]
+    standards: [api-standard-53, iadc-drilling-manual-13]
+    capability_tags: [well-control, bop, assurance]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#BlowoutPreventer", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#WellControlTest", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#EmergencyDrillRecord", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/drilling#hasWellControlEquipment", target: "https://cepio.org/ontology/drilling#BlowoutPreventer"}
+      - {source: "https://cepio.org/ontology/drilling#WellControlTest", predicate: "https://cepio.org/ontology/drilling#testsWellControlEquipment", target: "https://cepio.org/ontology/drilling#BlowoutPreventer"}
+
+  - id: DC-CQ-008
+    question: Which condition signal on drilling equipment should trigger maintenance, and which critical spare is required?
+    priority: critical
+    personas: [reliability-engineer, maintenance-planner]
+    standards: [iadc-drilling-manual-13]
+    capability_tags: [condition, maintenance, spare]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#ConditionSignal", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#SparePart", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/reliability#ConditionSignal", predicate: "https://cepio.org/ontology/reliability#observedOnEquipment", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+      - {source: "https://cepio.org/ontology/drilling#DrillingEquipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+      - {source: "https://cepio.org/ontology/industrial#WorkOrder", predicate: "https://cepio.org/ontology/industrial#requiresSpare", target: "https://cepio.org/ontology/industrial#SparePart"}
+
+  - id: DC-CQ-009
+    question: What contract obligation, dayrate and revenue availability are exposed by this downtime event?
+    priority: required
+    personas: [commercial-manager, fleet-executive]
+    standards: [iadc-ddr-plus-v2]
+    capability_tags: [contract, downtime, revenue]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#DowntimeEvent", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#RevenueRecord", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#dayRate", kind: datatype_property}
+    edges:
+      - {source: "https://cepio.org/ontology/commercial#ContractObligation", predicate: "https://cepio.org/ontology/commercial#obligationOfContract", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+      - {source: "https://cepio.org/ontology/commercial#RevenueRecord", predicate: "https://cepio.org/ontology/commercial#revenueFor", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+      - {source: "https://cepio.org/ontology/reliability#DowntimeEvent", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/commercial#ContractObligation"}
+
+  - id: DC-CQ-010
+    question: Which rig performance exception is explained by downtime, maintenance, HSE and commercial context rather than by a dashboard score alone?
+    priority: required
+    personas: [fleet-executive, rig-manager]
+    standards: [spe-dsats]
+    capability_tags: [cross-domain, scorecard, exception]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#Scorecard", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#FleetException", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#AssetStatus", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#DowntimeEvent", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#Incident", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/performance#Scorecard", predicate: "https://cepio.org/ontology/performance#scorecardFor", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/performance#hasAssetStatus", target: "https://cepio.org/ontology/performance#AssetStatus"}
+      - {source: "https://cepio.org/ontology/performance#FleetException", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+
+  - id: DC-CQ-011
+    question: What was the rig status at valid time T, and what did CEPIO believe that status was at transaction time T?
+    priority: critical
+    personas: [rig-manager, fleet-executive]
+    standards: [iadc-ddr-plus-v2]
+    capability_tags: [temporal, state]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#AssetStatus", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/performance#hasAssetStatus", target: "https://cepio.org/ontology/performance#AssetStatus"}
+    runtime: {temporal: true}
+
+  - id: DC-CQ-012
+    question: Where did this downtime KPI come from, when was it observed, and which transformation produced the value?
+    priority: critical
+    personas: [fleet-executive, drilling-superintendent]
+    standards: [iadc-ddr-plus-v2]
+    capability_tags: [kpi, provenance]
+    terms:
+      - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationOfKPI", target: "https://cepio.org/ontology/core#KPI"}
+      - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+    runtime: {provenance: true}
+
+  - id: DC-CQ-013
+    question: If this rig moves to a new campaign, what breaks across crew certification, critical spares and contract obligations?
+    priority: critical
+    personas: [fleet-executive, rig-manager, commercial-manager, maintenance-planner]
+    standards: [iadc-ksa, osdu-data-definitions]
+    capability_tags: [campaign-readiness, cross-domain, consequence]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingCampaign", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#CrewAssignment", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#Certification", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#SparePart", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#CampaignReadinessConstraint", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#DrillingCampaign", predicate: "https://cepio.org/ontology/drilling#campaignUsesRig", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignedToAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+
+  - id: DC-CQ-014
+    question: Is this jack-up move ready, including location suitability, preload readiness and punch-through risk?
+    priority: critical
+    personas: [rig-manager, drilling-superintendent, hse-manager]
+    standards: [iadc-drilling-manual-13, api-rp54-4]
+    capability_tags: [jack-up, rig-move, geotechnical-risk]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#JackUpMove", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#PreloadAssessment", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#PunchThroughRisk", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#JackUpMove", predicate: "https://cepio.org/ontology/drilling#moveOfRig", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+
+  - id: DC-CQ-015
+    question: Which HSE incident and corrective actions currently affect this rig's readiness state?
+    priority: critical
+    personas: [rig-manager, hse-manager]
+    standards: [api-rp54-4]
+    capability_tags: [incident, corrective-action, readiness]
+    terms:
+      - {iri: "https://cepio.org/ontology/hse#Incident", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#CorrectiveAction", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#AssetStatus", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/hse#Incident", predicate: "https://cepio.org/ontology/hse#eventAtAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - {source: "https://cepio.org/ontology/hse#Incident", predicate: "https://cepio.org/ontology/hse#hasCorrectiveAction", target: "https://cepio.org/ontology/hse#CorrectiveAction"}
+      - {source: "https://cepio.org/ontology/hse#CorrectiveAction", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/performance#AssetStatus"}
+      - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/performance#hasAssetStatus", target: "https://cepio.org/ontology/performance#AssetStatus"}
+
+  - id: DC-CQ-016
+    question: Which supplier provides the critical spare required by the open work order on this drilling equipment?
+    priority: required
+    personas: [supply-chain-manager, maintenance-planner, reliability-engineer]
+    standards: [iadc-drilling-manual-13]
+    capability_tags: [supply, spare, maintenance]
+    terms:
+      - {iri: "https://cepio.org/ontology/enterprise#Supplier", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#SparePart", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/industrial#SparePart", predicate: "https://cepio.org/ontology/supply#spareSuppliedBy", target: "https://cepio.org/ontology/enterprise#Supplier"}
+      - {source: "https://cepio.org/ontology/industrial#SparePart", predicate: "https://cepio.org/ontology/supply#spareServesEquipment", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+      - {source: "https://cepio.org/ontology/drilling#DrillingEquipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+      - {source: "https://cepio.org/ontology/industrial#WorkOrder", predicate: "https://cepio.org/ontology/industrial#requiresSpare", target: "https://cepio.org/ontology/industrial#SparePart"}

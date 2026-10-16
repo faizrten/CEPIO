@@ -1,0 +1,37 @@
+id: drilling-contractor-v0.1
+version: "0.1"
+name: Offshore drilling contractor reference enterprise
+description: >
+  A source-neutral drilling-contractor archetype for semantic stress testing. It models
+  fleet, rig, well/campaign, crew, maintenance, HSE, supply and commercial concerns
+  without assuming a specific customer implementation.
+operating_context:
+  - fleet of operating and construction drilling rigs
+  - rig assigned to wells and drilling campaigns
+  - rig systems and drilling equipment maintained through planned and corrective work
+  - daily drilling activity and NPT/downtime performance management
+  - safety, permit, incident and corrective-action management
+  - crew assignment, certification and competency assurance
+  - contract obligations, dayrate/revenue availability and campaign readiness
+  - critical spares, suppliers and logistics constraints
+source_landscape:
+  - IADC DDR/DDR Plus style daily operations and activity coding
+  - Energistics WITSML real-time drilling and wellbore data
+  - CMMS/EAM maintenance and equipment records
+  - HSE, permit-to-work and incident systems
+  - ERP finance, procurement and inventory
+  - HR, roster, training and competency systems
+  - contracts and commercial records
+  - logistics and marine-move records
+  - standards, procedures and certification registers
+scenario_seeds:
+  - daily drilling report and shift handover
+  - NPT and downtime root-cause analysis
+  - fleet performance exception management
+  - rig score and executive readiness view
+  - permit, JSA and HSE incident assurance
+  - jack-up move and campaign readiness
+  - predictive maintenance and critical spares
+  - BOP assurance and well-control readiness
+  - crew competency and certification readiness
+  - contract availability and downtime exposure
