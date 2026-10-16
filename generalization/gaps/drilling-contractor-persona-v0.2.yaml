@@ -10,18 +10,6 @@ classification_policy:
   MAPPING: External taxonomy, codeset or source-system vocabulary that should be federated/mapped rather than copied into CEPIO canonical semantics.
   REJECT: The exact proposed term or relationship is redundant, misleading, too direct or over-specific; satisfy the competency through a better abstraction instead.
 decisions:
-  - id: GAP-PE-001-AUTHORITY
-    question_id: DC-PE-001
-    missing_semantics:
-      - https://cepio.org/ontology/workforce#AuthorityAssignment
-      - https://cepio.org/ontology/workforce#AuthorityAssignment --https://cepio.org/ontology/workforce#authorityForAsset--> https://cepio.org/ontology/drilling#OperatingRig
-    disposition: CORE
-    owner_module: workforce
-    standards: [iadc-ksa, api-rp54-4]
-    rationale: Operational authority is not drilling-specific. Refineries, mines, utilities, offshore installations and EPC projects all need explicit representation of who holds bounded authority over an asset or operating scope. The assignment must be time-bounded and auditable rather than inferred from a job title.
-    proposed_resolution: Add reusable AuthorityAssignment semantics in the common workforce layer, including authority holder, authority scope, valid period and an asset-scope relationship. Preserve the distinction between authority, responsibility and mere assignment.
-    benchmark_action: candidate-v0.2-remediation
-
   - id: GAP-PE-002-DIRECT-ACTIVITY-ASSIGNMENT
     question_id: DC-PE-002
     missing_semantics:
@@ -30,21 +18,9 @@ decisions:
     replacement_layer: CORE
     owner_module: workforce
     standards: [iadc-ksa, iadc-ddr-plus-v2]
-    rationale: A direct CrewMember-to-activity edge loses role, shift, validity and assignment context. CEPIO already models CrewAssignment and should preserve that indirection for temporally correct operational staffing.
-    proposed_resolution: Extend CrewAssignment with a reusable activity/work scope relationship and query the assigned person through the assignment. Do not add a direct CrewMember assignedToActivity edge solely to satisfy the benchmark.
+    rationale: A direct CrewMember-to-activity edge loses role, shift, validity and assignment context. CEPIO models CrewAssignment and preserves that indirection for temporally correct operational staffing.
+    proposed_resolution: Use wf:assignmentForActivity on CrewAssignment and query the assigned person through the assignment. Do not add a direct CrewMember assignedToActivity edge solely to satisfy the frozen benchmark.
     benchmark_action: revise-in-next-frozen-pack
-
-  - id: GAP-PE-003-SHIFT-HANDOVER
-    question_id: DC-PE-003
-    missing_semantics:
-      - https://cepio.org/ontology/workforce#ShiftHandover
-      - https://cepio.org/ontology/workforce#ShiftHandover --https://cepio.org/ontology/workforce#handoverForActivity--> https://cepio.org/ontology/drilling#ActivityInterval
-    disposition: CORE
-    owner_module: workforce
-    standards: [iadc-ksa]
-    rationale: Shift or tour handover is a reusable industrial operating concept. It carries unresolved hazards, work, equipment state and activity context across personnel changes and is important in drilling, process operations, mining and utilities.
-    proposed_resolution: Add a common ShiftHandover abstraction with from/to assignment or shift, handover scope, activity/work context, timestamp and carried-forward issues/evidence.
-    benchmark_action: candidate-v0.2-remediation
 
   - id: GAP-PE-005-DIRECT-WORK-RESPONSIBILITY
     question_id: DC-PE-005
@@ -54,8 +30,8 @@ decisions:
     replacement_layer: CORE
     owner_module: workforce
     standards: [iadc-ksa]
-    rationale: Direct person-to-work responsibility is too weak for enterprise operating semantics because responsibility changes over time and may be held by a role, team or organization rather than a named individual.
-    proposed_resolution: Introduce a reusable ResponsibilityAssignment pattern that links a responsible party or role to a WorkItem with validity and scope. Resolve the current responsible person through that assignment.
+    rationale: Direct person-to-work responsibility is too weak for enterprise operating semantics because responsibility changes over time and may be held by a person or organization rather than a named crew member.
+    proposed_resolution: Use wf:ResponsibilityAssignment with wf:responsibilityHolder and wf:responsibilityForWork. Resolve the current responsible party through that assignment and CEPIO temporal state.
     benchmark_action: revise-in-next-frozen-pack
 
   - id: GAP-PE-006-ENERGY-ISOLATION
@@ -103,7 +79,7 @@ decisions:
     owner_module: core
     standards: [energistics-witsml-2.1]
     rationale: CEPIO already has the common measuredBy relationship from an Entity to a Measurement. A drilling-only inverse relationship would duplicate that semantic contract.
-    proposed_resolution: Link the ActivityInterval to the DrillingFluidObservation through cepio:measuredBy, or add a generic inverse observationOf only if multiple archetypes require it. Do not add drill:observationForActivity.
+    proposed_resolution: Link ActivityInterval to DrillingFluidObservation through cepio:measuredBy, or add a generic inverse observationOf only if multiple archetypes require it. Do not add drill:observationForActivity.
     benchmark_action: revise-in-next-frozen-pack
 
   - id: GAP-PE-009-CEMENTING
@@ -143,17 +119,6 @@ decisions:
     rationale: Deviations from an approved plan or program occur across drilling, maintenance, commissioning, process operations and EPC execution. The exact drilling-only class is too narrow even though the competency is valid.
     proposed_resolution: Introduce a common OperationalDeviation or PlanDeviation abstraction linked to its governing plan, recommendation/decision, approval state and impacted WorkItem/ContractObligation. Keep drilling-specific deviation categories as mappings or domain specializations if needed.
     benchmark_action: revise-in-next-frozen-pack
-
-  - id: GAP-PE-010-AUTHORITY
-    question_id: DC-PE-010
-    missing_semantics:
-      - https://cepio.org/ontology/workforce#AuthorityAssignment
-    disposition: CORE
-    owner_module: workforce
-    standards: [iadc-model-contracts]
-    rationale: Operator acceptance of a deviation depends on explicit authority, not on title inference. This is the same reusable authority need independently exercised by DC-PE-001 at the contractor command boundary.
-    proposed_resolution: Satisfy through the common AuthorityAssignment abstraction proposed for DC-PE-001, including validity and scoped authorization.
-    benchmark_action: candidate-v0.2-remediation
 
   - id: GAP-PE-012-CREW-ROTATION
     question_id: DC-PE-012
