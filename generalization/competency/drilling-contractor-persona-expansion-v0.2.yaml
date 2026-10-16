@@ -1,0 +1,191 @@
+id: drilling-contractor-persona-expansion-v0.2
+version: "0.2"
+archetype_id: drilling-contractor-v0.1
+frozen: true
+questions:
+  - id: DC-PE-001
+    question: Who currently holds offshore command authority for this rig, and which permit, safety-case and emergency constraints bound that authority?
+    priority: critical
+    personas: [offshore-installation-manager]
+    standards: [iadc-ksa, api-rp54-4]
+    capability_tags: [authority, offshore-command, hse]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#AuthorityAssignment", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#WorkPermit", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#SafetyCase", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/workforce#AuthorityAssignment", predicate: "https://cepio.org/ontology/workforce#authorityForAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+  - id: DC-PE-002
+    question: Which drilling activity is the driller executing now, on which well and rig, and which equipment or condition deviation requires an immediate response?
+    priority: critical
+    personas: [driller]
+    standards: [iadc-ksa, iadc-ddr-plus-v2, energistics-witsml-2.1]
+    capability_tags: [frontline-execution, activity, deviation]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#ConditionSignal", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#ActivityInterval", predicate: "https://cepio.org/ontology/drilling#activityOnRig", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - {source: "https://cepio.org/ontology/workforce#CrewMember", predicate: "https://cepio.org/ontology/workforce#assignedToActivity", target: "https://cepio.org/ontology/drilling#ActivityInterval"}
+  - id: DC-PE-003
+    question: What changed at tour handover, what remains unresolved, and what must the assistant driller carry into the next shift?
+    priority: critical
+    personas: [assistant-driller, driller]
+    standards: [iadc-ksa]
+    capability_tags: [handover, shift, continuity]
+    terms:
+      - {iri: "https://cepio.org/ontology/workforce#ShiftHandover", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/workforce#ShiftHandover", predicate: "https://cepio.org/ontology/workforce#handoverForActivity", target: "https://cepio.org/ontology/drilling#ActivityInterval"}
+  - id: DC-PE-004
+    question: Which BOP or subsea component is not ready, what test or defect evidence proves it, and who is accountable for restoring readiness?
+    priority: critical
+    personas: [subsea-well-control-engineer, offshore-installation-manager]
+    standards: [api-standard-53, iadc-drilling-manual-13]
+    capability_tags: [bop, subsea, accountability]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#BlowoutPreventer", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#WellControlTest", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#CorrectiveAction", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#CrewAssignment", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#WellControlTest", predicate: "https://cepio.org/ontology/drilling#testsWellControlEquipment", target: "https://cepio.org/ontology/drilling#BlowoutPreventer"}
+      - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignedToAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+  - id: DC-PE-005
+    question: Which mechanical defects and work orders create the greatest rig-availability exposure, and which work is owned by the chief mechanic?
+    priority: required
+    personas: [chief-mechanic, maintenance-planner]
+    standards: [iadc-ksa, iadc-drilling-manual-13]
+    capability_tags: [mechanical-maintenance, work-ownership, availability]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#DrillingEquipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+      - {source: "https://cepio.org/ontology/workforce#CrewMember", predicate: "https://cepio.org/ontology/workforce#responsibleForWork", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+  - id: DC-PE-006
+    question: Which electrical isolation or power-system constraint blocks planned work, and what must the chief electrician verify before release?
+    priority: critical
+    personas: [chief-electrician, hse-manager]
+    standards: [iadc-ksa, api-rp54-4]
+    capability_tags: [electrical, isolation, permit-to-work]
+    terms:
+      - {iri: "https://cepio.org/ontology/hse#EnergyIsolation", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#WorkPermit", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/hse#EnergyIsolation", predicate: "https://cepio.org/ontology/hse#isolationForAsset", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+  - id: DC-PE-007
+    question: Which directional-drilling service company is accountable for the current trajectory activity, what evidence did it deliver, and what obligation governs acceptance?
+    priority: required
+    personas: [directional-drilling-lead, operator-company-man]
+    standards: [energistics-witsml-2.1, osdu-data-definitions, iadc-model-contracts]
+    capability_tags: [service-company, trajectory, accountability, contract]
+    terms:
+      - {iri: "https://cepio.org/ontology/enterprise#Supplier", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#ServiceDeliveryEvidence", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#ActivityInterval", predicate: "https://cepio.org/ontology/drilling#performedByServiceProvider", target: "https://cepio.org/ontology/enterprise#Supplier"}
+  - id: DC-PE-008
+    question: Which drilling-fluid property is outside its operating envelope, what treatment is planned, and is the required material available on the rig?
+    priority: required
+    personas: [drilling-fluids-engineer, supply-chain-manager]
+    standards: [iadc-drilling-manual-13, energistics-witsml-2.1]
+    capability_tags: [drilling-fluids, materials, treatment]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#DrillingFluidObservation", kind: class}
+      - {iri: "https://cepio.org/ontology/supply#MaterialRequirement", kind: class}
+      - {iri: "https://cepio.org/ontology/supply#InventoryPosition", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#DrillingFluidObservation", predicate: "https://cepio.org/ontology/drilling#observationForActivity", target: "https://cepio.org/ontology/drilling#ActivityInterval"}
+  - id: DC-PE-009
+    question: Is the cementing job ready to execute, including program, materials, equipment, approvals and post-job quality evidence?
+    priority: critical
+    personas: [cementing-supervisor, operator-company-man]
+    standards: [osdu-data-definitions, iadc-model-contracts]
+    capability_tags: [cementing, readiness, quality]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#CementingJob", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#CementProgram", kind: class}
+      - {iri: "https://cepio.org/ontology/supply#MaterialRequirement", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#ServiceDeliveryEvidence", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#CementingJob", predicate: "https://cepio.org/ontology/drilling#executesProgram", target: "https://cepio.org/ontology/drilling#CementProgram"}
+  - id: DC-PE-010
+    question: Which program deviation is awaiting operator acceptance, who recommended it, who can authorize it, and what contractor obligation is affected?
+    priority: critical
+    personas: [operator-company-man, drilling-superintendent, commercial-manager]
+    standards: [iadc-model-contracts, osdu-data-definitions]
+    capability_tags: [operator-contractor-interface, authorization, deviation]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#ProgramDeviation", kind: class}
+      - {iri: "https://cepio.org/ontology/enterprise#Customer", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#AuthorityAssignment", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#ProgramDeviation", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/commercial#ContractObligation"}
+  - id: DC-PE-011
+    question: What is the current rig margin and cash exposure after downtime, rate-basis changes, operating cost and contractual leakage are considered together?
+    priority: required
+    personas: [finance-controller, commercial-manager, fleet-executive]
+    standards: [iadc-model-contracts]
+    capability_tags: [finance, margin, cash, economics]
+    terms:
+      - {iri: "https://cepio.org/ontology/commercial#ContractRate", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#RevenueRecord", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#CostRecord", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/commercial#ContractRate", predicate: "https://cepio.org/ontology/commercial#rateForContract", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+      - {source: "https://cepio.org/ontology/commercial#RevenueRecord", predicate: "https://cepio.org/ontology/commercial#revenueFor", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+  - id: DC-PE-012
+    question: Which crew rotation or mobilization constraint will make this rig non-ready in the next 14 days, and which competency or certification causes the constraint?
+    priority: critical
+    personas: [crewing-manager, competency-manager, rig-manager]
+    standards: [iadc-ksa]
+    capability_tags: [crewing, rotation, mobilization, competency]
+    terms:
+      - {iri: "https://cepio.org/ontology/workforce#CrewRotation", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#MobilizationConstraint", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#Certification", kind: class}
+      - {iri: "https://cepio.org/ontology/workforce#CompetencyRequirement", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/workforce#CrewRotation", predicate: "https://cepio.org/ontology/workforce#rotationForAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+  - id: DC-PE-013
+    question: Is the planned rig move executable when jack-up readiness, marine support, location suitability, weather limits and approvals are evaluated together?
+    priority: critical
+    personas: [marine-rig-move-manager, offshore-installation-manager, rig-manager]
+    standards: [iadc-jackup-rig-move, api-rp2ju]
+    capability_tags: [marine, rig-move, readiness]
+    terms:
+      - {iri: "https://cepio.org/ontology/drilling#JackUpMove", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#PreloadAssessment", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#PunchThroughRisk", kind: class}
+      - {iri: "https://cepio.org/ontology/drilling#MarineSupportAsset", kind: class}
+      - {iri: "https://cepio.org/ontology/core#Location", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/drilling#JackUpMove", predicate: "https://cepio.org/ontology/drilling#moveOfRig", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - {source: "https://cepio.org/ontology/drilling#JackUpMove", predicate: "https://cepio.org/ontology/drilling#supportedByMarineAsset", target: "https://cepio.org/ontology/drilling#MarineSupportAsset"}
+  - id: DC-PE-014
+    question: Which critical material or service has the greatest procurement exposure, which supplier is responsible, and what rig work or campaign milestone is at risk?
+    priority: required
+    personas: [procurement-category-manager, supply-chain-manager, maintenance-planner]
+    standards: [iadc-model-contracts]
+    capability_tags: [procurement, supplier, material, schedule-risk]
+    terms:
+      - {iri: "https://cepio.org/ontology/supply#MaterialRequirement", kind: class}
+      - {iri: "https://cepio.org/ontology/enterprise#Supplier", kind: class}
+      - {iri: "https://cepio.org/ontology/supply#PurchaseOrder", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/supply#MaterialRequirement", predicate: "https://cepio.org/ontology/supply#materialRequiredBy", target: "https://cepio.org/ontology/industrial#WorkOrder"}

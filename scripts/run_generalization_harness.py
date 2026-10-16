@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the CEPIO Generalization & Competency Harness v0.1."""
+"""Run the CEPIO Generalization & Competency Harness."""
 from __future__ import annotations
 
 import argparse
@@ -17,19 +17,29 @@ def main() -> int:
     parser.add_argument("--personas", type=Path)
     parser.add_argument("--standards", type=Path)
     parser.add_argument("--gaps", type=Path)
+    parser.add_argument(
+        "--skip-gap-triage",
+        action="store_true",
+        help="Run a clean semantic baseline without applying an accepted gap-triage pack.",
+    )
     parser.add_argument("--json-out", type=Path)
     parser.add_argument("--fail-on-critical-gap", action="store_true")
     args = parser.parse_args()
 
     root = args.repo_root.resolve()
     base = root / "generalization"
+    if args.skip_gap_triage:
+        gap_path = None
+    else:
+        gap_path = args.gaps or base / "gaps/drilling-contractor-v0.1.yaml"
+
     report = run_harness(
         root,
         args.archetype or base / "archetypes/drilling-contractor-v0.1.yaml",
         args.competency or base / "competency/drilling-contractor-v0.1.yaml",
         args.personas or base / "personas/drilling-contractor-v0.1.yaml",
         args.standards or base / "standards/drilling-references.yaml",
-        args.gaps or base / "gaps/drilling-contractor-v0.1.yaml",
+        gap_path,
     )
 
     print(f"CEPIO Generalization Harness v{report['harness_version']}")
