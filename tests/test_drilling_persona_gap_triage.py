@@ -28,15 +28,15 @@ def test_persona_expansion_gap_triage_covers_every_current_gap():
 
     assert report["question_count"] == 14
     assert report["status_counts"] == {
-        "PASS": 2,
-        "PARTIAL": 12,
+        "PASS": 4,
+        "PARTIAL": 10,
         "FAIL": 0,
         "ERROR": 0,
     }
-    assert report["semantic_check_pass_rate"] == pytest.approx(49 / 74)
+    assert report["semantic_check_pass_rate"] == pytest.approx(54 / 74)
     assert report["gap_triage_hash"] is not None
     assert report["gap_disposition_counts"] == {
-        "CORE": 6,
+        "CORE": 3,
         "DOMAIN": 3,
         "PROFILE": 0,
         "MAPPING": 0,
@@ -57,8 +57,14 @@ def test_persona_expansion_triage_preserves_architectural_boundaries():
     assert by_id["GAP-PE-009-CEMENTING"].disposition == "DOMAIN"
     assert by_id["GAP-PE-014-PURCHASE-ORDER"].disposition == "CORE"
 
-    # Direct person-to-activity/work edges and drilling-only service semantics are
-    # deliberately rejected in favor of reusable assignment/service patterns.
+    # Authority and handover gaps have been remediated and therefore must no longer
+    # appear in the active triage ledger.
+    assert "GAP-PE-001-AUTHORITY" not in by_id
+    assert "GAP-PE-003-SHIFT-HANDOVER" not in by_id
+    assert "GAP-PE-010-AUTHORITY" not in by_id
+
+    # Direct person-to-activity/work edges and drilling-only service semantics remain
+    # rejected in favor of reusable assignment/service patterns.
     assert by_id["GAP-PE-002-DIRECT-ACTIVITY-ASSIGNMENT"].disposition == "REJECT"
     assert by_id["GAP-PE-005-DIRECT-WORK-RESPONSIBILITY"].disposition == "REJECT"
     assert by_id["GAP-PE-007-SERVICE-DELIVERY-BOUNDARY"].disposition == "REJECT"
