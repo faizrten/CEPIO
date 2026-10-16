@@ -5,6 +5,9 @@
 
 wf:CrewMember a owl:Class ; rdfs:subClassOf cepio:Person .
 wf:CrewAssignment a owl:Class ; rdfs:subClassOf cepio:Entity .
+wf:AuthorityAssignment a owl:Class ; rdfs:subClassOf cepio:Entity .
+wf:ResponsibilityAssignment a owl:Class ; rdfs:subClassOf cepio:Entity .
+wf:ShiftHandover a owl:Class ; rdfs:subClassOf cepio:Event .
 wf:Certification a owl:Class ; rdfs:subClassOf cepio:Document .
 wf:TrainingRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 wf:CompetencyRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
@@ -14,6 +17,7 @@ wf:CompetencyEvidence a owl:Class ; rdfs:subClassOf cepio:Document .
 
 wf:assignmentOf a owl:ObjectProperty ; rdfs:domain wf:CrewAssignment ; rdfs:range wf:CrewMember .
 wf:assignedToAsset a owl:ObjectProperty ; rdfs:domain wf:CrewAssignment ; rdfs:range cepio:Asset .
+wf:assignmentForActivity a owl:ObjectProperty ; rdfs:domain wf:CrewAssignment ; rdfs:range cepio:Activity .
 wf:hasCertification a owl:ObjectProperty ; rdfs:domain wf:CrewMember ; rdfs:range wf:Certification .
 wf:evidenceForRequirement a owl:ObjectProperty ; rdfs:domain wf:CompetencyEvidence ; rdfs:range wf:TrainingRequirement .
 wf:evidenceForCompetencyRequirement a owl:ObjectProperty ; rdfs:domain wf:CompetencyEvidence ; rdfs:range wf:CompetencyRequirement .
@@ -21,3 +25,16 @@ wf:evidenceAboutPerson a owl:ObjectProperty ; rdfs:domain wf:CompetencyEvidence 
 wf:assessmentOfPerson a owl:ObjectProperty ; rdfs:domain wf:CompetencyAssessment ; rdfs:range cepio:Person .
 wf:assessmentAgainstRequirement a owl:ObjectProperty ; rdfs:domain wf:CompetencyAssessment ; rdfs:range wf:CompetencyRequirement .
 wf:assignmentRequiresCompetency a owl:ObjectProperty ; rdfs:domain wf:CrewAssignment ; rdfs:range wf:CompetencyRequirement .
+
+wf:authorityHolder a owl:ObjectProperty ; rdfs:domain wf:AuthorityAssignment ; rdfs:range cepio:Party .
+wf:authorityForAsset a owl:ObjectProperty ; rdfs:domain wf:AuthorityAssignment ; rdfs:range cepio:Asset .
+wf:authorityForWork a owl:ObjectProperty ; rdfs:domain wf:AuthorityAssignment ; rdfs:range cepio:WorkItem .
+
+wf:responsibilityHolder a owl:ObjectProperty ; rdfs:domain wf:ResponsibilityAssignment ; rdfs:range cepio:Party .
+wf:responsibilityForAsset a owl:ObjectProperty ; rdfs:domain wf:ResponsibilityAssignment ; rdfs:range cepio:Asset .
+wf:responsibilityForWork a owl:ObjectProperty ; rdfs:domain wf:ResponsibilityAssignment ; rdfs:range cepio:WorkItem .
+
+wf:handoverFromAssignment a owl:ObjectProperty ; rdfs:domain wf:ShiftHandover ; rdfs:range wf:CrewAssignment .
+wf:handoverToAssignment a owl:ObjectProperty ; rdfs:domain wf:ShiftHandover ; rdfs:range wf:CrewAssignment .
+wf:handoverForActivity a owl:ObjectProperty ; rdfs:domain wf:ShiftHandover ; rdfs:range cepio:Activity .
+wf:handoverCarriesWork a owl:ObjectProperty ; rdfs:domain wf:ShiftHandover ; rdfs:range cepio:WorkItem .

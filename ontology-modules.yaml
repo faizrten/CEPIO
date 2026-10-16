@@ -51,7 +51,7 @@ modules:
   - {id: hse, namespace: 'https://cepio.org/ontology/hse#', version: 0.1.0, file: ontologies/hse.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
   - {id: supply, namespace: 'https://cepio.org/ontology/supply#', version: 0.1.0, file: ontologies/supply.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}, {module: enterprise}]}
   - {id: performance, namespace: 'https://cepio.org/ontology/performance#', version: 0.1.0, file: ontologies/performance.ttl, tier: industrial-common, depends_on: [{module: core}]}
-  - {id: workforce, namespace: 'https://cepio.org/ontology/workforce#', version: 0.1.1, file: ontologies/workforce.ttl, tier: industrial-common, depends_on: [{module: core}]}
+  - {id: workforce, namespace: 'https://cepio.org/ontology/workforce#', version: 0.1.2, file: ontologies/workforce.ttl, tier: industrial-common, depends_on: [{module: core}]}
   - {id: agentic_operations, namespace: 'https://cepio.org/ontology/agentic#', version: 0.1.0, file: ontologies/agentic_operations.ttl, tier: industrial-common, depends_on: [{module: core}, {module: kinetic}]}
   - {id: process_industry, namespace: 'https://cepio.org/ontology/process#', version: 0.1.0, file: ontologies/process_industry.ttl, tier: domain, depends_on: [{module: core}, {module: industrial}, {module: asset}]}
   - {id: manufacturing, namespace: 'https://cepio.org/ontology/manufacturing#', version: 0.1.0, file: ontologies/manufacturing.ttl, tier: domain, stability: experimental, depends_on: [{module: core}, {module: industrial}, {module: supply}]}
