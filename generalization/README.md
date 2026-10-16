@@ -24,6 +24,19 @@ PYTHONPATH=src python scripts/run_generalization_harness.py --json-out /tmp/cepi
 
 `--fail-on-critical-gap` is intentionally opt-in while v0.1 is being used to discover gaps.
 
+## Artifact set
+
+```text
+archetypes/drilling-contractor-v0.1.yaml
+personas/drilling-contractor-v0.1.yaml
+agents/drilling-v0.1.yaml
+competency/drilling-contractor-v0.1.yaml
+standards/drilling-references.yaml
+gaps/drilling-contractor-v0.1.yaml
+```
+
+The competency pack is the frozen challenge. The accepted gap-triage artifact is deliberately separate: it records the architectural response to the current result and has its own stable hash.
+
 ## Trust rule
 
 LLMs may generate hypotheses, scenarios, questions and interpretations. An LLM-generated statement is never treated as CEPIO-supported enterprise evidence by itself. A future Operator agent must use governed CEPIO tools only and return `INSUFFICIENT_CEPIO_EVIDENCE` when CEPIO cannot support the answer.
@@ -52,7 +65,7 @@ The pack is frozen before evaluation. Its stable SHA-256 batch hash is emitted o
 
 ## External benchmark sources
 
-`standards/drilling-references.yaml` records the public reference surfaces used to challenge CEPIO: IADC DDR Plus, IADC KSA, IADC Drilling Manual, Energistics WITSML, PPDM Well Status, OSDU data definitions, API RP 54 / Standard 53 and SPE DSATS. The repository stores reference metadata and intended use, not copyrighted standards text.
+`standards/drilling-references.yaml` records the public reference surfaces used to challenge CEPIO: IADC DDR Plus, IADC KSA, IADC Drilling Manual, IADC Model Contracts and jack-up guidance, Energistics WITSML, PPDM Well Status, OSDU data definitions, API RP 54 / Standard 53 / RP 2JU and SPE DSATS. The repository stores reference metadata and intended use, not copyrighted standards text.
 
 ## Result semantics
 
@@ -63,6 +76,22 @@ The pack is frozen before evaluation. Its stable SHA-256 batch hash is emitted o
 
 Runtime requirements such as temporal evidence or property provenance are marked `NOT_RUN` in v0.1. They are visible so future harness versions can promote them into executable assurance checks without changing the question's identity.
 
-## Evolution rule
+## Gap-classification contract
 
-A failed competency is evidence of a **gap**, not permission to add a class. Gaps must be classified as `CORE`, `DOMAIN`, `PROFILE`, `MAPPING` or `REJECT` before ontology change is proposed. Harness agents may propose changes; they may not autonomously mutate canonical CEPIO Core.
+A failed competency is evidence of a **gap**, not permission to add a class. Every current missing semantic must be assigned exactly one accepted disposition:
+
+```text
+CORE     reusable common CEPIO semantics
+DOMAIN   drilling-domain canonical specialization
+PROFILE  customer/fleet/deployment-specific extension
+MAPPING  external taxonomy/source vocabulary to federate rather than copy
+REJECT   exact proposed semantic is the wrong abstraction
+```
+
+A `REJECT` decision may name a `replacement_layer`. This is used when the competency exposes a real need but the literal missing term would model it badly, for example a drilling-only scalar where a reusable commercial rate object is the correct abstraction.
+
+The runner validates that triage covers every current `PARTIAL/FAIL` missing semantic exactly once and contains no stale entries. An ontology change that resolves a gap must therefore update the triage artifact in the same change.
+
+Harness agents may propose changes; they may not autonomously mutate canonical CEPIO Core.
+
+See `docs/generalization-harness.md` for the accepted drilling decisions and architectural rationale.
