@@ -18,6 +18,7 @@ hse:EmergencyDrillRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 hse:EmergencyDrillRecord a owl:Class ; rdfs:subClassOf cepio:Event .
 hse:ExposureObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
 hse:SecurityRecord a owl:Class ; rdfs:subClassOf cepio:Event .
+hse:EnergyIsolation a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 
 hse:permitForAsset a owl:ObjectProperty ; rdfs:domain hse:WorkPermit ; rdfs:range cepio:Asset .
 hse:hasSafetyCase a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range hse:SafetyCase .
@@ -27,3 +28,7 @@ hse:hasCorrectiveAction a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:r
 hse:hasAuditFinding a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range hse:AuditFinding .
 hse:inspectionOfAsset a owl:ObjectProperty ; rdfs:domain ind:Inspection ; rdfs:range cepio:Asset .
 hse:fulfillsDrillRequirement a owl:ObjectProperty ; rdfs:domain hse:EmergencyDrillRecord ; rdfs:range hse:EmergencyDrillRequirement .
+hse:isolationForAsset a owl:ObjectProperty ; rdfs:domain hse:EnergyIsolation ; rdfs:range cepio:Asset .
+hse:isolationGovernsWork a owl:ObjectProperty ; rdfs:domain hse:EnergyIsolation ; rdfs:range cepio:WorkItem .
+hse:isolationIssuedBy a owl:ObjectProperty ; rdfs:domain hse:EnergyIsolation ; rdfs:range cepio:Party .
+hse:isolationVerifiedBy a owl:ObjectProperty ; rdfs:domain hse:EnergyIsolation ; rdfs:range cepio:Party .
