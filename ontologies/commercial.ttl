@@ -15,6 +15,12 @@ comm:ValueAtRisk a owl:Class ; rdfs:subClassOf cepio:Risk .
 comm:PriceDeck a owl:Class ; rdfs:subClassOf cepio:Entity .
 comm:EconomicScenario a owl:Class ; rdfs:subClassOf cepio:Entity .
 
+# Reusable contracted-service execution boundary. These semantics apply to
+# drilling services, industrial maintenance, inspection and EPC delivery.
+comm:ServiceExecution a owl:Class ; rdfs:subClassOf cepio:Activity .
+comm:ServiceDeliveryEvidence a owl:Class ; rdfs:subClassOf cepio:Document .
+comm:ServiceAcceptance a owl:Class ; rdfs:subClassOf cepio:Event .
+
 comm:obligationOfContract a owl:ObjectProperty ; rdfs:domain comm:ContractObligation ; rdfs:range cepio:Contract .
 comm:rateForContract a owl:ObjectProperty ; rdfs:domain comm:ContractRate ; rdfs:range cepio:Contract .
 comm:hasRateBasis a owl:ObjectProperty ; rdfs:domain comm:ContractRate ; rdfs:range comm:RateBasis .
@@ -22,3 +28,10 @@ comm:financialActualFor a owl:ObjectProperty ; rdfs:domain comm:FinancialActual 
 comm:revenueFor a owl:ObjectProperty ; rdfs:domain comm:RevenueRecord ; rdfs:range cepio:Entity .
 comm:costFor a owl:ObjectProperty ; rdfs:domain comm:CostRecord ; rdfs:range cepio:Entity .
 comm:capitalItemFor a owl:ObjectProperty ; rdfs:domain comm:CapitalItem ; rdfs:range cepio:Asset .
+
+comm:serviceExecutionForActivity a owl:ObjectProperty ; rdfs:domain comm:ServiceExecution ; rdfs:range cepio:Activity .
+comm:performedBy a owl:ObjectProperty ; rdfs:domain comm:ServiceExecution ; rdfs:range cepio:Party .
+comm:governedByObligation a owl:ObjectProperty ; rdfs:domain comm:ServiceExecution ; rdfs:range comm:ContractObligation .
+comm:producesDeliveryEvidence a owl:ObjectProperty ; rdfs:domain comm:ServiceExecution ; rdfs:range comm:ServiceDeliveryEvidence .
+comm:acceptanceOfService a owl:ObjectProperty ; rdfs:domain comm:ServiceAcceptance ; rdfs:range comm:ServiceExecution .
+comm:acceptedBy a owl:ObjectProperty ; rdfs:domain comm:ServiceAcceptance ; rdfs:range cepio:Party .
