@@ -1,0 +1,43 @@
+id: refinery-process-manufacturing-v0.1
+version: "0.1"
+name: Refinery and process-manufacturing reference enterprise
+description: >
+  A source-neutral refinery/process-manufacturing archetype for semantic stress testing.
+  It models continuous process operations, process safety, product quality, maintenance,
+  utilities, emissions, turnaround execution, contractor services and economics without
+  assuming a specific customer implementation.
+operating_context:
+  - continuous process units connected by material and utility streams
+  - board/operator execution across shifts with operating envelopes and abnormal situations
+  - rotating and static equipment maintained through planned and corrective work
+  - process safety, permits, isolations, barriers and management of change
+  - product quality and off-spec disposition
+  - energy, steam, fuel, electricity and utility optimization
+  - emissions and environmental compliance
+  - turnarounds, shutdown windows and contractor-heavy execution
+  - commercial, margin and production-loss consequence management
+  - supplier, material and critical-spare constraints
+source_landscape:
+  - DCS/SCADA and historian process data
+  - laboratory and quality-management systems
+  - CMMS/EAM maintenance and equipment records
+  - process-safety, permit-to-work and incident systems
+  - ERP finance, procurement and inventory
+  - production accounting and planning systems
+  - emissions/environmental reporting systems
+  - energy-management and utility-metering systems
+  - workforce, shift and competency systems
+  - contracts and contractor-service records
+scenario_seeds:
+  - abnormal unit operation and operating-envelope deviation
+  - process-unit trip and production-loss explanation
+  - rotating-equipment failure and work/spare response
+  - permit and energy-isolation readiness for maintenance
+  - process-safety barrier degradation
+  - shift handover and unresolved operating risk
+  - off-spec product and quality disposition
+  - emissions exceedance and corrective action
+  - unit energy-intensity optimization
+  - turnaround readiness and contractor delivery
+  - management-of-change authorization
+  - refinery margin exposure from unit constraints
