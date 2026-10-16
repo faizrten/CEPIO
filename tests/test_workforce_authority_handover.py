@@ -43,10 +43,10 @@ def test_workforce_authority_responsibility_and_handover_contracts():
         assert (predicate, RDFS.range, range_) in graph
 
 
-def test_workforce_module_version_is_0_1_2():
+def test_workforce_module_version_includes_rotation_extension():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text(encoding="utf-8"))
     modules = {module["id"]: module for module in catalogue["modules"]}
-    assert str(modules["workforce"]["version"]) == "0.1.2"
+    assert str(modules["workforce"]["version"]) == "0.1.3"
 
 
 def test_direct_person_shortcuts_are_not_introduced():
