@@ -7,9 +7,13 @@
 
 supply:InventoryPosition a owl:Class ; rdfs:subClassOf cepio:Measurement .
 supply:MaterialRequirement a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+supply:PurchaseOrder a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 
 supply:stockPositionFor a owl:ObjectProperty ; rdfs:domain supply:InventoryPosition ; rdfs:range ind:SparePart .
 supply:stockedAtAsset a owl:ObjectProperty ; rdfs:domain supply:InventoryPosition ; rdfs:range cepio:Asset .
 supply:spareSuppliedBy a owl:ObjectProperty ; rdfs:domain ind:SparePart ; rdfs:range ent:Supplier .
 supply:spareServesEquipment a owl:ObjectProperty ; rdfs:domain ind:SparePart ; rdfs:range ind:Equipment .
 supply:materialRequiredBy a owl:ObjectProperty ; rdfs:domain supply:MaterialRequirement ; rdfs:range cepio:WorkItem .
+supply:purchaseOrderSupplier a owl:ObjectProperty ; rdfs:domain supply:PurchaseOrder ; rdfs:range ent:Supplier .
+supply:purchaseOrderForRequirement a owl:ObjectProperty ; rdfs:domain supply:PurchaseOrder ; rdfs:range supply:MaterialRequirement .
+supply:purchaseOrderForSpare a owl:ObjectProperty ; rdfs:domain supply:PurchaseOrder ; rdfs:range ind:SparePart .

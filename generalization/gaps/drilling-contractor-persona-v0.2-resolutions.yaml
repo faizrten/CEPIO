@@ -1,9 +1,9 @@
 id: drilling-contractor-persona-gap-resolutions-v0.2
-version: "0.1"
+version: "0.3"
 archetype_id: drilling-contractor-v0.1
 competency_pack_id: drilling-contractor-persona-expansion-v0.2
 issue: 77
-principle: The frozen persona-expansion competency pack remains unchanged; this ledger records accepted reusable semantics implemented in CEPIO while rejected direct-edge challenges remain visible until a future frozen pack tests the replacement pattern directly.
+principle: The frozen persona-expansion competency pack remains unchanged; this ledger records accepted reusable semantics implemented in CEPIO while rejected exact-path challenges remain visible until a future capability-based frozen pack tests the replacement pattern directly.
 resolutions:
   - gap_id: GAP-PE-001-AUTHORITY
     question_id: DC-PE-001
@@ -54,3 +54,63 @@ resolutions:
     implemented_semantics:
       - https://cepio.org/ontology/workforce#assignmentForActivity
     notes: The frozen direct CrewMember-to-Activity edge remains intentionally absent. Activity staffing is resolved through CrewAssignment so role and temporal context are preserved.
+
+  - gap_id: GAP-PE-006-ENERGY-ISOLATION
+    question_id: DC-PE-006
+    disposition: CORE
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/hse#EnergyIsolation
+      - https://cepio.org/ontology/hse#isolationForAsset
+      - https://cepio.org/ontology/hse#isolationGovernsWork
+      - https://cepio.org/ontology/hse#isolationIssuedBy
+      - https://cepio.org/ontology/hse#isolationVerifiedBy
+    notes: Energy isolation is a common industrial work-control object. Its current validity and state are runtime facts rather than ontology-specific scalar dates.
+
+  - gap_id: GAP-PE-012-CREW-ROTATION
+    question_id: DC-PE-012
+    disposition: CORE
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/workforce#CrewRotation
+      - https://cepio.org/ontology/workforce#rotationForAsset
+      - https://cepio.org/ontology/workforce#rotationFromAssignment
+      - https://cepio.org/ontology/workforce#rotationToAssignment
+    notes: Crew rotation is represented as a reusable activity connecting an operating asset and outgoing/incoming assignments. Mobilization readiness remains derived and the frozen MobilizationConstraint term stays rejected.
+
+  - gap_id: GAP-PE-014-PURCHASE-ORDER
+    question_id: DC-PE-014
+    disposition: CORE
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/supply#PurchaseOrder
+      - https://cepio.org/ontology/supply#purchaseOrderSupplier
+      - https://cepio.org/ontology/supply#purchaseOrderForRequirement
+      - https://cepio.org/ontology/supply#purchaseOrderForSpare
+    notes: Purchase order is modeled as common supply-chain execution semantics linking supplier commitments to material requirements and critical spares.
+
+  - gap_id: GAP-PE-008-DRILLING-FLUID-OBSERVATION
+    question_id: DC-PE-008
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/drilling#DrillingFluidObservation
+    notes: Drilling-fluid observations specialize CEPIO Measurement. Activity-to-observation context reuses the canonical cepio:measuredBy relation rather than adding a drilling-only inverse predicate.
+
+  - gap_id: GAP-PE-009-CEMENTING
+    question_id: DC-PE-009
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/drilling#CementingJob
+      - https://cepio.org/ontology/drilling#CementProgram
+      - https://cepio.org/ontology/drilling#executesProgram
+    notes: Cementing execution and its governing program are drilling-specific; service-delivery evidence remains a reusable enterprise concern.
+
+  - gap_id: GAP-PE-013-MARINE-SUPPORT-ASSET
+    question_id: DC-PE-013
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/drilling#MarineSupportAsset
+    notes: MarineSupportAsset is a source-neutral offshore drilling asset specialization. Rig-move dependency reuses cepio:dependsOn rather than introducing supportedByMarineAsset.

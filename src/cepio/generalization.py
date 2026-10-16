@@ -1,7 +1,9 @@
 """Deterministic semantic-readiness harness for CEPIO generalization tests.
 
-v0.1 intentionally evaluates ontology prerequisites only. Agentic question
-generation and judging are specified separately; they are not trusted as evidence.
+v0.1 evaluates literal ontology prerequisites. v0.2 adds capability-based
+semantic composition: a competency may define multiple approved semantic
+patterns and passes when at least one complete pattern is supported by CEPIO.
+Agentic generation/judging remains outside the evidence boundary.
 """
 from __future__ import annotations
 
@@ -11,7 +13,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from rdflib import Graph, RDF, RDFS, OWL, URIRef
 
 
@@ -24,6 +26,24 @@ class EdgeRequirement(BaseModel):
     source: str
     predicate: str
     target: str
+
+
+class SemanticPattern(BaseModel):
+    id: str
+    terms: list[TermRequirement] = Field(default_factory=list)
+    edges: list[EdgeRequirement] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def require_semantics(self) -> "SemanticPattern":
+        if not self.terms and not self.edges:
+            raise ValueError("semantic pattern must contain at least one term or edge")
+        return self
+
+
+class CapabilityRequirement(BaseModel):
+    id: str
+    description: str
+    alternatives: list[SemanticPattern] = Field(min_length=1)
 
 
 class RuntimeRequirements(BaseModel):
@@ -47,6 +67,7 @@ class CompetencyQuestion(BaseModel):
     capability_tags: list[str] = Field(default_factory=list)
     terms: list[TermRequirement] = Field(default_factory=list)
     edges: list[EdgeRequirement] = Field(default_factory=list)
+    capabilities: list[CapabilityRequirement] = Field(default_factory=list)
     runtime: RuntimeRequirements = Field(default_factory=RuntimeRequirements)
 
 
@@ -241,18 +262,62 @@ def validate_cross_references(
         raise ValueError(f"unknown standards ids: {unknown_standards}")
 
 
-def evaluate_question(question: CompetencyQuestion, ontology: OntologyIndex) -> dict:
+def _evaluate_semantics(
+    terms: list[TermRequirement], edges: list[EdgeRequirement], ontology: OntologyIndex
+) -> list[dict]:
     checks: list[dict] = []
-    for requirement in question.terms:
+    for requirement in terms:
         ok = ontology.has_term(requirement)
         checks.append({"kind": "term", "id": requirement.iri, "ok": ok})
-    for requirement in question.edges:
+    for requirement in edges:
         ok = ontology.has_edge_contract(requirement)
         checks.append({
             "kind": "edge",
             "id": f"{requirement.source} --{requirement.predicate}--> {requirement.target}",
             "ok": ok,
         })
+    return checks
+
+
+def _evaluate_capability(capability: CapabilityRequirement, ontology: OntologyIndex) -> tuple[dict, dict]:
+    alternatives: list[dict] = []
+    for pattern in capability.alternatives:
+        pattern_checks = _evaluate_semantics(pattern.terms, pattern.edges, ontology)
+        passed = sum(1 for check in pattern_checks if check["ok"])
+        total = len(pattern_checks)
+        alternatives.append({
+            "id": pattern.id,
+            "ok": total > 0 and passed == total,
+            "checks_passed": passed,
+            "checks_total": total,
+            "missing": [check["id"] for check in pattern_checks if not check["ok"]],
+        })
+
+    matched = next((item for item in alternatives if item["ok"]), None)
+    best = max(
+        alternatives,
+        key=lambda item: (item["checks_passed"] / item["checks_total"]) if item["checks_total"] else -1,
+    )
+    detail = {
+        "id": capability.id,
+        "description": capability.description,
+        "ok": matched is not None,
+        "matched_pattern": matched["id"] if matched else None,
+        "best_pattern": best["id"],
+        "alternatives": alternatives,
+    }
+    check = {"kind": "capability", "id": f"capability:{capability.id}", "ok": matched is not None}
+    return check, detail
+
+
+def evaluate_question(question: CompetencyQuestion, ontology: OntologyIndex) -> dict:
+    checks = _evaluate_semantics(question.terms, question.edges, ontology)
+    capability_details: list[dict] = []
+    for capability in question.capabilities:
+        check, detail = _evaluate_capability(capability, ontology)
+        checks.append(check)
+        capability_details.append(detail)
+
     passed = sum(1 for check in checks if check["ok"])
     total = len(checks)
     if total == 0:
@@ -272,6 +337,7 @@ def evaluate_question(question: CompetencyQuestion, ontology: OntologyIndex) -> 
         "checks_passed": passed,
         "checks_total": total,
         "missing": missing,
+        "capability_details": capability_details,
         "runtime_status": "NOT_RUN" if question.runtime.required else "NOT_REQUIRED",
         "runtime_requirements": question.runtime.model_dump(),
     }
@@ -364,9 +430,15 @@ def run_harness(
     total_checks = sum(result["checks_total"] for result in results)
     passed_checks = sum(result["checks_passed"] for result in results)
     statuses = {status: sum(result["status"] == status for result in results) for status in ("PASS", "PARTIAL", "FAIL", "ERROR")}
+    capability_mode = any(question.capabilities for question in pack.questions)
     return {
-        "harness_version": "0.1",
-        "mode": "deterministic-ontology-semantic-readiness",
+        "harness_version": "0.2" if capability_mode else "0.1",
+        "mode": (
+            "deterministic-semantic-capability-readiness"
+            if capability_mode
+            else "deterministic-ontology-semantic-readiness"
+        ),
+        "evaluation_contract": "capability-alternatives" if capability_mode else "literal-prerequisites",
         "archetype_id": archetype.id,
         "competency_pack_id": pack.id,
         "batch_hash": stable_hash(frozen_payload),
@@ -376,6 +448,6 @@ def run_harness(
         "question_count": len(results),
         "status_counts": statuses,
         "semantic_check_pass_rate": (passed_checks / total_checks) if total_checks else 0.0,
-        "runtime_evaluation": "not executed in v0.1",
+        "runtime_evaluation": "not executed by semantic-readiness harness",
         "results": results,
     }

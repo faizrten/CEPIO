@@ -1,0 +1,83 @@
+id: drilling-contractor-operational-assurance-v0.4
+version: "0.4"
+archetype_id: drilling-contractor-v0.1
+competency_pack: generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml
+description: >
+  Deterministic operational-assurance fixture for the drilling-contractor archetype.
+  It proves that semantic capability can be backed by runtime evidence for time,
+  provenance, scoped authority, policy and governed action. The Operator evidence gate
+  is intentionally fail-closed and does not treat model knowledge as enterprise fact.
+
+temporal_case:
+  question_id: DC-PC-002
+  object_id: ACT-RT-001
+  object_name: Reference drilling activity interval
+  object_type: "https://cepio.org/ontology/drilling#ActivityInterval"
+  property_name: cepio:status
+  valid_from: "2026-01-15T08:00:00Z"
+  valid_to: "2026-01-15T12:00:00Z"
+  query_valid_time: "2026-01-15T10:00:00Z"
+  initial_value: DRILLING
+  corrected_value: NPT
+  rationale: >
+    The first ingestion says the activity was drilling during the interval. A later
+    ingestion corrects the same valid-time interval to NPT. CEPIO must distinguish
+    what it believed after the first transaction from the corrected historical truth.
+
+provenance_case:
+  question_id: DC-PC-005
+  object_id: KPI-RT-DOWNTIME-001
+  object_name: Reference rig downtime KPI observation
+  object_type: "https://cepio.org/ontology/performance#KPIObservation"
+  property_name: rel:downtimeHours
+  value: 6.5
+  unit: h
+  observed_at: "2026-01-15T12:00:00Z"
+  source:
+    source_system: IADC-DDR
+    source_entity: ActivityInterval
+    source_field: durationHours
+    source_record_id: DDR-RT-001-ACT-07
+    source_uri: "urn:iadc-ddr:DDR-RT-001:ACT-07"
+  mapping_kind: calculated
+  mapping_id: drilling-activity-to-downtime-kpi
+  mapping_version: "0.4.0"
+  code_version: "operational-assurance-v0.4"
+  transformation_started_at: "2026-01-15T12:01:00Z"
+  transformation_completed_at: "2026-01-15T12:01:02Z"
+  rationale: >
+    Availability exposure must be explainable from a source record, observation time,
+    mapping version and transformation run. The Operator may not invent any of them.
+
+authority_case:
+  question_id: DC-PC-001
+  rig_id: RIG-RT-001
+  rig_name: Reference Jack-up Rig RT-001
+  authority_assignment_id: AUTH-RT-OIM-001
+  authority_holder_id: PERSON-RT-OIM-001
+  authority_holder_name: Reference Offshore Installation Manager
+  valid_from: "2026-01-15T06:00:00Z"
+  valid_to: "2026-01-15T18:00:00Z"
+  rationale: >
+    Offshore command authority is resolved through a scoped AuthorityAssignment, not
+    a permanent direct person-to-rig shortcut.
+
+governed_action_case:
+  question_id: DC-PC-004
+  target_id: BOP-RT-001
+  target_name: Reference BOP Stack RT-001
+  target_type: Equipment
+  interfaces: [Inspectable, MaintainableAsset, RiskBearing]
+  action_type: CreateInspection
+  problem: Failed well-control readiness test requires inspection before release
+  observations:
+    - BOP pressure test did not satisfy the release criterion
+    - Equipment remains high criticality until inspected
+  recommendation: Create an inspection and hold release until evidence is reviewed
+  ai_actor_id: operator-agent-1
+  ai_actor_roles: [ai_agent_recommender]
+  human_actor_id: reliability-engineer-1
+  human_actor_roles: [reliability_engineer]
+  rationale: >
+    The agent may recommend CreateInspection but must not execute it. A permitted human
+    role executes the action, and the audit must retain the originating Decision ID.

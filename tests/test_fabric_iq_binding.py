@@ -44,7 +44,7 @@ def test_asset_work_reference_binding_is_deterministic_and_versioned():
 
     modules = {module.module_id: module for module in manifest.modules}
     assert modules["asset"].version == "0.1.0"
-    assert modules["work_management"].version == "0.1.0"
+    assert modules["work_management"].version == "0.1.1"
 
     entities = {entity.canonical_iri: entity for entity in manifest.entity_types}
     assert EQUIPMENT in entities
