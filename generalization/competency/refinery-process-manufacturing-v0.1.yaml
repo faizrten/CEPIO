@@ -1,0 +1,502 @@
+id: refinery-process-manufacturing-capabilities-v0.1
+version: "0.1"
+archetype_id: refinery-process-manufacturing-v0.1
+frozen: true
+questions:
+  - id: RP-PC-001
+    question: Which process unit currently constrains refinery throughput, what operating evidence proves the constraint, and what margin exposure does it create?
+    priority: critical
+    personas: [plant-manager, operations-manager, finance-controller]
+    standards: [isa-95-2025]
+    capability_tags: [process-unit, throughput, constraint, economics]
+    capabilities:
+      - id: process-unit-flow-context
+        description: Represent a process unit and the material streams entering or leaving it.
+        alternatives:
+          - id: unit-stream-network
+            terms:
+              - {iri: "https://cepio.org/ontology/process#ProcessUnit", kind: class}
+              - {iri: "https://cepio.org/ontology/process#MaterialStream", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#MaterialStream", predicate: "https://cepio.org/ontology/process#streamFeedsUnit", target: "https://cepio.org/ontology/process#ProcessUnit"}
+      - id: production-constraint
+        description: Represent an explicit operating constraint scoped to the affected process unit.
+        alternatives:
+          - id: unit-constraint
+            terms:
+              - {iri: "https://cepio.org/ontology/process#ProcessConstraint", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessConstraint", predicate: "https://cepio.org/ontology/process#constraintOnUnit", target: "https://cepio.org/ontology/process#ProcessUnit"}
+      - id: economic-exposure
+        description: Connect the operating constraint to an explicit value-at-risk concept.
+        alternatives:
+          - id: constraint-value-risk
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessConstraint", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/commercial#ValueAtRisk"}
+
+  - id: RP-PC-002
+    question: Which unit is outside its approved operating envelope, which limit is violated, and what governed response has been approved?
+    priority: critical
+    personas: [console-operator, operations-manager, process-engineer]
+    standards: [isa-95-2025, iec-61511-series]
+    capability_tags: [operating-envelope, deviation, decision]
+    capabilities:
+      - id: operating-envelope
+        description: Represent the operating envelope and limits that apply to a process unit.
+        alternatives:
+          - id: envelope-and-limit
+            terms:
+              - {iri: "https://cepio.org/ontology/process#OperatingEnvelope", kind: class}
+              - {iri: "https://cepio.org/ontology/process#OperatingLimit", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#OperatingEnvelope", predicate: "https://cepio.org/ontology/process#envelopeForUnit", target: "https://cepio.org/ontology/process#ProcessUnit"}
+      - id: process-deviation
+        description: Represent a deviation evaluated against the approved operating envelope.
+        alternatives:
+          - id: deviation-envelope
+            terms:
+              - {iri: "https://cepio.org/ontology/process#ProcessDeviation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessDeviation", predicate: "https://cepio.org/ontology/process#deviationAgainstEnvelope", target: "https://cepio.org/ontology/process#OperatingEnvelope"}
+      - id: governed-response
+        description: Represent a decision and approval boundary for the operating response.
+        alternatives:
+          - id: decision-approval
+            terms:
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Approval", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#requiresApproval", target: "https://cepio.org/ontology/kinetic#Approval"}
+
+  - id: RP-PC-003
+    question: What changed at shift handover, what operating work remains unresolved, and what must the incoming shift carry forward?
+    priority: critical
+    personas: [shift-supervisor, console-operator]
+    standards: [isa-95-2025]
+    capability_tags: [shift, handover, continuity]
+    capabilities:
+      - id: shift-handover-continuity
+        description: Carry unresolved work and operating activity context through a formal shift handover.
+        alternatives:
+          - id: reusable-handover
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#ShiftHandover", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Activity", kind: class}
+              - {iri: "https://cepio.org/ontology/core#WorkItem", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#ShiftHandover", predicate: "https://cepio.org/ontology/workforce#handoverForActivity", target: "https://cepio.org/ontology/core#Activity"}
+              - {source: "https://cepio.org/ontology/workforce#ShiftHandover", predicate: "https://cepio.org/ontology/workforce#handoverCarriesWork", target: "https://cepio.org/ontology/core#WorkItem"}
+
+  - id: RP-PC-004
+    question: Which equipment failure creates the greatest unit-availability exposure, which work order addresses it, and is the critical spare available?
+    priority: critical
+    personas: [reliability-engineer, maintenance-planner, plant-manager]
+    standards: [iso-14224-2016]
+    capability_tags: [reliability, maintenance, spare, availability]
+    capabilities:
+      - id: equipment-failure-work
+        description: Connect equipment failure evidence to corrective work.
+        alternatives:
+          - id: failure-work-chain
+            terms:
+              - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/reliability#failureOfEquipment", target: "https://cepio.org/ontology/industrial#Equipment"}
+              - {source: "https://cepio.org/ontology/industrial#Equipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+      - id: critical-spare-context
+        description: Connect spare inventory to the equipment it serves.
+        alternatives:
+          - id: inventory-spare-equipment
+            terms:
+              - {iri: "https://cepio.org/ontology/supply#InventoryPosition", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#SparePart", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/supply#InventoryPosition", predicate: "https://cepio.org/ontology/supply#stockPositionFor", target: "https://cepio.org/ontology/industrial#SparePart"}
+              - {source: "https://cepio.org/ontology/industrial#SparePart", predicate: "https://cepio.org/ontology/supply#spareServesEquipment", target: "https://cepio.org/ontology/industrial#Equipment"}
+
+  - id: RP-PC-005
+    question: Which permit or energy isolation blocks this maintenance job, which asset is affected, and who must verify the isolation before work can proceed?
+    priority: critical
+    personas: [maintenance-planner, process-safety-manager]
+    standards: [isa-95-2025]
+    capability_tags: [permit, isolation, maintenance-readiness]
+    capabilities:
+      - id: permit-and-isolation-scope
+        description: Scope permits and energy isolations to assets and work.
+        alternatives:
+          - id: hse-work-control
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#WorkPermit", kind: class}
+              - {iri: "https://cepio.org/ontology/hse#EnergyIsolation", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#WorkPermit", predicate: "https://cepio.org/ontology/hse#permitForAsset", target: "https://cepio.org/ontology/industrial#Equipment"}
+              - {source: "https://cepio.org/ontology/hse#EnergyIsolation", predicate: "https://cepio.org/ontology/hse#isolationForAsset", target: "https://cepio.org/ontology/industrial#Equipment"}
+              - {source: "https://cepio.org/ontology/hse#EnergyIsolation", predicate: "https://cepio.org/ontology/hse#isolationGovernsWork", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+      - id: isolation-verification
+        description: Identify the party who verifies the isolation before release.
+        alternatives:
+          - id: verified-by-party
+            edges:
+              - {source: "https://cepio.org/ontology/hse#EnergyIsolation", predicate: "https://cepio.org/ontology/hse#isolationVerifiedBy", target: "https://cepio.org/ontology/core#Party"}
+
+  - id: RP-PC-006
+    question: Which process-safety barrier is impaired, what evidence establishes the impairment, and which corrective action restores the barrier?
+    priority: critical
+    personas: [process-safety-manager, operations-manager]
+    standards: [iec-61511-series, api-rp-754-4e]
+    capability_tags: [process-safety, barrier, impairment, corrective-action]
+    capabilities:
+      - id: barrier-model
+        description: Represent process-safety barriers and impairment events explicitly.
+        alternatives:
+          - id: barrier-impairment
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#SafetyBarrier", kind: class}
+              - {iri: "https://cepio.org/ontology/hse#BarrierImpairment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#BarrierImpairment", predicate: "https://cepio.org/ontology/hse#impairmentOfBarrier", target: "https://cepio.org/ontology/hse#SafetyBarrier"}
+      - id: barrier-restoration
+        description: Link the impairment to corrective work that restores the barrier.
+        alternatives:
+          - id: impairment-corrective-action
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#CorrectiveAction", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#BarrierImpairment", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/hse#CorrectiveAction"}
+
+  - id: RP-PC-007
+    question: Which management-of-change item affects this process unit, who has authority to approve it, and what governed approval is still required?
+    priority: critical
+    personas: [process-safety-manager, operations-manager, plant-manager]
+    standards: [iec-61511-series]
+    capability_tags: [moc, authority, approval]
+    capabilities:
+      - id: management-of-change
+        description: Represent a management-of-change item scoped to the affected process unit.
+        alternatives:
+          - id: moc-unit
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#ManagementOfChange", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#ManagementOfChange", predicate: "https://cepio.org/ontology/hse#changeAffectsAsset", target: "https://cepio.org/ontology/process#ProcessUnit"}
+      - id: moc-authority
+        description: Resolve approval authority through a scoped authority assignment.
+        alternatives:
+          - id: authority-for-moc
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#AuthorityAssignment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#AuthorityAssignment", predicate: "https://cepio.org/ontology/workforce#authorityForWork", target: "https://cepio.org/ontology/hse#ManagementOfChange"}
+      - id: governed-approval
+        description: Represent explicit approval required for the change.
+        alternatives:
+          - id: moc-approval
+            terms:
+              - {iri: "https://cepio.org/ontology/kinetic#Approval", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#ManagementOfChange", predicate: "https://cepio.org/ontology/kinetic#requiresApproval", target: "https://cepio.org/ontology/kinetic#Approval"}
+
+  - id: RP-PC-008
+    question: Which product or intermediate stream is off specification, which quality evidence proves it, and what disposition decision applies to the affected lot?
+    priority: required
+    personas: [quality-manager, process-engineer, operations-manager]
+    standards: [isa-95-2025]
+    capability_tags: [quality, stream, lot, disposition]
+    capabilities:
+      - id: stream-quality-evidence
+        description: Attach quality observations to the affected process stream.
+        alternatives:
+          - id: measured-stream-quality
+            terms:
+              - {iri: "https://cepio.org/ontology/process#QualityObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/process#MaterialStream", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#MaterialStream", predicate: "https://cepio.org/ontology/core#measuredBy", target: "https://cepio.org/ontology/process#QualityObservation"}
+      - id: lot-specification
+        description: Represent the affected material lot and its governing product specification.
+        alternatives:
+          - id: lot-spec
+            terms:
+              - {iri: "https://cepio.org/ontology/manufacturing#MaterialLot", kind: class}
+              - {iri: "https://cepio.org/ontology/manufacturing#Specification", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/manufacturing#MaterialLot", predicate: "https://cepio.org/ontology/manufacturing#lotConformsToSpecification", target: "https://cepio.org/ontology/manufacturing#Specification"}
+      - id: quality-disposition
+        description: Represent an explicit quality disposition for off-spec material.
+        alternatives:
+          - id: disposition-lot
+            terms:
+              - {iri: "https://cepio.org/ontology/manufacturing#QualityDisposition", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/manufacturing#QualityDisposition", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/manufacturing#MaterialLot"}
+
+  - id: RP-PC-009
+    question: Which emission observation exceeds an applicable limit, which process unit caused the exposure, and which corrective action remains open?
+    priority: critical
+    personas: [environmental-manager, operations-manager]
+    standards: [api-rp-754-4e]
+    capability_tags: [emissions, compliance, corrective-action]
+    capabilities:
+      - id: emissions-evidence
+        description: Represent emission observations in the context of the process unit.
+        alternatives:
+          - id: emission-unit
+            terms:
+              - {iri: "https://cepio.org/ontology/process#EmissionObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/process#EmissionLimit", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessUnit", predicate: "https://cepio.org/ontology/core#measuredBy", target: "https://cepio.org/ontology/process#EmissionObservation"}
+              - {source: "https://cepio.org/ontology/process#EmissionObservation", predicate: "https://cepio.org/ontology/process#evaluatedAgainstEmissionLimit", target: "https://cepio.org/ontology/process#EmissionLimit"}
+      - id: environmental-corrective-action
+        description: Link the exceedance to corrective work.
+        alternatives:
+          - id: emission-corrective-action
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#CorrectiveAction", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#EmissionObservation", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/hse#CorrectiveAction"}
+
+  - id: RP-PC-010
+    question: Which unit has the worst energy-intensity variance, which utility stream and meter explain it, and what cost exposure results?
+    priority: required
+    personas: [energy-manager, process-engineer, finance-controller]
+    standards: [iso-50001-2018]
+    capability_tags: [energy, utilities, kpi, cost]
+    capabilities:
+      - id: utility-metering
+        description: Represent utility streams and the meters that observe them.
+        alternatives:
+          - id: meter-utility-stream
+            terms:
+              - {iri: "https://cepio.org/ontology/process#UtilityStream", kind: class}
+              - {iri: "https://cepio.org/ontology/process#UtilityMeter", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#UtilityStream", predicate: "https://cepio.org/ontology/core#measuredBy", target: "https://cepio.org/ontology/process#UtilityMeter"}
+      - id: energy-intensity
+        description: Represent an energy-intensity KPI for the process unit.
+        alternatives:
+          - id: unit-energy-intensity
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#EnergyIntensityKPI", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessUnit", predicate: "https://cepio.org/ontology/core#measuredBy", target: "https://cepio.org/ontology/performance#EnergyIntensityKPI"}
+      - id: utility-cost-exposure
+        description: Connect utility performance to cost records.
+        alternatives:
+          - id: unit-cost
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#CostRecord", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#CostRecord", predicate: "https://cepio.org/ontology/commercial#costFor", target: "https://cepio.org/ontology/process#ProcessUnit"}
+
+  - id: RP-PC-011
+    question: Is the next turnaround executable given work-package scope, isolations, material requirements and contracted-service readiness?
+    priority: critical
+    personas: [turnaround-manager, maintenance-planner, contractor-services-manager]
+    standards: [isa-95-2025, iso-14224-2016]
+    capability_tags: [turnaround, work-package, isolation, materials, services]
+    capabilities:
+      - id: turnaround-work-scope
+        description: Represent a turnaround and the work packages scheduled into it.
+        alternatives:
+          - id: turnaround-packages
+            terms:
+              - {iri: "https://cepio.org/ontology/work#Turnaround", kind: class}
+              - {iri: "https://cepio.org/ontology/work#WorkPackage", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/work#Turnaround", predicate: "https://cepio.org/ontology/work#hasWorkPackage", target: "https://cepio.org/ontology/work#WorkPackage"}
+      - id: turnaround-isolation
+        description: Associate required isolations with the turnaround campaign.
+        alternatives:
+          - id: isolation-campaign
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#EnergyIsolation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#EnergyIsolation", predicate: "https://cepio.org/ontology/work#scheduledInCampaign", target: "https://cepio.org/ontology/work#Turnaround"}
+      - id: turnaround-materials
+        description: Connect material requirements to turnaround work packages.
+        alternatives:
+          - id: material-work-package
+            terms:
+              - {iri: "https://cepio.org/ontology/supply#MaterialRequirement", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/supply#MaterialRequirement", predicate: "https://cepio.org/ontology/supply#materialRequiredBy", target: "https://cepio.org/ontology/work#WorkPackage"}
+      - id: turnaround-services
+        description: Connect contracted service execution to turnaround activity.
+        alternatives:
+          - id: service-turnaround
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceExecution", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#serviceExecutionForActivity", target: "https://cepio.org/ontology/work#Turnaround"}
+
+  - id: RP-PC-012
+    question: Which contracted service is being executed, which supplier performs it, what evidence was delivered, and has the customer accepted it against the governing obligation?
+    priority: required
+    personas: [contractor-services-manager, turnaround-manager]
+    standards: [isa-95-2025]
+    capability_tags: [service, supplier, evidence, acceptance, contract]
+    capabilities:
+      - id: contracted-service-execution
+        description: Connect service execution to supplier and contract obligation.
+        alternatives:
+          - id: service-boundary
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceExecution", kind: class}
+              - {iri: "https://cepio.org/ontology/enterprise#Supplier", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#performedBy", target: "https://cepio.org/ontology/enterprise#Supplier"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#governedByObligation", target: "https://cepio.org/ontology/commercial#ContractObligation"}
+      - id: service-evidence-and-acceptance
+        description: Represent delivery evidence and customer acceptance.
+        alternatives:
+          - id: service-proof
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ServiceAcceptance", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", target: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceAcceptance", predicate: "https://cepio.org/ontology/commercial#acceptanceOfService", target: "https://cepio.org/ontology/commercial#ServiceExecution"}
+
+  - id: RP-PC-013
+    question: Which process-unit trip caused the largest production and margin loss, and which revenue and cost records explain the exposure?
+    priority: critical
+    personas: [finance-controller, plant-manager, operations-manager]
+    standards: [api-rp-754-4e]
+    capability_tags: [trip, production-loss, revenue, cost, margin]
+    capabilities:
+      - id: process-trip
+        description: Represent process-unit trip events explicitly.
+        alternatives:
+          - id: trip-unit
+            terms:
+              - {iri: "https://cepio.org/ontology/process#ProcessTrip", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessTrip", predicate: "https://cepio.org/ontology/process#tripOfUnit", target: "https://cepio.org/ontology/process#ProcessUnit"}
+      - id: production-loss
+        description: Represent production-loss measurement attributable to the trip.
+        alternatives:
+          - id: trip-production-loss
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#ProductionLoss", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessTrip", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/performance#ProductionLoss"}
+      - id: financial-explanation
+        description: Represent revenue, cost and value-at-risk records for the affected unit.
+        alternatives:
+          - id: unit-financials
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#RevenueRecord", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#CostRecord", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#RevenueRecord", predicate: "https://cepio.org/ontology/commercial#revenueFor", target: "https://cepio.org/ontology/process#ProcessUnit"}
+              - {source: "https://cepio.org/ontology/commercial#CostRecord", predicate: "https://cepio.org/ontology/commercial#costFor", target: "https://cepio.org/ontology/process#ProcessUnit"}
+
+  - id: RP-PC-014
+    question: Which material or utility constraint limits unit performance, and which optimization function and decision should be evaluated to remove it?
+    priority: required
+    personas: [process-engineer, energy-manager, operations-manager]
+    standards: [isa-95-2025, iso-50001-2018]
+    capability_tags: [optimization, process-constraint, stream, decision]
+    capabilities:
+      - id: constraint-dependencies
+        description: Connect a process constraint to material and utility dependencies.
+        alternatives:
+          - id: process-constraint-streams
+            terms:
+              - {iri: "https://cepio.org/ontology/process#ProcessConstraint", kind: class}
+              - {iri: "https://cepio.org/ontology/process#MaterialStream", kind: class}
+              - {iri: "https://cepio.org/ontology/process#UtilityStream", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessConstraint", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/process#MaterialStream"}
+              - {source: "https://cepio.org/ontology/process#ProcessConstraint", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/process#UtilityStream"}
+      - id: optimization-decision
+        description: Represent an optimization function invoked in support of a governed decision.
+        alternatives:
+          - id: decision-function
+            terms:
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Function", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#invokesFunction", target: "https://cepio.org/ontology/kinetic#Function"}
+
+  - id: RP-PC-015
+    question: Which maintenance work should be pulled into the next turnaround based on failure risk, existing work orders and critical-spare availability?
+    priority: required
+    personas: [turnaround-manager, reliability-engineer, maintenance-planner]
+    standards: [iso-14224-2016]
+    capability_tags: [turnaround, maintenance, failure-risk, spare]
+    capabilities:
+      - id: failure-to-work
+        description: Connect failure events to equipment and existing maintenance work.
+        alternatives:
+          - id: failure-equipment-work
+            terms:
+              - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/reliability#failureOfEquipment", target: "https://cepio.org/ontology/industrial#Equipment"}
+              - {source: "https://cepio.org/ontology/industrial#Equipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+      - id: turnaround-scheduling
+        description: Schedule selected maintenance work into a turnaround campaign.
+        alternatives:
+          - id: work-turnaround
+            terms:
+              - {iri: "https://cepio.org/ontology/work#Turnaround", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/industrial#WorkOrder", predicate: "https://cepio.org/ontology/work#scheduledInCampaign", target: "https://cepio.org/ontology/work#Turnaround"}
+      - id: spare-readiness
+        description: Resolve material requirements and purchase orders for required spares.
+        alternatives:
+          - id: work-material-po
+            terms:
+              - {iri: "https://cepio.org/ontology/supply#MaterialRequirement", kind: class}
+              - {iri: "https://cepio.org/ontology/supply#PurchaseOrder", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/supply#MaterialRequirement", predicate: "https://cepio.org/ontology/supply#materialRequiredBy", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+              - {source: "https://cepio.org/ontology/supply#PurchaseOrder", predicate: "https://cepio.org/ontology/supply#purchaseOrderForRequirement", target: "https://cepio.org/ontology/supply#MaterialRequirement"}
+
+  - id: RP-PC-016
+    question: Is the process unit ready to restart after an outage given work completion, permit and isolation state, process-safety barriers and required approval?
+    priority: critical
+    personas: [plant-manager, operations-manager, process-safety-manager, turnaround-manager]
+    standards: [iec-61511-series, isa-95-2025]
+    capability_tags: [restart, readiness, barriers, approval]
+    capabilities:
+      - id: restart-activity
+        description: Represent startup or restart as an explicit process-industry activity.
+        alternatives:
+          - id: restart-unit
+            terms:
+              - {iri: "https://cepio.org/ontology/process#StartupOrRestart", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#StartupOrRestart", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/process#ProcessUnit"}
+      - id: restart-work-controls
+        description: Express dependency on permits, isolation and outstanding work.
+        alternatives:
+          - id: restart-controls
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#WorkPermit", kind: class}
+              - {iri: "https://cepio.org/ontology/hse#EnergyIsolation", kind: class}
+              - {iri: "https://cepio.org/ontology/core#WorkItem", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#StartupOrRestart", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/hse#WorkPermit"}
+              - {source: "https://cepio.org/ontology/process#StartupOrRestart", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/hse#EnergyIsolation"}
+              - {source: "https://cepio.org/ontology/process#StartupOrRestart", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/core#WorkItem"}
+      - id: restart-safety-and-approval
+        description: Require healthy safety barriers and explicit governed approval before restart.
+        alternatives:
+          - id: barrier-approval
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#SafetyBarrier", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Approval", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#StartupOrRestart", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/hse#SafetyBarrier"}
+              - {source: "https://cepio.org/ontology/process#StartupOrRestart", predicate: "https://cepio.org/ontology/kinetic#requiresApproval", target: "https://cepio.org/ontology/kinetic#Approval"}
