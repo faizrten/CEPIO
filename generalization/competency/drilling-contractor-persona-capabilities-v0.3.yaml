@@ -1,0 +1,424 @@
+id: drilling-contractor-persona-capabilities-v0.3
+version: "0.3"
+archetype_id: drilling-contractor-v0.1
+frozen: true
+questions:
+  - id: DC-PC-001
+    question: Who currently holds offshore command authority for this rig, and which permit, safety-case and emergency constraints bound that authority?
+    priority: critical
+    personas: [offshore-installation-manager]
+    standards: [iadc-ksa, api-rp54-4]
+    capability_tags: [authority, offshore-command, hse]
+    capabilities:
+      - id: scoped-command-authority
+        description: Resolve the party holding authority over the operating rig through an explicit authority assignment.
+        alternatives:
+          - id: authority-assignment
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#AuthorityAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#AuthorityAssignment", predicate: "https://cepio.org/ontology/workforce#authorityForAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - id: hse-command-bounds
+        description: Relate rig authority context to permits and safety-case evidence.
+        alternatives:
+          - id: permit-and-safety-case
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#WorkPermit", kind: class}
+              - {iri: "https://cepio.org/ontology/hse#SafetyCase", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#WorkPermit", predicate: "https://cepio.org/ontology/hse#permitForAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+              - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/hse#hasSafetyCase", target: "https://cepio.org/ontology/hse#SafetyCase"}
+
+  - id: DC-PC-002
+    question: Which drilling activity is the driller executing now, on which well and rig, and which equipment or condition deviation requires an immediate response?
+    priority: critical
+    personas: [driller]
+    standards: [iadc-ksa, iadc-ddr-plus-v2, energistics-witsml-2.1]
+    capability_tags: [frontline-execution, activity, deviation]
+    capabilities:
+      - id: drilling-activity-context
+        description: Resolve the current activity interval to its rig and well.
+        alternatives:
+          - id: activity-rig-well
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+              - {iri: "https://cepio.org/ontology/energy#Well", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#ActivityInterval", predicate: "https://cepio.org/ontology/drilling#activityOnRig", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+              - {source: "https://cepio.org/ontology/drilling#ActivityInterval", predicate: "https://cepio.org/ontology/drilling#activityForWell", target: "https://cepio.org/ontology/energy#Well"}
+      - id: temporally-scoped-activity-staffing
+        description: Resolve the driller through a crew assignment instead of a direct person-to-activity shortcut.
+        alternatives:
+          - id: crew-assignment-activity
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#CrewAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignmentOf", target: "https://cepio.org/ontology/workforce#CrewMember"}
+              - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignmentForActivity", target: "https://cepio.org/ontology/drilling#ActivityInterval"}
+      - id: equipment-condition-awareness
+        description: Connect condition evidence to drilling equipment requiring response.
+        alternatives:
+          - id: condition-observation
+            terms:
+              - {iri: "https://cepio.org/ontology/reliability#ConditionSignal", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/reliability#ConditionSignal", predicate: "https://cepio.org/ontology/reliability#observedOnEquipment", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+
+  - id: DC-PC-003
+    question: What changed at tour handover, what remains unresolved, and what must the assistant driller carry into the next shift?
+    priority: critical
+    personas: [assistant-driller, driller]
+    standards: [iadc-ksa]
+    capability_tags: [handover, shift, continuity]
+    capabilities:
+      - id: shift-handover-continuity
+        description: Carry activity and unresolved work between outgoing and incoming assignments.
+        alternatives:
+          - id: assignment-handover
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#ShiftHandover", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CrewAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/core#WorkItem", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#ShiftHandover", predicate: "https://cepio.org/ontology/workforce#handoverFromAssignment", target: "https://cepio.org/ontology/workforce#CrewAssignment"}
+              - {source: "https://cepio.org/ontology/workforce#ShiftHandover", predicate: "https://cepio.org/ontology/workforce#handoverToAssignment", target: "https://cepio.org/ontology/workforce#CrewAssignment"}
+              - {source: "https://cepio.org/ontology/workforce#ShiftHandover", predicate: "https://cepio.org/ontology/workforce#handoverForActivity", target: "https://cepio.org/ontology/drilling#ActivityInterval"}
+              - {source: "https://cepio.org/ontology/workforce#ShiftHandover", predicate: "https://cepio.org/ontology/workforce#handoverCarriesWork", target: "https://cepio.org/ontology/core#WorkItem"}
+
+  - id: DC-PC-004
+    question: Which BOP or subsea component is not ready, what test or defect evidence proves it, and who is accountable for restoring readiness?
+    priority: critical
+    personas: [subsea-well-control-engineer, offshore-installation-manager]
+    standards: [api-standard-53, iadc-drilling-manual-13]
+    capability_tags: [bop, subsea, accountability]
+    capabilities:
+      - id: well-control-assurance
+        description: Relate BOP equipment to well-control test evidence.
+        alternatives:
+          - id: bop-test
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#BlowoutPreventer", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#WellControlTest", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#WellControlTest", predicate: "https://cepio.org/ontology/drilling#testsWellControlEquipment", target: "https://cepio.org/ontology/drilling#BlowoutPreventer"}
+      - id: restoration-accountability
+        description: Resolve accountability through a scoped responsibility assignment to corrective work.
+        alternatives:
+          - id: responsibility-for-corrective-action
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/hse#CorrectiveAction", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", predicate: "https://cepio.org/ontology/workforce#responsibilityForWork", target: "https://cepio.org/ontology/hse#CorrectiveAction"}
+              - {source: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", predicate: "https://cepio.org/ontology/workforce#responsibilityHolder", target: "https://cepio.org/ontology/workforce#CrewMember"}
+
+  - id: DC-PC-005
+    question: Which mechanical defects and work orders create the greatest rig-availability exposure, and which work is owned by the chief mechanic?
+    priority: required
+    personas: [chief-mechanic, maintenance-planner]
+    standards: [iadc-ksa, iadc-drilling-manual-13]
+    capability_tags: [mechanical-maintenance, work-ownership, availability]
+    capabilities:
+      - id: equipment-work-failure-chain
+        description: Relate equipment to work orders and failure evidence.
+        alternatives:
+          - id: equipment-work-failure
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#DrillingEquipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+              - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/reliability#failureOfEquipment", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+      - id: work-responsibility
+        description: Resolve work ownership through responsibility assignments rather than a direct person-to-work edge.
+        alternatives:
+          - id: responsibility-assignment
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", predicate: "https://cepio.org/ontology/workforce#responsibilityHolder", target: "https://cepio.org/ontology/workforce#CrewMember"}
+              - {source: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", predicate: "https://cepio.org/ontology/workforce#responsibilityForWork", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+
+  - id: DC-PC-006
+    question: Which electrical isolation or power-system constraint blocks planned work, and what must the chief electrician verify before release?
+    priority: critical
+    personas: [chief-electrician, hse-manager]
+    standards: [iadc-ksa, api-rp54-4]
+    capability_tags: [electrical, isolation, permit-to-work]
+    capabilities:
+      - id: energy-isolation-control
+        description: Represent an energy isolation scoped to the affected drilling equipment and work.
+        alternatives:
+          - id: isolation-scope
+            terms:
+              - {iri: "https://cepio.org/ontology/hse#EnergyIsolation", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#EnergyIsolation", predicate: "https://cepio.org/ontology/hse#isolationForAsset", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+      - id: isolation-verification
+        description: Identify the party who verifies isolation before release.
+        alternatives:
+          - id: verified-by-crew
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/hse#EnergyIsolation", predicate: "https://cepio.org/ontology/hse#isolationVerifiedBy", target: "https://cepio.org/ontology/workforce#CrewMember"}
+
+  - id: DC-PC-007
+    question: Which directional-drilling service company is accountable for the current trajectory activity, what evidence did it deliver, and what obligation governs acceptance?
+    priority: required
+    personas: [directional-drilling-lead, operator-company-man]
+    standards: [energistics-witsml-2.1, osdu-data-definitions, iadc-model-contracts]
+    capability_tags: [service-company, trajectory, accountability, contract]
+    capabilities:
+      - id: contracted-service-execution
+        description: Connect a service execution to its underlying drilling activity, performing supplier and governing obligation.
+        alternatives:
+          - id: commercial-service-boundary
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceExecution", kind: class}
+              - {iri: "https://cepio.org/ontology/enterprise#Supplier", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#serviceExecutionForActivity", target: "https://cepio.org/ontology/drilling#ActivityInterval"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#performedBy", target: "https://cepio.org/ontology/enterprise#Supplier"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#governedByObligation", target: "https://cepio.org/ontology/commercial#ContractObligation"}
+      - id: service-delivery-evidence
+        description: Represent evidence produced by the contracted service execution.
+        alternatives:
+          - id: produced-evidence
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", target: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence"}
+      - id: service-acceptance
+        description: Represent operator/customer acceptance of delivered service.
+        alternatives:
+          - id: customer-acceptance
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceAcceptance", kind: class}
+              - {iri: "https://cepio.org/ontology/enterprise#Customer", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceAcceptance", predicate: "https://cepio.org/ontology/commercial#acceptanceOfService", target: "https://cepio.org/ontology/commercial#ServiceExecution"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceAcceptance", predicate: "https://cepio.org/ontology/commercial#acceptedBy", target: "https://cepio.org/ontology/enterprise#Customer"}
+
+  - id: DC-PC-008
+    question: Which drilling-fluid property is outside its operating envelope, what treatment is planned, and is the required material available on the rig?
+    priority: required
+    personas: [drilling-fluids-engineer, supply-chain-manager]
+    standards: [iadc-drilling-manual-13, energistics-witsml-2.1]
+    capability_tags: [drilling-fluids, materials, treatment]
+    capabilities:
+      - id: drilling-fluid-observation-context
+        description: Attach drilling-fluid measurement evidence to the drilling activity through the canonical measurement relation.
+        alternatives:
+          - id: measured-activity
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#DrillingFluidObservation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#ActivityInterval", predicate: "https://cepio.org/ontology/core#measuredBy", target: "https://cepio.org/ontology/drilling#DrillingFluidObservation"}
+      - id: material-readiness-evidence
+        description: Represent required material and inventory evidence without inventing fluid-specific supply semantics.
+        alternatives:
+          - id: common-supply-evidence
+            terms:
+              - {iri: "https://cepio.org/ontology/supply#MaterialRequirement", kind: class}
+              - {iri: "https://cepio.org/ontology/supply#InventoryPosition", kind: class}
+
+  - id: DC-PC-009
+    question: Is the cementing job ready to execute, including program, materials, equipment, approvals and post-job quality evidence?
+    priority: critical
+    personas: [cementing-supervisor, operator-company-man]
+    standards: [osdu-data-definitions, iadc-model-contracts]
+    capability_tags: [cementing, readiness, quality]
+    capabilities:
+      - id: cement-program-execution
+        description: Connect cementing execution to its governing cement program.
+        alternatives:
+          - id: cement-job-program
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#CementingJob", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#CementProgram", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#CementingJob", predicate: "https://cepio.org/ontology/drilling#executesProgram", target: "https://cepio.org/ontology/drilling#CementProgram"}
+      - id: cement-service-evidence
+        description: Reuse the common contracted-service evidence pattern for cementing execution.
+        alternatives:
+          - id: cement-service-delivery
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceExecution", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#serviceExecutionForActivity", target: "https://cepio.org/ontology/drilling#CementingJob"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", target: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence"}
+      - id: cement-material-requirement
+        description: Represent cementing material requirements using the common supply model.
+        alternatives:
+          - id: material-requirement
+            terms:
+              - {iri: "https://cepio.org/ontology/supply#MaterialRequirement", kind: class}
+
+  - id: DC-PC-010
+    question: Which program deviation is awaiting operator acceptance, who recommended it, who can authorize it, and what contractor obligation is affected?
+    priority: critical
+    personas: [operator-company-man, drilling-superintendent, commercial-manager]
+    standards: [iadc-model-contracts, osdu-data-definitions]
+    capability_tags: [operator-contractor-interface, authorization, deviation]
+    capabilities:
+      - id: plan-deviation-impact
+        description: Represent a plan deviation and its impact on a contract obligation using common semantics.
+        alternatives:
+          - id: common-plan-deviation
+            terms:
+              - {iri: "https://cepio.org/ontology/work#PlanDeviation", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/work#PlanDeviation", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/commercial#ContractObligation"}
+      - id: deviation-plan-context
+        description: Connect the deviation to the governing plan/document.
+        alternatives:
+          - id: deviation-from-plan
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Document", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/work#PlanDeviation", predicate: "https://cepio.org/ontology/work#deviationFromPlan", target: "https://cepio.org/ontology/core#Document"}
+      - id: operator-authorization
+        description: Resolve bounded operator/customer authority over the deviation as work.
+        alternatives:
+          - id: authority-for-deviation
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#AuthorityAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/enterprise#Customer", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#AuthorityAssignment", predicate: "https://cepio.org/ontology/workforce#authorityForWork", target: "https://cepio.org/ontology/work#PlanDeviation"}
+              - {source: "https://cepio.org/ontology/workforce#AuthorityAssignment", predicate: "https://cepio.org/ontology/workforce#authorityHolder", target: "https://cepio.org/ontology/enterprise#Customer"}
+
+  - id: DC-PC-011
+    question: What is the current rig margin and cash exposure after downtime, rate-basis changes, operating cost and contractual leakage are considered together?
+    priority: required
+    personas: [finance-controller, commercial-manager, fleet-executive]
+    standards: [iadc-model-contracts]
+    capability_tags: [finance, margin, cash, economics]
+    capabilities:
+      - id: contract-rate-economics
+        description: Connect contract rate, revenue and cost records to the drilling contract.
+        alternatives:
+          - id: contract-economics
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ContractRate", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#RevenueRecord", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#CostRecord", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ContractRate", predicate: "https://cepio.org/ontology/commercial#rateForContract", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+              - {source: "https://cepio.org/ontology/commercial#RevenueRecord", predicate: "https://cepio.org/ontology/commercial#revenueFor", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+              - {source: "https://cepio.org/ontology/commercial#CostRecord", predicate: "https://cepio.org/ontology/commercial#costFor", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+      - id: economic-exposure
+        description: Represent value-at-risk as a common commercial risk object.
+        alternatives:
+          - id: value-at-risk
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+
+  - id: DC-PC-012
+    question: Which crew rotation or mobilization constraint will make this rig non-ready in the next 14 days, and which competency or certification causes the constraint?
+    priority: critical
+    personas: [crewing-manager, competency-manager, rig-manager]
+    standards: [iadc-ksa]
+    capability_tags: [crewing, rotation, mobilization, competency]
+    capabilities:
+      - id: crew-rotation-context
+        description: Represent planned crew transition against the affected rig and assignments.
+        alternatives:
+          - id: rotation-assignments
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#CrewRotation", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CrewAssignment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#CrewRotation", predicate: "https://cepio.org/ontology/workforce#rotationForAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+              - {source: "https://cepio.org/ontology/workforce#CrewRotation", predicate: "https://cepio.org/ontology/workforce#rotationFromAssignment", target: "https://cepio.org/ontology/workforce#CrewAssignment"}
+              - {source: "https://cepio.org/ontology/workforce#CrewRotation", predicate: "https://cepio.org/ontology/workforce#rotationToAssignment", target: "https://cepio.org/ontology/workforce#CrewAssignment"}
+      - id: competency-readiness-evidence
+        description: Derive readiness from assignment requirements, assessment and certification evidence rather than storing MobilizationConstraint.
+        alternatives:
+          - id: competency-evidence-chain
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#CompetencyRequirement", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CompetencyAssessment", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#Certification", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignmentRequiresCompetency", target: "https://cepio.org/ontology/workforce#CompetencyRequirement"}
+              - {source: "https://cepio.org/ontology/workforce#CompetencyAssessment", predicate: "https://cepio.org/ontology/workforce#assessmentAgainstRequirement", target: "https://cepio.org/ontology/workforce#CompetencyRequirement"}
+              - {source: "https://cepio.org/ontology/workforce#CompetencyAssessment", predicate: "https://cepio.org/ontology/workforce#assessmentOfPerson", target: "https://cepio.org/ontology/workforce#CrewMember"}
+              - {source: "https://cepio.org/ontology/workforce#CrewMember", predicate: "https://cepio.org/ontology/workforce#hasCertification", target: "https://cepio.org/ontology/workforce#Certification"}
+
+  - id: DC-PC-013
+    question: Is the planned rig move executable when jack-up readiness, marine support, location suitability, weather limits and approvals are evaluated together?
+    priority: critical
+    personas: [marine-rig-move-manager, offshore-installation-manager, rig-manager]
+    standards: [iadc-jackup-rig-move, api-rp2ju]
+    capability_tags: [marine, rig-move, readiness]
+    capabilities:
+      - id: jackup-move-assurance
+        description: Relate the move to the rig, preload assessment and punch-through risk.
+        alternatives:
+          - id: move-assurance
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#JackUpMove", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#PreloadAssessment", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#PunchThroughRisk", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#JackUpMove", predicate: "https://cepio.org/ontology/drilling#moveOfRig", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+              - {source: "https://cepio.org/ontology/drilling#PreloadAssessment", predicate: "https://cepio.org/ontology/drilling#preloadAssessmentForMove", target: "https://cepio.org/ontology/drilling#JackUpMove"}
+              - {source: "https://cepio.org/ontology/drilling#JackUpMove", predicate: "https://cepio.org/ontology/drilling#hasPunchThroughRisk", target: "https://cepio.org/ontology/drilling#PunchThroughRisk"}
+      - id: marine-support-dependency
+        description: Reuse generic dependency semantics for required marine support assets.
+        alternatives:
+          - id: move-depends-on-marine-asset
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#MarineSupportAsset", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#JackUpMove", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/drilling#MarineSupportAsset"}
+      - id: move-location-context
+        description: Attach the rig move to a location using canonical location semantics.
+        alternatives:
+          - id: move-location
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Location", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#JackUpMove", predicate: "https://cepio.org/ontology/core#locatedAt", target: "https://cepio.org/ontology/core#Location"}
+
+  - id: DC-PC-014
+    question: Which critical material or service has the greatest procurement exposure, which supplier is responsible, and what rig work or campaign milestone is at risk?
+    priority: required
+    personas: [procurement-category-manager, supply-chain-manager, maintenance-planner]
+    standards: [iadc-model-contracts]
+    capability_tags: [procurement, supplier, material, schedule-risk]
+    capabilities:
+      - id: purchase-order-exposure
+        description: Connect the purchase order to its supplier and material requirement.
+        alternatives:
+          - id: purchase-order-supplier-requirement
+            terms:
+              - {iri: "https://cepio.org/ontology/supply#PurchaseOrder", kind: class}
+              - {iri: "https://cepio.org/ontology/enterprise#Supplier", kind: class}
+              - {iri: "https://cepio.org/ontology/supply#MaterialRequirement", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/supply#PurchaseOrder", predicate: "https://cepio.org/ontology/supply#purchaseOrderSupplier", target: "https://cepio.org/ontology/enterprise#Supplier"}
+              - {source: "https://cepio.org/ontology/supply#PurchaseOrder", predicate: "https://cepio.org/ontology/supply#purchaseOrderForRequirement", target: "https://cepio.org/ontology/supply#MaterialRequirement"}
+      - id: procurement-work-impact
+        description: Trace the material requirement to the affected rig work.
+        alternatives:
+          - id: requirement-to-work-order
+            terms:
+              - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/supply#MaterialRequirement", predicate: "https://cepio.org/ontology/supply#materialRequiredBy", target: "https://cepio.org/ontology/industrial#WorkOrder"}

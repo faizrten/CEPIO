@@ -33,6 +33,14 @@ jobs:
           --personas generalization/personas/drilling-contractor-v0.2.yaml
           --gaps generalization/gaps/drilling-contractor-persona-v0.2.yaml
           --json-out generalization-persona-v0.2-report.json
+      - name: Run drilling capability harness v0.3
+        run: >-
+          PYTHONPATH=src python scripts/run_generalization_harness.py
+          --competency generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml
+          --personas generalization/personas/drilling-contractor-v0.2.yaml
+          --skip-gap-triage
+          --fail-on-critical-gap
+          --json-out generalization-persona-v0.3-report.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
       - name: Build wheel

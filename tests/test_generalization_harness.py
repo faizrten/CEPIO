@@ -149,8 +149,8 @@ def test_rejected_literal_semantics_remain_absent():
         assert not ontology.has_term(TermRequirement(iri=iri, kind=kind))
 
 
-def test_runtime_evidence_checks_are_explicitly_not_run_in_v01():
+def test_runtime_evidence_checks_are_explicitly_not_run_by_semantic_harness():
     results = {item["id"]: item for item in _report()["results"]}
     assert results["DC-CQ-011"]["runtime_status"] == "NOT_RUN"
     assert results["DC-CQ-012"]["runtime_status"] == "NOT_RUN"
-    assert _report()["runtime_evaluation"] == "not executed in v0.1"
+    assert _report()["runtime_evaluation"] == "not executed by semantic-readiness harness"
