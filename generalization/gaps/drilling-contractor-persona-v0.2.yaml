@@ -18,8 +18,8 @@ decisions:
     replacement_layer: CORE
     owner_module: workforce
     standards: [iadc-ksa, iadc-ddr-plus-v2]
-    rationale: A direct CrewMember-to-activity edge loses role, shift, validity and assignment context. CEPIO models CrewAssignment and preserves that indirection for temporally correct operational staffing.
-    proposed_resolution: Use wf:assignmentForActivity on CrewAssignment and query the assigned person through the assignment. Do not add a direct CrewMember assignedToActivity edge solely to satisfy the frozen benchmark.
+    rationale: A direct CrewMember-to-activity edge loses role, shift, validity and assignment context.
+    proposed_resolution: Use wf:assignmentForActivity on CrewAssignment and query the assigned person through the assignment.
     benchmark_action: revise-in-next-frozen-pack
 
   - id: GAP-PE-005-DIRECT-WORK-RESPONSIBILITY
@@ -30,8 +30,8 @@ decisions:
     replacement_layer: CORE
     owner_module: workforce
     standards: [iadc-ksa]
-    rationale: Direct person-to-work responsibility is too weak because responsibility changes over time and may be held by a person or organization rather than a named crew member.
-    proposed_resolution: Use wf:ResponsibilityAssignment with wf:responsibilityHolder and wf:responsibilityForWork and resolve the current responsible party through temporal state.
+    rationale: Direct person-to-work responsibility is too weak because responsibility changes over time and may be held by a person or organization.
+    proposed_resolution: Use wf:ResponsibilityAssignment with wf:responsibilityHolder and wf:responsibilityForWork.
     benchmark_action: revise-in-next-frozen-pack
 
   - id: GAP-PE-007-SERVICE-DELIVERY-BOUNDARY
@@ -43,20 +43,9 @@ decisions:
     replacement_layer: CORE
     owner_module: enterprise
     standards: [iadc-model-contracts, energistics-witsml-2.1, osdu-data-definitions]
-    rationale: Service execution, provider identity, delivery evidence and acceptance are reusable enterprise concepts across drilling, inspection, maintenance and EPC services.
-    proposed_resolution: Introduce a common service-delivery pattern linking Activity or WorkItem to performing Party, governing ContractObligation, delivery evidence and acceptance record.
+    rationale: Service execution, provider identity, evidence and acceptance are reusable enterprise concepts rather than drilling-only semantics.
+    proposed_resolution: Introduce a common service-delivery pattern linking Activity or WorkItem to performing Party, ContractObligation, delivery evidence and acceptance.
     benchmark_action: revise-in-next-frozen-pack
-
-  - id: GAP-PE-008-DRILLING-FLUID-OBSERVATION
-    question_id: DC-PE-008
-    missing_semantics:
-      - https://cepio.org/ontology/drilling#DrillingFluidObservation
-    disposition: DOMAIN
-    owner_module: drilling
-    standards: [iadc-drilling-manual-13, energistics-witsml-2.1]
-    rationale: Drilling-fluid observations are genuine drilling-domain semantics because fluid properties, treatments and operating envelopes are tied to well-construction execution while still reusing CEPIO Measurement semantics.
-    proposed_resolution: Add DrillingFluidObservation as a drilling-domain Measurement specialization with relevant well/activity context.
-    benchmark_action: candidate-v0.2-remediation
 
   - id: GAP-PE-008-OBSERVATION-ACTIVITY-EDGE
     question_id: DC-PE-008
@@ -66,22 +55,9 @@ decisions:
     replacement_layer: CORE
     owner_module: core
     standards: [energistics-witsml-2.1]
-    rationale: CEPIO already has the common measuredBy relationship from an Entity to a Measurement. A drilling-only inverse relationship would duplicate that semantic contract.
+    rationale: CEPIO already has the common measuredBy relationship from an Entity to a Measurement; a drilling-only inverse would duplicate it.
     proposed_resolution: Link ActivityInterval to DrillingFluidObservation through cepio:measuredBy.
     benchmark_action: revise-in-next-frozen-pack
-
-  - id: GAP-PE-009-CEMENTING
-    question_id: DC-PE-009
-    missing_semantics:
-      - https://cepio.org/ontology/drilling#CementingJob
-      - https://cepio.org/ontology/drilling#CementProgram
-      - https://cepio.org/ontology/drilling#CementingJob --https://cepio.org/ontology/drilling#executesProgram--> https://cepio.org/ontology/drilling#CementProgram
-    disposition: DOMAIN
-    owner_module: drilling
-    standards: [osdu-data-definitions, iadc-model-contracts]
-    rationale: Cementing is a specific well-construction operation with a program, execution activity, materials, equipment and post-job quality evidence.
-    proposed_resolution: Add CementingJob as a drilling Activity, CementProgram as a drilling Document/plan abstraction, and a source-neutral relationship connecting execution to its governing cement program.
-    benchmark_action: candidate-v0.2-remediation
 
   - id: GAP-PE-009-SERVICE-EVIDENCE
     question_id: DC-PE-009
@@ -92,7 +68,7 @@ decisions:
     owner_module: enterprise
     standards: [iadc-model-contracts]
     rationale: Evidence that a contracted service was delivered should be reusable across service categories and industries.
-    proposed_resolution: Use the common service-delivery/evidence/acceptance abstraction and specialize only cementing execution in the drilling module.
+    proposed_resolution: Use the future common service-delivery/evidence/acceptance abstraction and specialize only cementing execution in drilling.
     benchmark_action: revise-in-next-frozen-pack
 
   - id: GAP-PE-010-PROGRAM-DEVIATION
@@ -116,19 +92,8 @@ decisions:
     owner_module: none
     standards: [iadc-ksa]
     rationale: Mobilization constraint is normally a derived conclusion from assignment, rotation, certification, competency, medical, travel or other readiness evidence.
-    proposed_resolution: Derive mobilization readiness through a governed function over underlying workforce evidence; do not store a specialized constraint solely to satisfy the benchmark.
-    benchmark_action: retain-v0.1-gap
-
-  - id: GAP-PE-013-MARINE-SUPPORT-ASSET
-    question_id: DC-PE-013
-    missing_semantics:
-      - https://cepio.org/ontology/drilling#MarineSupportAsset
-    disposition: DOMAIN
-    owner_module: drilling
-    standards: [iadc-jackup-rig-move, api-rp2ju]
-    rationale: Marine support assets are required for the current offshore drilling archetype and can be represented as source-neutral drilling/offshore physical assets without importing a maritime taxonomy into Core.
-    proposed_resolution: Add MarineSupportAsset as a drilling-domain physical-asset specialization sufficient for rig-move planning.
-    benchmark_action: candidate-v0.2-remediation
+    proposed_resolution: Derive mobilization readiness through a governed function over underlying workforce evidence.
+    benchmark_action: revise-in-next-frozen-pack
 
   - id: GAP-PE-013-SUPPORT-EDGE
     question_id: DC-PE-013
