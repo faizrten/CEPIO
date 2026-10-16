@@ -41,6 +41,11 @@ jobs:
           --skip-gap-triage
           --fail-on-critical-gap
           --json-out generalization-persona-v0.3-report.json
+      - name: Run drilling operational assurance v0.4
+        run: >-
+          PYTHONPATH=src python scripts/run_operational_assurance.py
+          --fail-on-gap
+          --json-out operational-assurance-v0.4-report.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
       - name: Build wheel
