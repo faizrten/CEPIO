@@ -9,9 +9,11 @@ work:MaintenanceNotification a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 work:MaintenanceCampaign a owl:Class ; rdfs:subClassOf cepio:Activity .
 work:Turnaround a owl:Class ; rdfs:subClassOf work:MaintenanceCampaign .
 work:WorkPackage a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+work:PlanDeviation a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 
 work:hasOperation a owl:ObjectProperty ; rdfs:domain ind:WorkOrder ; rdfs:range work:WorkOperation .
 work:triggeredByNotification a owl:ObjectProperty ; rdfs:domain ind:WorkOrder ; rdfs:range work:MaintenanceNotification .
 work:workAtAsset a owl:ObjectProperty ; rdfs:domain cepio:WorkItem ; rdfs:range cepio:Asset .
 work:scheduledInCampaign a owl:ObjectProperty ; rdfs:domain cepio:WorkItem ; rdfs:range work:MaintenanceCampaign .
 work:hasWorkPackage a owl:ObjectProperty ; rdfs:domain work:MaintenanceCampaign ; rdfs:range work:WorkPackage .
+work:deviationFromPlan a owl:ObjectProperty ; rdfs:domain work:PlanDeviation ; rdfs:range cepio:Document .
