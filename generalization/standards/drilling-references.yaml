@@ -19,11 +19,23 @@ references:
     url: https://store.iadc.org/product/iadc-drilling-manual-13th-ed
     use: Domain coverage taxonomy for rig systems, drilling practice, maintenance, troubleshooting and well control.
     access: Copyrighted commercial publication; use public metadata only unless separately licensed.
+  - id: iadc-model-contracts
+    name: IADC Model Contracts
+    body: International Association of Drilling Contractors
+    url: https://iadc.org/model-contracts/
+    use: Commercial benchmark for daywork/day-rate, offshore, land, turnkey and service drilling-contract structures.
+    access: Public model-contract download surface; use as a benchmark and do not treat a model form as legal advice or a universal contract ontology.
+  - id: iadc-jackup-rig-move
+    name: IADC Jack-Up Rig Move and Warranty Survey Guidance
+    body: International Association of Drilling Contractors
+    url: https://iadc.org/wp-content/uploads/2015/04/JRC-Rig-Move-Warranty-Survey-Revision-2.0-16-October-2014-Aligned-with-ISO_SNAME.pdf
+    use: Public historical drilling-industry guidance for jack-up rig moves, preload operations and punch-through risk framing.
+    access: Public IADC committee resource; preserve attribution and do not vendor the document.
   - id: energistics-witsml-2.1
     name: WITSML v2.1
     body: Energistics
     url: https://energistics.org/witsml-developers-users
-    use: Interoperability benchmark for well, wellbore and real-time drilling information.
+    use: Interoperability benchmark for well, wellbore, drilling reports, drilling activities and real-time drilling information.
     access: Public technical specification resources; do not copy unnecessary upstream content.
   - id: ppdm-well-status-v3
     name: PPDM Well Status and Classification v3
@@ -47,8 +59,14 @@ references:
     name: API Standard 53 — Well Control Equipment Systems for Drilling Wells
     body: American Petroleum Institute
     url: https://www.api.org/products-and-services/standards
-    use: BOP/well-control equipment assurance benchmark; harness stores no normative clauses.
+    use: BOP/well-control equipment installation, testing and assurance benchmark; harness stores no normative clauses.
     access: Copyrighted API standard; use public metadata only unless separately licensed.
+  - id: api-rp2ju
+    name: API RP 2JU — Site-specific assessment of mobile offshore units, jack-ups
+    body: American Petroleum Institute
+    url: https://www.api.org/products-and-services/standards/standards-plan
+    use: Jack-up site-specific assessment and elevated-at-site assurance benchmark.
+    access: Copyrighted API publication; use public catalog/plan metadata only unless separately licensed.
   - id: spe-dsats
     name: SPE Drilling Systems Advancement Technical Section
     body: Society of Petroleum Engineers
