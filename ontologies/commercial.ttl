@@ -5,6 +5,7 @@
 
 comm:ContractObligation a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 comm:ContractRate a owl:Class ; rdfs:subClassOf cepio:Entity .
+comm:RateBasis a owl:Class ; rdfs:subClassOf cepio:Entity .
 comm:FinancialActual a owl:Class ; rdfs:subClassOf cepio:Measurement .
 comm:RevenueRecord a owl:Class ; rdfs:subClassOf cepio:Measurement .
 comm:CostRecord a owl:Class ; rdfs:subClassOf cepio:Measurement .
@@ -16,6 +17,7 @@ comm:EconomicScenario a owl:Class ; rdfs:subClassOf cepio:Entity .
 
 comm:obligationOfContract a owl:ObjectProperty ; rdfs:domain comm:ContractObligation ; rdfs:range cepio:Contract .
 comm:rateForContract a owl:ObjectProperty ; rdfs:domain comm:ContractRate ; rdfs:range cepio:Contract .
+comm:hasRateBasis a owl:ObjectProperty ; rdfs:domain comm:ContractRate ; rdfs:range comm:RateBasis .
 comm:financialActualFor a owl:ObjectProperty ; rdfs:domain comm:FinancialActual ; rdfs:range cepio:Entity .
 comm:revenueFor a owl:ObjectProperty ; rdfs:domain comm:RevenueRecord ; rdfs:range cepio:Entity .
 comm:costFor a owl:ObjectProperty ; rdfs:domain comm:CostRecord ; rdfs:range cepio:Entity .
