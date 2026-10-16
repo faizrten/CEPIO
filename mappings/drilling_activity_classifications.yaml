@@ -1,0 +1,41 @@
+schema_version: '1.0'
+id: drilling-activity-classification-federation
+canonical:
+  activity_type: https://cepio.org/ontology/drilling#ActivityInterval
+  classification_type: https://cepio.org/ontology/drilling#DrillingActivityClassification
+  classification_relationship: https://cepio.org/ontology/drilling#classifiedBy
+  report_type: https://cepio.org/ontology/drilling#DrillingReport
+  report_activity_relationship: https://cepio.org/ontology/drilling#reportIncludesActivity
+principles:
+  - Preserve source code, code-system identity, source timestamps and provenance.
+  - Do not copy external activity-code taxonomies into the CEPIO canonical class hierarchy.
+  - Multiple external classifications may map to the same canonical activity interval without losing source identity.
+  - NPT is derived from activity/productivity classification and causal downtime/failure context; it is not modeled as a canonical event type solely for reporting convenience.
+external_systems:
+  - id: iadc-ddr-plus-v2
+    body: International Association of Drilling Contractors
+    mapping_mode: federated-codeset
+    source_concepts:
+      - main-code
+      - activity-code
+      - sub-activity-code
+      - equipment-code
+      - sub-equipment-code
+    target_semantics:
+      activity: https://cepio.org/ontology/drilling#ActivityInterval
+      classification: https://cepio.org/ontology/drilling#DrillingActivityClassification
+    notes: Retain the original IADC code hierarchy as source/federated identifiers. No IADC code values are vendored in CEPIO.
+  - id: energistics-witsml-2.1
+    body: Energistics
+    mapping_mode: semantic-federation
+    source_concepts:
+      - DrillReport
+      - DrillActivity
+      - DrillActivity.ActivityCode
+      - DrillActivity.TypeActivityClass
+      - DrillActivity.Productive
+    target_semantics:
+      report: https://cepio.org/ontology/drilling#DrillingReport
+      activity: https://cepio.org/ontology/drilling#ActivityInterval
+      classification: https://cepio.org/ontology/drilling#DrillingActivityClassification
+    notes: Preserve WITSML well/wellbore/report identity and activity classification as source provenance while materializing CEPIO canonical activity semantics.

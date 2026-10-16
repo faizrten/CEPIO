@@ -1,0 +1,56 @@
+id: drilling-contractor-gap-resolutions-v0.1
+version: "0.1"
+archetype_id: drilling-contractor-v0.1
+competency_pack_id: drilling-contractor-cq-v0.1
+issue: 72
+principle: The frozen competency pack remains unchanged; this ledger records accepted semantic remediations that changed CEPIO rather than rewriting the challenge.
+resolutions:
+  - gap_id: GAP-DC-004-REPORT-ACTIVITY
+    question_id: DC-CQ-004
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/drilling#DrillingReport
+      - https://cepio.org/ontology/drilling#DailyDrillingReport
+      - https://cepio.org/ontology/drilling#ActivityInterval
+      - https://cepio.org/ontology/drilling#DrillingActivityClassification
+      - https://cepio.org/ontology/drilling#reportIncludesActivity
+      - https://cepio.org/ontology/drilling#classifiedBy
+    notes: External IADC DDR Plus and WITSML activity codes remain federated through mappings/drilling_activity_classifications.yaml.
+
+  - gap_id: GAP-DC-005-COMPETENCY-REQUIREMENT
+    question_id: DC-CQ-005
+    disposition: CORE
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/workforce#CompetencyRequirement
+      - https://cepio.org/ontology/workforce#assessmentAgainstRequirement
+      - https://cepio.org/ontology/workforce#evidenceForCompetencyRequirement
+      - https://cepio.org/ontology/workforce#assignmentRequiresCompetency
+    notes: Certification remains evidence/context and is not asserted to be equivalent to demonstrated competence.
+
+  - gap_id: GAP-DC-007-WELL-CONTROL-EQUIPMENT
+    question_id: DC-CQ-007
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/drilling#WellControlEquipmentSystem
+      - https://cepio.org/ontology/drilling#BlowoutPreventer
+      - https://cepio.org/ontology/drilling#WellControlTest
+      - https://cepio.org/ontology/drilling#hasWellControlEquipment
+      - https://cepio.org/ontology/drilling#testsWellControlEquipment
+    notes: BOP remains drilling equipment and well-control tests remain inspection/assurance work, preserving common industrial abstractions.
+
+  - gap_id: GAP-DC-014-JACKUP-MOVE
+    question_id: DC-CQ-014
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/drilling#JackUpRig
+      - https://cepio.org/ontology/drilling#JackUpMove
+      - https://cepio.org/ontology/drilling#PreloadAssessment
+      - https://cepio.org/ontology/drilling#PunchThroughRisk
+      - https://cepio.org/ontology/drilling#moveOfRig
+      - https://cepio.org/ontology/drilling#preloadAssessmentForMove
+      - https://cepio.org/ontology/drilling#hasPunchThroughRisk
+    notes: The semantics are source-neutral drilling-domain concepts, not an ARO/customer profile.

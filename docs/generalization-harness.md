@@ -4,22 +4,22 @@
 
 The CEPIO Generalization Lab tests whether CEPIO is converging toward a reusable Energy & Process Industry operating abstraction rather than growing through customer-specific vocabulary. Its executable component is the **Competency Harness**.
 
-v0.1 uses a drilling-contractor archetype because it stresses materially different semantics from the refinery reference scenario: mobile fleet assets, wells and campaigns, activity/NPT coding, crew competency, well-control assurance, rig moves, drilling equipment, service contracts and offshore safety.
+The first archetype is a generic drilling contractor because it stresses semantics that differ materially from the refinery reference scenario: mobile rigs, wells and campaigns, activity/NPT coding, crew competency, well-control assurance, rig moves, drilling equipment, service contracts and offshore safety.
 
 ## Architectural invariant
 
 > Agents discover weaknesses; CEPIO evidence and deterministic validators decide whether the semantic contract passes.
 
-The harness therefore separates four trust zones:
+The harness separates four trust zones:
 
 1. **Challenge** — archetype, persona, standards and adversarial agents generate candidate questions.
 2. **Execution** — an Operator agent may plan retrieval but is constrained to governed CEPIO tools.
 3. **Evidence** — CEPIO objects, relationships, time, provenance, function/policy/action traces form the authoritative evidence bundle.
 4. **Assurance** — semantic judging is combined with deterministic structural validation before a result can pass.
 
-v0.1 implements the deterministic ontology-readiness slice first. Live LLM execution is intentionally not a CI dependency.
+Harness v0.1 implements deterministic ontology readiness first. Live LLM execution is intentionally not a CI dependency.
 
-## v0.1 flow
+## Frozen challenge flow
 
 ```text
 Drilling-contractor archetype
@@ -44,24 +44,24 @@ Accepted gap triage
 CORE / DOMAIN / PROFILE / MAPPING / REJECT
 ```
 
-Each run emits a stable hash over the frozen archetype, competency, persona and standards artifacts plus a separate hash of the CEPIO ontology modules. Accepted gap triage has its own hash. This keeps the challenge batch, ontology state and architectural response independently reproducible.
+Each run emits a stable hash over the frozen archetype, competency, persona and standards artifacts plus a separate ontology hash. Accepted current gap triage has its own hash. This keeps the challenge, ontology state and architecture response independently reproducible.
 
 ## Why semantic readiness comes first
 
-An LLM can often infer a plausible answer even when the ontology lacks the required relationship. That behavior is useful for exploration but unsafe as an ontology test. v0.1 therefore asks whether a non-LLM consumer could find the required canonical classes and edge contracts before any natural-language answer is judged.
+An LLM can often infer a plausible answer even when the ontology lacks the required relationship. That behavior is useful for exploration but unsafe as an ontology test. The deterministic harness asks whether a non-LLM consumer can find the required canonical classes and edge contracts before any natural-language answer is judged.
 
-For example, CEPIO can already express an `OperatingRig` working on a `Well`, and a `DrillingCampaign` using that rig. The same baseline currently lacks first-class concepts needed for some deliberate challenge cases such as BOP assurance, IADC-style activity coding and jack-up move readiness. The harness must surface those differences rather than allow a model to fill them in.
+The frozen competency pack is therefore not rewritten when CEPIO improves. Remediation must change the ontology/mapping architecture and then prove improvement against the same challenge.
 
 ## External standards are benchmarks, not canonical authority
 
-The drilling pack uses public reference surfaces from:
+The drilling campaign uses public/reference surfaces from:
 
-- IADC DDR Plus — activity/data acquisition and performance coding;
+- IADC DDR Plus — drilling activity, sub-activity, equipment and performance coding;
 - IADC KSA — role-based rig personnel competency;
 - IADC Drilling Manual — drilling-system/domain coverage taxonomy;
 - IADC Model Contracts — daywork/day-rate and drilling-contract structures;
-- IADC jack-up committee guidance — rig-move, preload and punch-through risk framing;
-- Energistics WITSML — interoperable drilling reports, activities, wells/wellbores and real-time drilling data;
+- IADC jack-up guidance — rig-move, preload and punch-through-risk framing;
+- Energistics WITSML — drilling reports, activities, wells/wellbores and real-time information;
 - PPDM — well identity/status and lifecycle vocabulary;
 - OSDU — Well, Wellbore, Completion, Well Plan, Well Activity, Materials and Well Equipment domains;
 - API RP 54 — drilling and servicing safety/risk context;
@@ -69,11 +69,11 @@ The drilling pack uses public reference surfaces from:
 - API RP 2JU — site-specific jack-up assessment context;
 - SPE DSATS — drilling systems advancement, automation and nomenclature.
 
-These references challenge and inform CEPIO. They do not automatically become CEPIO canonical semantics, and copyrighted standards text is not vendored into this repository.
+These references challenge and inform CEPIO. They do not automatically become canonical CEPIO semantics, and copyrighted standards content is not vendored into the repository.
 
 ## Agent contracts
 
-`generalization/agents/drilling-v0.1.yaml` defines the future live roles:
+`generalization/agents/drilling-v0.1.yaml` defines future live roles:
 
 - **Test Director** — campaign and frozen-batch control;
 - **Challenger** — persona/industry question generation;
@@ -83,18 +83,18 @@ These references challenge and inform CEPIO. They do not automatically become CE
 - **Evidence Auditor** — provenance/time/trace support;
 - **Gap Classifier** — `CORE / DOMAIN / PROFILE / MAPPING / REJECT` proposal.
 
-No harness agent may autonomously mutate CEPIO Core or merge an ontology change.
+No harness agent may autonomously mutate canonical CEPIO semantics or merge an ontology change.
 
-## Drilling v0.1 challenge design
+## Drilling v0.1 challenge
 
-The frozen questions intentionally mix expected strengths and hard gaps:
+The frozen 16 questions mix expected strengths and hard gaps:
 
 | Area | Why it matters |
 |---|---|
 | Rig → well → campaign | fundamental drilling identity/context |
 | Rig → systems/equipment → work | asset + maintenance portability |
 | Failure → downtime/NPT | reliability + drilling performance |
-| Daily activity/sub-activity | IADC operational-time vocabulary |
+| Daily activity/sub-activity | operational-time vocabulary and federation |
 | Crew → certification → competency | workforce readiness |
 | Permit → safety case → risk → action | HSE assurance |
 | BOP/test/drill evidence | well-control assurance |
@@ -108,60 +108,63 @@ The frozen questions intentionally mix expected strengths and hard gaps:
 | Incident → corrective action → readiness | safety-to-operation linkage |
 | Supplier → spare → equipment/work | supply-chain traceability |
 
-## Accepted v0.1 gap triage
+## Baseline v0.1 result and accepted triage
 
-The baseline has 9 PASS and 7 PARTIAL competency questions. The accepted classifier decisions are stored in `generalization/gaps/drilling-contractor-v0.1.yaml` and are checked against the current ontology result in CI.
+The initial ontology baseline scored **9 PASS / 7 PARTIAL** and **84.7%** of deterministic semantic checks.
 
-`CORE` means reusable canonical semantics across Energy & Process Industry archetypes; ownership may be in a common module such as `workforce` or `commercial`, not necessarily `core.ttl`.
+The original gaps were classified before remediation rather than copied literally into the ontology. Key decisions included:
 
-| Competency | Missing proposal | Decision | Smallest correct resolution |
-|---|---|---|---|
-| DC-CQ-003 | `NonProductiveTimeEvent` | **REJECT → DOMAIN replacement** | Model drilling activity intervals/productivity classification and derive NPT; retain failure/downtime causality. |
-| DC-CQ-004 | drilling report + activity interval | **DOMAIN** | Add source-neutral `DrillingReport` and `DrillingActivityInterval`. |
-| DC-CQ-004 | IADC/WITSML activity code | **MAPPING** | Keep external code systems in federation/mapping; expose a generic canonical classification hook. |
-| DC-CQ-005 | `CompetencyRequirement` | **CORE / workforce** | Add reusable competency requirement semantics across industrial workforces. |
-| DC-CQ-005 | certificate directly meets requirement | **REJECT → CORE replacement** | Competency assessment/evidence supports satisfaction; a certificate alone must not logically equal competence. |
-| DC-CQ-007 | BOP + well-control testing | **DOMAIN** | Add well-control equipment/system and assurance-test semantics in drilling. |
-| DC-CQ-009 | scalar `drill:dayRate` | **REJECT → CORE/commercial replacement** | Add typed contract-rate/rate-schedule semantics with amount, currency, basis and validity. |
-| DC-CQ-013 | `CampaignReadinessConstraint` | **REJECT** | Derive readiness through governed function/Decision over crew, inventory, HSE and contract evidence; reconsider a generic readiness abstraction only with cross-archetype evidence. |
-| DC-CQ-014 | jack-up move/preload/punch-through | **DOMAIN** | Add jack-up move activity, preload assessment, punch-through risk and rig linkage. |
+- reject `NonProductiveTimeEvent`; derive NPT from activity/productivity classification and causal downtime/failure;
+- add source-neutral drilling report/activity semantics but keep IADC/WITSML activity codes in federation/mapping;
+- add reusable workforce competency requirements while rejecting certificate = competence equivalence;
+- add BOP/well-control assurance as drilling-domain semantics;
+- reject a new `drill:dayRate`; use common commercial rate semantics;
+- reject stored `CampaignReadinessConstraint`; derive readiness through governed reasoning;
+- add jack-up move/preload/punch-through semantics as source-neutral drilling-domain concepts.
 
-This triage is deliberately stricter than adding every missing IRI. It treats the frozen test as a challenge to the architecture, not as a specification that the ontology must mirror literally.
+The baseline decisions that have since been implemented are preserved in `generalization/gaps/drilling-contractor-v0.1-resolutions.yaml`. Only currently unresolved gaps remain in the executable triage file.
 
-### Evidence behind the main decisions
+## Harness v0.2 semantic remediation
 
-- IADC DDR Plus publishes a hierarchical codeset of main, activity, sub-activity, equipment and sub-equipment codes. WITSML separately models `DrillReport` containing multiple `DrillActivity` records with activity classification, productivity and timing. CEPIO therefore needs canonical activity semantics plus mappings, not a copied IADC/WITSML taxonomy.
-- IADC KSA describes competencies as capabilities rig personnel must possess and demonstrate for their roles. Certification can contribute evidence but is not treated as synonymous with competence.
-- API Standard 53 covers well-control/BOP equipment systems and their installation/testing on drilling rigs, supporting a drilling-domain assurance model.
-- IADC publishes daywork drilling contract forms. The commercial concept is real, but a reusable rate value object is preferred over a drilling-only scalar.
-- API RP 2JU and IADC jack-up guidance establish jack-up site/move/preload/punch-through as a stable offshore-drilling concern rather than a customer profile detail.
+The first remediation cycle is documented in [Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md).
+
+It adds:
+
+- drilling report and activity-interval semantics;
+- a canonical classification hook plus IADC/WITSML federation contract;
+- reusable workforce competency requirements and evidence/assessment links;
+- well-control equipment/system/test semantics;
+- jack-up rig-move, preload and punch-through-risk semantics;
+- reusable commercial `ContractRate` / `RateBasis` semantics while retaining existing `comm:dayRate` compatibility.
+
+The frozen v0.1 question pack remains unchanged. The regression contract is **11 PASS / 5 PARTIAL** and **94.6%** semantic checks. The remaining PARTIAL results are intentional `MAPPING` or `REJECT` decisions, not unowned semantic debt.
 
 ## Executable triage invariant
 
 When a gap-triage artifact is supplied, the harness requires:
 
-1. the triage artifact to be explicitly `accepted`;
+1. the artifact to be explicitly `accepted`;
 2. every referenced question and standard to exist;
 3. every current `PARTIAL` or `FAIL` missing semantic to have exactly one triage decision;
 4. no duplicate triage coverage;
-5. no stale triage entry for a semantic that the current ontology now satisfies.
+5. no stale triage entry for a semantic the current ontology now satisfies.
 
-This means an ontology change that resolves one of these gaps must also update the triage artifact. Silent semantic drift fails the harness.
+This means a remediation that resolves a gap must update the triage artifact in the same change. Silent semantic drift fails the harness.
 
 ## Result interpretation
 
-A `PASS` in v0.1 means the ontology contains all declared semantic prerequisites. It does **not** prove that runtime data exists or that a natural-language answer would be correct.
+A `PASS` means the ontology contains all declared semantic prerequisites. It does **not** prove that runtime data exists or that a natural-language answer is correct.
 
-`PARTIAL` is often the most useful result: it shows that CEPIO's common abstractions work but a drilling-domain specialization, common abstraction or mapping is still missing.
+A `PARTIAL` can be the correct architectural result. For example, a frozen question may name an external codeset literally while CEPIO deliberately implements a canonical classification abstraction plus a federation mapping.
 
-Questions with `runtime.temporal`, `runtime.provenance`, `runtime.policy` or `runtime.kinetic` requirements are reported as `NOT_RUN` in v0.1. This prevents ontology readiness from being confused with runtime assurance.
+Questions with `runtime.temporal`, `runtime.provenance`, `runtime.policy` or `runtime.kinetic` requirements remain `NOT_RUN` in the ontology-readiness slice. This prevents semantic readiness from being confused with runtime assurance.
 
 ## Intended evolution
 
-- **v0.1** — deterministic ontology semantic readiness, drilling contractor, accepted gap classification.
-- **v0.2** — minimal accepted semantic remediation plus scenario fixtures and CEPIO runtime evidence bundles.
-- **v0.3** — constrained Operator agent using CEPIO REST/MCP only.
-- **v0.4** — independent semantic judge + evidence auditor.
-- **v0.5** — adversarial/mutation agents and regression campaigns across multiple industry archetypes.
+- **Harness v0.1** — frozen drilling-contractor semantic-readiness benchmark + accepted gap classification.
+- **Harness v0.2** — minimal accepted semantic remediation, then deterministic scenario fixtures/evidence bundles.
+- **Harness v0.3** — constrained Operator agent using CEPIO REST/MCP only.
+- **Harness v0.4** — independent semantic judge + evidence auditor.
+- **Harness v0.5** — adversarial/mutation campaigns across multiple industry archetypes.
 
-The eventual release gate should measure convergence: new archetypes should require progressively fewer changes to CEPIO Core while competency coverage rises.
+The long-term convergence metric is not “100% literal benchmark vocabulary.” It is rising competency coverage across new archetypes with progressively fewer changes to CEPIO common semantics and fewer customer-specific exceptions.

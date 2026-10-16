@@ -9,6 +9,7 @@
 drill:FleetUnit a owl:Class ; rdfs:subClassOf ind:Facility .
 drill:OperatingRig a owl:Class ; rdfs:subClassOf drill:FleetUnit .
 drill:ConstructionRig a owl:Class ; rdfs:subClassOf drill:FleetUnit .
+drill:JackUpRig a owl:Class ; rdfs:subClassOf drill:OperatingRig .
 drill:RigSystem a owl:Class ; rdfs:subClassOf asset:AssetSystem .
 drill:DrillingEquipment a owl:Class ; rdfs:subClassOf ind:Equipment .
 drill:WellContext a owl:Class ; rdfs:subClassOf cepio:Entity .
@@ -17,6 +18,22 @@ drill:RigOperationalEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 drill:DrillingContract a owl:Class ; rdfs:subClassOf cepio:Contract .
 drill:BareboatCharter a owl:Class ; rdfs:subClassOf cepio:Contract .
 
+# Source-neutral drilling-report/activity semantics. External IADC/WITSML codes remain mappings.
+drill:DrillingReport a owl:Class ; rdfs:subClassOf cepio:Document .
+drill:DailyDrillingReport a owl:Class ; rdfs:subClassOf drill:DrillingReport .
+drill:ActivityInterval a owl:Class ; rdfs:subClassOf cepio:Activity .
+drill:DrillingActivityClassification a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Well-control assurance semantics.
+drill:WellControlEquipmentSystem a owl:Class ; rdfs:subClassOf drill:RigSystem .
+drill:BlowoutPreventer a owl:Class ; rdfs:subClassOf drill:DrillingEquipment .
+drill:WellControlTest a owl:Class ; rdfs:subClassOf ind:Inspection .
+
+# Mobile offshore / jack-up semantics.
+drill:JackUpMove a owl:Class ; rdfs:subClassOf cepio:Activity .
+drill:PreloadAssessment a owl:Class ; rdfs:subClassOf ind:Inspection .
+drill:PunchThroughRisk a owl:Class ; rdfs:subClassOf cepio:Risk .
+
 drill:hasRigSystem a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range drill:RigSystem .
 drill:hasRigEquipment a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range ind:Equipment .
 drill:workingOnWell a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range energy:Well .
@@ -24,3 +41,21 @@ drill:hasWellContext a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdf
 drill:assignedContract a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range cepio:Contract .
 drill:eventOnRig a owl:ObjectProperty ; rdfs:domain drill:RigOperationalEvent ; rdfs:range drill:OperatingRig .
 drill:campaignUsesRig a owl:ObjectProperty ; rdfs:domain drill:DrillingCampaign ; rdfs:range drill:OperatingRig .
+
+# Drilling report/activity graph. Use cepio:startTime/endTime on reports and intervals.
+drill:reportForRig a owl:ObjectProperty ; rdfs:domain drill:DrillingReport ; rdfs:range drill:OperatingRig .
+drill:reportForWell a owl:ObjectProperty ; rdfs:domain drill:DrillingReport ; rdfs:range energy:Well .
+drill:reportIncludesActivity a owl:ObjectProperty ; rdfs:domain drill:DrillingReport ; rdfs:range drill:ActivityInterval .
+drill:activityOnRig a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range drill:OperatingRig .
+drill:activityForWell a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range energy:Well .
+drill:classifiedBy a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range drill:DrillingActivityClassification .
+
+# Well-control equipment and assurance relationships.
+drill:hasWellControlSystem a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range drill:WellControlEquipmentSystem .
+drill:hasWellControlEquipment a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range ind:Equipment .
+drill:testsWellControlEquipment a owl:ObjectProperty ; rdfs:domain drill:WellControlTest ; rdfs:range ind:Equipment .
+
+# Jack-up move/readiness relationships.
+drill:moveOfRig a owl:ObjectProperty ; rdfs:domain drill:JackUpMove ; rdfs:range drill:OperatingRig .
+drill:preloadAssessmentForMove a owl:ObjectProperty ; rdfs:domain drill:PreloadAssessment ; rdfs:range drill:JackUpMove .
+drill:hasPunchThroughRisk a owl:ObjectProperty ; rdfs:domain drill:JackUpMove ; rdfs:range drill:PunchThroughRisk .

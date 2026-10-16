@@ -15,3 +15,10 @@ Each missing semantic receives exactly one disposition:
 `REJECT` may include a `replacement_layer` when the business need is valid but should be satisfied by another abstraction.
 
 Accepted triage is executable: the harness rejects untriaged current gaps, duplicate coverage, unknown references and stale entries. Semantic remediation must therefore update the corresponding triage record in the same change.
+
+For a frozen benchmark:
+
+- `<archetype>.yaml` contains only **currently unresolved** accepted decisions and must exactly match the current harness result;
+- `<archetype>-resolutions.yaml` preserves the historical decisions that have been implemented without rewriting the frozen competency pack.
+
+The drilling-contractor v0.1 remediation follows this rule: BOP/well-control, jack-up mobility, drilling report/activity and common competency requirements move to the resolution ledger, while deliberate mapping/rejection cases remain in current triage.
