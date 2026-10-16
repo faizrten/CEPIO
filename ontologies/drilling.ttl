@@ -12,6 +12,7 @@ drill:ConstructionRig a owl:Class ; rdfs:subClassOf drill:FleetUnit .
 drill:JackUpRig a owl:Class ; rdfs:subClassOf drill:OperatingRig .
 drill:RigSystem a owl:Class ; rdfs:subClassOf asset:AssetSystem .
 drill:DrillingEquipment a owl:Class ; rdfs:subClassOf ind:Equipment .
+drill:MarineSupportAsset a owl:Class ; rdfs:subClassOf cepio:PhysicalAsset .
 drill:WellContext a owl:Class ; rdfs:subClassOf cepio:Entity .
 drill:DrillingCampaign a owl:Class ; rdfs:subClassOf cepio:Activity .
 drill:RigOperationalEvent a owl:Class ; rdfs:subClassOf cepio:Event .
@@ -23,6 +24,12 @@ drill:DrillingReport a owl:Class ; rdfs:subClassOf cepio:Document .
 drill:DailyDrillingReport a owl:Class ; rdfs:subClassOf drill:DrillingReport .
 drill:ActivityInterval a owl:Class ; rdfs:subClassOf cepio:Activity .
 drill:DrillingActivityClassification a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Drilling-fluid and cementing execution semantics. Measurements use cepio:measuredBy
+# from the observed activity; service-delivery evidence remains a common enterprise concern.
+drill:DrillingFluidObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
+drill:CementingJob a owl:Class ; rdfs:subClassOf drill:ActivityInterval .
+drill:CementProgram a owl:Class ; rdfs:subClassOf cepio:Document .
 
 # Well-control assurance semantics.
 drill:WellControlEquipmentSystem a owl:Class ; rdfs:subClassOf drill:RigSystem .
@@ -49,13 +56,15 @@ drill:reportIncludesActivity a owl:ObjectProperty ; rdfs:domain drill:DrillingRe
 drill:activityOnRig a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range drill:OperatingRig .
 drill:activityForWell a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range energy:Well .
 drill:classifiedBy a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range drill:DrillingActivityClassification .
+drill:executesProgram a owl:ObjectProperty ; rdfs:domain drill:CementingJob ; rdfs:range drill:CementProgram .
 
 # Well-control equipment and assurance relationships.
 drill:hasWellControlSystem a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range drill:WellControlEquipmentSystem .
 drill:hasWellControlEquipment a owl:ObjectProperty ; rdfs:domain drill:OperatingRig ; rdfs:range ind:Equipment .
 drill:testsWellControlEquipment a owl:ObjectProperty ; rdfs:domain drill:WellControlTest ; rdfs:range ind:Equipment .
 
-# Jack-up move/readiness relationships.
+# Jack-up move/readiness relationships. Marine support is represented through
+# the reusable cepio:dependsOn relation at instance level.
 drill:moveOfRig a owl:ObjectProperty ; rdfs:domain drill:JackUpMove ; rdfs:range drill:OperatingRig .
 drill:preloadAssessmentForMove a owl:ObjectProperty ; rdfs:domain drill:PreloadAssessment ; rdfs:range drill:JackUpMove .
 drill:hasPunchThroughRisk a owl:ObjectProperty ; rdfs:domain drill:JackUpMove ; rdfs:range drill:PunchThroughRisk .
