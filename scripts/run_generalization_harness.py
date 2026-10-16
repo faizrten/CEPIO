@@ -16,6 +16,7 @@ def main() -> int:
     parser.add_argument("--competency", type=Path)
     parser.add_argument("--personas", type=Path)
     parser.add_argument("--standards", type=Path)
+    parser.add_argument("--gaps", type=Path)
     parser.add_argument("--json-out", type=Path)
     parser.add_argument("--fail-on-critical-gap", action="store_true")
     args = parser.parse_args()
@@ -28,6 +29,7 @@ def main() -> int:
         args.competency or base / "competency/drilling-contractor-v0.1.yaml",
         args.personas or base / "personas/drilling-contractor-v0.1.yaml",
         args.standards or base / "standards/drilling-references.yaml",
+        args.gaps or base / "gaps/drilling-contractor-v0.1.yaml",
     )
 
     print(f"CEPIO Generalization Harness v{report['harness_version']}")
@@ -35,6 +37,9 @@ def main() -> int:
     print(f"archetype: {report['archetype_id']}")
     print(f"batch: {report['batch_hash'][:16]}")
     print(f"ontology: {report['ontology_hash'][:16]}")
+    if report["gap_triage_hash"]:
+        print(f"gap triage: {report['gap_triage_hash'][:16]}")
+        print(f"gap dispositions: {report['gap_disposition_counts']}")
     print(f"questions: {report['question_count']}")
     print(f"status: {report['status_counts']}")
     print(f"semantic checks: {report['semantic_check_pass_rate']:.1%}")
@@ -44,6 +49,11 @@ def main() -> int:
             suffix = " | missing: " + "; ".join(result["missing"])
         if result["runtime_status"] == "NOT_RUN":
             suffix += " | runtime: NOT_RUN"
+        decisions = result.get("gap_decisions", [])
+        if decisions:
+            suffix += " | triage: " + ", ".join(
+                f"{decision['disposition']}:{decision['id']}" for decision in decisions
+            )
         print(f"{result['id']} {result['status']} {result['checks_passed']}/{result['checks_total']}{suffix}")
 
     if args.json_out:
