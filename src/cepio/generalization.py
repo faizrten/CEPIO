@@ -1,7 +1,8 @@
-"""Deterministic semantic-readiness harness for CEPIO generalization tests.
+"""CEPIO Generalization & Competency Harness.
 
-v0.1 intentionally evaluates ontology prerequisites only. Agentic question
-generation and judging are specified separately; they are not trusted as evidence.
+v0.1 established deterministic ontology-semantic readiness. v0.2 adds deterministic
+runtime evidence for frozen competency questions while preserving the rule that LLM
+reasoning is never treated as enterprise evidence.
 """
 from __future__ import annotations
 
@@ -325,6 +326,20 @@ def validate_gap_triage(
         raise ValueError(f"gap triage contains stale/non-current gaps: {stale}")
 
 
+def _apply_runtime_results(results: list[dict], runtime_report: dict) -> None:
+    runtime_by_question = {item["question_id"]: item for item in runtime_report["results"]}
+    for result in results:
+        if result["runtime_status"] == "NOT_REQUIRED":
+            continue
+        runtime = runtime_by_question.get(result["id"])
+        if runtime is None:
+            result["runtime_status"] = "NOT_RUN"
+            continue
+        result["runtime_status"] = runtime["status"]
+        result["runtime_check"] = runtime["check"]
+        result["evidence_bundle"] = runtime["evidence_bundle"]
+
+
 def run_harness(
     repo_root: Path,
     archetype_path: Path,
@@ -332,6 +347,7 @@ def run_harness(
     persona_path: Path,
     standards_path: Path,
     gap_triage_path: Path | None = None,
+    runtime_scenario_path: Path | None = None,
 ) -> dict:
     archetype = load_archetype(archetype_path)
     pack = load_pack(competency_path)
@@ -361,12 +377,27 @@ def run_harness(
         for result in results:
             result["gap_decisions"] = decisions_by_question.get(result["id"], [])
 
+    runtime_report = None
+    if runtime_scenario_path is not None:
+        from .generalization_runtime import run_runtime_scenario
+
+        runtime_report = run_runtime_scenario(repo_root, runtime_scenario_path)
+        if runtime_report["archetype_id"] != archetype.id:
+            raise ValueError(
+                f"runtime scenario archetype {runtime_report['archetype_id']!r} != {archetype.id!r}"
+            )
+        _apply_runtime_results(results, runtime_report)
+
     total_checks = sum(result["checks_total"] for result in results)
     passed_checks = sum(result["checks_passed"] for result in results)
     statuses = {status: sum(result["status"] == status for result in results) for status in ("PASS", "PARTIAL", "FAIL", "ERROR")}
+    runtime_statuses = {
+        status: sum(result["runtime_status"] == status for result in results)
+        for status in ("PASS", "FAIL", "NOT_RUN", "NOT_REQUIRED")
+    }
     return {
-        "harness_version": "0.1",
-        "mode": "deterministic-ontology-semantic-readiness",
+        "harness_version": "0.2" if runtime_report else "0.1",
+        "mode": "semantic-readiness+runtime-evidence" if runtime_report else "deterministic-ontology-semantic-readiness",
         "archetype_id": archetype.id,
         "competency_pack_id": pack.id,
         "batch_hash": stable_hash(frozen_payload),
@@ -376,6 +407,12 @@ def run_harness(
         "question_count": len(results),
         "status_counts": statuses,
         "semantic_check_pass_rate": (passed_checks / total_checks) if total_checks else 0.0,
-        "runtime_evaluation": "not executed in v0.1",
+        "runtime_status_counts": runtime_statuses,
+        "runtime_scenario": runtime_report,
+        "runtime_evaluation": (
+            "deterministic runtime evidence executed"
+            if runtime_report
+            else "not executed in v0.1"
+        ),
         "results": results,
     }
