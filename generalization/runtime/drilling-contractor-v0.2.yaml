@@ -1,0 +1,49 @@
+id: drilling-contractor-runtime-v0.2
+version: "0.2"
+archetype_id: drilling-contractor-v0.1
+description: >
+  Deterministic runtime-evidence fixture for the drilling-contractor harness. It proves
+  bitemporal state reconstruction and property provenance without requiring an LLM.
+
+temporal_case:
+  question_id: DC-CQ-011
+  object_id: RIG-RT-001
+  object_name: Reference Jack-up Rig RT-001
+  object_type: "https://cepio.org/ontology/drilling#OperatingRig"
+  property_name: cepio:status
+  valid_from: "2026-01-15T08:00:00Z"
+  valid_to: "2026-01-15T12:00:00Z"
+  query_valid_time: "2026-01-15T10:00:00Z"
+  initial_value: OPERATING
+  corrected_value: NPT
+  rationale: >
+    The first ingestion states that the rig was operating during the interval. A later
+    ingestion corrects the same valid-time interval to NPT. The harness must recover
+    both what CEPIO believed after the first transaction and what it believed after the
+    correction.
+
+provenance_case:
+  question_id: DC-CQ-012
+  object_id: KPI-RT-DOWNTIME-001
+  object_name: Reference Rig Downtime KPI Observation
+  object_type: "https://cepio.org/ontology/performance#KPIObservation"
+  property_name: rel:downtimeHours
+  value: 6.5
+  unit: h
+  observed_at: "2026-01-15T12:00:00Z"
+  source:
+    source_system: IADC-DDR
+    source_entity: ActivityInterval
+    source_field: durationHours
+    source_record_id: DDR-RT-001-ACT-07
+    source_uri: "urn:iadc-ddr:DDR-RT-001:ACT-07"
+  mapping_kind: calculated
+  mapping_id: drilling-activity-to-downtime-kpi
+  mapping_version: "0.2.0"
+  code_version: "harness-v0.2"
+  transformation_started_at: "2026-01-15T12:01:00Z"
+  transformation_completed_at: "2026-01-15T12:01:02Z"
+  rationale: >
+    The KPI value must be explainable from an explicit source record, observed time,
+    mapping version and transformation run. The LLM is not permitted to supply any of
+    those facts from background knowledge.
