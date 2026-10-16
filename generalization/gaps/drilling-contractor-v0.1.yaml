@@ -1,5 +1,5 @@
 id: drilling-contractor-gap-triage-v0.1
-version: "0.1"
+version: "0.2"
 archetype_id: drilling-contractor-v0.1
 competency_pack_id: drilling-contractor-cq-v0.1
 status: accepted
@@ -19,20 +19,8 @@ decisions:
     owner_module: drilling
     standards: [iadc-ddr-plus-v2, energistics-witsml-2.1]
     rationale: NPT is more robustly represented as a productivity/time classification over drilling activity intervals and their causal downtime/failure context than as a new event type. WITSML models drilling activity with productive and planned/unplanned/downtime classification, while IADC DDR Plus provides hierarchical operational codes.
-    proposed_resolution: Add a source-neutral drilling activity interval/classification abstraction and derive NPT duration from classified intervals plus causal events. Do not add NonProductiveTimeEvent solely to make the benchmark pass.
+    proposed_resolution: Use the source-neutral drilling activity interval/classification abstraction and derive NPT duration from classified intervals plus causal events. Do not add NonProductiveTimeEvent solely to make the benchmark pass.
     benchmark_action: retain-v0.1-gap
-
-  - id: GAP-DC-004-REPORT-ACTIVITY
-    question_id: DC-CQ-004
-    missing_semantics:
-      - https://cepio.org/ontology/drilling#DailyDrillingReport
-      - https://cepio.org/ontology/drilling#ActivityInterval
-    disposition: DOMAIN
-    owner_module: drilling
-    standards: [iadc-ddr-plus-v2, energistics-witsml-2.1]
-    rationale: A drilling report and time-bounded drilling activity are stable domain concepts independent of any one contractor. WITSML DrillReport explicitly carries reporting intervals and multiple DrillActivity records.
-    proposed_resolution: Introduce canonical DrillingReport and DrillingActivityInterval semantics with report period, well/wellbore context, start/end/duration and operational classification hooks.
-    benchmark_action: candidate-v0.2-remediation
 
   - id: GAP-DC-004-ACTIVITY-CODE
     question_id: DC-CQ-004
@@ -42,20 +30,9 @@ decisions:
     disposition: MAPPING
     owner_module: drilling
     standards: [iadc-ddr-plus-v2, energistics-witsml-2.1]
-    rationale: IADC DDR Plus and WITSML each expose activity coding/classification schemes. CEPIO should preserve canonical activity semantics while mapping external codes and code systems rather than copying those taxonomies into the canonical ontology.
-    proposed_resolution: Add a generic domain classification hook on DrillingActivityInterval and create explicit IADC DDR Plus / WITSML federation mappings. Do not make the external codeset itself a CEPIO canonical class hierarchy.
+    rationale: IADC DDR Plus and WITSML each expose activity coding/classification schemes. CEPIO preserves canonical activity semantics while mapping external codes and code systems rather than copying those taxonomies into the canonical ontology.
+    proposed_resolution: Use the canonical drill:classifiedBy relationship to drill:DrillingActivityClassification and the federation contract in mappings/drilling_activity_classifications.yaml. Do not make an external activity codeset a CEPIO canonical class hierarchy.
     benchmark_action: revise-in-next-frozen-pack
-
-  - id: GAP-DC-005-COMPETENCY-REQUIREMENT
-    question_id: DC-CQ-005
-    missing_semantics:
-      - https://cepio.org/ontology/workforce#CompetencyRequirement
-    disposition: CORE
-    owner_module: workforce
-    standards: [iadc-ksa]
-    rationale: Role/task competency requirements recur across drilling, process manufacturing, maintenance, EPC and other industrial workforces. The concept belongs in reusable workforce semantics rather than the drilling module.
-    proposed_resolution: Add workforce:CompetencyRequirement and connect role/task expectations, CompetencyAssessment and CompetencyEvidence to it.
-    benchmark_action: candidate-v0.2-remediation
 
   - id: GAP-DC-005-CERTIFICATE-EQUIVALENCE
     question_id: DC-CQ-005
@@ -66,22 +43,8 @@ decisions:
     owner_module: workforce
     standards: [iadc-ksa]
     rationale: A certificate can be evidence relevant to competence but should not by itself assert that a worker meets a competency requirement. IADC KSA frames competence as demonstrable capability for a rig role.
-    proposed_resolution: Model CompetencyAssessment/CompetencyEvidence satisfying or supporting a CompetencyRequirement; allow Certification to be evidence without making it logically equivalent to competence.
+    proposed_resolution: Use CompetencyAssessment and CompetencyEvidence against CompetencyRequirement; allow Certification to be evidence without making it logically equivalent to competence.
     benchmark_action: revise-in-next-frozen-pack
-
-  - id: GAP-DC-007-WELL-CONTROL-EQUIPMENT
-    question_id: DC-CQ-007
-    missing_semantics:
-      - https://cepio.org/ontology/drilling#BlowoutPreventer
-      - https://cepio.org/ontology/drilling#WellControlTest
-      - https://cepio.org/ontology/drilling#OperatingRig --https://cepio.org/ontology/drilling#hasWellControlEquipment--> https://cepio.org/ontology/drilling#BlowoutPreventer
-      - https://cepio.org/ontology/drilling#WellControlTest --https://cepio.org/ontology/drilling#testsWellControlEquipment--> https://cepio.org/ontology/drilling#BlowoutPreventer
-    disposition: DOMAIN
-    owner_module: drilling
-    standards: [api-standard-53, iadc-drilling-manual-13]
-    rationale: BOP/well-control equipment and its testing are intrinsic drilling-domain assurance semantics. API Standard 53 explicitly covers installation and testing of well-control/BOP equipment systems on drilling rigs.
-    proposed_resolution: Add WellControlEquipmentSystem, BlowoutPreventer and WellControlTest domain concepts. Model BlowoutPreventer as drilling equipment, WellControlEquipmentSystem as a rig system, and WellControlTest as an inspection/assurance work item linked to the equipment tested.
-    benchmark_action: candidate-v0.2-remediation
 
   - id: GAP-DC-009-DAYRATE
     question_id: DC-CQ-009
@@ -91,8 +54,8 @@ decisions:
     replacement_layer: CORE
     owner_module: commercial
     standards: [iadc-model-contracts]
-    rationale: Daywork/day-rate commercial structures are real drilling-contract concepts, but a currencyless scalar drill:dayRate would not generalize and would lose amount, currency, effective period and rate basis. Rate semantics also recur outside drilling.
-    proposed_resolution: Add a reusable commercial ContractRate/RateSchedule value object with amount, currency, basis (day/hour/unit), validity and contract relationship; bind drilling daywork contracts to basis=day through the drilling domain or profile.
+    rationale: Daywork/day-rate commercial structures are real drilling-contract concepts, but a currencyless drilling-only scalar does not generalize and loses amount, currency, effective period and rate basis. CEPIO already retains comm:dayRate for backward compatibility; new semantics use ContractRate plus RateBasis and existing common value/validity properties.
+    proposed_resolution: Use reusable comm:ContractRate linked to a contract and comm:RateBasis, with comm:amount, comm:currency and cepio:validFrom/validTo. Do not add drill:dayRate.
     benchmark_action: revise-in-next-frozen-pack
 
   - id: GAP-DC-013-CAMPAIGN-READINESS-CONSTRAINT
@@ -102,20 +65,6 @@ decisions:
     disposition: REJECT
     owner_module: none
     standards: [iadc-ksa, iadc-model-contracts]
-    rationale: The question can be answered from existing and proposed evidence about crew competency, inventory/spares, HSE and contract obligations. A stored drilling-specific CampaignReadinessConstraint would duplicate a derived conclusion and encourage ontology bloat.
+    rationale: The question can be answered from evidence about crew competency, inventory/spares, HSE and contract obligations. A stored drilling-specific CampaignReadinessConstraint would duplicate a derived conclusion and encourage ontology bloat.
     proposed_resolution: Compute campaign readiness through a governed function/Decision over underlying evidence. Revisit a generic ReadinessAssessment or Constraint abstraction only if a second independent archetype demonstrates the same semantic need.
     benchmark_action: retain-v0.1-gap
-
-  - id: GAP-DC-014-JACKUP-MOVE
-    question_id: DC-CQ-014
-    missing_semantics:
-      - https://cepio.org/ontology/drilling#JackUpMove
-      - https://cepio.org/ontology/drilling#PreloadAssessment
-      - https://cepio.org/ontology/drilling#PunchThroughRisk
-      - https://cepio.org/ontology/drilling#JackUpMove --https://cepio.org/ontology/drilling#moveOfRig--> https://cepio.org/ontology/drilling#OperatingRig
-    disposition: DOMAIN
-    owner_module: drilling
-    standards: [api-rp2ju, iadc-jackup-rig-move]
-    rationale: Jack-up positioning, preload and punch-through are stable mobile-offshore-drilling concepts. API RP 2JU addresses site-specific jack-up assessment, while IADC jack-up guidance explicitly treats rig-move planning, preload and punch-through risk as operational concerns.
-    proposed_resolution: Add JackUpMove as a drilling activity, PreloadAssessment as an assurance/assessment work item, PunchThroughRisk as a drilling-domain risk specialization, and moveOfRig linking the activity to the operating rig.
-    benchmark_action: candidate-v0.2-remediation
