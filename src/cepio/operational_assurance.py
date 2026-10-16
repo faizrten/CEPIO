@@ -376,11 +376,14 @@ def run_provenance_case(
     records = explanation["provenance"]
     transformations = explanation["transformations"]
     resolved = registry.resolve(case.property_name)
+    serialized_observed_at = datetime.fromisoformat(
+        str(records[0]["observed_at"]).replace("Z", "+00:00")
+    ) if records and records[0].get("observed_at") else None
     passed = (
         len(records) == 1
         and records[0]["source"]["source_system"] == case.source.source_system
         and records[0]["source"]["source_field"] == case.source.source_field
-        and records[0]["observed_at"] == case.observed_at
+        and serialized_observed_at == case.observed_at
         and records[0]["mapping_version"] == case.mapping_version
         and records[0]["transformation_id"] == transformation.id
         and transformation.id in transformations
