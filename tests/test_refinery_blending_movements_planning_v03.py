@@ -29,6 +29,16 @@ def test_crude_assay_is_canonical_but_yield_model_remains_outside_ontology():
     assert (PROCESS.yieldModelForStream, RDF.type, OWL.ObjectProperty) not in graph
     assert (PROCESS.yieldModelForUnit, RDF.type, OWL.ObjectProperty) not in graph
 
+    mapping = yaml.safe_load((ROOT / "mappings" / "process_models.yaml").read_text())
+    packaged_mapping = yaml.safe_load(
+        (ROOT / "src" / "cepio" / "resources" / "mappings" / "process_models.yaml").read_text()
+    )
+    yield_model = mapping["model_mappings"][0]
+    assert yield_model["id"] == "yield-model"
+    assert yield_model["canonical_type"] == "https://cepio.org/ontology/core#DigitalAsset"
+    assert yield_model["semantics"]["execution_is_external"] is True
+    assert packaged_mapping == mapping
+
 
 def test_blend_plan_reuses_isa95_schedule_and_material_lot_semantics():
     graph = _graph("process_industry.ttl")
