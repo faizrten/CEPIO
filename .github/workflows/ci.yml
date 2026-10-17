@@ -51,6 +51,15 @@ jobs:
           PYTHONPATH=src python scripts/run_runtime_coverage.py
           --fail-on-gap
           --json-out runtime-coverage-v0.5-report.json
+      - name: Run refinery/process-manufacturing frozen baseline v0.1
+        run: >-
+          PYTHONPATH=src python scripts/run_generalization_harness.py
+          --archetype generalization/archetypes/refinery-process-manufacturing-v0.1.yaml
+          --competency generalization/competency/refinery-process-manufacturing-v0.1.yaml
+          --personas generalization/personas/refinery-process-manufacturing-v0.1.yaml
+          --standards generalization/standards/refinery-process-references.yaml
+          --skip-gap-triage
+          --json-out refinery-generalization-v0.1-report.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
       - name: Build wheel

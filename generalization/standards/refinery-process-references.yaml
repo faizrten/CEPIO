@@ -1,0 +1,33 @@
+id: refinery-process-standards-v0.1
+version: "0.1"
+references:
+  - id: isa-95-2025
+    name: ANSI/ISA-95.00.01-2025 (IEC 62264-1 Modified) — Enterprise-Control System Integration, Part 1
+    body: International Society of Automation
+    url: https://www.isa.org/standards-and-publications/isa-standards/isa-95-standard
+    use: Manufacturing/process-enterprise hierarchy, operations-management concepts and enterprise/control integration benchmark.
+    access: Copyrighted standard; use public metadata and terminology only unless separately licensed.
+  - id: iso-14224-2016
+    name: ISO 14224:2016 — Petroleum, petrochemical and natural gas industries — Reliability and maintenance data for equipment
+    body: International Organization for Standardization
+    url: https://www.iso.org/standard/64076.html
+    use: Equipment taxonomy, failure, maintenance and reliability-data benchmark for process assets.
+    access: Copyrighted ISO standard; use public metadata only unless separately licensed.
+  - id: iec-61511-series
+    name: IEC 61511 series — Functional safety, safety instrumented systems for the process industry sector
+    body: International Electrotechnical Commission
+    url: https://webstore.iec.ch/en/publication/5527
+    use: Process-safety, safety-instrumented-function and barrier-assurance challenge benchmark.
+    access: Copyrighted IEC publications; use public metadata only unless separately licensed.
+  - id: api-rp-754-4e
+    name: API RP 754, 4th edition — Process Safety Performance Indicators for the Refining and Petrochemical Industries
+    body: American Petroleum Institute
+    url: https://www.api.org/news-policy-and-issues/news/2026/08/06/api-publishes-fourth-edition-process-safety-performance-indicators-standard
+    use: Refining/petrochemical process-safety event, leading-indicator and lagging-indicator challenge framing.
+    access: Copyrighted API publication; use public metadata only unless separately licensed.
+  - id: iso-50001-2018
+    name: ISO 50001:2018 — Energy management systems — Requirements with guidance for use
+    body: International Organization for Standardization
+    url: https://www.iso.org/standard/69426.html
+    use: Energy-performance, consumption, measurement and continual-improvement challenge benchmark.
+    access: Copyrighted ISO standard; use public metadata only unless separately licensed.
