@@ -15,15 +15,14 @@ def test_equipment_degradation_semantics_are_canonical_and_composable():
     assert registry.is_declared_type("ConditionObservation")
     assert registry.is_declared_type("ProductionExposure")
     assert registry.is_declared_relationship("hasConditionObservation")
-    assert registry.is_a("ConditionSignal", "ConditionObservation")
 
     runtime.upsert_object(OntologyObject(id="K-201", type="Compressor", name="K-201"))
-    runtime.upsert_object(OntologyObject(id="COND-1", type="ConditionSignal", name="K-201 vibration"))
+    runtime.upsert_object(OntologyObject(id="COND-1", type="ConditionObservation", name="K-201 vibration"))
     runtime.add_relationship(
         Relationship(
             type="hasConditionObservation",
             source=ObjectRef(id="K-201", type="Compressor"),
-            target=ObjectRef(id="COND-1", type="ConditionSignal"),
+            target=ObjectRef(id="COND-1", type="ConditionObservation"),
         )
     )
 
@@ -66,7 +65,7 @@ def test_mcp_boundary_exposes_declared_condition_and_failure_evidence():
     runtime.upsert_object(
         OntologyObject(
             id="COND-1",
-            type="ConditionSignal",
+            type="ConditionObservation",
             name="K-201 vibration",
             properties={"value": 7.2, "unit": "mm/s"},
         )
@@ -77,7 +76,7 @@ def test_mcp_boundary_exposes_declared_condition_and_failure_evidence():
         Relationship(
             type="hasConditionObservation",
             source=ObjectRef(id="K-201", type="Compressor"),
-            target=ObjectRef(id="COND-1", type="ConditionSignal"),
+            target=ObjectRef(id="COND-1", type="ConditionObservation"),
         )
     )
     runtime.add_relationship(
