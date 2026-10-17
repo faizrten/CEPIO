@@ -49,3 +49,13 @@
 **Transaction time** — Time at which CEPIO recorded/learned a fact.
 
 **Valid time** — Time at which a fact is true in the industrial domain.
+
+**Competency question** — Frozen industrial question linked to persona needs and declared capability requirements.
+
+**Semantic capability readiness** — Deterministic satisfaction of declared ontology prerequisites or approved alternative compositions; separate from runtime answerability.
+
+**Operational assurance** — Executable evidence that scoped runtime behavior satisfies temporal, provenance, authority, policy, action/audit or evidence-discipline gates.
+
+**Persona** — Role definition with objectives and information needs; distinct from authenticated policy authority.
+
+**Evidence bundle** — CEPIO evidence records available to support a scoped answer. Current-run citation membership does not by itself establish claim entailment.

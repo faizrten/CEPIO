@@ -135,3 +135,9 @@ CEPIO is valuable when it reduces one or more of the following:
 - inability to explain data lineage;
 - unsafe AI-to-action pathways;
 - migration risk when underlying systems change.
+
+## Target users and acceptance
+
+CEPIO serves industrial decision-makers and the teams building governed applications for them. The near-term lighthouse is asset reliability and maintenance; drilling and refinery persona catalogs provide broader modeled demand. See [Target Users / Personas](19-Target-Users-Personas.md) for scope and status.
+
+Model validity, semantic competency, executable runtime assurance and production qualification are separate claims. See [Competency & Assurance](20-Competency-Assurance.md) for current evidence and the proposed maturity model.

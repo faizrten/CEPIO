@@ -87,7 +87,7 @@ OSDU remains the upstream data foundation while CEPIO provides enterprise operat
 Rig
  -> equipment systems
  -> drilling activity
- -> NPT event
+ -> activity/productivity classification + causal downtime
  -> maintenance/reliability consequence
  -> schedule / contract consequence
  -> decision/action
@@ -109,6 +109,12 @@ Design object
 ```
 
 This is particularly relevant to complex integrated refinery/petrochemical projects.
+
+## Competency and assurance fixtures
+
+The Generalization Lab contains frozen drilling and refinery challenges linked to persona catalogs. The drilling capability pack v0.3 has a checked-in 14/14 semantic PASS expectation. A separate operational-assurance fixture exercises temporal state, provenance, scoped authority, policy/action audit and evidence citation discipline across five gates. It references four questions and does not establish full runtime coverage of the semantic pack.
+
+See [Competency & Assurance](20-Competency-Assurance.md) for evaluation contracts and limits, and [Target Users / Personas](19-Target-Users-Personas.md) for the roles behind those questions.
 
 ## Reference application acceptance test
 
