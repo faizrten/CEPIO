@@ -71,15 +71,16 @@ def _extract_json(content: Any) -> dict[str, Any]:
         raise
 
 
-def _make_tool(schema: dict[str, Any]) -> Tool:
+def _make_tool(schema: dict[str, Any], protocol_lock: asyncio.Lock) -> Tool:
     name = str(schema["name"])
 
     async def handler(invocation: ToolInvocation) -> ToolResult:
         request_id = f"copilot-{name}-{id(invocation)}"
-        _emit({"type": "tool_call", "id": request_id, "name": name, "arguments": dict(invocation.arguments or {})})
-        response = await _read_protocol_line_async()
-        if response.get("type") != "tool_result":
-            raise ValueError(f"Expected tool_result for {name}, got {response.get('type')}")
+        async with protocol_lock:
+            _emit({"type": "tool_call", "id": request_id, "name": name, "arguments": dict(invocation.arguments or {})})
+            response = await _read_protocol_line_async()
+        if response.get("type") != "tool_result" or response.get("request_id") != request_id:
+            raise ValueError(f"Expected tool_result for {request_id}, got {response}")
         payload = {"cepio_tool_call_id": response.get("tool_call_id"), "result": response.get("result")}
         return ToolResult(
             text_result_for_llm=json.dumps(payload, separators=(",", ":")),
@@ -107,7 +108,8 @@ async def _run() -> int:
         raise ValueError("First protocol message must be a CEPIO challenge")
 
     question = str(challenge["question"])
-    tools = [_make_tool(schema) for schema in (challenge.get("tools") or [])]
+    protocol_lock = asyncio.Lock()
+    tools = [_make_tool(schema, protocol_lock) for schema in (challenge.get("tools") or [])]
     available_tools = ToolSet()
     for tool in tools:
         available_tools.add_custom(tool.name)
