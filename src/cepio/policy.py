@@ -30,14 +30,17 @@ class PolicyEngine(Protocol):
 
     def can_call_function(self, roles: set[str], function_name: str) -> bool: ...
 
+    def can_propose_decision(self, roles: set[str], decision_type: str) -> bool: ...
+
 
 class RolePolicyEngine:
     """Reference policy engine.
 
     This implementation is intentionally replaceable by Entra, OPA, Cedar or another
     enterprise authorization service. It supports action RBAC, recommend-only agent
-    roles, object-type read controls, object sharing scopes, property allowlists, and
-    explicit function-call permissions for governed tool/runtime surfaces.
+    roles, object-type read controls, object sharing scopes, property allowlists,
+    explicit function-call permissions, and named decision-proposal permissions for
+    governed tool/runtime surfaces.
     """
 
     def __init__(
@@ -147,6 +150,15 @@ class RolePolicyEngine:
         for role in roles:
             allowed = set(self.policies.get(role, {}).get("functions", []))
             if "*" in allowed or function_name in allowed:
+                return True
+        return False
+
+    def can_propose_decision(self, roles: set[str], decision_type: str) -> bool:
+        if not self.policies:
+            return True
+        for role in roles:
+            allowed = set(self.policies.get(role, {}).get("decisions", []))
+            if "*" in allowed or decision_type in allowed:
                 return True
         return False
 
