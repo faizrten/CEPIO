@@ -5,23 +5,27 @@ policies:
     read_properties: {}
     actions: []
     functions: ["*"]
+    decisions: ["*"]
   auditor:
     read_types: ["*"]
     read_scopes: ["*"]
     read_properties: {}
     actions: []
     functions: []
+    decisions: []
   graph_analyst:
     read_types: ["*"]
     read_scopes: [internal]
     read_properties: {}
     actions: []
     functions: []
+    decisions: []
   operator:
     read_types: [Equipment, ProcessUnit, Measurement, KPI, Event]
     read_scopes: [internal]
     actions: []
     functions: [calculateProductionLoss, calculateProductionExposure]
+    decisions: []
   maintenance_engineer:
     read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI]
     read_scopes: [internal]
@@ -31,11 +35,13 @@ policies:
       Inspection: "*"
     actions: [CreateWorkOrder, CreateInspection]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk]
+    decisions: [maintenance-intervention-recommendation]
   maintenance_planner:
     read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI]
     read_scopes: [internal]
     actions: [CreateWorkOrder]
     functions: [calculateProductionLoss, calculateProductionExposure]
+    decisions: [maintenance-intervention-recommendation]
   reliability_engineer:
     read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
@@ -43,21 +49,25 @@ policies:
       Equipment: "*"
     actions: [CreateInspection, EscalateRisk]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
+    decisions: [maintenance-intervention-recommendation]
   operations_supervisor:
     read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
     read_scopes: [internal]
     actions: [EscalateRisk]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateMarginImpact]
+    decisions: []
   maintenance_manager:
     read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     actions: [ApproveMaintenanceDeferral]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
+    decisions: [maintenance-intervention-recommendation]
   operations_manager:
     read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
     read_scopes: [internal]
     actions: [ApproveMaintenanceDeferral]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
+    decisions: []
   ai_agent_recommender:
     read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
@@ -67,19 +77,23 @@ policies:
     actions: []
     can_recommend: [CreateWorkOrder, CreateInspection, EscalateRisk]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
+    decisions: [maintenance-intervention-recommendation]
   autonomous_control_agent:
     read_types: [Equipment, Event, State, KPI]
     read_scopes: [internal]
     actions: []
     functions: []
+    decisions: []
     note: "No direct control action is permitted in v0.2. Fail closed."
   shareholder_viewer:
     read_types: [Equipment, ProcessUnit, KPI]
     read_scopes: [shareholder]
     actions: []
     functions: []
+    decisions: []
   epc_partner_viewer:
     read_types: [Equipment, WorkOrder, Inspection, Event]
     read_scopes: [epc-partner]
     actions: []
     functions: []
+    decisions: []
