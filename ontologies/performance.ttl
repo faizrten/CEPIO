@@ -14,6 +14,12 @@ perf:FleetException a owl:Class ; rdfs:subClassOf cepio:Risk .
 perf:ActionPerformance a owl:Class ; rdfs:subClassOf cepio:Measurement .
 perf:ProductionLoss a owl:Class ; rdfs:subClassOf cepio:Measurement .
 
+# Prospective production consequence associated with an asset condition, outage or
+# intervention window. Exposure is deliberately distinct from ProductionLoss:
+# exposure is the quantity at risk before/while a decision is evaluated, while loss
+# may represent an estimated or realized outcome.
+perf:ProductionExposure a owl:Class ; rdfs:subClassOf cepio:Measurement .
+
 # Reusable production-assurance quantity. Nameplate, available, constrained and
 # demonstrated capacity remain measurement/classification semantics rather than
 # proliferating top-level ontology classes.
