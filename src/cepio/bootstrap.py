@@ -7,7 +7,7 @@ from rdflib import Graph
 from .action_handlers import approve_maintenance_deferral, create_inspection, create_work_order, escalate_risk, require_interface, require_parameter, require_target_type, restore_risk_status
 from .config import RuntimeSettings
 from .contract_runtime import ContractAwareCEPIORuntime
-from .functions import AssetRiskInput, MarginImpactInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_loss
+from .functions import AssetRiskInput, MarginImpactInput, ProductionExposureInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_exposure, calculate_production_loss
 from .kinetic import InMemoryWorkflowRepository, KineticRuntime, SQLiteWorkflowRepository
 from .modules import ModuleCatalogue
 from .observability import TelemetrySink, instrument_runtime
@@ -80,8 +80,14 @@ def build_runtime(
     runtime.register_action("EscalateRisk", escalate_risk, {"reliability_engineer", "operations_supervisor"}, preconditions=[require_interface("RiskBearing")], compensation_handler=restore_risk_status, compensation_description="Restore the prior riskStatus if downstream workflow execution is rolled back")
     runtime.register_action("ApproveMaintenanceDeferral", approve_maintenance_deferral, {"maintenance_manager", "operations_manager"}, preconditions=[require_target_type("WorkOrder"), require_parameter("reason"), require_parameter("until")], requires_human_approval=True)
     runtime.register_function("calculateProductionLoss", calculate_production_loss, input_model=ProductionLossInput, output_type=float)
+    runtime.register_function("calculateProductionExposure", calculate_production_exposure, input_model=ProductionExposureInput, output_type=float)
     runtime.register_function("calculateAssetRisk", calculate_asset_risk, input_model=AssetRiskInput, output_type=float)
     runtime.register_function("calculateMarginImpact", calculate_margin_impact, input_model=MarginImpactInput, output_type=float)
+    runtime.register_decision(
+        "maintenance-intervention-recommendation",
+        allowed_subject_types={"Equipment"},
+        allowed_actions={"CreateWorkOrder", "CreateInspection", "EscalateRisk"},
+    )
 
     runtime.resource_root = root  # type: ignore[attr-defined]
     runtime.module_catalogue = catalogue  # type: ignore[attr-defined]

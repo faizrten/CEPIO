@@ -4,6 +4,8 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 ## Start here
 
+- **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality gates, security, compatibility evidence, release qualification and required check names.
+
 - **[CEPIO v0.4 Developer Preview](developer-preview.md)** — clean-environment install, startup, qualification and release boundary.
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.
@@ -58,3 +60,7 @@ The documentation is intentionally split into two layers:
 2. **Technical documents in `docs/`, ontologies, mappings, shapes and code** — the authoritative executable/design contracts.
 
 When the two differ, the implementation contracts and accepted architecture decisions in the repository are authoritative. The wiki should be updated as part of material CEPIO capability and release changes.
+
+## Workflow policy v0.5.1
+
+[Workflow policy integration](workflow-policy-v0.5.1.md) binds exact policy versions to durable workflow instances, derives trusted canonical context, pauses governed actions for human approval, and persists policy evidence through Action, external execution and Outcome.

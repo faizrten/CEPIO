@@ -135,19 +135,20 @@ class RESTToolGateway:
             },
             {
                 "name": "cepio_neighbors",
-                "description": "Traverse outgoing CEPIO relationships",
+                "description": "Traverse authorized CEPIO relationships",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "object_id": {"type": "string"},
                         "relationship_type": {"type": ["string", "null"]},
+                        "direction": {"type": "string", "enum": ["out", "in"], "default": "out"},
                     },
                     "required": ["object_id"],
                 },
             },
             {
                 "name": "cepio_call_function",
-                "description": "Invoke a registered CEPIO business function",
+                "description": "Invoke an authorized registered CEPIO business function",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -155,6 +156,30 @@ class RESTToolGateway:
                         "arguments": {"type": "object"},
                     },
                     "required": ["function", "arguments"],
+                },
+            },
+            {
+                "name": "cepio_save_decision",
+                "description": "Persist an authorized named CEPIO decision recommendation",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "decision_type": {"type": "string"},
+                        "subject_id": {"type": "string"},
+                        "subject_type": {"type": "string"},
+                        "problem": {"type": "string"},
+                        "observations": {"type": "array", "items": {"type": "string"}},
+                        "recommendation": {"type": "string"},
+                        "recommended_action": {"type": ["string", "null"]},
+                        "confidence": {"type": ["number", "null"]},
+                    },
+                    "required": [
+                        "decision_type",
+                        "subject_id",
+                        "subject_type",
+                        "problem",
+                        "recommendation",
+                    ],
                 },
             },
             {
@@ -168,6 +193,7 @@ class RESTToolGateway:
                         "target_type": {"type": "string"},
                         "parameters": {"type": "object"},
                         "idempotency_key": {"type": ["string", "null"]},
+                        "decision_id": {"type": ["string", "null"]},
                     },
                     "required": ["action_type", "target_id", "target_type"],
                 },
@@ -187,9 +213,15 @@ class RESTToolGateway:
         if name == "cepio_neighbors":
             object_id = parse.quote(str(arguments["object_id"]), safe="")
             relationship_type = arguments.get("relationship_type")
-            path = f"/objects/{object_id}/neighbors"
+            direction = str(arguments.get("direction", "out"))
+            query: dict[str, str] = {}
             if relationship_type:
-                path += "?" + parse.urlencode({"relationship_type": relationship_type})
+                query["relationship_type"] = str(relationship_type)
+            if direction != "out":
+                query["direction"] = direction
+            path = f"/objects/{object_id}/neighbors"
+            if query:
+                path += "?" + parse.urlencode(query)
             value = self._transport("GET", path, None, headers)
             if isinstance(value, list):
                 return {"objects": value}
@@ -205,6 +237,26 @@ class RESTToolGateway:
             )
             return value if isinstance(value, dict) else {"result": value}
 
+        if name == "cepio_save_decision":
+            value = self._transport(
+                "POST",
+                "/decisions",
+                {
+                    "decision_type": arguments["decision_type"],
+                    "subject": {
+                        "id": arguments["subject_id"],
+                        "type": arguments["subject_type"],
+                    },
+                    "problem": arguments["problem"],
+                    "observations": arguments.get("observations", []),
+                    "recommendation": arguments["recommendation"],
+                    "recommended_action": arguments.get("recommended_action"),
+                    "confidence": arguments.get("confidence"),
+                },
+                headers,
+            )
+            return value if isinstance(value, dict) else {"result": value}
+
         if name == "cepio_execute_action":
             value = self._transport(
                 "POST",
@@ -214,6 +266,7 @@ class RESTToolGateway:
                     "target": {"id": arguments["target_id"], "type": arguments["target_type"]},
                     "parameters": arguments.get("parameters", {}),
                     "idempotency_key": arguments.get("idempotency_key"),
+                    "decision_id": arguments.get("decision_id"),
                 },
                 headers,
             )

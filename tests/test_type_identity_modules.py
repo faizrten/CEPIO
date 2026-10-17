@@ -9,6 +9,10 @@ from cepio.registry import AmbiguousTypeError, TypeRegistry
 ROOT = Path(__file__).parents[1]
 
 
+def _version_tuple(value: object) -> tuple[int, ...]:
+    return tuple(int(part) for part in str(value).split("."))
+
+
 def test_registry_uses_iri_as_canonical_identity_with_local_aliases():
     registry = TypeRegistry.from_ontology_dir(ROOT / "ontologies")
     iri = "https://cepio.org/ontology/industrial#WorkOrder"
@@ -35,7 +39,7 @@ def test_module_catalogue_is_versioned_unique_and_acyclic():
     catalogue = ModuleCatalogue.load(ROOT / "ontology-modules.yaml")
     order = catalogue.topological_order()
     assert order.index("core") < order.index("industrial") < order.index("drilling")
-    assert catalogue.modules["reliability"].version == "0.1.0"
+    assert _version_tuple(catalogue.modules["reliability"].version) >= (0, 1, 1)
     assert len({m.namespace for m in catalogue.modules.values()}) == len(catalogue.modules)
 
 

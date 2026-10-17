@@ -12,6 +12,9 @@ from uuid import uuid4
 from pydantic import BaseModel, ConfigDict, Field
 
 from .model import ActionRequest, Decision, ObjectRef, utcnow
+from .model import ActionResult
+from .contextual_policy import PolicyReference
+from .workflow_policy import WorkflowPolicyApprovalPending, WorkflowPolicyBoundary
 from .runtime import CEPIORuntime
 
 
@@ -65,6 +68,7 @@ class WorkflowDefinition(BaseModel):
     name: str
     version: str = "0.1.0"
     steps: list[WorkflowStepDefinition]
+    policy_references: tuple[PolicyReference, ...] = Field(default=(), frozen=True)
 
 
 class WorkflowStepState(BaseModel):
@@ -73,6 +77,7 @@ class WorkflowStepState(BaseModel):
     result: Any | None = None
     decision_id: str | None = None
     action_id: str | None = None
+    policy_approval_id: str | None = None
     external_execution_id: str | None = None
     outcome_id: str | None = None
     error: str | None = None
@@ -84,6 +89,7 @@ class WorkflowInstance(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     definition_id: str
     definition_version: str
+    policy_references: tuple[PolicyReference, ...] = Field(default=(), frozen=True)
     subject: ObjectRef
     inputs: dict[str, Any] = Field(default_factory=dict)
     status: WorkflowStatus = WorkflowStatus.running
@@ -106,6 +112,7 @@ class ApprovalTask(BaseModel):
     required_roles: set[str] = Field(default_factory=set)
     message: str
     status: ApprovalStatus = ApprovalStatus.pending
+    policy_fingerprint: str | None = None
     requested_at: datetime = Field(default_factory=utcnow)
     decided_at: datetime | None = None
     decided_by: str | None = None
@@ -139,9 +146,7 @@ class WorkflowRepository(Protocol):
     def list_history(self, instance_id: str) -> list[WorkflowHistoryEntry]: ...
     def save_approval(self, task: ApprovalTask) -> ApprovalTask: ...
     def get_approval(self, approval_id: str) -> ApprovalTask | None: ...
-    def pending_approval_for_step(
-        self, instance_id: str, step_id: str
-    ) -> ApprovalTask | None: ...
+    def pending_approval_for_step(self, instance_id: str, step_id: str) -> ApprovalTask | None: ...
 
 
 class InMemoryWorkflowRepository(WorkflowRepository):
@@ -218,13 +223,13 @@ class InMemoryWorkflowRepository(WorkflowRepository):
 
     def append_history(self, entry: WorkflowHistoryEntry) -> WorkflowHistoryEntry:
         with self._lock:
-            self._history.append(entry)
-            return entry
+            self._history.append(entry.model_copy(deep=True))
+            return entry.model_copy(deep=True)
 
     def list_history(self, instance_id: str) -> list[WorkflowHistoryEntry]:
         with self._lock:
             return [
-                entry
+                entry.model_copy(deep=True)
                 for entry in self._history
                 if entry.workflow_instance_id == instance_id
             ]
@@ -239,9 +244,7 @@ class InMemoryWorkflowRepository(WorkflowRepository):
             task = self._approvals.get(approval_id)
             return task.model_copy(deep=True) if task else None
 
-    def pending_approval_for_step(
-        self, instance_id: str, step_id: str
-    ) -> ApprovalTask | None:
+    def pending_approval_for_step(self, instance_id: str, step_id: str) -> ApprovalTask | None:
         with self._lock:
             for task in self._approvals.values():
                 if (
@@ -513,9 +516,7 @@ class SQLiteWorkflowRepository(WorkflowRepository):
         ).fetchone()
         return ApprovalTask.model_validate_json(row["payload"]) if row else None
 
-    def pending_approval_for_step(
-        self, instance_id: str, step_id: str
-    ) -> ApprovalTask | None:
+    def pending_approval_for_step(self, instance_id: str, step_id: str) -> ApprovalTask | None:
         row = self._conn.execute(
             """
             SELECT payload FROM workflow_approvals
@@ -530,11 +531,10 @@ class SQLiteWorkflowRepository(WorkflowRepository):
 class KineticRuntime:
     """Minimal durable workflow coordinator over existing CEPIO functions, decisions and actions."""
 
-    def __init__(
-        self, runtime: CEPIORuntime, repository: WorkflowRepository | None = None
-    ) -> None:
+    def __init__(self, runtime: CEPIORuntime, repository: WorkflowRepository | None = None) -> None:
         self.runtime = runtime
         self.repository = repository or InMemoryWorkflowRepository()
+        self.workflow_policy: WorkflowPolicyBoundary | None = None
 
     def register_workflow(self, definition: WorkflowDefinition) -> WorkflowDefinition:
         self._validate_definition(definition)
@@ -548,7 +548,10 @@ class KineticRuntime:
             raise ValueError("Workflow step ids must be unique")
         prior_by_id: dict[str, WorkflowStepDefinition] = {}
         for step in definition.steps:
-            if step.type in {WorkflowStepType.function, WorkflowStepType.action} and not step.operation:
+            if (
+                step.type in {WorkflowStepType.function, WorkflowStepType.action}
+                and not step.operation
+            ):
                 raise ValueError(f"Step {step.id} requires an operation")
             if step.type == WorkflowStepType.approval and not step.approval_roles:
                 raise ValueError(f"Approval step {step.id} requires at least one approval role")
@@ -595,11 +598,10 @@ class KineticRuntime:
         candidate = WorkflowInstance(
             definition_id=definition.id,
             definition_version=definition.version,
+            policy_references=definition.policy_references,
             subject=subject,
             inputs=inputs or {},
-            step_states={
-                step.id: WorkflowStepState(step_id=step.id) for step in definition.steps
-            },
+            step_states={step.id: WorkflowStepState(step_id=step.id) for step in definition.steps},
             initiated_by=actor_id,
             initiated_roles=set(actor_roles),
             last_actor_id=actor_id,
@@ -613,7 +615,12 @@ class KineticRuntime:
             instance,
             "workflow_started",
             actor_id,
-            details={"definition_version": instance.definition_version},
+            details={
+                "definition_version": instance.definition_version,
+                "policy_references": [
+                    r.model_dump(mode="json") for r in instance.policy_references
+                ],
+            },
         )
         return self._advance(instance)
 
@@ -649,6 +656,16 @@ class KineticRuntime:
             raise KeyError(f"Unknown workflow approval: {approval_id}")
         if task.status != ApprovalStatus.pending:
             return self.get_instance(task.workflow_instance_id)
+        if task.policy_fingerprint and any(
+            r.startswith("ai_") or "agent" in r for r in actor_roles
+        ):
+            raise PermissionError("AI roles cannot grant workflow policy approval")
+        if (
+            task.required_roles
+            and not task.required_roles.issubset(actor_roles)
+            and task.policy_fingerprint
+        ):
+            raise PermissionError("Actor lacks required policy approval roles")
         if task.required_roles and not task.required_roles.intersection(actor_roles):
             raise PermissionError(
                 f"Actor lacks required approval role; requires one of {sorted(task.required_roles)}"
@@ -682,10 +699,15 @@ class KineticRuntime:
             )
             return self.get_instance(instance.id)
 
-        step_state.status = WorkflowStepStatus.completed
+        definition = self._definition(instance.definition_id, instance.definition_version)
+        policy_approval = definition.steps[instance.current_step].type == WorkflowStepType.action
+        step_state.status = (
+            WorkflowStepStatus.pending if policy_approval else WorkflowStepStatus.completed
+        )
         step_state.result = {"approval_id": task.id, "approved_by": actor_id}
         step_state.completed_at = utcnow()
-        instance.current_step += 1
+        if not policy_approval:
+            instance.current_step += 1
         instance.status = WorkflowStatus.running
         self.repository.save_instance(instance)
         self._history(
@@ -748,6 +770,8 @@ class KineticRuntime:
                         return wait_result
                 else:
                     raise ValueError(f"Unsupported workflow step type: {step.type}")
+            except WorkflowPolicyApprovalPending as exc:
+                return self._wait_for_policy_approval(instance, step, state, exc)
             except Exception as exc:
                 state.status = WorkflowStepStatus.failed
                 state.error = str(exc)
@@ -829,8 +853,7 @@ class KineticRuntime:
                 workflow_instance_id=instance.id,
                 step_id=step.id,
                 required_roles=set(step.approval_roles),
-                message=step.approval_message
-                or f"Approval required for workflow step {step.id}",
+                message=step.approval_message or f"Approval required for workflow step {step.id}",
             )
             self.repository.save_approval(task)
             self._history(
@@ -867,11 +890,9 @@ class KineticRuntime:
             workflow_instance_id=instance.id,
             decision_id=self._latest_decision_id(instance),
         )
-        result = self.runtime.execute_action(request)
+        result = self._execute_workflow_action(instance, step, request)
         if result.status.value != "executed":
-            raise RuntimeError(
-                f"Action {step.operation} did not execute: {result.message}"
-            )
+            raise RuntimeError(f"Action {step.operation} did not execute: {result.message}")
         state.action_id = result.action_id
         state.result = {
             "action_id": result.action_id,
@@ -879,6 +900,50 @@ class KineticRuntime:
             "effects": result.effects,
             "replayed": result.replayed,
         }
+
+    def _execute_workflow_action(
+        self,
+        instance: WorkflowInstance,
+        step: WorkflowStepDefinition,
+        request: ActionRequest,
+    ) -> ActionResult:
+        definition = self._definition(instance.definition_id, instance.definition_version)
+        if instance.policy_references != definition.policy_references:
+            raise PermissionError("Workflow policy pins differ from immutable definition")
+        if not instance.policy_references:
+            return self.runtime.execute_action(request)
+        if self.workflow_policy is None:
+            raise PermissionError("Pinned workflow policies require a configured policy boundary")
+        return self.workflow_policy.execute(self, instance, step, request)
+
+    def _wait_for_policy_approval(
+        self,
+        instance: WorkflowInstance,
+        step: WorkflowStepDefinition,
+        state: WorkflowStepState,
+        pending: WorkflowPolicyApprovalPending,
+    ) -> WorkflowInstance:
+        task = ApprovalTask(
+            workflow_instance_id=instance.id,
+            step_id=step.id,
+            required_roles=pending.roles,
+            message="Contextual policy requires human approval",
+            policy_fingerprint=pending.fingerprint,
+        )
+        self.repository.save_approval(task)
+        state.policy_approval_id = task.id
+        self._history(
+            instance,
+            "policy_approval_requested",
+            instance.last_actor_id,
+            step_id=step.id,
+            details={"approval_id": task.id, "policy_fingerprint": pending.fingerprint},
+        )
+        state.status = WorkflowStepStatus.waiting_for_approval
+        state.result = {"approval_id": task.id}
+        instance.status = WorkflowStatus.waiting_for_approval
+        self.repository.save_instance(instance)
+        return self.get_instance(instance.id)
 
     def _run_external_verification(
         self,
@@ -890,9 +955,7 @@ class KineticRuntime:
             "External verification step requires an external-action-aware kinetic runtime"
         )
 
-    def _definition(
-        self, definition_id: str, version: str | None = None
-    ) -> WorkflowDefinition:
+    def _definition(self, definition_id: str, version: str | None = None) -> WorkflowDefinition:
         definition = self.repository.get_definition(definition_id, version)
         if not definition:
             suffix = f"@{version}" if version is not None else ""
@@ -932,9 +995,7 @@ class KineticRuntime:
         for step in definition.steps[: instance.current_step]:
             result = instance.step_states[step.id].result
             if result is not None:
-                observations.append(
-                    f"{step.id}={json.dumps(result, default=str, sort_keys=True)}"
-                )
+                observations.append(f"{step.id}={json.dumps(result, default=str, sort_keys=True)}")
         return observations
 
     def _resolve(self, value: Any, instance: WorkflowInstance) -> Any:
@@ -942,9 +1003,7 @@ class KineticRuntime:
             return {key: self._resolve(item, instance) for key, item in value.items()}
         if isinstance(value, list):
             return [self._resolve(item, instance) for item in value]
-        if not isinstance(value, str) or not (
-            value.startswith("${") and value.endswith("}")
-        ):
+        if not isinstance(value, str) or not (value.startswith("${") and value.endswith("}")):
             return value
 
         expression = value[2:-1]

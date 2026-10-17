@@ -16,6 +16,10 @@ def _process_graph() -> Graph:
     return graph
 
 
+def _version_tuple(value: object) -> tuple[int, ...]:
+    return tuple(int(part) for part in str(value).split("."))
+
+
 def test_process_constraint_reuses_common_constraint_semantics():
     graph = _process_graph()
     assert (PROCESS.ProcessConstraint, RDF.type, OWL.Class) in graph
@@ -61,10 +65,10 @@ def test_startup_or_restart_reuses_activity_dependency_and_approval_contracts():
     assert (PROCESS.restartRequiresApproval, RDF.type, OWL.ObjectProperty) not in process_graph
 
 
-def test_process_industry_module_is_additively_versioned_and_depends_on_kinetic():
+def test_process_industry_module_preserves_version_floor_and_depends_on_kinetic():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     module = next(item for item in catalogue["modules"] if item["id"] == "process_industry")
-    assert str(module["version"]) == "0.1.2"
+    assert _version_tuple(module["version"]) >= (0, 1, 3)
     dependencies = {item["module"] for item in module["depends_on"]}
     assert {"core", "industrial", "asset", "kinetic"}.issubset(dependencies)
 

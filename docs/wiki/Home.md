@@ -1,5 +1,8 @@
 # CEPIO Wiki
 
+[Code Quality & Governance v2](../governance/code-quality-governance-v2.md) defines
+automated merge evidence, security scanning, compatibility and release qualification.
+
 **CEPIO — Common Energy & Process Industry Ontology**
 
 > **An industry operating ontology for Energy & Process Industries — connecting enterprise data, operational state, industrial semantics, AI reasoning, decisions and governed action.**

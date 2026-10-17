@@ -2,6 +2,7 @@ name: CEPIO CI
 on:
   push:
   pull_request:
+  workflow_call:
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -60,20 +61,20 @@ jobs:
           --standards generalization/standards/refinery-process-references.yaml
           --skip-gap-triage
           --json-out refinery-generalization-v0.1-report.json
-      - name: Build normalized refinery benchmark v0.1.1
+      - name: Build normalized refinery benchmark v0.1.2
         run: >-
           python scripts/build_refinery_normalized_benchmark.py
           --source generalization/competency/refinery-process-manufacturing-v0.1.yaml
-          --out /tmp/refinery-process-manufacturing-v0.1.1.yaml
-      - name: Run normalized refinery benchmark v0.1.1
+          --out /tmp/refinery-process-manufacturing-v0.1.2.yaml
+      - name: Run normalized refinery benchmark v0.1.2
         run: >-
           PYTHONPATH=src python scripts/run_generalization_harness.py
           --archetype generalization/archetypes/refinery-process-manufacturing-v0.1.yaml
-          --competency /tmp/refinery-process-manufacturing-v0.1.1.yaml
+          --competency /tmp/refinery-process-manufacturing-v0.1.2.yaml
           --personas generalization/personas/refinery-process-manufacturing-v0.1.yaml
           --standards generalization/standards/refinery-process-references.yaml
           --skip-gap-triage
-          --json-out refinery-generalization-v0.1.1-report.json
+          --json-out refinery-generalization-v0.1.2-report.json
       - name: Run refinery standards and persona challenge v0.2
         run: >-
           PYTHONPATH=src python scripts/run_generalization_harness.py
@@ -134,3 +135,10 @@ jobs:
           done
           cat /tmp/cepio-health.json 2>/dev/null || true
           test "$healthy" -eq 1
+      - name: Retain compatibility and domain qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cepio-existing-ci-evidence-${{ github.run_id }}
+          path: '*report.json'
+          if-no-files-found: warn

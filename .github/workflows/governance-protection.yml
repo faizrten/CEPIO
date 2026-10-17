@@ -1,0 +1,49 @@
+name: CEPIO Governance Protection
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  protection:
+    name: governance-protection
+    runs-on: ubuntu-latest
+    steps:
+      # Trusted base workflow only. Never check out or execute the PR head here.
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.repo, pull_number: pr.number, per_page: 100
+            });
+            if (files.length >= 3000) core.setFailed('PR exceeds file-list API limit; split the PR.');
+            const section = (heading) => {
+              const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              return (body.match(new RegExp('^## ' + escaped + '\\s*\\n([\\s\\S]*?)(?=^## |$(?![\\s\\S]))', 'm')) || [])[1] || '';
+            };
+            const risk = section('Risk classification');
+            if ((risk.match(/^- \[[xX]\] (low|medium|high)\b/gm) || []).length !== 1) {
+              core.setFailed('Select exactly one risk: low, medium, high.');
+            }
+            if (/^- \[[xX]\].*CUSTOMER CONFIDENTIAL/im.test(body)) {
+              core.setFailed('Customer-confidential publication is prohibited.');
+            }
+            const sensitive = /^(\.github\/|quality\/|requirements-quality\.txt$|pyproject\.toml$|scripts\/check_|tests\/test_(architecture_invariants|quality_governance)|compatibility\/|ontologies\/|openapi\/|policies\/|src\/cepio\/(auth|policy|contextual_policy|external_actions|kinetic|repositories|temporal|provenance)|docs\/governance\/)/;
+            const changed = files.flatMap(f => [f.filename, f.previous_filename].filter(Boolean));
+            const protectedPaths = changed.filter(path => sensitive.test(path));
+            if (protectedPaths.length) {
+              if (!/^- \[[xX]\] high\b/m.test(risk)) core.setFailed('Protected paths require high risk classification.');
+              const explanation = section('Governance changes').trim();
+              if (explanation.length < 80 || !/^- \[[xX]\] Existing gates remain enforced\./m.test(explanation)) {
+                core.setFailed('Explain protected-path changes (80+ characters) and confirm existing gates remain enforced.');
+              }
+              if (!files.some(f => /^docs\/adr\/ADR-\d+.*\.md$/.test(f.filename) && f.status !== 'removed')) {
+                core.setFailed('Protected-path changes require a new or updated ADR documenting rationale and validation.');
+              }
+              core.summary.addHeading('Protected governance changes').addList(protectedPaths);
+            }
+            await core.summary.write();

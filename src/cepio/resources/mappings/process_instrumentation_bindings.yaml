@@ -1,0 +1,47 @@
+schema_version: "1.0"
+
+# External instrumentation and brownfield integration concepts are federated
+# into CEPIO rather than copied into the canonical process ontology.
+device_mappings:
+  - id: opc-padim-process-device
+    standard: opc-30081-padim-1.02
+    external_concept: ProcessDevice
+    canonical_type: https://cepio.org/ontology/industrial#Equipment
+    canonical_installation_context: https://cepio.org/ontology/asset#InstalledAsset
+    functional_location_type: https://cepio.org/ontology/asset#FunctionalLocation
+    process_context:
+      variable_type: https://cepio.org/ontology/process#ProcessVariable
+      measurement_relationship: https://cepio.org/ontology/process#measuresProcessVariable
+    semantics:
+      external_identity_preserved: true
+      source_dictionary_reference_required: true
+      no_parallel_device_identity: true
+    note: PA-DIM device identity maps to CEPIO industrial Equipment, which already specializes InstalledAsset through the asset module. ProcessVariable is canonical process context; device observations remain time-stamped measurements.
+
+  - id: opc-padim-device-diagnostic
+    standard: opc-30081-padim-1.02
+    external_concept: DeviceDiagnosticObservation
+    canonical_type: https://cepio.org/ontology/reliability#ConditionSignal
+    observed_asset_relationship: https://cepio.org/ontology/reliability#observedOnEquipment
+    semantics:
+      observation_is_temporal: true
+      provenance_required: true
+      diagnostic_code_remains_external: true
+    note: Device diagnostics map to reusable reliability ConditionSignal observations instead of introducing process:DeviceDiagnosticObservation.
+
+integration_bindings:
+  - id: namur-noa-monitoring-optimization-channel
+    standard: namur-noa-ne175-ne176
+    external_concept: MonitoringOptimizationChannel
+    canonical_type: https://cepio.org/ontology/core#DigitalAsset
+    dependency_relationship: https://cepio.org/ontology/core#dependsOn
+    source_asset_type: https://cepio.org/ontology/industrial#Equipment
+    process_context:
+      variable_type: https://cepio.org/ontology/process#ProcessVariable
+    semantics:
+      control_path_unchanged: true
+      read_or_monitor_path_is_separate: true
+      policy_metadata_required: true
+      provenance_required: true
+      deployment_topology_is_external: true
+    note: A NAMUR NOA monitoring-and-optimization channel is represented as an integration DigitalAsset with explicit dependencies and policy/provenance metadata, not as process ontology vocabulary.

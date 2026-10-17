@@ -123,6 +123,7 @@ class ActionResult(BaseModel):
     replayed: bool = False
     policy_reasons: list[str] = Field(default_factory=list)
     compensation: dict[str, Any] | None = None
+    policy_evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 class AuditEntry(BaseModel):
@@ -145,10 +146,12 @@ class AuditEntry(BaseModel):
     effects: dict[str, Any] = Field(default_factory=dict)
     occurred_at: datetime = Field(default_factory=utcnow)
     replayed: bool = False
+    policy_evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 class Decision(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
+    decision_type: str | None = None
     subject: ObjectRef
     problem: str
     observations: list[str] = Field(default_factory=list)

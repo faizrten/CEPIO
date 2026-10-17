@@ -9,3 +9,9 @@ dist/
 build/
 *.egg-info/
 .generated/
+evidence/
+.coverage
+coverage-*.json
+bandit-initial.json
+.mypy_cache/
+.ruff_cache/
