@@ -29,6 +29,9 @@ on:
       - 'tests/test_drilling_domain_qualification_v042.py'
       - '.github/workflows/drilling-domain-qualification-v04.yml'
 
+permissions:
+  contents: read
+
 jobs:
   baseline:
     runs-on: ubuntu-latest
