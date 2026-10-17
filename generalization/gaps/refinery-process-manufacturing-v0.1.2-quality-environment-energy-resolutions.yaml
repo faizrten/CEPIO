@@ -1,0 +1,76 @@
+id: refinery-process-manufacturing-v0.1.2-quality-environment-energy-resolutions
+version: "0.6"
+status: implemented
+scope: product-quality-environment-energy-performance
+source_benchmark: generalization/competency/refinery-process-manufacturing-v0.1.yaml
+normalized_benchmark: refinery-process-manufacturing-capabilities-v0.1.2
+resolutions:
+  - gap_id: GAP-RP-PC-008-LOT-SPECIFICATION
+    question_ids: [RP-PC-008]
+    disposition: DOMAIN
+    owner_module: manufacturing
+    module_version: 0.1.1
+    implemented_semantics:
+      - manufacturing:lotEvaluatedAgainstSpecification
+    reused_semantics:
+      - manufacturing:MaterialLot
+      - manufacturing:MaterialSpecification
+      - manufacturing:TestResult
+      - process:QualityObservation
+    rejected_literals:
+      - manufacturing:Specification
+      - manufacturing:lotConformsToSpecification
+    rationale: MaterialSpecification is already canonical. Off-spec material must be evaluable against a specification without asserting conformance in the edge itself.
+
+  - gap_id: GAP-RP-PC-008-QUALITY-DISPOSITION
+    question_ids: [RP-PC-008]
+    disposition: DOMAIN
+    owner_module: manufacturing
+    module_version: 0.1.1
+    implemented_semantics:
+      - manufacturing:QualityDisposition
+      - manufacturing:dispositionForLot
+    rationale: Hold, release, rework, regrade, blend-back and scrap are reusable manufacturing/process-production disposition semantics. The object is modeled as a governed WorkItem rather than coupling manufacturing to the kinetic decision module.
+
+  - gap_id: GAP-RP-PC-009-EMISSIONS-EVIDENCE
+    question_ids: [RP-PC-009]
+    disposition: DOMAIN
+    owner_module: process_industry
+    module_version: 0.1.6
+    implemented_semantics:
+      - process:EmissionLimit
+      - process:evaluatedAgainstEmissionLimit
+    reused_semantics:
+      - process:EmissionObservation
+      - process:emissionFromUnit
+      - hse:CorrectiveAction
+    rationale: An emission observation, its applicable limit and originating process unit form durable process-industry compliance evidence independent of customer or source system.
+
+  - gap_id: GAP-RP-PC-010-ENERGY-INTENSITY-KPI
+    question_ids: [RP-PC-010]
+    disposition: MAPPING
+    owner_layer: mappings
+    mapping: mappings/performance_kpis.yaml#energy-intensity
+    canonical_type: core:KPI
+    observation_type: performance:KPIObservation
+    rejected_literal:
+      - performance:EnergyIntensityKPI
+    rationale: Energy intensity is a metric identity and calculation convention. Formula, denominator, units, baseline, target and ISO 50001 terminology belong in metric mapping/provenance rather than a dedicated ontology class.
+
+guardrails:
+  - raw frozen refinery competency pack v0.1 remains unchanged
+  - no generic manufacturing:Specification duplicate is introduced
+  - no performance:EnergyIntensityKPI class is introduced
+  - conformance truth is carried by quality evidence/results, not encoded by a misleading lotConformsToSpecification edge
+  - no customer/profile vocabulary is introduced
+  - canonical additions remain reusable across process manufacturing and adjacent industrial domains
+
+target_normalized_benchmark:
+  total_checks: 41
+  target_passed_checks: 41
+  target_semantic_readiness_percent: 100.0
+  target_status: {PASS: 16, PARTIAL: 0, FAIL: 0, ERROR: 0}
+  target_question_changes:
+    RP-PC-008: "1/3 -> 3/3 PASS"
+    RP-PC-009: "1/2 -> 2/2 PASS"
+    RP-PC-010: "2/3 -> 3/3 PASS"

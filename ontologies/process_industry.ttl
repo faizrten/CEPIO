@@ -11,6 +11,7 @@ process:MaterialStream a owl:Class ; rdfs:subClassOf process:ProcessStream .
 process:UtilityStream a owl:Class ; rdfs:subClassOf process:ProcessStream .
 process:UtilityMeter a owl:Class ; rdfs:subClassOf ind:Equipment .
 process:EmissionObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
+process:EmissionLimit a owl:Class ; rdfs:subClassOf kin:Constraint .
 process:QualityObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
 process:OperationalEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 process:OptimizationForecast a owl:Class ; rdfs:subClassOf cepio:Measurement .
@@ -61,6 +62,7 @@ process:streamFromUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream 
 process:streamToUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
 process:meterAtUnit a owl:ObjectProperty ; rdfs:domain process:UtilityMeter ; rdfs:range ind:ProcessUnit .
 process:emissionFromUnit a owl:ObjectProperty ; rdfs:domain process:EmissionObservation ; rdfs:range ind:ProcessUnit .
+process:evaluatedAgainstEmissionLimit a owl:ObjectProperty ; rdfs:domain process:EmissionObservation ; rdfs:range process:EmissionLimit .
 process:sampledAtUnit a owl:ObjectProperty ; rdfs:domain process:QualityObservation ; rdfs:range ind:ProcessUnit .
 process:eventAtUnit a owl:ObjectProperty ; rdfs:domain process:OperationalEvent ; rdfs:range ind:ProcessUnit .
 process:forecastForUnit a owl:ObjectProperty ; rdfs:domain process:OptimizationForecast ; rdfs:range ind:ProcessUnit .

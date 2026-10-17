@@ -1,0 +1,83 @@
+id: refinery-process-manufacturing-normalization-v0.1.2
+version: "0.1.2"
+source_pack: generalization/competency/refinery-process-manufacturing-v0.1.yaml
+source_pack_id: refinery-process-manufacturing-capabilities-v0.1
+supersedes: generalization/normalization/refinery-process-manufacturing-v0.1.1.yaml
+policy:
+  preserve_raw_baseline: true
+  business_questions_immutable: true
+  personas_immutable: true
+  priorities_immutable: true
+  standards_immutable: true
+  correction_rule: Normalize only to canonical CEPIO semantics or explicit mapping-layer contracts; do not weaken a genuine competency requirement to improve the score.
+corrections:
+  - id: canonical-process-unit
+    kind: iri-replacement
+    from: https://cepio.org/ontology/process#ProcessUnit
+    to: https://cepio.org/ontology/industrial#ProcessUnit
+    rationale: CEPIO defines ProcessUnit canonically in the industrial module.
+
+  - id: material-stream-unit-topology
+    kind: pattern-replacement
+    question_id: RP-PC-001
+    capability_id: process-unit-flow-context
+    from: MaterialStream --process:streamFeedsUnit--> process:ProcessUnit
+    to: MaterialStream --process:streamToUnit--> ind:ProcessUnit
+    rationale: process:streamToUnit is the canonical stream topology relationship.
+
+  - id: lot-material-specification
+    kind: pattern-replacement
+    question_id: RP-PC-008
+    capability_id: lot-specification
+    from: MaterialLot --mfg:lotConformsToSpecification--> mfg:Specification
+    to: MaterialLot --mfg:lotEvaluatedAgainstSpecification--> mfg:MaterialSpecification
+    rationale: MaterialSpecification already exists. An off-spec lot cannot truthfully be asserted to conform; evaluation evidence determines pass/fail.
+
+  - id: quality-disposition-lot
+    kind: pattern-replacement
+    question_id: RP-PC-008
+    capability_id: quality-disposition
+    from: mfg:QualityDisposition --cepio:impacts--> mfg:MaterialLot
+    to: mfg:QualityDisposition --mfg:dispositionForLot--> mfg:MaterialLot
+    rationale: The explicit relationship is more precise than the generic impacts predicate while preserving the original decision intent.
+
+  - id: emission-unit-direction
+    kind: pattern-replacement
+    question_id: RP-PC-009
+    capability_id: emissions-evidence
+    from: process:ProcessUnit --cepio:measuredBy--> process:EmissionObservation
+    to: process:EmissionObservation --process:emissionFromUnit--> ind:ProcessUnit
+    rationale: Emission observations are measurements with explicit unit provenance; the frozen edge direction was reversed.
+
+  - id: utility-meter-scoping
+    kind: pattern-replacement
+    question_id: RP-PC-010
+    capability_id: utility-metering
+    from: process:UtilityStream --cepio:measuredBy--> process:UtilityMeter
+    to:
+      - process:UtilityStream --process:streamToUnit--> ind:ProcessUnit
+      - process:UtilityMeter --process:meterAtUnit--> ind:ProcessUnit
+    rationale: UtilityMeter is Equipment, not Measurement; stream and meter are scoped to the same process unit.
+
+  - id: energy-intensity-kpi-identity
+    kind: iri-and-pattern-replacement
+    question_id: RP-PC-010
+    capability_id: energy-intensity
+    from: ind:ProcessUnit --cepio:measuredBy--> performance:EnergyIntensityKPI
+    to: ind:ProcessUnit --cepio:measuredBy--> cepio:KPI
+    mapping: mappings/performance_kpis.yaml#energy-intensity
+    rationale: Energy intensity is a KPI identity and calculation convention. Formula, denominator, unit, baseline and target belong in metric mapping/provenance rather than a dedicated ontology class.
+
+  - id: reuse-industrial-trip-event
+    kind: pattern-replacement
+    question_id: RP-PC-013
+    capability_id: process-trip
+    from: process:ProcessTrip --process:tripOfUnit--> process:ProcessUnit
+    to: ind:TripEvent --hse:eventAtAsset--> ind:ProcessUnit
+    rationale: CEPIO already has a reusable industrial TripEvent and generic event-to-asset relationship.
+
+expected_effect:
+  target_checks: 41
+  target_passed_checks: 41
+  target_semantic_readiness_percent: 100.0
+  note: CI remains authoritative; the raw frozen v0.1 benchmark is unchanged.
