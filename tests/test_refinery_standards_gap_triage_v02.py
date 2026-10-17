@@ -32,8 +32,8 @@ def test_refinery_v02_triage_distribution_is_intentional():
     for decision in decisions:
         counts[decision["disposition"]] += 1
 
-    assert len(decisions) == 17
-    assert counts == {"CORE": 5, "DOMAIN": 7, "PROFILE": 0, "MAPPING": 3, "REJECT": 2}
+    assert len(decisions) == 18
+    assert counts == {"CORE": 5, "DOMAIN": 7, "PROFILE": 0, "MAPPING": 3, "REJECT": 3}
     assert data["summary"]["dispositions"] == counts
     assert data["summary"]["ontology_remediation_in_this_pr"] is False
 
@@ -50,12 +50,13 @@ def test_external_device_and_noa_architecture_are_not_copied_into_canonical_doma
     assert noa["owner_layer"] == "integrations"
 
 
-def test_analysis_model_and_typed_work_control_edge_do_not_proliferate_ontology():
+def test_rejected_literals_do_not_proliferate_ontology():
     data = _triage()
     by_id = {decision["id"]: decision for decision in data["decisions"]}
 
     assert by_id["GAP-RP2-001-YIELD-MODEL"]["disposition"] == "REJECT"
     assert by_id["GAP-RP2-003-PROCEDURE-WORK-CONTROL-EDGE"]["disposition"] == "REJECT"
+    assert by_id["GAP-RP2-006-ARC-FLASH-STUDY"]["disposition"] == "REJECT"
 
 
 def test_no_customer_profile_semantics_are_introduced_by_refinery_v02_triage():
