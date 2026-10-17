@@ -81,7 +81,9 @@ def test_procedure_alarm_slice_is_additively_versioned():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     modules = {item["id"]: item for item in catalogue["modules"]}
 
-    assert str(modules["industrial"]["version"]) == "0.2.1"
+    # Historical slices pin minimum semantic versions; compatible additive
+    # industrial/process revisions are allowed to advance independently.
+    assert _version_tuple(modules["industrial"]["version"]) >= (0, 2, 1)
     assert _version_tuple(modules["process_industry"]["version"]) >= (0, 1, 3)
     assert modules["industrial"]["tier"] == "industrial-common"
     assert modules["process_industry"]["tier"] == "domain"
