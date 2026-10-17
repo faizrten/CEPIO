@@ -31,21 +31,58 @@ def _strict_search_objects(self, query: str, object_type: str | None = None, lim
     candidates = self.runtime.list_objects(object_type)
     query_tokens = _tokens(query)
     scored = []
+    complete = []
     for obj in candidates:
         searchable_properties = {
             key: value
             for key, value in obj.properties.items()
             if key not in {"source_uri", "geospatial_source_uri"}
         }
+        identity_tokens = _tokens(f"{obj.id} {obj.name}")
         haystack_tokens = _tokens(" ".join([obj.id, obj.type, obj.name, *base._flatten(searchable_properties)]))
-        score = len(query_tokens.intersection(haystack_tokens))
-        if not query_tokens or score:
-            scored.append((score, obj.id, obj))
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    return [base._object_view(obj) for _, _, obj in scored[: max(1, min(int(limit), 50))]]
+        overlap = query_tokens.intersection(haystack_tokens)
+        identity_overlap = query_tokens.intersection(identity_tokens)
+        score = len(overlap) + (2 * len(identity_overlap))
+        entry = (score, len(identity_overlap), obj.id, obj)
+        if query_tokens and query_tokens.issubset(haystack_tokens):
+            complete.append(entry)
+        elif not query_tokens or score:
+            scored.append(entry)
+    selected = complete if complete else scored
+    selected.sort(key=lambda item: (-item[0], -item[1], item[2]))
+    return [base._object_view(obj) for _, _, _, obj in selected[: max(1, min(int(limit), 50))]]
 
 
 base.CEPIOToolGateway._tool_search_objects = _strict_search_objects
+
+
+class StrictReferenceToolAgent(base.ReferenceToolAgent):
+    """Reference harness with question-faithful semantic search; not an AI result."""
+
+    def run(self, question: str, gateway):
+        q = question.lower()
+        if "independent evidence" in q and "valve sticking" in q:
+            calls: list[str] = []
+
+            def call(name: str, **kwargs: Any):
+                call_id, result = gateway.call(name, kwargs)
+                calls.append(call_id)
+                return result
+
+            # Use the complete user question so root-cause terms disambiguate the asset.
+            equipment = call("search_objects", query=question, object_type="DrillingEquipment", limit=10)[0]
+            evidence = call("get_evidence", equipment_id=equipment["id"])
+            modalities = sorted({item["modality"] for item in evidence if item["modality"] != "geospatial"})
+            return base._final(
+                [equipment["id"], equipment["properties"]["scenario_id"], *modalities],
+                [],
+                calls,
+                f"CEPIO binds {len(evidence)} evidence artifacts across {', '.join(modalities)}.",
+            )
+        return super().run(question, gateway)
+
+
+base.ReferenceToolAgent = StrictReferenceToolAgent
 
 APPROVED_TOOLS = base.APPROVED_TOOLS
 BENCHMARK = base.BENCHMARK
