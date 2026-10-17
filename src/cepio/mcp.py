@@ -17,7 +17,7 @@ class MCPFacade:
     def list_tools(self) -> list[dict[str, Any]]:
         return [
             {"name": "cepio_get_object", "description": "Read an authorized CEPIO object by ID", "inputSchema": {"type": "object", "properties": {"object_id": {"type": "string"}}, "required": ["object_id"]}},
-            {"name": "cepio_neighbors", "description": "Traverse outgoing CEPIO relationships", "inputSchema": {"type": "object", "properties": {"object_id": {"type": "string"}, "relationship_type": {"type": ["string", "null"]}}, "required": ["object_id"]}},
+            {"name": "cepio_neighbors", "description": "Traverse authorized CEPIO relationships", "inputSchema": {"type": "object", "properties": {"object_id": {"type": "string"}, "relationship_type": {"type": ["string", "null"]}, "direction": {"type": "string", "enum": ["out", "in"], "default": "out"}}, "required": ["object_id"]}},
             {"name": "cepio_call_function", "description": "Invoke an authorized registered CEPIO business function", "inputSchema": {"type": "object", "properties": {"function": {"type": "string"}, "arguments": {"type": "object"}}, "required": ["function", "arguments"]}},
             {"name": "cepio_save_decision", "description": "Persist an authorized named CEPIO decision recommendation", "inputSchema": {"type": "object", "properties": {"decision_type": {"type": "string"}, "subject_id": {"type": "string"}, "subject_type": {"type": "string"}, "problem": {"type": "string"}, "observations": {"type": "array", "items": {"type": "string"}}, "recommendation": {"type": "string"}, "recommended_action": {"type": ["string", "null"]}, "confidence": {"type": ["number", "null"]}}, "required": ["decision_type", "subject_id", "subject_type", "problem", "recommendation"]}},
             {"name": "cepio_execute_action", "description": "Attempt a governed CEPIO action. Policy may reject or constrain execution.", "inputSchema": {"type": "object", "properties": {"action_type": {"type": "string"}, "target_id": {"type": "string"}, "target_type": {"type": "string"}, "parameters": {"type": "object"}, "idempotency_key": {"type": ["string", "null"]}, "decision_id": {"type": ["string", "null"]}}, "required": ["action_type", "target_id", "target_type"]}},
@@ -29,7 +29,13 @@ class MCPFacade:
             return obj.model_dump(mode="json")
         if name == "cepio_neighbors":
             start = self.runtime.read_object_for_actor(arguments["object_id"], self.actor_roles)
-            neighbors = self.runtime.neighbors(start.id, arguments.get("relationship_type"))
+            direction = str(arguments.get("direction", "out"))
+            if direction not in {"out", "in"}:
+                raise ValueError("direction must be 'out' or 'in'")
+            if direction == "in":
+                neighbors = self.runtime.reverse_neighbors(start.id, arguments.get("relationship_type"))
+            else:
+                neighbors = self.runtime.neighbors(start.id, arguments.get("relationship_type"))
             visible = []
             for obj in neighbors:
                 if self.runtime.policy_engine.can_read_type(self.actor_roles, obj.type):
