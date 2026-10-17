@@ -1,0 +1,47 @@
+schema_version: "1.0"
+
+# Standards-specific electrical safety methods and asset-management terminology
+# federate into reusable CEPIO industrial/HSE/asset semantics rather than
+# becoming parallel ontology hierarchies.
+risk_assessment_mappings:
+  - id: ieee-1584-arc-flash-assessment
+    standard: ieee-1584-2018
+    external_concept: ArcFlashStudy
+    canonical_type: https://cepio.org/ontology/hse#RiskAssessment
+    affected_asset_relationship: https://cepio.org/ontology/core#impacts
+    target_asset_type: https://cepio.org/ontology/industrial#ElectricalEquipment
+    semantics:
+      assessment_method_remains_external: true
+      incident_energy_and_boundary_values_are_measurements: true
+      study_document_preserves_source_provenance: true
+      no_dedicated_arc_flash_ontology_class: true
+    note: IEEE 1584 arc-flash calculations are represented as a risk-assessment method and supporting evidence, not as a new HSE class family.
+
+electrical_taxonomy_mappings:
+  - id: ieee-841-electric-motor
+    standard: ieee-841-2021
+    external_concept: SevereDutyElectricMotor
+    canonical_type: https://cepio.org/ontology/industrial#ElectricMotor
+    semantics:
+      standard_specific_ratings_remain_properties_or_mappings: true
+      canonical_identity_is_equipment: true
+    note: IEEE 841 qualification and rating detail enriches a canonical ElectricMotor without creating a standard-specific motor subclass.
+
+asset_management_mappings:
+  - id: iso-55001-asset-criticality
+    standard: iso-55001-2024
+    external_concept: AssetCriticalityAssessment
+    canonical_type: https://cepio.org/ontology/asset#AssetCriticality
+    canonical_relationship: https://cepio.org/ontology/asset#criticalityForAsset
+    semantics:
+      criticality_is_assessed_not_static_label: true
+      scoring_method_remains_external: true
+
+  - id: iso-55001-asset-management-plan
+    standard: iso-55001-2024
+    external_concept: AssetManagementPlan
+    canonical_type: https://cepio.org/ontology/asset#AssetManagementPlan
+    canonical_relationship: https://cepio.org/ontology/asset#planForAsset
+    semantics:
+      plan_content_is_controlled_document: true
+      value_risk_cost_performance_tradeoffs_reuse_core_semantics: true

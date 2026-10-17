@@ -102,3 +102,7 @@ Source system controls
  -> application/agent permissions
  -> external execution controls
 ```
+
+## Workflow policy v0.5.1
+
+[Workflow policy integration](../workflow-policy-v0.5.1.md) binds exact policy versions to durable workflow instances, derives trusted canonical context, pauses governed actions for human approval, and persists policy evidence through Action, external execution and Outcome.

@@ -14,6 +14,21 @@ ind:Inspection a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 ind:TripEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 ind:SparePart a owl:Class ; rdfs:subClassOf cepio:Resource .
 
+# Reusable electrical-equipment semantics accepted by the refinery v0.2
+# Generalization Lab. These types are industrial-common because motors and
+# motor-control centers recur across process plants, power, mining, upstream,
+# manufacturing and other asset-heavy operating environments.
+ind:ElectricalEquipment a owl:Class ; rdfs:subClassOf ind:Equipment .
+ind:ElectricMotor a owl:Class ; rdfs:subClassOf ind:RotatingEquipment, ind:ElectricalEquipment .
+ind:MotorControlCenter a owl:Class ; rdfs:subClassOf ind:ElectricalEquipment .
+
+# Reusable alarm-and-control semantics accepted by the refinery v0.2
+# Generalization Lab. They live in industrial-common because they recur across
+# automated industrial domains, not only refining/process manufacturing.
+ind:Alarm a owl:Class ; rdfs:subClassOf cepio:Event .
+ind:AlarmRationalization a owl:Class ; rdfs:subClassOf cepio:Document .
+ind:ControlLoop a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
+
 ind:contains a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Asset .
 ind:feeds a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Asset .
 ind:produces a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:Entity .
@@ -21,3 +36,7 @@ ind:consumes a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range cepio:E
 ind:hasWorkOrder a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range ind:WorkOrder .
 ind:hasInspection a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range ind:Inspection .
 ind:requiresSpare a owl:ObjectProperty ; rdfs:domain ind:WorkOrder ; rdfs:range ind:SparePart .
+ind:drivesEquipment a owl:ObjectProperty ; rdfs:domain ind:ElectricMotor ; rdfs:range ind:Equipment .
+ind:suppliesPowerTo a owl:ObjectProperty ; rdfs:domain ind:ElectricalEquipment ; rdfs:range ind:Equipment .
+ind:alarmForState a owl:ObjectProperty ; rdfs:domain ind:Alarm ; rdfs:range cepio:State .
+ind:rationalizesAlarm a owl:ObjectProperty ; rdfs:domain ind:AlarmRationalization ; rdfs:range ind:Alarm .

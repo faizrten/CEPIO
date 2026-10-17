@@ -11,6 +11,12 @@ class ProductionLossInput(BaseModel):
     unit_margin_per_hour: float = Field(ge=0)
 
 
+class ProductionExposureInput(BaseModel):
+    asset_id: str
+    hours: float = Field(ge=0)
+    production_rate_per_hour: float = Field(ge=0)
+
+
 class AssetRiskInput(BaseModel):
     asset_id: str
 
@@ -26,6 +32,19 @@ def calculate_production_loss(
 ) -> float:
     runtime.get_object(asset_id)
     return round(hours * unit_margin_per_hour, 2)
+
+
+def calculate_production_exposure(
+    *, runtime: CEPIORuntime, asset_id: str, hours: float, production_rate_per_hour: float
+) -> float:
+    """Calculate prospective production quantity exposed during an asset-impact window.
+
+    The result is deliberately quantity-neutral: callers supply a rate in their governed
+    production unit per hour and receive exposure in that same production unit. Monetary
+    consequence remains a separate concern from physical production exposure.
+    """
+    runtime.get_object(asset_id)
+    return round(hours * production_rate_per_hour, 3)
 
 
 def calculate_asset_risk(*, runtime: CEPIORuntime, asset_id: str) -> float:

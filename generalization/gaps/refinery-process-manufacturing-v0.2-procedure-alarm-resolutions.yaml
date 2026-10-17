@@ -1,0 +1,63 @@
+id: refinery-process-manufacturing-v0.2-procedure-alarm-resolutions
+version: "0.2"
+status: implemented
+source_triage: generalization/gaps/refinery-process-manufacturing-v0.2.yaml
+scope: procedure-and-alarm-operations
+resolutions:
+  - gap_id: GAP-RP2-003-PROCEDURE-AUTOMATION
+    disposition: DOMAIN
+    status: implemented
+    module: process_industry
+    module_version: 0.1.2
+    implemented_semantics:
+      - process:OperatingProcedure
+      - process:ProcedureStep
+      - process:ProcedureExecution
+      - process:executesProcedure
+    reused_semantics:
+      - cepio:Document
+      - cepio:Activity
+      - cepio:dependsOn
+    standards: [isa-106-2023]
+
+  - gap_id: GAP-RP2-003-PROCEDURE-WORK-CONTROL-EDGE
+    disposition: REJECT
+    status: preserved
+    resolution: Reuse cepio:dependsOn for permits, isolations, barriers and other execution gates; no procedure-specific work-control predicate is canonicalized.
+    standards: [isa-106-2023]
+
+  - gap_id: GAP-RP2-004-ALARM-AND-CONTROL
+    disposition: CORE
+    status: implemented
+    module: industrial
+    module_version: 0.2.1
+    implemented_semantics:
+      - industrial:Alarm
+      - industrial:AlarmRationalization
+      - industrial:ControlLoop
+      - industrial:alarmForState
+      - industrial:rationalizesAlarm
+    reused_semantics:
+      - cepio:Event
+      - cepio:Document
+      - cepio:FunctionalAsset
+      - cepio:State
+    standards: [iec-62682-2022]
+
+  - gap_id: GAP-RP2-004-ABNORMAL-SITUATION
+    disposition: DOMAIN
+    status: implemented
+    module: process_industry
+    module_version: 0.1.2
+    implemented_semantics:
+      - process:AbnormalSituation
+    reused_semantics:
+      - cepio:State
+    standards: [isa-106-2023, iec-62682-2022]
+
+guardrails:
+  - industrial-common alarm semantics do not import or depend on process_industry
+  - process-specific abnormal situations specialize generic cepio:State
+  - frozen refinery competency pack v0.2 is unchanged
+  - no customer/profile vocabulary is introduced
+  - no procedure-specific permit or isolation predicate is introduced

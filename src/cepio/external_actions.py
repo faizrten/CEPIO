@@ -33,6 +33,7 @@ class IdentityReconciliationStatus(str, Enum):
 
 class ExternalActionStatus(str, Enum):
     pending_execution = "pending_execution"
+    dispatching = "dispatching"
     acknowledged = "acknowledged"
     pending_verification = "pending_verification"
     verified = "verified"
@@ -69,6 +70,7 @@ class ExternalActionBinding:
 
 class ExternalActionExecution(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
+    policy_evidence: dict[str, Any] = Field(default_factory=dict)
     action_id: str
     action_type: str
     target: ObjectRef
@@ -81,10 +83,12 @@ class ExternalActionExecution(BaseModel):
     operation: str
     identity_type: str = "default"
     external_identity_id: str | None = None
+    external_identity_mapping_version: str | None = None
     external_id: str | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
     idempotency_key: str
     status: ExternalActionStatus = ExternalActionStatus.pending_execution
+    revision: int = 0
     source_request_id: str | None = None
     source_payload: dict[str, Any] = Field(default_factory=dict)
     message: str | None = None
@@ -108,6 +112,10 @@ class ExternalActionHistoryEntry(BaseModel):
     occurred_at: datetime = Field(default_factory=utcnow)
 
 
+class ConcurrentExternalActionUpdate(RuntimeError):
+    pass
+
+
 class ExternalActionRepository(Protocol):
     def save_identity(self, mapping: ExternalIdentityMapping) -> ExternalIdentityMapping: ...
     def list_identities(
@@ -117,9 +125,16 @@ class ExternalActionRepository(Protocol):
         system: str | None = None,
         identity_type: str | None = None,
     ) -> list[ExternalIdentityMapping]: ...
-    def save_execution(self, execution: ExternalActionExecution) -> ExternalActionExecution: ...
+    def save_execution(
+        self,
+        execution: ExternalActionExecution,
+        *,
+        expected_revision: int | None = None,
+    ) -> ExternalActionExecution: ...
     def get_execution(self, execution_id: str) -> ExternalActionExecution | None: ...
-    def find_execution_by_idempotency(self, idempotency_key: str) -> ExternalActionExecution | None: ...
+    def find_execution_by_idempotency(
+        self, idempotency_key: str
+    ) -> ExternalActionExecution | None: ...
     def list_executions(
         self, status: ExternalActionStatus | None = None
     ) -> list[ExternalActionExecution]: ...
@@ -148,42 +163,71 @@ class InMemoryExternalActionRepository(ExternalActionRepository):
         system: str | None = None,
         identity_type: str | None = None,
     ) -> list[ExternalIdentityMapping]:
-        result = []
-        for item in self._identities.values():
-            if item.cepio_object_id != cepio_object_id:
-                continue
-            if system is not None and item.system != system:
-                continue
-            if identity_type is not None and item.identity_type != identity_type:
-                continue
-            result.append(item.model_copy(deep=True))
-        return sorted(result, key=lambda item: (item.system, item.identity_type, item.external_id))
-
-    def save_execution(self, execution: ExternalActionExecution) -> ExternalActionExecution:
         with self._lock:
-            execution.updated_at = utcnow()
+            result = []
+            for item in self._identities.values():
+                if item.cepio_object_id != cepio_object_id:
+                    continue
+                if system is not None and item.system != system:
+                    continue
+                if identity_type is not None and item.identity_type != identity_type:
+                    continue
+                result.append(item.model_copy(deep=True))
+            return sorted(
+                result, key=lambda item: (item.system, item.identity_type, item.external_id)
+            )
+
+    def save_execution(
+        self,
+        execution: ExternalActionExecution,
+        *,
+        expected_revision: int | None = None,
+    ) -> ExternalActionExecution:
+        with self._lock:
+            prior = self._executions.get(execution.id)
             prior_id = self._idempotency.get(execution.idempotency_key)
             if prior_id is not None and prior_id != execution.id:
-                raise ValueError("External action idempotency key already belongs to another execution")
+                raise ValueError(
+                    "External action idempotency key already belongs to another execution"
+                )
+            if prior is None:
+                if expected_revision not in (None, 0):
+                    raise ConcurrentExternalActionUpdate(
+                        f"External action {execution.id} does not exist at revision {expected_revision}"
+                    )
+                next_revision = 1
+            else:
+                if expected_revision is not None and prior.revision != expected_revision:
+                    raise ConcurrentExternalActionUpdate(
+                        f"External action {execution.id} revision changed from "
+                        f"{expected_revision} to {prior.revision}"
+                    )
+                next_revision = prior.revision + 1
+            execution.updated_at = utcnow()
+            execution.revision = next_revision
             self._executions[execution.id] = execution.model_copy(deep=True)
             self._idempotency[execution.idempotency_key] = execution.id
             return execution.model_copy(deep=True)
 
     def get_execution(self, execution_id: str) -> ExternalActionExecution | None:
-        item = self._executions.get(execution_id)
-        return item.model_copy(deep=True) if item else None
+        with self._lock:
+            item = self._executions.get(execution_id)
+            return item.model_copy(deep=True) if item else None
 
     def find_execution_by_idempotency(self, idempotency_key: str) -> ExternalActionExecution | None:
-        execution_id = self._idempotency.get(idempotency_key)
-        return self.get_execution(execution_id) if execution_id else None
+        with self._lock:
+            execution_id = self._idempotency.get(idempotency_key)
+            item = self._executions.get(execution_id) if execution_id else None
+            return item.model_copy(deep=True) if item else None
 
     def list_executions(
         self, status: ExternalActionStatus | None = None
     ) -> list[ExternalActionExecution]:
-        values = [item.model_copy(deep=True) for item in self._executions.values()]
-        if status is not None:
-            values = [item for item in values if item.status == status]
-        return sorted(values, key=lambda item: (item.created_at, item.id))
+        with self._lock:
+            values = [item.model_copy(deep=True) for item in self._executions.values()]
+            if status is not None:
+                values = [item for item in values if item.status == status]
+            return sorted(values, key=lambda item: (item.created_at, item.id))
 
     def append_history(self, entry: ExternalActionHistoryEntry) -> ExternalActionHistoryEntry:
         with self._lock:
@@ -191,11 +235,12 @@ class InMemoryExternalActionRepository(ExternalActionRepository):
             return entry
 
     def list_history(self, execution_id: str) -> list[ExternalActionHistoryEntry]:
-        return [item for item in self._history if item.execution_id == execution_id]
+        with self._lock:
+            return [item for item in self._history if item.execution_id == execution_id]
 
 
 class SQLiteExternalActionRepository(ExternalActionRepository):
-    """Single-writer durable reference store for governed external actions."""
+    """Durable reference store with optimistic execution-state concurrency."""
 
     def __init__(self, path: str | Path) -> None:
         self.path = str(path)
@@ -208,45 +253,57 @@ class SQLiteExternalActionRepository(ExternalActionRepository):
         self._conn.close()
 
     def _init_schema(self) -> None:
-        self._conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS external_identity_mappings (
-                id TEXT PRIMARY KEY,
-                cepio_object_id TEXT NOT NULL,
-                system TEXT NOT NULL,
-                identity_type TEXT NOT NULL,
-                status TEXT NOT NULL,
-                payload TEXT NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS idx_external_identity_lookup
-                ON external_identity_mappings(cepio_object_id, system, identity_type, status);
+        with self._lock:
+            self._conn.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS external_identity_mappings (
+                    id TEXT PRIMARY KEY,
+                    cepio_object_id TEXT NOT NULL,
+                    system TEXT NOT NULL,
+                    identity_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    payload TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_external_identity_lookup
+                    ON external_identity_mappings(cepio_object_id, system, identity_type, status);
 
-            CREATE TABLE IF NOT EXISTS external_action_executions (
-                id TEXT PRIMARY KEY,
-                action_id TEXT NOT NULL,
-                system TEXT NOT NULL,
-                operation TEXT NOT NULL,
-                idempotency_key TEXT NOT NULL UNIQUE,
-                status TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                payload TEXT NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS idx_external_action_status
-                ON external_action_executions(status, updated_at);
-            CREATE INDEX IF NOT EXISTS idx_external_action_action
-                ON external_action_executions(action_id);
+                CREATE TABLE IF NOT EXISTS external_action_executions (
+                    id TEXT PRIMARY KEY,
+                    action_id TEXT NOT NULL,
+                    system TEXT NOT NULL,
+                    operation TEXT NOT NULL,
+                    idempotency_key TEXT NOT NULL UNIQUE,
+                    status TEXT NOT NULL,
+                    revision INTEGER NOT NULL DEFAULT 0,
+                    updated_at TEXT NOT NULL,
+                    payload TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_external_action_status
+                    ON external_action_executions(status, updated_at);
+                CREATE INDEX IF NOT EXISTS idx_external_action_action
+                    ON external_action_executions(action_id);
 
-            CREATE TABLE IF NOT EXISTS external_action_history (
-                id TEXT PRIMARY KEY,
-                execution_id TEXT NOT NULL,
-                occurred_at TEXT NOT NULL,
-                payload TEXT NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS idx_external_action_history
-                ON external_action_history(execution_id, occurred_at);
-            """
-        )
-        self._conn.commit()
+                CREATE TABLE IF NOT EXISTS external_action_history (
+                    id TEXT PRIMARY KEY,
+                    execution_id TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    payload TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_external_action_history
+                    ON external_action_history(execution_id, occurred_at);
+                """
+            )
+            columns = {
+                row["name"]
+                for row in self._conn.execute(
+                    "PRAGMA table_info(external_action_executions)"
+                ).fetchall()
+            }
+            if "revision" not in columns:
+                self._conn.execute(
+                    "ALTER TABLE external_action_executions ADD COLUMN revision INTEGER NOT NULL DEFAULT 0"
+                )
+            self._conn.commit()
 
     def save_identity(self, mapping: ExternalIdentityMapping) -> ExternalIdentityMapping:
         with self._lock:
@@ -297,34 +354,104 @@ class SQLiteExternalActionRepository(ExternalActionRepository):
         ).fetchall()
         return [ExternalIdentityMapping.model_validate_json(row["payload"]) for row in rows]
 
-    def save_execution(self, execution: ExternalActionExecution) -> ExternalActionExecution:
+    def save_execution(
+        self,
+        execution: ExternalActionExecution,
+        *,
+        expected_revision: int | None = None,
+    ) -> ExternalActionExecution:
         with self._lock:
+            prior_row = self._conn.execute(
+                "SELECT revision, payload FROM external_action_executions WHERE id = ?",
+                (execution.id,),
+            ).fetchone()
+            if prior_row is None:
+                if expected_revision not in (None, 0):
+                    raise ConcurrentExternalActionUpdate(
+                        f"External action {execution.id} does not exist at revision {expected_revision}"
+                    )
+                execution.revision = 1
+                execution.updated_at = utcnow()
+                try:
+                    self._conn.execute(
+                        """
+                        INSERT INTO external_action_executions(
+                            id, action_id, system, operation, idempotency_key,
+                            status, revision, updated_at, payload
+                        ) VALUES(?,?,?,?,?,?,?,?,?)
+                        """,
+                        (
+                            execution.id,
+                            execution.action_id,
+                            execution.system,
+                            execution.operation,
+                            execution.idempotency_key,
+                            execution.status.value,
+                            execution.revision,
+                            execution.updated_at.isoformat(),
+                            execution.model_dump_json(),
+                        ),
+                    )
+                except sqlite3.IntegrityError as exc:
+                    self._conn.rollback()
+                    raise ConcurrentExternalActionUpdate(str(exc)) from exc
+                self._conn.commit()
+                return execution.model_copy(deep=True)
+
+            prior_revision = int(prior_row["revision"])
+            if expected_revision is not None and prior_revision != expected_revision:
+                raise ConcurrentExternalActionUpdate(
+                    f"External action {execution.id} revision changed from "
+                    f"{expected_revision} to {prior_revision}"
+                )
+            execution.revision = prior_revision + 1
             execution.updated_at = utcnow()
-            self._conn.execute(
-                """
-                INSERT INTO external_action_executions(
-                    id, action_id, system, operation, idempotency_key, status, updated_at, payload
-                ) VALUES(?,?,?,?,?,?,?,?)
-                ON CONFLICT(id) DO UPDATE SET
-                    action_id=excluded.action_id,
-                    system=excluded.system,
-                    operation=excluded.operation,
-                    idempotency_key=excluded.idempotency_key,
-                    status=excluded.status,
-                    updated_at=excluded.updated_at,
-                    payload=excluded.payload
-                """,
-                (
-                    execution.id,
-                    execution.action_id,
-                    execution.system,
-                    execution.operation,
-                    execution.idempotency_key,
-                    execution.status.value,
-                    execution.updated_at.isoformat(),
-                    execution.model_dump_json(),
-                ),
-            )
+            if expected_revision is None:
+                cursor = self._conn.execute(
+                    """
+                    UPDATE external_action_executions SET
+                        action_id=?, system=?, operation=?, idempotency_key=?,
+                        status=?, revision=?, updated_at=?, payload=?
+                    WHERE id=?
+                    """,
+                    (
+                        execution.action_id,
+                        execution.system,
+                        execution.operation,
+                        execution.idempotency_key,
+                        execution.status.value,
+                        execution.revision,
+                        execution.updated_at.isoformat(),
+                        execution.model_dump_json(),
+                        execution.id,
+                    ),
+                )
+            else:
+                cursor = self._conn.execute(
+                    """
+                    UPDATE external_action_executions SET
+                        action_id=?, system=?, operation=?, idempotency_key=?,
+                        status=?, revision=?, updated_at=?, payload=?
+                    WHERE id=? AND revision=?
+                    """,
+                    (
+                        execution.action_id,
+                        execution.system,
+                        execution.operation,
+                        execution.idempotency_key,
+                        execution.status.value,
+                        execution.revision,
+                        execution.updated_at.isoformat(),
+                        execution.model_dump_json(),
+                        execution.id,
+                        expected_revision,
+                    ),
+                )
+            if cursor.rowcount != 1:
+                self._conn.rollback()
+                raise ConcurrentExternalActionUpdate(
+                    f"External action {execution.id} was updated concurrently"
+                )
             self._conn.commit()
         return execution.model_copy(deep=True)
 
@@ -359,7 +486,12 @@ class SQLiteExternalActionRepository(ExternalActionRepository):
         with self._lock:
             self._conn.execute(
                 "INSERT INTO external_action_history(id, execution_id, occurred_at, payload) VALUES(?,?,?,?)",
-                (entry.id, entry.execution_id, entry.occurred_at.isoformat(), entry.model_dump_json()),
+                (
+                    entry.id,
+                    entry.execution_id,
+                    entry.occurred_at.isoformat(),
+                    entry.model_dump_json(),
+                ),
             )
             self._conn.commit()
         return entry
@@ -419,11 +551,11 @@ class ExternalActionRuntime:
         audit = self._executed_action_audit(action_id)
         binding = self._bindings.get(audit.action_type)
         if binding is None:
-            raise KeyError(f"No external write binding registered for action type {audit.action_type}")
+            raise KeyError(
+                f"No external write binding registered for action type {audit.action_type}"
+            )
 
-        idempotency_key = (
-            f"external:{binding.system}:{binding.operation}:{audit.action_id}"
-        )
+        idempotency_key = f"external:{binding.system}:{binding.operation}:{audit.action_id}"
         prior = self.repository.find_execution_by_idempotency(idempotency_key)
         if prior is not None:
             return prior
@@ -440,17 +572,19 @@ class ExternalActionRuntime:
         )
         execution = ExternalActionExecution(
             action_id=audit.action_id,
+            policy_evidence=audit.policy_evidence,
             action_type=audit.action_type,
             target=audit.target,
             actor_id=audit.actor_id,
             actor_roles=set(audit.actor_roles),
             decision_id=audit.decision_id,
             correlation_id=audit.correlation_id,
-            workflow_instance_id=audit.correlation_id,
+            workflow_instance_id=audit.workflow_instance_id,
             system=binding.system,
             operation=binding.operation,
             identity_type=binding.identity_type,
             external_identity_id=identity.id if identity else None,
+            external_identity_mapping_version=(identity.mapping_version if identity else None),
             external_id=identity.external_id if identity else None,
             payload=payload,
             idempotency_key=idempotency_key,
@@ -466,24 +600,35 @@ class ExternalActionRuntime:
                 else f"External write blocked: {failure_reason}"
             ),
         )
-        self.repository.save_execution(execution)
+        try:
+            stored = self.repository.save_execution(execution)
+        except ConcurrentExternalActionUpdate:
+            prior = self.repository.find_execution_by_idempotency(idempotency_key)
+            if prior is None:
+                raise
+            return prior
         self._history(
-            execution,
+            stored,
             "external_write_queued" if identity else "external_write_blocked",
             details={
                 "action_id": audit.action_id,
+                "policy_evidence": audit.policy_evidence,
                 "system": binding.system,
                 "operation": binding.operation,
                 "failure_reason": failure_reason,
+                "workflow_instance_id": audit.workflow_instance_id,
             },
         )
-        return self.get_execution(execution.id)
+        return self.get_execution(stored.id)
 
     def dispatch(self, execution_id: str) -> ExternalActionExecution:
         execution = self.get_execution(execution_id)
-        if execution.status == ExternalActionStatus.unknown:
+        if execution.status in {
+            ExternalActionStatus.unknown,
+            ExternalActionStatus.dispatching,
+        }:
             raise UnsafeExternalRedispatchError(
-                "External outcome is unknown; reconcile before any redispatch"
+                "External outcome is in-flight or unknown; reconcile before any redispatch"
             )
         if execution.status in {
             ExternalActionStatus.acknowledged,
@@ -494,70 +639,96 @@ class ExternalActionRuntime:
             return execution
         if execution.status != ExternalActionStatus.pending_execution:
             return execution
-        if execution.external_id is None:
+
+        identity_reason = self._identity_drift_reason(execution)
+        if identity_reason is not None:
+            expected = execution.revision
             execution.status = ExternalActionStatus.failed
-            execution.failure_reason = "identity_missing"
-            self.repository.save_execution(execution)
+            execution.failure_reason = identity_reason
+            execution.message = "External identity changed after enqueue; write blocked"
+            try:
+                stored = self.repository.save_execution(execution, expected_revision=expected)
+            except ConcurrentExternalActionUpdate:
+                return self.get_execution(execution.id)
+            self._history(
+                stored,
+                "external_write_blocked_identity_drift",
+                details={"reason": identity_reason},
+            )
+            return stored
+
+        expected = execution.revision
+        execution.status = ExternalActionStatus.dispatching
+        execution.dispatch_attempts += 1
+        try:
+            claimed = self.repository.save_execution(execution, expected_revision=expected)
+        except ConcurrentExternalActionUpdate:
             return self.get_execution(execution.id)
 
-        adapter = self._adapter(execution.system)
-        execution.dispatch_attempts += 1
-        self.repository.save_execution(execution)
         self._history(
-            execution,
+            claimed,
             "adapter_dispatch_started",
-            details={"attempt": execution.dispatch_attempts},
+            details={"attempt": claimed.dispatch_attempts, "revision": claimed.revision},
         )
+        adapter = self._adapter(claimed.system)
         try:
-            receipt = adapter.write_governed(self._write_request(execution))
+            receipt = adapter.write_governed(self._write_request(claimed))
         except Exception as exc:
-            execution.status = ExternalActionStatus.unknown
-            execution.failure_reason = "adapter_write_outcome_unknown"
-            execution.message = str(exc)
-            self.repository.save_execution(execution)
+            claimed.status = ExternalActionStatus.unknown
+            claimed.failure_reason = "adapter_write_outcome_unknown"
+            claimed.message = str(exc)
+            stored = self.repository.save_execution(claimed, expected_revision=claimed.revision)
             self._history(
-                execution,
+                stored,
                 "adapter_dispatch_unknown",
                 details={"error": str(exc)},
             )
-            return self.get_execution(execution.id)
+            return stored
 
-        execution.source_request_id = receipt.source_request_id
-        execution.source_payload = dict(receipt.source_payload)
-        execution.message = receipt.message
+        claimed.source_request_id = receipt.source_request_id
+        claimed.source_payload = dict(receipt.source_payload)
+        claimed.message = receipt.message
         if not receipt.accepted:
-            execution.status = ExternalActionStatus.failed
-            execution.failure_reason = "adapter_rejected_write"
-            self.repository.save_execution(execution)
+            claimed.status = ExternalActionStatus.failed
+            claimed.failure_reason = "adapter_rejected_write"
+            stored = self.repository.save_execution(claimed, expected_revision=claimed.revision)
             self._history(
-                execution,
+                stored,
                 "adapter_dispatch_rejected",
                 details={"message": receipt.message},
             )
-            return self.get_execution(execution.id)
+            return stored
 
-        execution.status = ExternalActionStatus.acknowledged
-        execution.acknowledged_at = utcnow()
-        execution.failure_reason = None
-        self.repository.save_execution(execution)
+        claimed.status = ExternalActionStatus.acknowledged
+        claimed.acknowledged_at = utcnow()
+        claimed.failure_reason = None
+        acknowledged = self.repository.save_execution(claimed, expected_revision=claimed.revision)
         self._history(
-            execution,
+            acknowledged,
             "adapter_write_acknowledged",
             details={"source_request_id": receipt.source_request_id},
         )
 
-        execution.status = ExternalActionStatus.pending_verification
-        self.repository.save_execution(execution)
-        self._history(execution, "external_verification_pending")
-        return self.get_execution(execution.id)
+        acknowledged.status = ExternalActionStatus.pending_verification
+        pending = self.repository.save_execution(
+            acknowledged, expected_revision=acknowledged.revision
+        )
+        self._history(pending, "external_verification_pending")
+        return pending
 
     def verify(self, execution_id: str) -> ExternalActionExecution:
         execution = self.get_execution(execution_id)
-        if execution.status == ExternalActionStatus.unknown:
+        if execution.status in {
+            ExternalActionStatus.unknown,
+            ExternalActionStatus.dispatching,
+        }:
             raise UnsafeExternalRedispatchError(
-                "External outcome is unknown; use reconcile() rather than ordinary verification"
+                "External outcome is in-flight or unknown; use reconcile() rather than ordinary verification"
             )
-        if execution.status in {ExternalActionStatus.verified, ExternalActionStatus.failed}:
+        if execution.status in {
+            ExternalActionStatus.verified,
+            ExternalActionStatus.failed,
+        }:
             return execution
         if execution.status not in {
             ExternalActionStatus.acknowledged,
@@ -567,29 +738,54 @@ class ExternalActionRuntime:
                 f"Execution {execution.id} is not ready for verification: {execution.status.value}"
             )
         adapter = self._adapter(execution.system)
+        expected = execution.revision
         execution.verification_attempts += 1
-        self.repository.save_execution(execution)
+        execution = self.repository.save_execution(execution, expected_revision=expected)
         try:
             result = adapter.verify_write(self._verification_request(execution))
         except Exception as exc:
-            return self._mark_unknown(execution, "verification_error", str(exc))
-        return self._apply_verification(execution, result, event_prefix="verification")
+            return self._mark_unknown(
+                execution,
+                "verification_error",
+                str(exc),
+                expected_revision=execution.revision,
+            )
+        return self._apply_verification(
+            execution,
+            result,
+            event_prefix="verification",
+            expected_revision=execution.revision,
+        )
 
     def reconcile(self, execution_id: str) -> ExternalActionExecution:
         execution = self.get_execution(execution_id)
-        if execution.status in {ExternalActionStatus.verified, ExternalActionStatus.failed}:
+        if execution.status in {
+            ExternalActionStatus.verified,
+            ExternalActionStatus.failed,
+        }:
             return execution
         if execution.status == ExternalActionStatus.pending_execution:
             raise RuntimeError("Cannot reconcile an external action that was never dispatched")
         adapter = self._adapter(execution.system)
+        expected = execution.revision
         execution.verification_attempts += 1
-        self.repository.save_execution(execution)
+        execution = self.repository.save_execution(execution, expected_revision=expected)
         self._history(execution, "reconciliation_started")
         try:
             result = adapter.reconcile_write(self._verification_request(execution))
         except Exception as exc:
-            return self._mark_unknown(execution, "reconciliation_error", str(exc))
-        return self._apply_verification(execution, result, event_prefix="reconciliation")
+            return self._mark_unknown(
+                execution,
+                "reconciliation_error",
+                str(exc),
+                expected_revision=execution.revision,
+            )
+        return self._apply_verification(
+            execution,
+            result,
+            event_prefix="reconciliation",
+            expected_revision=execution.revision,
+        )
 
     def get_execution(self, execution_id: str) -> ExternalActionExecution:
         execution = self.repository.get_execution(execution_id)
@@ -634,7 +830,10 @@ class ExternalActionRuntime:
             return None, "identity_missing"
         if any(
             item.status
-            in {IdentityReconciliationStatus.ambiguous, IdentityReconciliationStatus.conflict}
+            in {
+                IdentityReconciliationStatus.ambiguous,
+                IdentityReconciliationStatus.conflict,
+            }
             for item in mappings
         ):
             return None, "identity_conflict_or_ambiguous"
@@ -642,7 +841,10 @@ class ExternalActionRuntime:
             item
             for item in mappings
             if item.status
-            in {IdentityReconciliationStatus.matched, IdentityReconciliationStatus.verified}
+            in {
+                IdentityReconciliationStatus.matched,
+                IdentityReconciliationStatus.verified,
+            }
         ]
         if len(eligible) != 1:
             if not eligible and all(
@@ -653,6 +855,22 @@ class ExternalActionRuntime:
         if len(mappings) != 1:
             return None, "identity_ambiguous"
         return eligible[0], None
+
+    def _identity_drift_reason(self, execution: ExternalActionExecution) -> str | None:
+        identity, resolution_error = self._resolve_identity(
+            execution.target.id,
+            system=execution.system,
+            identity_type=execution.identity_type,
+        )
+        if identity is None:
+            return f"identity_changed_before_dispatch:{resolution_error}"
+        if identity.id != execution.external_identity_id:
+            return "identity_changed_before_dispatch:mapping_changed"
+        if identity.external_id != execution.external_id:
+            return "identity_changed_before_dispatch:external_id_changed"
+        if identity.mapping_version != execution.external_identity_mapping_version:
+            return "identity_changed_before_dispatch:mapping_version_changed"
+        return None
 
     def _adapter(self, system: str) -> GovernedWriteAdapter:
         adapter = self._adapters.get(system)
@@ -710,6 +928,7 @@ class ExternalActionRuntime:
         result: GovernedVerificationResult,
         *,
         event_prefix: str,
+        expected_revision: int,
     ) -> ExternalActionExecution:
         execution.source_payload = dict(result.source_payload)
         execution.message = result.message
@@ -727,33 +946,35 @@ class ExternalActionRuntime:
                 if result.status == AdapterVerificationStatus.conflict
                 else "source_outcome_unknown"
             )
-        self.repository.save_execution(execution)
+        stored = self.repository.save_execution(execution, expected_revision=expected_revision)
         self._history(
-            execution,
-            f"{event_prefix}_{execution.status.value}",
+            stored,
+            f"{event_prefix}_{stored.status.value}",
             details={
                 "adapter_status": result.status.value,
                 "message": result.message,
             },
         )
-        return self.get_execution(execution.id)
+        return stored
 
     def _mark_unknown(
         self,
         execution: ExternalActionExecution,
         reason: str,
         message: str,
+        *,
+        expected_revision: int,
     ) -> ExternalActionExecution:
         execution.status = ExternalActionStatus.unknown
         execution.failure_reason = reason
         execution.message = message
-        self.repository.save_execution(execution)
+        stored = self.repository.save_execution(execution, expected_revision=expected_revision)
         self._history(
-            execution,
+            stored,
             "external_outcome_unknown",
             details={"reason": reason, "message": message},
         )
-        return self.get_execution(execution.id)
+        return stored
 
     def _history(
         self,

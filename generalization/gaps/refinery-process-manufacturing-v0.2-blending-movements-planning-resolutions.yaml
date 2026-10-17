@@ -1,0 +1,67 @@
+id: refinery-process-manufacturing-v0.2-blending-movements-planning-resolutions
+version: "0.3"
+status: implemented
+source_triage: generalization/gaps/refinery-process-manufacturing-v0.2.yaml
+scope: blending-movements-and-planning
+resolutions:
+  - gap_id: GAP-RP2-001-CRUDE-ASSAY
+    disposition: DOMAIN
+    status: implemented
+    module: process_industry
+    module_version: 0.1.4
+    implemented_semantics:
+      - process:CrudeAssay
+      - process:characterizesStream
+    reused_semantics:
+      - process:MaterialStream
+      - cepio:Document
+    standards: [iso-20815-2026]
+
+  - gap_id: GAP-RP2-001-YIELD-MODEL
+    disposition: REJECT
+    replacement_layer: MAPPING
+    status: implemented
+    mapping: mappings/process_models.yaml
+    resolution: Represent executable yield models as versioned cepio:DigitalAsset instances with semantic input/output bindings; do not create process:YieldModel as a canonical ontology class.
+    reused_semantics:
+      - cepio:DigitalAsset
+      - process:CrudeAssay
+      - process:MaterialStream
+      - industrial:ProcessUnit
+      - cepio:Measurement
+      - cepio:KPI
+    standards: [iso-20815-2026]
+
+  - gap_id: GAP-RP2-002-BLENDING-AND-MOVEMENTS
+    disposition: DOMAIN
+    status: implemented
+    module: process_industry
+    module_version: 0.1.4
+    implemented_semantics:
+      - process:BlendPlan
+      - process:MaterialMovement
+      - process:TransferRoute
+      - process:movementFromStorage
+      - process:movementToStorage
+      - process:usesTransferRoute
+      - process:blendPlanForSchedule
+      - process:blendPlanUsesLot
+      - process:movementCarriesLot
+      - process:movementForSchedule
+      - process:routeFromStorage
+      - process:routeToStorage
+    reused_semantics:
+      - manufacturing:OperationsSchedule
+      - manufacturing:StorageUnit
+      - manufacturing:MaterialLot
+      - cepio:Activity
+      - cepio:Document
+    standards: [isa-95-2025, dexpi-2.0.1-2026]
+
+guardrails:
+  - frozen refinery competency pack v0.2 is unchanged
+  - process_industry owns process planning and movement intent while manufacturing retains StorageUnit, MaterialLot and OperationsSchedule identity
+  - no refinery-specific tank class is introduced
+  - no duplicate process namespace aliases for ISA-95 storage, lot or schedule classes are introduced
+  - executable yield models remain DigitalAsset/mapping-layer content rather than canonical ontology classes
+  - no customer/profile vocabulary is introduced

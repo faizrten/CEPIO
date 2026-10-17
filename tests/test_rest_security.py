@@ -211,3 +211,66 @@ def test_read_policy_filters_properties_before_query_pagination_and_neighbors(mo
     neighbors = client.get("/objects/K-READ/neighbors", headers=headers)
     assert neighbors.status_code == 200
     assert neighbors.json()[0]["properties"] == {"status": "open", "priority": "high"}
+
+
+def test_reverse_neighbor_traversal_is_authorized_and_filtered(monkeypatch):
+    monkeypatch.setenv("CEPIO_ENVIRONMENT", "test")
+    monkeypatch.setenv("CEPIO_AUTH_MODE", "dev")
+    api_module.runtime = build_runtime()
+    api_module.runtime.upsert_object(OntologyObject(id="K-REV", type="Compressor", name="Compressor"))
+    api_module.runtime.upsert_object(OntologyObject(id="FEV-REV", type="FailureEvent", name="Failure event"))
+    api_module.runtime.add_relationship(
+        Relationship(
+            type="failureOfEquipment",
+            source=ObjectRef(id="FEV-REV", type="FailureEvent"),
+            target=ObjectRef(id="K-REV", type="Compressor"),
+        )
+    )
+    client = TestClient(api_module.app)
+    headers = {
+        "X-CEPIO-Dev-Actor": "agent-reader",
+        "X-CEPIO-Dev-Roles": "ai_agent_recommender",
+    }
+
+    response = client.get(
+        "/objects/K-REV/neighbors?relationship_type=failureOfEquipment&direction=in",
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert [item["id"] for item in response.json()] == ["FEV-REV"]
+
+
+def test_typed_decision_proposal_requires_named_permission(monkeypatch):
+    monkeypatch.setenv("CEPIO_ENVIRONMENT", "test")
+    monkeypatch.setenv("CEPIO_AUTH_MODE", "dev")
+    api_module.runtime = build_runtime()
+    api_module.runtime.upsert_object(OntologyObject(id="K-DEC", type="Compressor", name="Compressor"))
+    client = TestClient(api_module.app)
+    body = {
+        "decision_type": "maintenance-intervention-recommendation",
+        "subject": {"id": "K-DEC", "type": "Compressor"},
+        "problem": "Increasing vibration",
+        "observations": ["Condition trend increased"],
+        "recommendation": "Create a work order",
+        "recommended_action": "CreateWorkOrder",
+        "confidence": 0.8,
+    }
+
+    allowed = client.post(
+        "/decisions",
+        headers={
+            "X-CEPIO-Dev-Actor": "agent-decider",
+            "X-CEPIO-Dev-Roles": "ai_agent_recommender",
+        },
+        json=body,
+    )
+    assert allowed.status_code == 200
+    assert allowed.json()["created_by"] == "agent-decider"
+
+    denied = client.post(
+        "/decisions",
+        headers={"X-CEPIO-Dev-Actor": "audit-1", "X-CEPIO-Dev-Roles": "auditor"},
+        json=body,
+    )
+    assert denied.status_code == 403
+    assert denied.json()["detail"]["code"] == "forbidden"

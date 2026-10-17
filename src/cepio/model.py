@@ -106,6 +106,7 @@ class ActionRequest(BaseModel):
     parameters: dict[str, Any] = Field(default_factory=dict)
     idempotency_key: str | None = None
     correlation_id: str | None = None
+    workflow_instance_id: str | None = None
     decision_id: str | None = None
     requested_at: datetime = Field(default_factory=utcnow)
 
@@ -122,6 +123,7 @@ class ActionResult(BaseModel):
     replayed: bool = False
     policy_reasons: list[str] = Field(default_factory=list)
     compensation: dict[str, Any] | None = None
+    policy_evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 class AuditEntry(BaseModel):
@@ -137,16 +139,19 @@ class AuditEntry(BaseModel):
     message: str
     idempotency_key: str | None = None
     correlation_id: str | None = None
+    workflow_instance_id: str | None = None
     decision_id: str | None = None
     policy_effect: PolicyEffect | None = None
     policy_reasons: list[str] = Field(default_factory=list)
     effects: dict[str, Any] = Field(default_factory=dict)
     occurred_at: datetime = Field(default_factory=utcnow)
     replayed: bool = False
+    policy_evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 class Decision(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
+    decision_type: str | None = None
     subject: ObjectRef
     problem: str
     observations: list[str] = Field(default_factory=list)

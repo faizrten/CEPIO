@@ -1,0 +1,34 @@
+schema_version: "1.0"
+metric_mappings:
+  - id: availability
+    canonical_type: https://cepio.org/ontology/core#KPI
+    observation_type: https://cepio.org/ontology/performance#KPIObservation
+    domain: production-assurance
+    aliases:
+      - availability
+      - operational-availability
+    semantics:
+      formula_is_external: true
+      scope_is_contextual: true
+      convention_is_external: true
+    standards:
+      - iso-20815-2026
+    note: Availability is a KPI identity and calculation convention, not a dedicated ontology class. Source-specific formulas and terminology should be preserved as mapping metadata and provenance.
+
+  - id: energy-intensity
+    canonical_type: https://cepio.org/ontology/core#KPI
+    observation_type: https://cepio.org/ontology/performance#KPIObservation
+    domain: energy-performance
+    aliases:
+      - energy-intensity
+      - specific-energy-consumption
+      - energy-performance-indicator
+    semantics:
+      formula_is_external: true
+      scope_is_contextual: true
+      denominator_is_external: true
+      unit_is_external: true
+      baseline_and_target_are_contextual: true
+    standards:
+      - iso-50001-2018
+    note: Energy intensity is a KPI identity and calculation convention. CEPIO preserves the generic KPI contract while formulas, normalization basis, units, baselines and targets remain metric mapping/provenance metadata.

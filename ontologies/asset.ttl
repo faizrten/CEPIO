@@ -12,6 +12,12 @@ asset:AssetSystem a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
 asset:InstalledAsset a owl:Class ; rdfs:subClassOf cepio:PhysicalAsset .
 asset:AssetPosition a owl:Class ; rdfs:subClassOf cepio:FunctionalAsset .
 
+# ISO-55001-aligned lifecycle decision context. Criticality is represented as a
+# measured/assessed value rather than a static equipment label, while the plan is
+# controlled management content that can address risks and track value outcomes.
+asset:AssetCriticality a owl:Class ; rdfs:subClassOf cepio:Measurement .
+asset:AssetManagementPlan a owl:Class ; rdfs:subClassOf cepio:Document .
+
 ind:Facility rdfs:subClassOf asset:InstalledAsset .
 ind:Equipment rdfs:subClassOf asset:InstalledAsset .
 ind:ProcessUnit rdfs:subClassOf asset:AssetSystem .
@@ -21,3 +27,8 @@ asset:hasFunctionalPart a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:ra
 asset:hasSystem a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range asset:AssetSystem .
 asset:installedAt a owl:ObjectProperty ; rdfs:domain asset:InstalledAsset ; rdfs:range asset:FunctionalLocation .
 asset:occupiesPosition a owl:ObjectProperty ; rdfs:domain asset:InstalledAsset ; rdfs:range asset:AssetPosition .
+asset:criticalityForAsset a owl:ObjectProperty ; rdfs:domain asset:AssetCriticality ; rdfs:range cepio:Asset .
+asset:planForAsset a owl:ObjectProperty ; rdfs:domain asset:AssetManagementPlan ; rdfs:range cepio:Asset .
+asset:criticalityInformsPlan a owl:ObjectProperty ; rdfs:domain asset:AssetCriticality ; rdfs:range asset:AssetManagementPlan .
+asset:planAddressesRisk a owl:ObjectProperty ; rdfs:domain asset:AssetManagementPlan ; rdfs:range cepio:Risk .
+asset:planTracksKPI a owl:ObjectProperty ; rdfs:domain asset:AssetManagementPlan ; rdfs:range cepio:KPI .

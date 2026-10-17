@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -27,7 +28,12 @@ def compressor() -> OntologyObject:
     )
 
 
-def execute_risk_action(runtime, *, correlation_id: str | None = None):
+def execute_risk_action(
+    runtime,
+    *,
+    correlation_id: str | None = None,
+    workflow_instance_id: str | None = None,
+):
     decision = runtime.save_decision(
         Decision(
             subject=ObjectRef(id="K-201", type="Compressor"),
@@ -47,7 +53,8 @@ def execute_risk_action(runtime, *, correlation_id: str | None = None):
             parameters={"risk_status": "critical"},
             decision_id=decision.id,
             correlation_id=correlation_id,
-            idempotency_key=f"risk:{correlation_id or 'direct'}",
+            workflow_instance_id=workflow_instance_id,
+            idempotency_key=f"risk:{correlation_id or workflow_instance_id or 'direct'}",
         )
     )
     assert result.status.value == "executed"
@@ -81,10 +88,14 @@ def register_verified_identity(external, external_id: str = "EQ-000201"):
     )
 
 
-def test_external_action_lifecycle_links_actor_decision_and_workflow_correlation():
+def test_external_action_lifecycle_links_actor_decision_and_explicit_workflow():
     runtime = build_runtime()
     runtime.upsert_object(compressor())
-    decision, action = execute_risk_action(runtime, correlation_id="workflow-123")
+    decision, action = execute_risk_action(
+        runtime,
+        correlation_id="trace-123",
+        workflow_instance_id="workflow-123",
+    )
     external, adapter = configured_external_runtime(runtime)
     identity = register_verified_identity(external)
 
@@ -92,6 +103,7 @@ def test_external_action_lifecycle_links_actor_decision_and_workflow_correlation
     assert execution.status == ExternalActionStatus.pending_execution
     assert execution.actor_id == "reliability-1"
     assert execution.decision_id == decision.id
+    assert execution.correlation_id == "trace-123"
     assert execution.workflow_instance_id == "workflow-123"
     assert execution.external_identity_id == identity.id
     assert execution.external_id == "EQ-000201"
@@ -116,6 +128,18 @@ def test_external_action_lifecycle_links_actor_decision_and_workflow_correlation
         "external_verification_pending",
         "verification_verified",
     ]
+
+
+def test_correlation_id_is_not_interpreted_as_workflow_identity():
+    runtime = build_runtime()
+    runtime.upsert_object(compressor())
+    _, action = execute_risk_action(runtime, correlation_id="incident-92713")
+    external, _ = configured_external_runtime(runtime)
+    register_verified_identity(external)
+
+    execution = external.enqueue_from_action(action.action_id)
+    assert execution.correlation_id == "incident-92713"
+    assert execution.workflow_instance_id is None
 
 
 def test_missing_or_ambiguous_external_identity_fails_closed_before_adapter_write():
@@ -159,6 +183,45 @@ def test_enqueue_and_dispatch_are_replay_safe():
     assert dispatched.status == ExternalActionStatus.pending_verification
     assert replay.status == ExternalActionStatus.pending_verification
     assert len(adapter.write_calls) == 1
+
+
+def test_identity_drift_after_enqueue_blocks_dispatch():
+    runtime = build_runtime()
+    runtime.upsert_object(compressor())
+    _, action = execute_risk_action(runtime)
+    external, adapter = configured_external_runtime(runtime)
+    identity = register_verified_identity(external)
+    execution = external.enqueue_from_action(action.action_id)
+
+    identity.mapping_version = "2"
+    external.register_identity(identity)
+
+    blocked = external.dispatch(execution.id)
+    assert blocked.status == ExternalActionStatus.failed
+    assert blocked.failure_reason == "identity_changed_before_dispatch:mapping_version_changed"
+    assert adapter.write_calls == []
+
+
+def test_concurrent_dispatch_claim_allows_only_one_adapter_write():
+    runtime = build_runtime()
+    runtime.upsert_object(compressor())
+    _, action = execute_risk_action(runtime)
+    external, adapter = configured_external_runtime(runtime)
+    register_verified_identity(external)
+    execution = external.enqueue_from_action(action.action_id)
+
+    def dispatch_once():
+        try:
+            return external.dispatch(execution.id)
+        except UnsafeExternalRedispatchError:
+            return external.get_execution(execution.id)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: dispatch_once(), range(2)))
+
+    assert len(adapter.write_calls) == 1
+    assert any(result.status == ExternalActionStatus.pending_verification for result in results)
+    assert external.get_execution(execution.id).status == ExternalActionStatus.pending_verification
 
 
 def test_unknown_write_outcome_cannot_be_blindly_redispatched_and_can_reconcile():
@@ -207,7 +270,11 @@ def test_external_state_and_identity_survive_sqlite_restart(tmp_path: Path):
     db = tmp_path / "cepio.db"
     runtime = build_runtime(sqlite_path=db)
     runtime.upsert_object(compressor())
-    _, action = execute_risk_action(runtime, correlation_id="workflow-restart")
+    _, action = execute_risk_action(
+        runtime,
+        correlation_id="trace-restart",
+        workflow_instance_id="workflow-restart",
+    )
     external, adapter = configured_external_runtime(runtime, sqlite_path=db)
     identity = register_verified_identity(external)
     execution = external.enqueue_from_action(action.action_id)
@@ -219,6 +286,7 @@ def test_external_state_and_identity_survive_sqlite_restart(tmp_path: Path):
     reloaded, reloaded_adapter = configured_external_runtime(runtime, sqlite_path=db)
     restored = reloaded.get_execution(execution.id)
     assert restored.status == ExternalActionStatus.pending_verification
+    assert restored.workflow_instance_id == "workflow-restart"
     identities = reloaded.identities_for(
         "K-201", system="fake_eam", identity_type="equipment"
     )

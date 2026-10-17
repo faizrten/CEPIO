@@ -42,18 +42,18 @@ CEPIO uses modular RDF/OWL ontologies rather than one monolithic schema.
 | core | `https://cepio.org/ontology/core#` | 0.2.0 | foundation | stable |
 | lifecycle | `.../lifecycle#` | 0.2.0 | foundation | stable |
 | kinetic | `.../kinetic#` | 0.2.0 | foundation | stable |
-| industrial | `.../industrial#` | 0.2.0 | industrial-common | stable |
+| industrial | `.../industrial#` | 0.2.1 | industrial-common | stable |
 | enterprise | `.../enterprise#` | 0.2.0 | enterprise | stable |
 | energy | `.../energy#` | 0.2.0 | domain | stable |
 | asset | `.../asset#` | 0.1.0 | industrial-common | developing |
 | work_management | `.../work#` | 0.1.0 | industrial-common | developing |
-| reliability | `.../reliability#` | 0.1.0 | industrial-common | developing |
+| reliability | `.../reliability#` | 0.1.1 | industrial-common | developing |
 | hse | `.../hse#` | 0.1.0 | industrial-common | developing |
 | supply | `.../supply#` | 0.1.0 | industrial-common | developing |
-| performance | `.../performance#` | 0.1.0 | industrial-common | developing |
+| performance | `.../performance#` | 0.1.2 | industrial-common | developing |
 | workforce | `.../workforce#` | 0.1.0 | industrial-common | developing |
 | agentic_operations | `.../agentic#` | 0.1.0 | industrial-common | developing |
-| process_industry | `.../process#` | 0.1.0 | domain | developing |
+| process_industry | `.../process#` | 0.1.3 | domain | developing |
 | manufacturing | `.../manufacturing#` | 0.1.0 | domain | experimental |
 | epcic | `.../epcic#` | 0.1.0 | domain | developing |
 | drilling | `.../drilling#` | 0.1.0 | domain | developing |
@@ -116,6 +116,58 @@ EBITDA
  -> SparePart
  -> Supplier
 ```
+
+## Procedure and alarm operations
+
+The refinery Generalization Lab strengthens two layers without creating refinery-only identities.
+
+Industrial-common owns reusable alarm/control semantics:
+
+```text
+industrial:Alarm
+industrial:AlarmRationalization
+industrial:ControlLoop
+industrial:alarmForState
+industrial:rationalizesAlarm
+```
+
+Process Industry owns continuous-process operating semantics:
+
+```text
+process:OperatingProcedure
+process:ProcedureStep
+process:ProcedureExecution
+process:executesProcedure
+process:AbnormalSituation
+```
+
+`industrial:alarmForState` ranges over generic `cepio:State`. A process-industry abnormal situation specializes that state, which lets the same alarm model remain usable across refining, chemicals, power, upstream, drilling and manufacturing.
+
+Procedure execution reuses `cepio:dependsOn` for work permits, isolations, barriers and other execution gates rather than adding procedure-specific work-control predicates.
+
+## Integrity and production assurance
+
+Mechanical-integrity semantics live in industrial-common reliability:
+
+```text
+reliability:DamageMechanism
+reliability:RiskBasedInspectionAssessment
+reliability:damageMechanismForEquipment
+reliability:assessmentForEquipment
+reliability:assessmentConsidersDamageMechanism
+reliability:assessmentUsesInspection
+```
+
+Continuous-process integrity context remains in the process domain:
+
+```text
+process:IntegrityOperatingWindow
+  rdfs:subClassOf process:OperatingEnvelope
+```
+
+Integrity excursions reuse `process:ProcessDeviation` and `process:deviationAgainstEnvelope`, avoiding a parallel excursion-event hierarchy.
+
+Production assurance adds the reusable measurement `performance:ProductionCapacity`. Availability remains an instance of generic `cepio:KPI`, observed through `performance:KPIObservation`, rather than a dedicated `AvailabilityKPI` ontology class. This keeps KPI identity, formulas and external terminology in the metric/mapping layer instead of proliferating classes.
 
 ## IRI-first identity
 

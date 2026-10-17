@@ -1,5 +1,7 @@
 @prefix cepio: <https://cepio.org/ontology/core#> .
 @prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix kin: <https://cepio.org/ontology/kinetic#> .
+@prefix mfg: <https://cepio.org/ontology/manufacturing#> .
 @prefix process: <https://cepio.org/ontology/process#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -9,14 +11,85 @@ process:MaterialStream a owl:Class ; rdfs:subClassOf process:ProcessStream .
 process:UtilityStream a owl:Class ; rdfs:subClassOf process:ProcessStream .
 process:UtilityMeter a owl:Class ; rdfs:subClassOf ind:Equipment .
 process:EmissionObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
+process:EmissionLimit a owl:Class ; rdfs:subClassOf kin:Constraint .
 process:QualityObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
 process:OperationalEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 process:OptimizationForecast a owl:Class ; rdfs:subClassOf cepio:Measurement .
+
+# Process-operation semantics accepted by the refinery/process-manufacturing
+# Generalization Lab. These remain process-industry concepts rather than
+# refinery- or customer-specific vocabulary.
+process:ProcessConstraint a owl:Class ; rdfs:subClassOf kin:Constraint .
+process:OperatingEnvelope a owl:Class ; rdfs:subClassOf cepio:Entity .
+process:OperatingLimit a owl:Class ; rdfs:subClassOf kin:Constraint .
+process:ProcessDeviation a owl:Class ; rdfs:subClassOf cepio:State .
+process:StartupOrRestart a owl:Class ; rdfs:subClassOf cepio:Activity .
+
+# Integrity operating windows specialize the existing process operating-envelope
+# model. Excursions continue to use ProcessDeviation + deviationAgainstEnvelope,
+# avoiding a parallel integrity-event hierarchy.
+process:IntegrityOperatingWindow a owl:Class ; rdfs:subClassOf process:OperatingEnvelope .
+
+# Continuous-process planning, blending and movement semantics. Storage units,
+# material lots and production schedules remain owned by the ISA-95-aligned
+# manufacturing module; this module contributes the process-industry intent and
+# execution objects that connect them. Executable yield models remain model-
+# registry / mapping-layer assets rather than canonical ontology classes.
+process:CrudeAssay a owl:Class ; rdfs:subClassOf cepio:Document .
+process:BlendPlan a owl:Class ; rdfs:subClassOf cepio:Document .
+process:MaterialMovement a owl:Class ; rdfs:subClassOf cepio:Activity .
+process:TransferRoute a owl:Class ; rdfs:subClassOf cepio:Entity .
+
+# Instrumentation and engineering-topology semantics. A ProcessVariable is the
+# durable process concept being observed or controlled; individual values remain
+# Measurement-derived observations. Physical process devices continue to reuse
+# industrial:Equipment / asset:InstalledAsset identity rather than duplicating an
+# external PA-DIM device hierarchy. PipingSegment is the minimal source-neutral
+# physical topology needed to connect engineering records to ProcessStream.
+process:ProcessVariable a owl:Class ; rdfs:subClassOf cepio:Entity .
+process:PipingSegment a owl:Class ; rdfs:subClassOf cepio:PhysicalAsset .
+
+# Continuous-process procedure semantics grounded by the refinery v0.2
+# competency challenge and ISA-106 reference surface. Procedure content stays
+# source-neutral; execution composes existing temporal, provenance, work-control
+# and authorization semantics rather than duplicating them here.
+process:OperatingProcedure a owl:Class ; rdfs:subClassOf cepio:Document .
+process:ProcedureStep a owl:Class ; rdfs:subClassOf cepio:Entity .
+process:ProcedureExecution a owl:Class ; rdfs:subClassOf cepio:Activity .
+process:AbnormalSituation a owl:Class ; rdfs:subClassOf cepio:State .
 
 process:streamFromUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
 process:streamToUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
 process:meterAtUnit a owl:ObjectProperty ; rdfs:domain process:UtilityMeter ; rdfs:range ind:ProcessUnit .
 process:emissionFromUnit a owl:ObjectProperty ; rdfs:domain process:EmissionObservation ; rdfs:range ind:ProcessUnit .
+process:evaluatedAgainstEmissionLimit a owl:ObjectProperty ; rdfs:domain process:EmissionObservation ; rdfs:range process:EmissionLimit .
 process:sampledAtUnit a owl:ObjectProperty ; rdfs:domain process:QualityObservation ; rdfs:range ind:ProcessUnit .
 process:eventAtUnit a owl:ObjectProperty ; rdfs:domain process:OperationalEvent ; rdfs:range ind:ProcessUnit .
 process:forecastForUnit a owl:ObjectProperty ; rdfs:domain process:OptimizationForecast ; rdfs:range ind:ProcessUnit .
+process:constraintOnUnit a owl:ObjectProperty ; rdfs:domain process:ProcessConstraint ; rdfs:range ind:ProcessUnit .
+process:envelopeForUnit a owl:ObjectProperty ; rdfs:domain process:OperatingEnvelope ; rdfs:range ind:ProcessUnit .
+process:deviationAgainstEnvelope a owl:ObjectProperty ; rdfs:domain process:ProcessDeviation ; rdfs:range process:OperatingEnvelope .
+process:executesProcedure a owl:ObjectProperty ; rdfs:domain process:ProcedureExecution ; rdfs:range process:OperatingProcedure .
+
+# Instrumentation and physical-topology relationships. Equipment measures the
+# process variable while time-stamped values and device diagnostics remain in
+# Measurement / ConditionSignal semantics. Detailed line classes and exchange-
+# format attributes remain external mappings.
+process:measuresProcessVariable a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range process:ProcessVariable .
+process:carriesStream a owl:ObjectProperty ; rdfs:domain process:PipingSegment ; rdfs:range process:ProcessStream .
+
+# Planning and characterization relationships.
+process:characterizesStream a owl:ObjectProperty ; rdfs:domain process:CrudeAssay ; rdfs:range process:MaterialStream .
+process:blendPlanForSchedule a owl:ObjectProperty ; rdfs:domain process:BlendPlan ; rdfs:range mfg:OperationsSchedule .
+process:blendPlanUsesLot a owl:ObjectProperty ; rdfs:domain process:BlendPlan ; rdfs:range mfg:MaterialLot .
+
+# Bulk-material movement relationships. A MaterialMovement is an execution
+# activity; TransferRoute represents the intended path independently of any
+# customer/site-specific tank or piping identifiers.
+process:movementFromStorage a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range mfg:StorageUnit .
+process:movementToStorage a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range mfg:StorageUnit .
+process:usesTransferRoute a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range process:TransferRoute .
+process:movementCarriesLot a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range mfg:MaterialLot .
+process:movementForSchedule a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range mfg:OperationsSchedule .
+process:routeFromStorage a owl:ObjectProperty ; rdfs:domain process:TransferRoute ; rdfs:range mfg:StorageUnit .
+process:routeToStorage a owl:ObjectProperty ; rdfs:domain process:TransferRoute ; rdfs:range mfg:StorageUnit .

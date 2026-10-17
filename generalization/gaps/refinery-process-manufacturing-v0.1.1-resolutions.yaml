@@ -1,9 +1,9 @@
 id: refinery-process-manufacturing-gap-resolutions-v0.1.1
-version: "0.1"
+version: "0.2"
 archetype_id: refinery-process-manufacturing-v0.1
 competency_pack_id: refinery-process-manufacturing-capabilities-v0.1.1
 issue: 106
-principle: The normalized refinery competency pack remains unchanged; this ledger records accepted CORE semantics implemented in CEPIO while DOMAIN, MAPPING and REJECT decisions remain outside this remediation slice.
+principle: The normalized refinery competency pack remains unchanged; this ledger records accepted CORE and DOMAIN semantics implemented in CEPIO while MAPPING and REJECT decisions remain outside ontology remediation.
 resolutions:
   - gap_id: GAP-RP-006-SAFETY-BARRIER
     question_ids: [RP-PC-006, RP-PC-016]
@@ -32,9 +32,45 @@ resolutions:
       - https://cepio.org/ontology/performance#ProductionLoss
     notes: Production loss is a common operational-performance measurement. Causal events reuse cepio:impacts rather than introducing a process-specific production-loss relationship.
 
+  - gap_id: GAP-RP-001-PROCESS-CONSTRAINT
+    question_ids: [RP-PC-001, RP-PC-014]
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/process#ProcessConstraint
+      - https://cepio.org/ontology/process#constraintOnUnit
+    notes: ProcessConstraint specializes the common kinetic Constraint abstraction and scopes to the existing canonical industrial ProcessUnit. Economic exposure and stream dependencies continue to reuse cepio:impacts and cepio:dependsOn.
+
+  - gap_id: GAP-RP-002-OPERATING-ENVELOPE
+    question_ids: [RP-PC-002]
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/process#OperatingEnvelope
+      - https://cepio.org/ontology/process#OperatingLimit
+      - https://cepio.org/ontology/process#envelopeForUnit
+    notes: OperatingEnvelope is the approved process-operation context for a canonical ProcessUnit. OperatingLimit specializes the common kinetic Constraint abstraction; generic cepio:partOf can compose limits into an envelope without another special-purpose relationship.
+
+  - gap_id: GAP-RP-002-PROCESS-DEVIATION
+    question_ids: [RP-PC-002]
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/process#ProcessDeviation
+      - https://cepio.org/ontology/process#deviationAgainstEnvelope
+    notes: ProcessDeviation is modeled as time-varying operational state evaluated against an OperatingEnvelope, distinct from work:PlanDeviation.
+
+  - gap_id: GAP-RP-016-STARTUP-RESTART
+    question_ids: [RP-PC-016]
+    disposition: DOMAIN
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/process#StartupOrRestart
+    notes: StartupOrRestart specializes cepio:Activity. Unit scope, work-control readiness, barrier readiness and approval continue to compose through existing cepio:dependsOn and kinetic requiresApproval semantics rather than restart-specific control predicates.
+
 remaining_decisions:
   CORE: 0
-  DOMAIN: 4
+  DOMAIN: 0
   PROFILE: 0
   MAPPING: 1
   REJECT: 3
