@@ -53,7 +53,7 @@ def test_production_exposure_is_a_registered_typed_function():
         )
 
 
-def test_mcp_boundary_exposes_declared_condition_evidence_and_enforces_function_policy():
+def test_mcp_boundary_exposes_declared_condition_and_failure_evidence():
     runtime = build_runtime()
     runtime.upsert_object(
         OntologyObject(
@@ -71,11 +71,27 @@ def test_mcp_boundary_exposes_declared_condition_evidence_and_enforces_function_
             properties={"value": 7.2, "unit": "mm/s"},
         )
     )
+    runtime.upsert_object(OntologyObject(id="FEV-1", type="FailureEvent", name="Prior bearing event"))
+    runtime.upsert_object(OntologyObject(id="FM-1", type="FailureMode", name="Bearing degradation"))
     runtime.add_relationship(
         Relationship(
             type="hasConditionObservation",
             source=ObjectRef(id="K-201", type="Compressor"),
             target=ObjectRef(id="COND-1", type="ConditionSignal"),
+        )
+    )
+    runtime.add_relationship(
+        Relationship(
+            type="failureOfEquipment",
+            source=ObjectRef(id="FEV-1", type="FailureEvent"),
+            target=ObjectRef(id="K-201", type="Compressor"),
+        )
+    )
+    runtime.add_relationship(
+        Relationship(
+            type="hasFailureMode",
+            source=ObjectRef(id="FEV-1", type="FailureEvent"),
+            target=ObjectRef(id="FM-1", type="FailureMode"),
         )
     )
 
@@ -90,6 +106,22 @@ def test_mcp_boundary_exposes_declared_condition_evidence_and_enforces_function_
     )
     assert [item["id"] for item in visible["objects"]] == ["COND-1"]
 
+    failures = recommender.call_tool(
+        "cepio_neighbors",
+        {"object_id": "K-201", "relationship_type": "failureOfEquipment", "direction": "in"},
+    )
+    assert [item["id"] for item in failures["objects"]] == ["FEV-1"]
+    modes = recommender.call_tool(
+        "cepio_neighbors",
+        {"object_id": "FEV-1", "relationship_type": "hasFailureMode", "direction": "out"},
+    )
+    assert [item["id"] for item in modes["objects"]] == ["FM-1"]
+
+
+def test_mcp_boundary_enforces_function_policy():
+    runtime = build_runtime()
+    runtime.upsert_object(OntologyObject(id="K-201", type="Compressor", name="K-201"))
+    recommender = MCPFacade(runtime, actor_id="agent-1", actor_roles={"ai_agent_recommender"})
     result = recommender.call_tool(
         "cepio_call_function",
         {
