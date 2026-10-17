@@ -16,7 +16,7 @@ The established normalized v0.1.1 refinery benchmark now reaches 90.2% semantic-
 
 ## Architectural triage
 
-The 17 decisions are classified as:
+The 18 decisions are classified as:
 
 | Disposition | Decisions | Meaning |
 |---|---:|---|
@@ -24,7 +24,7 @@ The 17 decisions are classified as:
 | DOMAIN | 7 | source-neutral process-industry semantics |
 | PROFILE | 0 | no refinery customer/site vocabulary accepted |
 | MAPPING | 3 | external model/metric/architecture federation |
-| REJECT | 2 | literal benchmark semantics should not enter canonical ontology |
+| REJECT | 3 | literal benchmark semantics should not enter canonical ontology |
 
 ## CORE candidates
 
@@ -54,6 +54,7 @@ The 17 decisions are classified as:
 
 - `process:YieldModel` is rejected as canonical ontology. Executable yield models should be represented as versioned DigitalAssets/model-registry bindings; their inputs, outputs and business context remain semantic.
 - a typed `ProcedureExecution -> WorkPermit` ontology predicate is rejected because existing `cepio:dependsOn` already composes procedures with permits, isolations, barriers and approvals.
+- `hse:ArcFlashStudy` is rejected as a dedicated ontology class; arc-flash analysis should reuse `hse:RiskAssessment` plus document/evidence and method classification so CEPIO does not proliferate one class per risk-study method.
 
 The benchmark should be revised in its next frozen version to test those replacement patterns instead of rewarding class/predicate proliferation.
 
