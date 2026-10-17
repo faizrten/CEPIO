@@ -8,6 +8,7 @@ import tempfile
 from typing import Any
 
 from copilot import CopilotClient
+from copilot._mode import ToolSet
 from copilot.session import PermissionHandler
 from copilot.tools import Tool, ToolInvocation, ToolResult
 
@@ -113,6 +114,9 @@ async def _run() -> int:
     question = str(challenge["question"])
     tool_schemas = challenge.get("tools") or []
     tools = [_make_tool(schema) for schema in tool_schemas]
+    available_tools = ToolSet()
+    for tool in tools:
+        available_tools.add_custom(tool.name)
     final_schema = challenge.get("final_schema") or {}
 
     prompt = (
@@ -121,14 +125,21 @@ async def _run() -> int:
         + json.dumps(final_schema, separators=(",", ":"))
     )
 
-    # Empty mode requires explicit tenant storage and exposes no ambient CLI tools.
-    # Each benchmark question gets a fresh ephemeral directory, preventing state
-    # leakage between questions while still allowing the Copilot runtime to operate.
+    token = os.environ.get("GITHUB_TOKEN")
+    # Empty mode requires explicit tenant storage and explicit tool availability.
+    # Each benchmark question gets a fresh ephemeral directory and exactly the
+    # eight registered CEPIO custom tools; no built-in, MCP, filesystem, shell,
+    # repository, skill, or plugin tool is enabled.
     with tempfile.TemporaryDirectory(prefix="cepio-copilot-empty-") as base_directory:
-        async with CopilotClient(mode="empty", base_directory=base_directory) as client:
+        async with CopilotClient(
+            mode="empty",
+            base_directory=base_directory,
+            github_token=token,
+        ) as client:
             async with await client.create_session(
                 model=MODEL,
                 tools=tools,
+                available_tools=available_tools,
                 on_permission_request=PermissionHandler.approve_all,
                 system_message={"mode": "append", "content": SYSTEM_PROMPT},
                 infinite_sessions={"enabled": False},
