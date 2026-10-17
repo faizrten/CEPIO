@@ -1,7 +1,10 @@
 import pytest
+from pydantic import ValidationError
 
 from cepio.bootstrap import build_runtime
+from cepio.mcp import MCPFacade
 from cepio.model import Decision, ObjectRef, OntologyObject, Relationship
+from cepio.runtime import AuthorizationError
 
 
 def test_equipment_degradation_semantics_are_canonical_and_composable():
@@ -41,12 +44,77 @@ def test_production_exposure_is_a_registered_typed_function():
     )
     assert exposure == 300.0
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         runtime.call_function(
             "calculateProductionExposure",
             asset_id="K-201",
             hours=-1,
             production_rate_per_hour=120.0,
+        )
+
+
+def test_mcp_boundary_exposes_declared_condition_evidence_and_enforces_function_policy():
+    runtime = build_runtime()
+    runtime.upsert_object(
+        OntologyObject(
+            id="K-201",
+            type="Compressor",
+            name="K-201",
+            properties={"criticality": "high", "operatingState": "running"},
+        )
+    )
+    runtime.upsert_object(
+        OntologyObject(
+            id="COND-1",
+            type="ConditionSignal",
+            name="K-201 vibration",
+            properties={"value": 7.2, "unit": "mm/s"},
+        )
+    )
+    runtime.add_relationship(
+        Relationship(
+            type="hasConditionObservation",
+            source=ObjectRef(id="K-201", type="Compressor"),
+            target=ObjectRef(id="COND-1", type="ConditionSignal"),
+        )
+    )
+
+    recommender = MCPFacade(
+        runtime,
+        actor_id="agent-1",
+        actor_roles={"ai_agent_recommender"},
+    )
+    visible = recommender.call_tool(
+        "cepio_neighbors",
+        {"object_id": "K-201", "relationship_type": "hasConditionObservation"},
+    )
+    assert [item["id"] for item in visible["objects"]] == ["COND-1"]
+
+    result = recommender.call_tool(
+        "cepio_call_function",
+        {
+            "function": "calculateProductionExposure",
+            "arguments": {
+                "asset_id": "K-201",
+                "hours": 2.5,
+                "production_rate_per_hour": 120.0,
+            },
+        },
+    )
+    assert result == {"result": 300.0}
+
+    auditor = MCPFacade(runtime, actor_id="audit-1", actor_roles={"auditor"})
+    with pytest.raises(AuthorizationError, match="not authorized to call function"):
+        auditor.call_tool(
+            "cepio_call_function",
+            {
+                "function": "calculateProductionExposure",
+                "arguments": {
+                    "asset_id": "K-201",
+                    "hours": 2.5,
+                    "production_rate_per_hour": 120.0,
+                },
+            },
         )
 
 
