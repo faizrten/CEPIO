@@ -60,6 +60,20 @@ jobs:
           --standards generalization/standards/refinery-process-references.yaml
           --skip-gap-triage
           --json-out refinery-generalization-v0.1-report.json
+      - name: Build normalized refinery benchmark v0.1.1
+        run: >-
+          python scripts/build_refinery_normalized_benchmark.py
+          --source generalization/competency/refinery-process-manufacturing-v0.1.yaml
+          --out /tmp/refinery-process-manufacturing-v0.1.1.yaml
+      - name: Run normalized refinery benchmark v0.1.1
+        run: >-
+          PYTHONPATH=src python scripts/run_generalization_harness.py
+          --archetype generalization/archetypes/refinery-process-manufacturing-v0.1.yaml
+          --competency /tmp/refinery-process-manufacturing-v0.1.1.yaml
+          --personas generalization/personas/refinery-process-manufacturing-v0.1.yaml
+          --standards generalization/standards/refinery-process-references.yaml
+          --skip-gap-triage
+          --json-out refinery-generalization-v0.1.1-report.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
       - name: Build wheel
