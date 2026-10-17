@@ -8,6 +8,7 @@ from .action_handlers import approve_maintenance_deferral, create_inspection, cr
 from .config import RuntimeSettings
 from .contract_runtime import ContractAwareCEPIORuntime
 from .functions import AssetRiskInput, MarginImpactInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_loss
+from .kinetic import InMemoryWorkflowRepository, KineticRuntime, SQLiteWorkflowRepository
 from .modules import ModuleCatalogue
 from .observability import TelemetrySink, instrument_runtime
 from .policy import RolePolicyEngine
@@ -116,3 +117,16 @@ def build_projection_engine(runtime: CEPIORuntime, *, sqlite_path: str | Path | 
         runtime.event_repository,
         checkpoint_repository,
     )
+
+
+def build_kinetic_runtime(
+    runtime: CEPIORuntime,
+    *,
+    sqlite_path: str | Path | None = None,
+) -> KineticRuntime:
+    repository = (
+        SQLiteWorkflowRepository(sqlite_path)
+        if sqlite_path is not None
+        else InMemoryWorkflowRepository()
+    )
+    return KineticRuntime(runtime, repository)
