@@ -58,6 +58,10 @@ Completed foundations:
 - Foundry + governed MCP;
 - ontology migration manifests and CI compatibility gates.
 
+### Independent domain qualification milestone
+
+The drilling-contractor domain qualification v0.4 is a frozen lab benchmark, not a CEPIO product release. It expands enterprise, optimization, contract, and digital/AI persona coverage across three challenge bands while preserving classified semantic gaps. See the [qualification contract](../drilling-domain-qualification-v0.4.md) and [ADR-0010](../adr/ADR-0010-drilling-domain-qualification.md).
+
 ### Current priority
 
 **App Service + AKS deployment profiles**.

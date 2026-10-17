@@ -93,19 +93,35 @@ Operational coverage
 
 Therefore, even a 100% score on a frozen semantic capability pack is not a production-readiness claim. Generative/adversarial questions and runtime evidence tests must continue to challenge the model.
 
+## v0.4 — drilling domain qualification
+
+The separate domain-qualification v0.4 pack adds seven personas to the existing v0.2 persona set and freezes nine operating-language questions across enterprise, operational optimization, and agentic operations. It deliberately retains two classified CORE optimization gaps; see [the qualification contract](../docs/drilling-domain-qualification-v0.4.md) and the accepted v0.4 gap ledger. This version is independent of CEPIO product release numbering.
+
+Run the frozen qualification:
+
+```bash
+PYTHONPATH=src python scripts/run_generalization_harness.py \
+  --competency generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml \
+  --personas generalization/personas/drilling-contractor-persona-expansion-v0.3.yaml \
+  --gaps generalization/gaps/drilling-contractor-domain-qualification-v0.4.yaml
+```
+
 ## Artifact set
 
 ```text
 archetypes/drilling-contractor-v0.1.yaml
 personas/drilling-contractor-v0.1.yaml
 personas/drilling-contractor-v0.2.yaml
+personas/drilling-contractor-persona-expansion-v0.3.yaml
 agents/drilling-v0.1.yaml
 competency/drilling-contractor-v0.1.yaml
 competency/drilling-contractor-persona-expansion-v0.2.yaml
 competency/drilling-contractor-persona-capabilities-v0.3.yaml
+competency/drilling-contractor-domain-qualification-v0.4.yaml
 standards/drilling-references.yaml
 gaps/drilling-contractor-v0.1.yaml
 gaps/drilling-contractor-persona-v0.2.yaml
+gaps/drilling-contractor-domain-qualification-v0.4.yaml
 ```
 
 The competency pack is the frozen challenge. Accepted gap-triage artifacts are deliberately separate: they record architectural responses to literal benchmark results and have their own stable hashes.

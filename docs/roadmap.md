@@ -160,6 +160,14 @@ Release designation: **CEPIO v0.4 — Developer Preview**.
 
 ---
 
+## Drilling-contractor domain qualification v0.4 — independent lab milestone
+
+The frozen drilling domain-qualification benchmark is a domain milestone, not the CEPIO v0.4 product release. It adds enterprise, performance/optimization, contract, and digital/AI personas; tests enterprise, operational-optimization, and agentic-operations challenges; and retains its initial CORE gap classifications before ontology remediation. Its pack version and historical results remain independent of product release numbering.
+
+See [Drilling Domain Qualification v0.4](drilling-domain-qualification-v0.4.md) and [ADR-0010](adr/ADR-0010-drilling-domain-qualification.md). The isolated qualification workflow publishes benchmark evidence without changing existing product gates.
+
+---
+
 # v0.5 — Live Industrial Integration
 
 **Epic:** #51

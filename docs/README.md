@@ -17,6 +17,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[Kinetic External Verification Gate v0.4](kinetic-external-verification-v0.4.md)** — durable workflow wait on source verification with immutable terminal Outcomes and explicit reconciliation for unknown writes.
 - **[Generalization & Competency Harness](generalization-harness.md)** — agentic validation architecture and the deterministic drilling-contractor v0.1 benchmark.
 - **[Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)** — first evidence-driven remediation cycle against the frozen drilling benchmark.
+- **[Drilling Domain Qualification v0.4](drilling-domain-qualification-v0.4.md)** — frozen enterprise, optimization, and agentic-operations competency benchmark and remediation rules.
 
 ## v0.4 public API and operations
 
@@ -46,6 +47,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - [Domain module normalization](domain-module-normalization.md)
 - [Generalization & Competency Harness](generalization-harness.md)
 - [Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)
+- [Drilling Domain Qualification v0.4](drilling-domain-qualification-v0.4.md)
 
 ## Integrations
 

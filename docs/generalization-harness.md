@@ -52,6 +52,22 @@ An LLM can often infer a plausible answer even when the ontology lacks the requi
 
 The frozen competency pack is therefore not rewritten when CEPIO improves. Remediation must change the ontology/mapping architecture and then prove improvement against the same challenge.
 
+## Drilling domain qualification v0.4
+
+The frozen [drilling domain qualification](drilling-domain-qualification-v0.4.md) adds an additive v0.3 persona expansion and nine operating-language questions across enterprise, operational optimization, and agentic operations. Its accepted initial CORE gaps are preserved in a separate triage artifact, and focused tests pin the question-pack fingerprint and baseline semantic pressure. No ontology remediation is bundled with the benchmark.
+
+Run the qualification with its accepted triage:
+
+```bash
+PYTHONPATH=src python scripts/run_generalization_harness.py \
+  --competency generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml \
+  --personas generalization/personas/drilling-contractor-persona-expansion-v0.3.yaml \
+  --gaps generalization/gaps/drilling-contractor-domain-qualification-v0.4.yaml \
+  --json-out /tmp/drilling-domain-qualification-v0.4-report.json
+```
+
+The domain qualification version is independent of CEPIO product release numbering. Runtime requirements attached to agentic questions remain `NOT_RUN` by this semantic harness and must be validated by runtime coverage.
+
 ## External standards are benchmarks, not canonical authority
 
 The drilling campaign uses public/reference surfaces from:

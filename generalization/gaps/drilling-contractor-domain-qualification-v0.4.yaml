@@ -1,0 +1,31 @@
+id: drilling-contractor-domain-qualification-gap-triage-v0.4
+version: "0.4"
+archetype_id: drilling-contractor-v0.1
+competency_pack_id: drilling-contractor-domain-qualification-v0.4
+status: accepted
+classification_policy:
+  CORE: Reusable semantics expected across multiple Energy & Process Industry domains.
+  DOMAIN: Source-neutral drilling specialization with demonstrated domain need.
+  PROFILE: Customer, contractor, fleet, or deployment-specific behavior.
+  MAPPING: External taxonomy or source vocabulary that should be federated rather than canonicalized.
+  REJECT: The proposed semantic pattern is misleading, redundant, or weaker than an accepted abstraction.
+decisions:
+  - id: GAP-DQ-003-RIG-FORECAST
+    question_id: DC-DQ-003
+    missing_semantics: [capability:forecast-drilling-performance]
+    disposition: CORE
+    owner_module: performance
+    standards: [iadc-ddr-plus-v2, energistics-witsml-2.1, spe-dsats]
+    rationale: The current forward-looking process forecast is scoped to a process unit and does not express a drilling rig forecast; the operating need may generalize beyond drilling.
+    proposed_resolution: Evaluate a reusable forecast-to-operating-context pattern before considering a drilling-specific extension; do not add vocabulary solely to satisfy this pack.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-DQ-004-RIG-CONSTRAINT-DECISION
+    question_id: DC-DQ-004
+    missing_semantics: [capability:optimize-within-operating-limits]
+    disposition: CORE
+    owner_module: kinetic
+    standards: [iadc-ddr-plus-v2, spe-dsats]
+    rationale: The ontology has constraints and decisions but lacks a supported semantic composition connecting a rig-scoped operating limit to an optimization decision.
+    proposed_resolution: Assess a reusable constraint-scope and decision-evaluation pattern; preserve domain-specific operating limits in drilling only where reuse evidence requires it.
+    benchmark_action: revise-in-next-frozen-pack

@@ -1,0 +1,49 @@
+name: Drilling Domain Qualification
+
+on:
+  pull_request:
+    paths:
+      - "ontologies/**/*.ttl"
+      - "generalization/archetypes/drilling-contractor-v0.1.yaml"
+      - "generalization/personas/drilling-contractor-persona-expansion-v0.3.yaml"
+      - "generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml"
+      - "generalization/gaps/drilling-contractor-domain-qualification-v0.4.yaml"
+      - "generalization/standards/drilling-references.yaml"
+      - "src/cepio/generalization.py"
+      - "scripts/run_generalization_harness.py"
+      - "tests/test_drilling_domain_qualification_v04.py"
+      - ".github/workflows/drilling-domain-qualification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    name: drilling-domain-qualification-v0.4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install CEPIO and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Run frozen qualification regressions
+        run: pytest -q tests/test_drilling_domain_qualification_v04.py
+      - name: Run frozen semantic qualification
+        run: >-
+          PYTHONPATH=src python scripts/run_generalization_harness.py
+          --competency generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml
+          --personas generalization/personas/drilling-contractor-persona-expansion-v0.3.yaml
+          --gaps generalization/gaps/drilling-contractor-domain-qualification-v0.4.yaml
+          --json-out qualification-evidence/drilling-domain-qualification-v0.4.json
+      - name: Retain qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cepio-drilling-domain-qualification-${{ github.run_id }}
+          path: qualification-evidence/
+          if-no-files-found: error

@@ -95,6 +95,8 @@ Rig
 
 The drilling domain module allows rig/operator workflows to reuse shared asset, work, reliability, supply and commercial semantics.
 
+The frozen drilling-contractor [domain qualification v0.4](../drilling-domain-qualification-v0.4.md) adds enterprise, optimization, contract, and agentic-operations competency challenges without changing canonical ontology semantics.
+
 ## 7. EPCIC / commissioning
 
 ```text
