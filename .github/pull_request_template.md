@@ -8,6 +8,29 @@ Describe the change and why it is needed.
 - [ ] Ontology / compatibility / SHACL checks pass when applicable.
 - [ ] Reference examples or demos were updated when applicable.
 
+## IP / publication review
+
+Every material change to the public CEPIO repository must be classified before merge.
+
+Choose one:
+
+- [ ] **PUBLIC** — publication improves adoption, interoperability, validation or trust without unnecessarily exposing differentiated CEPIO implementation or industry intelligence.
+- [ ] **PROTECTED — public abstraction only** — the underlying capability remains private; this PR exposes only the deliberate interface, abstraction, specification or sanitized example.
+- [ ] **CUSTOMER CONFIDENTIAL — publication prohibited** — this PR contains customer-derived or otherwise confidential material and must not be merged into the public repository.
+
+For `PUBLIC` or `PROTECTED — public abstraction only`, confirm:
+
+- [ ] No customer-confidential data, mappings, thresholds, procedures, policies, models or learned behaviour are included.
+- [ ] No protected benchmark/evaluation corpus or proprietary industrial reasoning is included unless publication is explicitly intentional.
+- [ ] I considered whether the same ecosystem value could be achieved with a narrower interface, abstraction or sanitized example.
+- [ ] Publication value exceeds replication/IP-exposure risk.
+
+If `PROTECTED — public abstraction only`, state what remains private and why this public surface is safe to publish:
+
+> 
+
+See [`docs/governance/ip-publication-policy.md`](../docs/governance/ip-publication-policy.md).
+
 ## Documentation impact
 
 Documentation is part of CEPIO's definition of done.
