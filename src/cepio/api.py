@@ -358,6 +358,16 @@ def save_decision(
     decision: Decision,
     actor: ActorContext = Depends(get_actor_context),
 ) -> Decision:
+    if decision.decision_type and not runtime.policy_engine.can_propose_decision(
+        actor.roles, decision.decision_type
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "forbidden",
+                "message": f"Not authorized to propose decision {decision.decision_type}",
+            },
+        )
     try:
         runtime.read_object_for_actor(decision.subject.id, actor.roles)
         stored = decision.model_copy(update={"created_by": actor.actor_id})
@@ -366,6 +376,11 @@ def save_decision(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except AuthorizationError as exc:
         raise HTTPException(status_code=403, detail={"code": "forbidden", "message": str(exc)}) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "decision_validation", "message": str(exc)},
+        ) from exc
 
 
 @app.get("/decisions/{decision_id}", response_model=Decision)
