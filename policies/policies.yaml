@@ -23,7 +23,7 @@ policies:
     actions: []
     functions: [calculateProductionLoss, calculateProductionExposure]
   maintenance_engineer:
-    read_types: [Equipment, WorkOrder, Inspection, Event, KPI]
+    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI]
     read_scopes: [internal]
     read_properties:
       Equipment: "*"
@@ -32,12 +32,12 @@ policies:
     actions: [CreateWorkOrder, CreateInspection]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk]
   maintenance_planner:
-    read_types: [Equipment, WorkOrder, Inspection, Event, KPI]
+    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI]
     read_scopes: [internal]
     actions: [CreateWorkOrder]
     functions: [calculateProductionLoss, calculateProductionExposure]
   reliability_engineer:
-    read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
+    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     read_properties:
       Equipment: "*"
@@ -49,7 +49,7 @@ policies:
     actions: [EscalateRisk]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateMarginImpact]
   maintenance_manager:
-    read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
+    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     actions: [ApproveMaintenanceDeferral]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
@@ -59,7 +59,7 @@ policies:
     actions: [ApproveMaintenanceDeferral]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
   ai_agent_recommender:
-    read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
+    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     read_properties:
       Equipment: [criticality, operatingState, riskStatus]
