@@ -50,4 +50,4 @@ def test_refinery_remediation_versions_preserve_core_bumps_and_add_process_domai
     versions = {module["id"]: str(module["version"]) for module in catalogue["modules"]}
     assert versions["hse"] == "0.1.2"
     assert versions["performance"] == "0.1.1"
-    assert versions["process_industry"] == "0.1.1"
+    assert versions["process_industry"] == "0.1.2"
