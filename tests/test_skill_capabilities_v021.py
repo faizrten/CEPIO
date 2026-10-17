@@ -118,6 +118,70 @@ def test_mcp_boundary_exposes_declared_condition_evidence_and_enforces_function_
         )
 
 
+def test_mcp_decision_proposal_is_authorized_and_action_remains_recommend_only():
+    runtime = build_runtime()
+    runtime.upsert_object(
+        OntologyObject(
+            id="K-201",
+            type="Compressor",
+            name="K-201",
+            interfaces={"MaintainableAsset"},
+            properties={"criticality": "high", "operatingState": "running"},
+        )
+    )
+    recommender = MCPFacade(
+        runtime,
+        actor_id="agent-1",
+        actor_roles={"ai_agent_recommender"},
+    )
+
+    decision = recommender.call_tool(
+        "cepio_save_decision",
+        {
+            "decision_type": "maintenance-intervention-recommendation",
+            "subject_id": "K-201",
+            "subject_type": "Compressor",
+            "problem": "Increasing vibration",
+            "observations": ["Condition trend increased for three days"],
+            "recommendation": "Create a maintenance work order for inspection planning",
+            "recommended_action": "CreateWorkOrder",
+            "confidence": 0.82,
+        },
+    )
+    assert decision["decision_type"] == "maintenance-intervention-recommendation"
+    assert decision["created_by"] == "agent-1"
+
+    result = recommender.call_tool(
+        "cepio_execute_action",
+        {
+            "action_type": "CreateWorkOrder",
+            "target_id": "K-201",
+            "target_type": "Compressor",
+            "parameters": {},
+            "decision_id": decision["id"],
+        },
+    )
+    assert result["status"] == "rejected"
+    assert runtime.neighbors("K-201", "hasWorkOrder") == []
+    audits = runtime.all_audits()
+    assert audits[-1].decision_id == decision["id"]
+    assert audits[-1].policy_effect.value == "recommend_only"
+
+    auditor = MCPFacade(runtime, actor_id="audit-1", actor_roles={"auditor"})
+    with pytest.raises(AuthorizationError, match="not authorized to propose decision"):
+        auditor.call_tool(
+            "cepio_save_decision",
+            {
+                "decision_type": "maintenance-intervention-recommendation",
+                "subject_id": "K-201",
+                "subject_type": "Compressor",
+                "problem": "Increasing vibration",
+                "recommendation": "Create a work order",
+                "recommended_action": "CreateWorkOrder",
+            },
+        )
+
+
 def test_maintenance_intervention_recommendation_is_registered_and_typed():
     runtime = build_runtime()
     runtime.upsert_object(OntologyObject(id="K-201", type="Compressor", name="K-201"))
