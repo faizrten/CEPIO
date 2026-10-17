@@ -1,0 +1,326 @@
+id: drilling-contractor-domain-qualification-runtime-v0.4.1
+version: "0.4.1"
+archetype_id: drilling-contractor-v0.1
+competency_pack: generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml
+description: >
+  Deterministic runtime-evidence qualification for all 15 frozen Drilling Contractor
+  Domain Qualification questions. The question IDs are anchored to the immutable v0.4
+  challenge pack while the fixtures exercise the architecture-correct v0.4.1 semantic
+  remediation. Fixtures are synthetic and source-neutral. No LLM output participates
+  in pass/fail and every answer must pass the CEPIO evidence gate.
+questions:
+  - question_id: DC-DQ-001
+    claim: Resolve fleet, contract, customer, revenue and KPI evidence for enterprise-value exposure.
+    capabilities: [enterprise-fleet-economic-exposure]
+    objects:
+      - {id: DQ001-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Enterprise Exposure Rig}
+      - {id: DQ001-CONTRACT, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Enterprise Exposure Contract}
+      - {id: DQ001-CUSTOMER, type: "https://cepio.org/ontology/enterprise#Customer", name: Reference Operator Customer}
+      - {id: DQ001-REVENUE, type: "https://cepio.org/ontology/commercial#RevenueRecord", name: Rig Revenue Record, properties: {value: 185000}}
+      - {id: DQ001-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: Rig Utilization Observation, properties: {value: 0.82}}
+    relationships:
+      - {id: dq001-rig-contract, type: "https://cepio.org/ontology/drilling#assignedContract", source: DQ001-RIG, target: DQ001-CONTRACT}
+      - {id: dq001-contract-customer, type: "https://cepio.org/ontology/core#ownedBy", source: DQ001-CONTRACT, target: DQ001-CUSTOMER}
+      - {id: dq001-revenue-contract, type: "https://cepio.org/ontology/commercial#revenueFor", source: DQ001-REVENUE, target: DQ001-CONTRACT}
+      - {id: dq001-kpi-rig, type: "https://cepio.org/ontology/performance#observationForEntity", source: DQ001-KPI, target: DQ001-RIG}
+    probes:
+      - {id: contract, kind: relationship, start_id: DQ001-RIG, relationship_type: "https://cepio.org/ontology/drilling#assignedContract", expected_ids: [DQ001-CONTRACT]}
+      - {id: customer, kind: relationship, start_id: DQ001-CONTRACT, relationship_type: "https://cepio.org/ontology/core#ownedBy", expected_ids: [DQ001-CUSTOMER]}
+      - {id: revenue, kind: relationship, start_id: DQ001-CONTRACT, relationship_type: "https://cepio.org/ontology/commercial#revenueFor", direction: in, expected_ids: [DQ001-REVENUE]}
+      - {id: kpi, kind: relationship, start_id: DQ001-RIG, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [DQ001-KPI]}
+
+  - question_id: DC-DQ-002
+    claim: Resolve recurring cross-rig loss pattern and accountable enterprise intervention.
+    capabilities: [fleet-loss-pattern, accountable-enterprise-intervention]
+    objects:
+      - {id: DQ002-RIG-A, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Loss Pattern Rig A}
+      - {id: DQ002-RIG-B, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Loss Pattern Rig B}
+      - {id: DQ002-FAIL-A, type: "https://cepio.org/ontology/reliability#FailureEvent", name: Top Drive Failure A}
+      - {id: DQ002-FAIL-B, type: "https://cepio.org/ontology/reliability#FailureEvent", name: Top Drive Failure B}
+      - {id: DQ002-MODE, type: "https://cepio.org/ontology/reliability#FailureMode", name: Recurrent Drive Overtemperature}
+      - {id: DQ002-DT-A, type: "https://cepio.org/ontology/reliability#DowntimeEvent", name: Downtime A}
+      - {id: DQ002-DT-B, type: "https://cepio.org/ontology/reliability#DowntimeEvent", name: Downtime B}
+      - {id: DQ002-WORK, type: "https://cepio.org/ontology/core#WorkItem", name: Fleet Cooling Retrofit}
+      - {id: DQ002-RESP, type: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", name: Retrofit Accountability}
+      - {id: DQ002-OWNER, type: "https://cepio.org/ontology/workforce#CrewMember", name: Fleet Reliability Owner}
+    relationships:
+      - {id: dq002-fail-a-mode, type: "https://cepio.org/ontology/reliability#hasFailureMode", source: DQ002-FAIL-A, target: DQ002-MODE}
+      - {id: dq002-fail-b-mode, type: "https://cepio.org/ontology/reliability#hasFailureMode", source: DQ002-FAIL-B, target: DQ002-MODE}
+      - {id: dq002-fail-a-dt, type: "https://cepio.org/ontology/reliability#causesDowntime", source: DQ002-FAIL-A, target: DQ002-DT-A}
+      - {id: dq002-fail-b-dt, type: "https://cepio.org/ontology/reliability#causesDowntime", source: DQ002-FAIL-B, target: DQ002-DT-B}
+      - {id: dq002-fail-a-rig, type: "https://cepio.org/ontology/hse#eventAtAsset", source: DQ002-FAIL-A, target: DQ002-RIG-A}
+      - {id: dq002-fail-b-rig, type: "https://cepio.org/ontology/hse#eventAtAsset", source: DQ002-FAIL-B, target: DQ002-RIG-B}
+      - {id: dq002-resp-work, type: "https://cepio.org/ontology/workforce#responsibilityForWork", source: DQ002-RESP, target: DQ002-WORK}
+      - {id: dq002-resp-owner, type: "https://cepio.org/ontology/workforce#responsibilityHolder", source: DQ002-RESP, target: DQ002-OWNER}
+    probes:
+      - {id: recurrence-a, kind: relationship, start_id: DQ002-FAIL-A, relationship_type: "https://cepio.org/ontology/reliability#hasFailureMode", expected_ids: [DQ002-MODE]}
+      - {id: recurrence-b, kind: relationship, start_id: DQ002-FAIL-B, relationship_type: "https://cepio.org/ontology/reliability#hasFailureMode", expected_ids: [DQ002-MODE]}
+      - {id: accountable-work, kind: relationship, start_id: DQ002-RESP, relationship_type: "https://cepio.org/ontology/workforce#responsibilityForWork", expected_ids: [DQ002-WORK]}
+      - {id: accountable-owner, kind: relationship, start_id: DQ002-RESP, relationship_type: "https://cepio.org/ontology/workforce#responsibilityHolder", expected_ids: [DQ002-OWNER]}
+
+  - question_id: DC-DQ-003
+    claim: Resolve a downtime scenario to rate, revenue and cost evidence.
+    capabilities: [scenario-based-rig-economics]
+    objects:
+      - {id: DQ003-CONTRACT, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Scenario Contract}
+      - {id: DQ003-RATE, type: "https://cepio.org/ontology/commercial#ContractRate", name: Day Rate, properties: {value: 210000}}
+      - {id: DQ003-DT, type: "https://cepio.org/ontology/reliability#DowntimeEvent", name: Twelve Hour Downtime, properties: {hours: 12}}
+      - {id: DQ003-REVENUE, type: "https://cepio.org/ontology/commercial#RevenueRecord", name: Scenario Revenue, properties: {value: 105000}}
+      - {id: DQ003-COST, type: "https://cepio.org/ontology/commercial#CostRecord", name: Scenario Cost, properties: {value: 45000}}
+      - {id: DQ003-SCENARIO, type: "https://cepio.org/ontology/commercial#EconomicScenario", name: Downtime Economic Scenario}
+    relationships:
+      - {id: dq003-rate-contract, type: "https://cepio.org/ontology/commercial#rateForContract", source: DQ003-RATE, target: DQ003-CONTRACT}
+      - {id: dq003-revenue-contract, type: "https://cepio.org/ontology/commercial#revenueFor", source: DQ003-REVENUE, target: DQ003-CONTRACT}
+      - {id: dq003-cost-contract, type: "https://cepio.org/ontology/commercial#costFor", source: DQ003-COST, target: DQ003-CONTRACT}
+      - {id: dq003-scenario-contract, type: "https://cepio.org/ontology/core#dependsOn", source: DQ003-SCENARIO, target: DQ003-CONTRACT}
+      - {id: dq003-scenario-downtime, type: "https://cepio.org/ontology/core#dependsOn", source: DQ003-SCENARIO, target: DQ003-DT}
+    probes:
+      - {id: rate, kind: relationship, start_id: DQ003-CONTRACT, relationship_type: "https://cepio.org/ontology/commercial#rateForContract", direction: in, expected_ids: [DQ003-RATE]}
+      - {id: revenue, kind: relationship, start_id: DQ003-CONTRACT, relationship_type: "https://cepio.org/ontology/commercial#revenueFor", direction: in, expected_ids: [DQ003-REVENUE]}
+      - {id: cost, kind: relationship, start_id: DQ003-CONTRACT, relationship_type: "https://cepio.org/ontology/commercial#costFor", direction: in, expected_ids: [DQ003-COST]}
+      - {id: scenario-downtime, kind: relationship, start_id: DQ003-SCENARIO, relationship_type: "https://cepio.org/ontology/core#dependsOn", expected_ids: [DQ003-CONTRACT, DQ003-DT]}
+
+  - question_id: DC-DQ-004
+    claim: Resolve contract obligation, rate and operating performance for portfolio decisions.
+    capabilities: [contract-portfolio-decision-context]
+    objects:
+      - {id: DQ004-CONTRACT, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Renewal Candidate Contract}
+      - {id: DQ004-OBL, type: "https://cepio.org/ontology/commercial#ContractObligation", name: Availability Obligation}
+      - {id: DQ004-RATE, type: "https://cepio.org/ontology/commercial#ContractRate", name: Renewal Rate}
+      - {id: DQ004-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: Contract Availability KPI, properties: {value: 0.965}}
+    relationships:
+      - {id: dq004-obligation, type: "https://cepio.org/ontology/commercial#obligationOfContract", source: DQ004-OBL, target: DQ004-CONTRACT}
+      - {id: dq004-rate, type: "https://cepio.org/ontology/commercial#rateForContract", source: DQ004-RATE, target: DQ004-CONTRACT}
+      - {id: dq004-kpi, type: "https://cepio.org/ontology/performance#observationForEntity", source: DQ004-KPI, target: DQ004-CONTRACT}
+    probes:
+      - {id: obligation, kind: relationship, start_id: DQ004-CONTRACT, relationship_type: "https://cepio.org/ontology/commercial#obligationOfContract", direction: in, expected_ids: [DQ004-OBL]}
+      - {id: rate, kind: relationship, start_id: DQ004-CONTRACT, relationship_type: "https://cepio.org/ontology/commercial#rateForContract", direction: in, expected_ids: [DQ004-RATE]}
+      - {id: performance, kind: relationship, start_id: DQ004-CONTRACT, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [DQ004-KPI]}
+
+  - question_id: DC-DQ-005
+    claim: Resolve capital intervention context across equipment, reliability, utilization and contract exposure.
+    capabilities: [capital-allocation-context]
+    objects:
+      - {id: DQ005-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Capital Candidate Rig}
+      - {id: DQ005-EQ, type: "https://cepio.org/ontology/drilling#DrillingEquipment", name: Capital Candidate Top Drive}
+      - {id: DQ005-FAIL, type: "https://cepio.org/ontology/reliability#FailureEvent", name: Top Drive Failure}
+      - {id: DQ005-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: Utilization KPI, properties: {value: 0.78}}
+      - {id: DQ005-CONTRACT, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Capital Exposure Contract}
+      - {id: DQ005-CAPEX, type: "https://cepio.org/ontology/commercial#CapitalItem", name: Top Drive Upgrade}
+    relationships:
+      - {id: dq005-rig-equipment, type: "https://cepio.org/ontology/drilling#hasRigEquipment", source: DQ005-RIG, target: DQ005-EQ}
+      - {id: dq005-rig-contract, type: "https://cepio.org/ontology/drilling#assignedContract", source: DQ005-RIG, target: DQ005-CONTRACT}
+      - {id: dq005-failure-equipment, type: "https://cepio.org/ontology/reliability#failureOfEquipment", source: DQ005-FAIL, target: DQ005-EQ}
+      - {id: dq005-kpi-equipment, type: "https://cepio.org/ontology/performance#observationForEntity", source: DQ005-KPI, target: DQ005-EQ}
+      - {id: dq005-capex-equipment, type: "https://cepio.org/ontology/commercial#capitalItemFor", source: DQ005-CAPEX, target: DQ005-EQ}
+    probes:
+      - {id: equipment, kind: relationship, start_id: DQ005-RIG, relationship_type: "https://cepio.org/ontology/drilling#hasRigEquipment", expected_ids: [DQ005-EQ]}
+      - {id: failure, kind: relationship, start_id: DQ005-EQ, relationship_type: "https://cepio.org/ontology/reliability#failureOfEquipment", direction: in, expected_ids: [DQ005-FAIL]}
+      - {id: utilization, kind: relationship, start_id: DQ005-EQ, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [DQ005-KPI]}
+      - {id: contract, kind: relationship, start_id: DQ005-RIG, relationship_type: "https://cepio.org/ontology/drilling#assignedContract", expected_ids: [DQ005-CONTRACT]}
+
+  - question_id: DC-DQ-006
+    claim: Resolve fine-grained activity performance against a comparable benchmark.
+    capabilities: [fine-grained-activity-performance-comparison]
+    objects:
+      - {id: DQ006-ACT, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Connection Activity}
+      - {id: DQ006-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: Connection Time KPI, properties: {seconds: 420}}
+      - {id: DQ006-WELL, type: "https://cepio.org/ontology/energy#Well", name: Qualification Well}
+      - {id: DQ006-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Qualification Rig}
+      - {id: DQ006-BENCH, type: "https://cepio.org/ontology/performance#Benchmark", name: Peer Connection Benchmark}
+    relationships:
+      - {id: dq006-act-rig, type: "https://cepio.org/ontology/drilling#activityOnRig", source: DQ006-ACT, target: DQ006-RIG}
+      - {id: dq006-act-well, type: "https://cepio.org/ontology/drilling#activityForWell", source: DQ006-ACT, target: DQ006-WELL}
+      - {id: dq006-kpi-act, type: "https://cepio.org/ontology/performance#observationForEntity", source: DQ006-KPI, target: DQ006-ACT}
+      - {id: dq006-kpi-bench, type: "https://cepio.org/ontology/performance#benchmarkedAgainst", source: DQ006-KPI, target: DQ006-BENCH}
+    probes:
+      - {id: rig, kind: relationship, start_id: DQ006-ACT, relationship_type: "https://cepio.org/ontology/drilling#activityOnRig", expected_ids: [DQ006-RIG]}
+      - {id: well, kind: relationship, start_id: DQ006-ACT, relationship_type: "https://cepio.org/ontology/drilling#activityForWell", expected_ids: [DQ006-WELL]}
+      - {id: kpi, kind: relationship, start_id: DQ006-ACT, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [DQ006-KPI]}
+      - {id: benchmark, kind: relationship, start_id: DQ006-KPI, relationship_type: "https://cepio.org/ontology/performance#benchmarkedAgainst", expected_ids: [DQ006-BENCH]}
+
+  - question_id: DC-DQ-007
+    claim: Resolve drilling measurement, activity, equipment and performance outcome context.
+    capabilities: [parameter-dysfunction-context]
+    objects:
+      - {id: DQ007-MEAS, type: "https://cepio.org/ontology/core#Measurement", name: Torque Measurement, properties: {value: 31.2}}
+      - {id: DQ007-ACT, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Drill Ahead Interval}
+      - {id: DQ007-EQ, type: "https://cepio.org/ontology/drilling#DrillingEquipment", name: Top Drive}
+      - {id: DQ007-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: ROP Observation, properties: {value: 17.4}}
+    relationships:
+      - {id: dq007-activity-measurement, type: "https://cepio.org/ontology/core#measuredBy", source: DQ007-ACT, target: DQ007-MEAS}
+      - {id: dq007-measurement-equipment, type: "https://cepio.org/ontology/core#impacts", source: DQ007-MEAS, target: DQ007-EQ}
+      - {id: dq007-kpi-activity, type: "https://cepio.org/ontology/performance#observationForEntity", source: DQ007-KPI, target: DQ007-ACT}
+    probes:
+      - {id: measurement, kind: relationship, start_id: DQ007-ACT, relationship_type: "https://cepio.org/ontology/core#measuredBy", expected_ids: [DQ007-MEAS]}
+      - {id: equipment, kind: relationship, start_id: DQ007-MEAS, relationship_type: "https://cepio.org/ontology/core#impacts", expected_ids: [DQ007-EQ]}
+      - {id: performance, kind: relationship, start_id: DQ007-ACT, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [DQ007-KPI]}
+
+  - question_id: DC-DQ-008
+    claim: Resolve recurring failure or incident evidence into corrective work and reusable guidance.
+    capabilities: [recurring-event-learning-loop]
+    objects:
+      - {id: DQ008-FAIL, type: "https://cepio.org/ontology/reliability#FailureEvent", name: Recurring Pump Failure}
+      - {id: DQ008-INC, type: "https://cepio.org/ontology/hse#Incident", name: Related Operating Incident}
+      - {id: DQ008-CA, type: "https://cepio.org/ontology/hse#CorrectiveAction", name: Corrective Action}
+      - {id: DQ008-WORK, type: "https://cepio.org/ontology/core#WorkItem", name: Update Operating Guidance}
+    relationships:
+      - {id: dq008-failure-ca, type: "https://cepio.org/ontology/hse#hasCorrectiveAction", source: DQ008-FAIL, target: DQ008-CA}
+      - {id: dq008-incident-ca, type: "https://cepio.org/ontology/hse#hasCorrectiveAction", source: DQ008-INC, target: DQ008-CA}
+      - {id: dq008-ca-guidance, type: "https://cepio.org/ontology/core#contributesTo", source: DQ008-CA, target: DQ008-WORK}
+    probes:
+      - {id: failure-action, kind: relationship, start_id: DQ008-FAIL, relationship_type: "https://cepio.org/ontology/hse#hasCorrectiveAction", expected_ids: [DQ008-CA]}
+      - {id: incident-action, kind: relationship, start_id: DQ008-INC, relationship_type: "https://cepio.org/ontology/hse#hasCorrectiveAction", expected_ids: [DQ008-CA]}
+      - {id: learning-work, kind: relationship, start_id: DQ008-CA, relationship_type: "https://cepio.org/ontology/core#contributesTo", expected_ids: [DQ008-WORK]}
+
+  - question_id: DC-DQ-009
+    claim: Resolve predictive NPT risk as inference scoped to an operating activity and preventive work.
+    capabilities: [predictive-operational-risk]
+    objects:
+      - {id: DQ009-PRED, type: "https://cepio.org/ontology/agentic#Prediction", name: NPT Risk Prediction, properties: {probability: 0.71, "https://cepio.org/ontology/core#validFrom": "2026-10-17T09:00:00+00:00", "https://cepio.org/ontology/core#validTo": "2026-10-17T15:00:00+00:00"}}
+      - {id: DQ009-RISK, type: "https://cepio.org/ontology/core#Risk", name: Material NPT Risk}
+      - {id: DQ009-ACT, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Current Drilling Window}
+      - {id: DQ009-WORK, type: "https://cepio.org/ontology/core#WorkItem", name: Preventive Top Drive Inspection}
+    relationships:
+      - {id: dq009-prediction-activity, type: "https://cepio.org/ontology/agentic#predictionFor", source: DQ009-PRED, target: DQ009-ACT}
+      - {id: dq009-prediction-risk, type: "https://cepio.org/ontology/agentic#predictsRisk", source: DQ009-PRED, target: DQ009-RISK}
+      - {id: dq009-work-risk, type: "https://cepio.org/ontology/core#impacts", source: DQ009-WORK, target: DQ009-RISK}
+    probes:
+      - {id: scope, kind: relationship, start_id: DQ009-PRED, relationship_type: "https://cepio.org/ontology/agentic#predictionFor", expected_ids: [DQ009-ACT]}
+      - {id: risk, kind: relationship, start_id: DQ009-PRED, relationship_type: "https://cepio.org/ontology/agentic#predictsRisk", expected_ids: [DQ009-RISK]}
+      - {id: preventive-work, kind: relationship, start_id: DQ009-WORK, relationship_type: "https://cepio.org/ontology/core#impacts", expected_ids: [DQ009-RISK]}
+
+  - question_id: DC-DQ-010
+    claim: Resolve normalized peer performance across rig, crew, activity and benchmark evidence.
+    capabilities: [normalized-peer-performance]
+    objects:
+      - {id: DQ010-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: High Performing Rig}
+      - {id: DQ010-ASG, type: "https://cepio.org/ontology/workforce#CrewAssignment", name: High Performing Crew Assignment}
+      - {id: DQ010-CREW, type: "https://cepio.org/ontology/workforce#CrewMember", name: High Performing Driller}
+      - {id: DQ010-ACT, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Comparable Drilling Interval}
+      - {id: DQ010-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: Normalized ROP KPI, properties: {value: 1.12}}
+      - {id: DQ010-BENCH, type: "https://cepio.org/ontology/performance#Benchmark", name: Peer Normalized Benchmark}
+    relationships:
+      - {id: dq010-assignment-activity, type: "https://cepio.org/ontology/workforce#assignmentForActivity", source: DQ010-ASG, target: DQ010-ACT}
+      - {id: dq010-assignment-crew, type: "https://cepio.org/ontology/workforce#assignmentOf", source: DQ010-ASG, target: DQ010-CREW}
+      - {id: dq010-activity-rig, type: "https://cepio.org/ontology/drilling#activityOnRig", source: DQ010-ACT, target: DQ010-RIG}
+      - {id: dq010-kpi-activity, type: "https://cepio.org/ontology/performance#observationForEntity", source: DQ010-KPI, target: DQ010-ACT}
+      - {id: dq010-kpi-benchmark, type: "https://cepio.org/ontology/performance#benchmarkedAgainst", source: DQ010-KPI, target: DQ010-BENCH}
+    probes:
+      - {id: crew-assignment, kind: relationship, start_id: DQ010-ASG, relationship_type: "https://cepio.org/ontology/workforce#assignmentOf", expected_ids: [DQ010-CREW]}
+      - {id: rig-context, kind: relationship, start_id: DQ010-ACT, relationship_type: "https://cepio.org/ontology/drilling#activityOnRig", expected_ids: [DQ010-RIG]}
+      - {id: performance, kind: relationship, start_id: DQ010-ACT, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [DQ010-KPI]}
+      - {id: benchmark, kind: relationship, start_id: DQ010-KPI, relationship_type: "https://cepio.org/ontology/performance#benchmarkedAgainst", expected_ids: [DQ010-BENCH]}
+
+  - question_id: DC-DQ-011
+    claim: Resolve BOP recommendation to supporting evidence, governance control and accountable authority.
+    capabilities: [evidence-grounded-agent-recommendation]
+    objects:
+      - {id: DQ011-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Well Control Rig}
+      - {id: DQ011-BOP, type: "https://cepio.org/ontology/drilling#BlowoutPreventer", name: Qualification BOP}
+      - {id: DQ011-TEST, type: "https://cepio.org/ontology/drilling#WellControlTest", name: Failed BOP Test, properties: {status: FAILED}}
+      - {id: DQ011-REC, type: "https://cepio.org/ontology/agentic#Recommendation", name: Inspect BOP Recommendation}
+      - {id: DQ011-CP, type: "https://cepio.org/ontology/agentic#ControlPoint", name: Human Approval Control Point}
+      - {id: DQ011-AUTH, type: "https://cepio.org/ontology/workforce#AuthorityAssignment", name: OIM Authority}
+      - {id: DQ011-OIM, type: "https://cepio.org/ontology/workforce#CrewMember", name: Qualification OIM}
+    relationships:
+      - {id: dq011-rig-bop, type: "https://cepio.org/ontology/drilling#hasWellControlEquipment", source: DQ011-RIG, target: DQ011-BOP}
+      - {id: dq011-test-bop, type: "https://cepio.org/ontology/drilling#testsWellControlEquipment", source: DQ011-TEST, target: DQ011-BOP}
+      - {id: dq011-rec-bop, type: "https://cepio.org/ontology/agentic#recommendationFor", source: DQ011-REC, target: DQ011-BOP}
+      - {id: dq011-rec-evidence, type: "https://cepio.org/ontology/agentic#supportedByEvidence", source: DQ011-REC, target: DQ011-TEST}
+      - {id: dq011-rec-control, type: "https://cepio.org/ontology/agentic#governedAtControlPoint", source: DQ011-REC, target: DQ011-CP}
+      - {id: dq011-authority-rig, type: "https://cepio.org/ontology/workforce#authorityForAsset", source: DQ011-AUTH, target: DQ011-RIG}
+      - {id: dq011-authority-holder, type: "https://cepio.org/ontology/workforce#authorityHolder", source: DQ011-AUTH, target: DQ011-OIM}
+    probes:
+      - {id: affected-bop, kind: relationship, start_id: DQ011-REC, relationship_type: "https://cepio.org/ontology/agentic#recommendationFor", expected_ids: [DQ011-BOP]}
+      - {id: evidence, kind: relationship, start_id: DQ011-REC, relationship_type: "https://cepio.org/ontology/agentic#supportedByEvidence", expected_ids: [DQ011-TEST]}
+      - {id: control-point, kind: relationship, start_id: DQ011-REC, relationship_type: "https://cepio.org/ontology/agentic#governedAtControlPoint", expected_ids: [DQ011-CP]}
+      - {id: authority, kind: relationship, start_id: DQ011-AUTH, relationship_type: "https://cepio.org/ontology/workforce#authorityHolder", expected_ids: [DQ011-OIM]}
+
+  - question_id: DC-DQ-012
+    claim: Resolve critical spare exposure to work, procurement order and recorded supplier.
+    capabilities: [supply-intervention-agent]
+    objects:
+      - {id: DQ012-SPARE, type: "https://cepio.org/ontology/industrial#SparePart", name: Critical Top Drive Encoder}
+      - {id: DQ012-WO, type: "https://cepio.org/ontology/industrial#WorkOrder", name: Replace Top Drive Encoder}
+      - {id: DQ012-REQ, type: "https://cepio.org/ontology/supply#MaterialRequirement", name: Encoder Material Requirement}
+      - {id: DQ012-PO, type: "https://cepio.org/ontology/supply#PurchaseOrder", name: Encoder Purchase Order}
+      - {id: DQ012-SUP, type: "https://cepio.org/ontology/enterprise#Supplier", name: Recorded Encoder Supplier}
+    relationships:
+      - {id: dq012-requirement-work, type: "https://cepio.org/ontology/supply#materialRequiredBy", source: DQ012-REQ, target: DQ012-WO}
+      - {id: dq012-po-requirement, type: "https://cepio.org/ontology/supply#purchaseOrderForRequirement", source: DQ012-PO, target: DQ012-REQ}
+      - {id: dq012-po-spare, type: "https://cepio.org/ontology/supply#purchaseOrderForSpare", source: DQ012-PO, target: DQ012-SPARE}
+      - {id: dq012-po-supplier, type: "https://cepio.org/ontology/supply#purchaseOrderSupplier", source: DQ012-PO, target: DQ012-SUP}
+      - {id: dq012-spare-supplier, type: "https://cepio.org/ontology/supply#spareSuppliedBy", source: DQ012-SPARE, target: DQ012-SUP}
+    probes:
+      - {id: work, kind: relationship, start_id: DQ012-REQ, relationship_type: "https://cepio.org/ontology/supply#materialRequiredBy", expected_ids: [DQ012-WO]}
+      - {id: spare, kind: relationship, start_id: DQ012-PO, relationship_type: "https://cepio.org/ontology/supply#purchaseOrderForSpare", expected_ids: [DQ012-SPARE]}
+      - {id: supplier, kind: relationship, start_id: DQ012-PO, relationship_type: "https://cepio.org/ontology/supply#purchaseOrderSupplier", expected_ids: [DQ012-SUP]}
+
+  - question_id: DC-DQ-013
+    claim: Resolve a claims dispute through downtime, contract obligation, service evidence and customer acceptance.
+    capabilities: [contract-claim-evidence-chain]
+    objects:
+      - {id: DQ013-CONTRACT, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Claims Contract}
+      - {id: DQ013-OBL, type: "https://cepio.org/ontology/commercial#ContractObligation", name: Service Availability Obligation}
+      - {id: DQ013-SVC, type: "https://cepio.org/ontology/commercial#ServiceExecution", name: Drilling Service Execution}
+      - {id: DQ013-EVID, type: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", name: Daily Service Evidence}
+      - {id: DQ013-ACCEPT, type: "https://cepio.org/ontology/commercial#ServiceAcceptance", name: Operator Acceptance}
+      - {id: DQ013-CUSTOMER, type: "https://cepio.org/ontology/enterprise#Customer", name: Claims Customer}
+      - {id: DQ013-DT, type: "https://cepio.org/ontology/reliability#DowntimeEvent", name: Disputed Downtime}
+    relationships:
+      - {id: dq013-obligation-contract, type: "https://cepio.org/ontology/commercial#obligationOfContract", source: DQ013-OBL, target: DQ013-CONTRACT}
+      - {id: dq013-service-obligation, type: "https://cepio.org/ontology/commercial#governedByObligation", source: DQ013-SVC, target: DQ013-OBL}
+      - {id: dq013-service-evidence, type: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", source: DQ013-SVC, target: DQ013-EVID}
+      - {id: dq013-accept-service, type: "https://cepio.org/ontology/commercial#acceptanceOfService", source: DQ013-ACCEPT, target: DQ013-SVC}
+      - {id: dq013-accepted-by, type: "https://cepio.org/ontology/commercial#acceptedBy", source: DQ013-ACCEPT, target: DQ013-CUSTOMER}
+      - {id: dq013-downtime-service, type: "https://cepio.org/ontology/core#impacts", source: DQ013-DT, target: DQ013-SVC}
+    probes:
+      - {id: obligation, kind: relationship, start_id: DQ013-SVC, relationship_type: "https://cepio.org/ontology/commercial#governedByObligation", expected_ids: [DQ013-OBL]}
+      - {id: delivery-evidence, kind: relationship, start_id: DQ013-SVC, relationship_type: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", expected_ids: [DQ013-EVID]}
+      - {id: acceptance, kind: relationship, start_id: DQ013-SVC, relationship_type: "https://cepio.org/ontology/commercial#acceptanceOfService", direction: in, expected_ids: [DQ013-ACCEPT]}
+      - {id: customer, kind: relationship, start_id: DQ013-ACCEPT, relationship_type: "https://cepio.org/ontology/commercial#acceptedBy", expected_ids: [DQ013-CUSTOMER]}
+      - {id: downtime, kind: relationship, start_id: DQ013-SVC, relationship_type: "https://cepio.org/ontology/core#impacts", direction: in, expected_ids: [DQ013-DT]}
+
+  - question_id: DC-DQ-014
+    claim: Resolve original plan, proposed revision, authorizing decision and scoped human authority.
+    capabilities: [governed-plan-deviation]
+    objects:
+      - {id: DQ014-PLAN, type: "https://cepio.org/ontology/kinetic#OperationalPlan", name: Original Drilling Plan}
+      - {id: DQ014-REV, type: "https://cepio.org/ontology/kinetic#PlanRevision", name: Proposed Parameter Revision}
+      - {id: DQ014-DEC, type: "https://cepio.org/ontology/kinetic#Decision", name: Plan Revision Decision}
+      - {id: DQ014-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Plan Revision Rig}
+      - {id: DQ014-AUTH, type: "https://cepio.org/ontology/workforce#AuthorityAssignment", name: Company Man Plan Authority, properties: {"https://cepio.org/ontology/core#validFrom": "2026-10-17T08:00:00+00:00", "https://cepio.org/ontology/core#validTo": "2026-10-17T20:00:00+00:00"}}
+      - {id: DQ014-HOLDER, type: "https://cepio.org/ontology/workforce#CrewMember", name: Operator Company Man}
+    relationships:
+      - {id: dq014-revision-plan, type: "https://cepio.org/ontology/kinetic#revisesPlan", source: DQ014-REV, target: DQ014-PLAN}
+      - {id: dq014-decision-revision, type: "https://cepio.org/ontology/kinetic#authorizesRevision", source: DQ014-DEC, target: DQ014-REV}
+      - {id: dq014-revision-rig, type: "https://cepio.org/ontology/core#impacts", source: DQ014-REV, target: DQ014-RIG}
+      - {id: dq014-authority-rig, type: "https://cepio.org/ontology/workforce#authorityForAsset", source: DQ014-AUTH, target: DQ014-RIG}
+      - {id: dq014-authority-holder, type: "https://cepio.org/ontology/workforce#authorityHolder", source: DQ014-AUTH, target: DQ014-HOLDER}
+    probes:
+      - {id: original-plan, kind: relationship, start_id: DQ014-REV, relationship_type: "https://cepio.org/ontology/kinetic#revisesPlan", expected_ids: [DQ014-PLAN]}
+      - {id: authorizing-decision, kind: relationship, start_id: DQ014-REV, relationship_type: "https://cepio.org/ontology/kinetic#authorizesRevision", direction: in, expected_ids: [DQ014-DEC]}
+      - {id: scope, kind: relationship, start_id: DQ014-REV, relationship_type: "https://cepio.org/ontology/core#impacts", expected_ids: [DQ014-RIG]}
+      - {id: authority-holder, kind: relationship, start_id: DQ014-AUTH, relationship_type: "https://cepio.org/ontology/workforce#authorityHolder", expected_ids: [DQ014-HOLDER]}
+
+  - question_id: DC-DQ-015
+    claim: Resolve agent-originated decision to measured outcome and retained risk context.
+    capabilities: [governed-agent-value-realization]
+    objects:
+      - {id: DQ015-AGENT, type: "https://cepio.org/ontology/agentic#Agent", name: Drilling Optimization Agent}
+      - {id: DQ015-DEC, type: "https://cepio.org/ontology/agentic#Recommendation", name: Optimization Recommendation}
+      - {id: DQ015-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: Post Intervention NPT KPI, properties: {value: 0.035}}
+      - {id: DQ015-RISK, type: "https://cepio.org/ontology/core#Risk", name: Well Control Risk}
+      - {id: DQ015-ASSESS, type: "https://cepio.org/ontology/performance#OutcomeAssessment", name: Intervention Outcome Assessment}
+    relationships:
+      - {id: dq015-decision-agent, type: "https://cepio.org/ontology/agentic#producedByAgent", source: DQ015-DEC, target: DQ015-AGENT}
+      - {id: dq015-assessment-decision, type: "https://cepio.org/ontology/performance#assessmentOfDecision", source: DQ015-ASSESS, target: DQ015-DEC}
+      - {id: dq015-assessment-kpi, type: "https://cepio.org/ontology/performance#observedOutcome", source: DQ015-ASSESS, target: DQ015-KPI}
+      - {id: dq015-assessment-risk, type: "https://cepio.org/ontology/performance#considersRisk", source: DQ015-ASSESS, target: DQ015-RISK}
+      - {id: dq015-decision-evidence, type: "https://cepio.org/ontology/agentic#supportedByEvidence", source: DQ015-DEC, target: DQ015-KPI}
+    probes:
+      - {id: decision, kind: relationship, start_id: DQ015-ASSESS, relationship_type: "https://cepio.org/ontology/performance#assessmentOfDecision", expected_ids: [DQ015-DEC]}
+      - {id: outcome, kind: relationship, start_id: DQ015-ASSESS, relationship_type: "https://cepio.org/ontology/performance#observedOutcome", expected_ids: [DQ015-KPI]}
+      - {id: risk, kind: relationship, start_id: DQ015-ASSESS, relationship_type: "https://cepio.org/ontology/performance#considersRisk", expected_ids: [DQ015-RISK]}
+      - {id: agent, kind: relationship, start_id: DQ015-DEC, relationship_type: "https://cepio.org/ontology/agentic#producedByAgent", expected_ids: [DQ015-AGENT]}
