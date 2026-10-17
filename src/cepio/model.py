@@ -149,6 +149,7 @@ class AuditEntry(BaseModel):
 
 class Decision(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
+    decision_type: str | None = None
     subject: ObjectRef
     problem: str
     observations: list[str] = Field(default_factory=list)
