@@ -182,12 +182,18 @@ def add_relationship(
 def neighbors(
     object_id: str,
     relationship_type: str | None = None,
+    direction: str = Query(default="out", pattern="^(out|in)$"),
     actor: ActorContext = Depends(get_actor_context),
 ) -> list[OntologyObject]:
     try:
         runtime.read_object_for_actor(object_id, actor.roles)
+        related = (
+            runtime.reverse_neighbors(object_id, relationship_type)
+            if direction == "in"
+            else runtime.neighbors(object_id, relationship_type)
+        )
         visible: list[OntologyObject] = []
-        for obj in runtime.neighbors(object_id, relationship_type):
+        for obj in related:
             filtered = _visible_object(obj, actor)
             if filtered is not None:
                 visible.append(filtered)
