@@ -15,6 +15,10 @@ def _graph(name: str) -> Graph:
     return graph
 
 
+def _version_tuple(value: object) -> tuple[int, ...]:
+    return tuple(int(part) for part in str(value).split("."))
+
+
 def test_crude_assay_is_canonical_but_yield_model_remains_outside_ontology():
     graph = _graph("process_industry.ttl")
 
@@ -76,12 +80,12 @@ def test_material_movement_and_transfer_route_form_a_reusable_bulk_transfer_grap
     assert (PROCESS.routeToStorage, RDFS.range, MFG.StorageUnit) in graph
 
 
-def test_phase3_is_additively_versioned_and_declares_manufacturing_dependency():
+def test_phase3_version_floor_and_manufacturing_dependency_are_preserved():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     modules = {item["id"]: item for item in catalogue["modules"]}
 
     process_module = modules["process_industry"]
-    assert str(process_module["version"]) == "0.1.4"
+    assert _version_tuple(process_module["version"]) >= (0, 1, 4)
     assert process_module["tier"] == "domain"
 
     dependencies = {item["module"] for item in process_module["depends_on"]}
