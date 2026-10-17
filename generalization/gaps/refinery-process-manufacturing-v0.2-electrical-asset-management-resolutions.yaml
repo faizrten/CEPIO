@@ -69,11 +69,12 @@ guardrails:
   - industrial-common modules remain independent of process_industry and no reverse dependency is introduced
   - no customer/profile vocabulary is introduced
 
-expected_frozen_benchmark:
+measured_frozen_benchmark:
   total_checks: 87
-  expected_passed_checks: 71
-  expected_semantic_readiness_percent: 81.6
-  expected_status: {PASS: 6, PARTIAL: 6, FAIL: 0, ERROR: 0}
-  expected_question_changes:
-    RP-PE-006: "3/7 -> 5/7 PARTIAL"
+  passed_checks: 72
+  semantic_readiness_percent: 82.8
+  status: {PASS: 6, PARTIAL: 6, FAIL: 0, ERROR: 0}
+  question_changes:
+    RP-PE-006: "3/7 -> 6/7 PARTIAL"
     RP-PE-009: "5/7 -> 7/7 PASS"
+  note: RP-PE-006 exceeded the pre-CI forecast because the canonical subclass hierarchy satisfied the equipment-identity semantic check without introducing the rejected benchmark-only partOf assertion. The only remaining literal in RP-PE-006 is hse:ArcFlashStudy, intentionally represented through the IEEE 1584 risk-assessment mapping boundary.
