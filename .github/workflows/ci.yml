@@ -61,6 +61,11 @@ jobs:
         run: >-
           pytest -q tests/test_drilling_domain_runtime_qualification_v041.py
           -k 'stale_prediction or recommendation_without or plan_revision_requires or value_realization_requires'
+      - name: Run drilling cross-customer qualification v0.5
+        run: >-
+          PYTHONPATH=src python scripts/run_cross_customer_qualification.py
+          --fail-on-gap
+          --json-out drilling-cross-customer-qualification-v0.5-report.json
       - name: Run refinery/process-manufacturing frozen baseline v0.1
         run: >-
           PYTHONPATH=src python scripts/run_generalization_harness.py
