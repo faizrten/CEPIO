@@ -26,7 +26,7 @@ modules:
     depends_on: [{module: core, version: '>=0.2.0'}]
   - id: industrial
     namespace: https://cepio.org/ontology/industrial#
-    version: 0.2.1
+    version: 0.2.2
     file: ontologies/industrial.ttl
     tier: industrial-common
     stability: stable
@@ -45,7 +45,7 @@ modules:
     tier: domain
     stability: stable
     depends_on: [{module: core, version: '>=0.2.0'}, {module: industrial, version: '>=0.2.0'}]
-  - {id: asset, namespace: 'https://cepio.org/ontology/asset#', version: 0.1.0, file: ontologies/asset.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
+  - {id: asset, namespace: 'https://cepio.org/ontology/asset#', version: 0.1.1, file: ontologies/asset.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
   - {id: work_management, namespace: 'https://cepio.org/ontology/work#', version: 0.1.1, file: ontologies/work_management.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
   - {id: reliability, namespace: 'https://cepio.org/ontology/reliability#', version: 0.1.1, file: ontologies/reliability.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
   - {id: hse, namespace: 'https://cepio.org/ontology/hse#', version: 0.1.2, file: ontologies/hse.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
