@@ -1,0 +1,72 @@
+id: refinery-process-manufacturing-v0.2-integrity-production-assurance-resolutions
+version: "0.2"
+status: implemented
+source_triage: generalization/gaps/refinery-process-manufacturing-v0.2.yaml
+scope: integrity-and-production-assurance
+resolutions:
+  - gap_id: GAP-RP2-005-DAMAGE-MECHANISM-RBI
+    disposition: CORE
+    status: implemented
+    module: reliability
+    module_version: 0.1.1
+    implemented_semantics:
+      - reliability:DamageMechanism
+      - reliability:RiskBasedInspectionAssessment
+      - reliability:damageMechanismForEquipment
+      - reliability:assessmentForEquipment
+      - reliability:assessmentConsidersDamageMechanism
+      - reliability:assessmentUsesInspection
+    reused_semantics:
+      - cepio:Risk
+      - industrial:Equipment
+      - industrial:Inspection
+      - reliability:ConditionSignal
+    standards: [api-rp-580-4e, iso-14224-2016]
+
+  - gap_id: GAP-RP2-005-INTEGRITY-OPERATING-WINDOW
+    disposition: DOMAIN
+    status: implemented
+    module: process_industry
+    module_version: 0.1.3
+    implemented_semantics:
+      - process:IntegrityOperatingWindow
+    reused_semantics:
+      - process:OperatingEnvelope
+      - process:ProcessDeviation
+      - process:deviationAgainstEnvelope
+      - process:envelopeForUnit
+    standards: [api-rp-584-2e]
+
+  - gap_id: GAP-RP2-011-PRODUCTION-CAPACITY
+    disposition: CORE
+    status: implemented
+    module: performance
+    module_version: 0.1.2
+    implemented_semantics:
+      - performance:ProductionCapacity
+    reused_semantics:
+      - cepio:Measurement
+      - cepio:measuredBy
+      - performance:ProductionLoss
+      - cepio:impacts
+    standards: [iso-20815-2026]
+
+  - gap_id: GAP-RP2-011-AVAILABILITY-KPI
+    disposition: MAPPING
+    status: preserved
+    resolution: Represent availability as an instance of cepio:KPI with performance:KPIObservation and external metric/formula mappings; do not create a class per KPI identity.
+    reused_semantics:
+      - cepio:KPI
+      - performance:KPIObservation
+      - performance:observationOfKPI
+      - performance:observationForEntity
+    standards: [iso-20815-2026]
+
+guardrails:
+  - reliability integrity semantics remain industrial-common and do not import process_industry
+  - process integrity operating windows specialize the existing OperatingEnvelope model
+  - IOW excursions reuse ProcessDeviation and deviationAgainstEnvelope rather than creating a second excursion hierarchy
+  - production capacity remains a reusable Measurement and does not proliferate capacity-type classes
+  - availability remains KPI instance/formula semantics rather than an AvailabilityKPI ontology class
+  - frozen refinery competency pack v0.2 is unchanged
+  - no customer/profile vocabulary is introduced
