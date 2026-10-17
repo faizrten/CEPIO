@@ -32,9 +32,9 @@ process:IntegrityOperatingWindow a owl:Class ; rdfs:subClassOf process:Operating
 # Continuous-process planning, blending and movement semantics. Storage units,
 # material lots and production schedules remain owned by the ISA-95-aligned
 # manufacturing module; this module contributes the process-industry intent and
-# execution objects that connect them.
+# execution objects that connect them. Executable yield models remain model-
+# registry / mapping-layer assets rather than canonical ontology classes.
 process:CrudeAssay a owl:Class ; rdfs:subClassOf cepio:Document .
-process:YieldModel a owl:Class ; rdfs:subClassOf cepio:Entity .
 process:BlendPlan a owl:Class ; rdfs:subClassOf cepio:Document .
 process:MaterialMovement a owl:Class ; rdfs:subClassOf cepio:Activity .
 process:TransferRoute a owl:Class ; rdfs:subClassOf cepio:Entity .
@@ -62,8 +62,6 @@ process:executesProcedure a owl:ObjectProperty ; rdfs:domain process:ProcedureEx
 
 # Planning and characterization relationships.
 process:characterizesStream a owl:ObjectProperty ; rdfs:domain process:CrudeAssay ; rdfs:range process:MaterialStream .
-process:yieldModelForStream a owl:ObjectProperty ; rdfs:domain process:YieldModel ; rdfs:range process:MaterialStream .
-process:yieldModelForUnit a owl:ObjectProperty ; rdfs:domain process:YieldModel ; rdfs:range ind:ProcessUnit .
 process:blendPlanForSchedule a owl:ObjectProperty ; rdfs:domain process:BlendPlan ; rdfs:range mfg:OperationsSchedule .
 process:blendPlanUsesLot a owl:ObjectProperty ; rdfs:domain process:BlendPlan ; rdfs:range mfg:MaterialLot .
 
