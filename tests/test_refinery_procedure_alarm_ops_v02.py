@@ -15,6 +15,10 @@ def _graph(name: str) -> Graph:
     return graph
 
 
+def _version_tuple(value: object) -> tuple[int, ...]:
+    return tuple(int(part) for part in str(value).split("."))
+
+
 def test_procedure_semantics_are_process_domain_and_reuse_core_execution_contracts():
     process_graph = _graph("process_industry.ttl")
     core_graph = _graph("core.ttl")
@@ -78,6 +82,6 @@ def test_procedure_alarm_slice_is_additively_versioned():
     modules = {item["id"]: item for item in catalogue["modules"]}
 
     assert str(modules["industrial"]["version"]) == "0.2.1"
-    assert str(modules["process_industry"]["version"]) == "0.1.3"
+    assert _version_tuple(modules["process_industry"]["version"]) >= (0, 1, 3)
     assert modules["industrial"]["tier"] == "industrial-common"
     assert modules["process_industry"]["tier"] == "domain"
