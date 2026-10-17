@@ -1,0 +1,260 @@
+id: drilling-contractor-domain-qualification-v0.4
+version: "0.4"
+archetype_id: drilling-contractor-v0.1
+frozen: true
+questions:
+  - id: DC-DQ-001
+    question: Which rigs, contracts and customers are creating the greatest risk-adjusted drag on enterprise value, and what evidence explains the exposure?
+    priority: critical
+    personas: [chief-executive, chief-operating-officer, chief-financial-officer]
+    standards: [iadc-model-contracts, spe-dsats]
+    capability_tags: [enterprise, portfolio, value, risk]
+    capabilities:
+      - id: enterprise-fleet-economic-exposure
+        description: Resolve fleet assets to contractual and financial exposure with evidence-backed causal context.
+        alternatives:
+          - id: fleet-contract-customer-economics
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+              - {iri: "https://cepio.org/ontology/enterprise#Customer", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#RevenueRecord", kind: class}
+              - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+
+  - id: DC-DQ-002
+    question: Which fleet-level operating losses are recurring across rigs, and which common intervention would remove the most systemic NPT or downtime?
+    priority: critical
+    personas: [chief-operating-officer, vp-drilling-operations, drilling-performance-engineer]
+    standards: [iadc-ddr-plus-v2, spe-dsats]
+    capability_tags: [enterprise, recurring-loss, cross-rig, intervention]
+    capabilities:
+      - id: fleet-loss-pattern
+        description: Compare recurring activity, downtime and failure patterns across multiple rigs.
+        alternatives:
+          - id: activity-downtime-failure-comparison
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#DowntimeEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+      - id: accountable-enterprise-intervention
+        description: Represent a governed intervention with an accountable owner and affected operating scope.
+        alternatives:
+          - id: work-and-responsibility
+            terms:
+              - {iri: "https://cepio.org/ontology/core#WorkItem", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", kind: class}
+
+  - id: DC-DQ-003
+    question: What is the expected cash and margin impact if a rig suffers a defined downtime scenario, including rate basis, penalties, cost exposure and working-capital consequence?
+    priority: critical
+    personas: [chief-financial-officer, finance-controller, contract-manager]
+    standards: [iadc-model-contracts]
+    capability_tags: [enterprise, scenario, margin, cash]
+    capabilities:
+      - id: scenario-based-rig-economics
+        description: Combine contract-rate, downtime, revenue and cost evidence into a scenario that can explain financial consequence.
+        alternatives:
+          - id: contract-rate-downtime-revenue
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractRate", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#DowntimeEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#RevenueRecord", kind: class}
+
+  - id: DC-DQ-004
+    question: Which contracts should be renewed, repriced, renegotiated or allowed to expire based on operating performance, claims exposure and customer economics?
+    priority: required
+    personas: [chief-executive, chief-financial-officer, commercial-manager, contract-manager]
+    standards: [iadc-model-contracts]
+    capability_tags: [enterprise, contract-portfolio, renewal, decision]
+    capabilities:
+      - id: contract-portfolio-decision-context
+        description: Resolve contract obligations, rates, acceptance, operating performance and financial evidence for portfolio decisions.
+        alternatives:
+          - id: obligation-rate-performance
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractRate", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+
+  - id: DC-DQ-005
+    question: Which capital intervention on a rig or rig system has the strongest evidence-backed return when reliability, utilization, contract value and remaining campaign demand are considered together?
+    priority: required
+    personas: [chief-executive, chief-financial-officer, chief-operating-officer, fleet-executive]
+    standards: [spe-dsats, iadc-drilling-manual-13]
+    capability_tags: [enterprise, capital-allocation, reliability, return]
+    capabilities:
+      - id: capital-allocation-context
+        description: Join asset condition, failure consequence, utilization and commercial exposure into an investment decision context.
+        alternatives:
+          - id: asset-reliability-performance-commercial
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+
+  - id: DC-DQ-006
+    question: Where is invisible lost time occurring within otherwise productive drilling activity, and how does it compare with the best comparable rig, well section or offset?
+    priority: critical
+    personas: [drilling-performance-engineer, vp-drilling-operations, drilling-superintendent]
+    standards: [iadc-ddr-plus-v2, energistics-witsml-2.1, spe-dsats]
+    capability_tags: [optimization, invisible-lost-time, benchmark]
+    capabilities:
+      - id: fine-grained-activity-performance-comparison
+        description: Compare temporally aligned activity and performance observations across comparable operating contexts.
+        alternatives:
+          - id: activity-kpi-comparison
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/energy#Well", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+
+  - id: DC-DQ-007
+    question: Which drilling-parameter deviation is statistically associated with dysfunction, equipment stress or reduced ROP, and what operating envelope should be recommended for the next comparable interval?
+    priority: critical
+    personas: [drilling-performance-engineer, driller, directional-drilling-lead]
+    standards: [energistics-witsml-2.1, spe-dsats]
+    capability_tags: [optimization, parameters, dysfunction, recommendation]
+    capabilities:
+      - id: parameter-dysfunction-context
+        description: Relate measured drilling conditions to activity context, outcome and affected equipment.
+        alternatives:
+          - id: measurement-activity-equipment-performance
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Measurement", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+
+  - id: DC-DQ-008
+    question: Which failure, NPT or near-miss pattern has repeated across comparable operations, what lesson was learned, and has that lesson been incorporated into current work or operating guidance?
+    priority: required
+    personas: [drilling-performance-engineer, reliability-engineer, hse-manager, vp-drilling-operations]
+    standards: [iadc-ddr-plus-v2, api-rp54-4]
+    capability_tags: [optimization, lessons-learned, recurrence, assurance]
+    capabilities:
+      - id: recurring-event-learning-loop
+        description: Trace repeated operating events to corrective work or reusable guidance and verify subsequent application.
+        alternatives:
+          - id: events-corrective-work
+            terms:
+              - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/hse#Incident", kind: class}
+              - {iri: "https://cepio.org/ontology/hse#CorrectiveAction", kind: class}
+              - {iri: "https://cepio.org/ontology/core#WorkItem", kind: class}
+
+  - id: DC-DQ-009
+    question: What is the probability that the current operation will incur material NPT in the next operating window, which evidence drives that risk, and what preventive action has the best expected value?
+    priority: critical
+    personas: [drilling-performance-engineer, rig-manager, chief-operating-officer]
+    standards: [iadc-ddr-plus-v2, spe-dsats]
+    capability_tags: [optimization, predictive-risk, npt, expected-value]
+    capabilities:
+      - id: predictive-operational-risk
+        description: Represent risk evidence, predicted consequence and a preventive intervention without promoting model output to enterprise fact.
+        alternatives:
+          - id: evidence-risk-decision
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/core#WorkItem", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+
+  - id: DC-DQ-010
+    question: Which rigs or crews are consistently outperforming comparable peers after normalizing for well, campaign and operating context, and which practices are transferable?
+    priority: required
+    personas: [vp-drilling-operations, drilling-performance-engineer, competency-manager]
+    standards: [iadc-ddr-plus-v2, iadc-ksa, spe-dsats]
+    capability_tags: [optimization, normalized-benchmark, workforce, practice-transfer]
+    capabilities:
+      - id: normalized-peer-performance
+        description: Compare rig and workforce performance only within explicitly comparable operating contexts.
+        alternatives:
+          - id: rig-crew-activity-kpi
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CrewAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+
+  - id: DC-DQ-011
+    question: An AI agent detects deteriorating BOP readiness. Can it assemble the evidence, recommend the correct governed action, identify the accountable authority and stop before any action that requires human approval?
+    priority: critical
+    personas: [digital-ai-leader, subsea-well-control-engineer, offshore-installation-manager]
+    standards: [api-standard-53, iadc-ksa]
+    capability_tags: [agentic, evidence, authority, human-approval]
+    capabilities:
+      - id: evidence-grounded-agent-recommendation
+        description: Bind a recommendation to current evidence and preserve the distinction between recommendation and execution.
+        alternatives:
+          - id: decision-evidence-action
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#WellControlTest", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#AuthorityAssignment", kind: class}
+
+  - id: DC-DQ-012
+    question: Can an AI agent detect a likely critical-spare stockout, identify the affected maintenance and campaign consequence, prepare a procurement intervention and route it to the authorized human without inventing supplier or delivery facts?
+    priority: critical
+    personas: [digital-ai-leader, supply-chain-manager, procurement-category-manager, maintenance-planner]
+    standards: [iadc-drilling-manual-13]
+    capability_tags: [agentic, supply, procurement, evidence]
+    capabilities:
+      - id: supply-intervention-agent
+        description: Trace supply exposure to operating consequence and prepare governed procurement work grounded in recorded supplier evidence.
+        alternatives:
+          - id: spare-work-po-supplier
+            terms:
+              - {iri: "https://cepio.org/ontology/industrial#SparePart", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+              - {iri: "https://cepio.org/ontology/supply#PurchaseOrder", kind: class}
+              - {iri: "https://cepio.org/ontology/enterprise#Supplier", kind: class}
+
+  - id: DC-DQ-013
+    question: Can an AI agent explain a day-rate or claims dispute using operational evidence, contract obligations, acceptance records and provenance, while clearly separating facts from inferred positions?
+    priority: critical
+    personas: [digital-ai-leader, contract-manager, commercial-manager, operator-company-man]
+    standards: [iadc-model-contracts, iadc-ddr-plus-v2]
+    capability_tags: [agentic, contract, claim, provenance]
+    capabilities:
+      - id: contract-claim-evidence-chain
+        description: Build a traceable evidence chain from operating event through contractual consequence and customer acceptance.
+        alternatives:
+          - id: event-obligation-acceptance-provenance
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ServiceAcceptance", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#DowntimeEvent", kind: class}
+
+  - id: DC-DQ-014
+    question: Can an AI agent propose a change to the operating plan when drilling performance deteriorates, prove who may authorize the deviation, preserve the original plan and rationale, and audit the resulting decision?
+    priority: critical
+    personas: [digital-ai-leader, operator-company-man, drilling-superintendent, driller]
+    standards: [iadc-ksa, energistics-witsml-2.1]
+    capability_tags: [agentic, plan-change, authority, audit]
+    capabilities:
+      - id: governed-plan-deviation
+        description: Preserve plan, proposed deviation, scoped authority, decision rationale and action audit as distinct governed records.
+        alternatives:
+          - id: authority-decision-audit
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#AuthorityAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Decision", kind: class}
+
+  - id: DC-DQ-015
+    question: Can CEPIO demonstrate that an autonomous or agentic workflow improved an operating outcome without sacrificing safety, authority boundaries or evidentiary traceability?
+    priority: critical
+    personas: [digital-ai-leader, chief-executive, chief-operating-officer, hse-manager]
+    standards: [spe-dsats, api-rp54-4]
+    capability_tags: [agentic, outcome, value-realization, assurance]
+    capabilities:
+      - id: governed-agent-value-realization
+        description: Link an agent-originated decision and governed action to measurable operating outcome, safety context and audit evidence.
+        alternatives:
+          - id: decision-action-kpi-audit
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
