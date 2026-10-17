@@ -17,6 +17,10 @@ def _graph(name: str) -> Graph:
     return graph
 
 
+def _version_tuple(value: object) -> tuple[int, ...]:
+    return tuple(int(part) for part in str(value).split("."))
+
+
 def test_damage_mechanism_and_rbi_are_reusable_reliability_semantics():
     graph = _graph("reliability.ttl")
 
@@ -77,7 +81,7 @@ def test_assurance_slice_is_additively_versioned_without_cross_tier_coupling():
 
     assert str(modules["reliability"]["version"]) == "0.1.1"
     assert str(modules["performance"]["version"]) == "0.1.2"
-    assert str(modules["process_industry"]["version"]) == "0.1.3"
+    assert _version_tuple(modules["process_industry"]["version"]) >= (0, 1, 3)
     assert modules["reliability"]["tier"] == "industrial-common"
     assert modules["performance"]["tier"] == "industrial-common"
     assert modules["process_industry"]["tier"] == "domain"

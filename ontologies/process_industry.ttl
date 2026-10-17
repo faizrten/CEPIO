@@ -1,6 +1,7 @@
 @prefix cepio: <https://cepio.org/ontology/core#> .
 @prefix ind: <https://cepio.org/ontology/industrial#> .
 @prefix kin: <https://cepio.org/ontology/kinetic#> .
+@prefix mfg: <https://cepio.org/ontology/manufacturing#> .
 @prefix process: <https://cepio.org/ontology/process#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -28,6 +29,16 @@ process:StartupOrRestart a owl:Class ; rdfs:subClassOf cepio:Activity .
 # avoiding a parallel integrity-event hierarchy.
 process:IntegrityOperatingWindow a owl:Class ; rdfs:subClassOf process:OperatingEnvelope .
 
+# Continuous-process planning, blending and movement semantics. Storage units,
+# material lots and production schedules remain owned by the ISA-95-aligned
+# manufacturing module; this module contributes the process-industry intent and
+# execution objects that connect them. Executable yield models remain model-
+# registry / mapping-layer assets rather than canonical ontology classes.
+process:CrudeAssay a owl:Class ; rdfs:subClassOf cepio:Document .
+process:BlendPlan a owl:Class ; rdfs:subClassOf cepio:Document .
+process:MaterialMovement a owl:Class ; rdfs:subClassOf cepio:Activity .
+process:TransferRoute a owl:Class ; rdfs:subClassOf cepio:Entity .
+
 # Continuous-process procedure semantics grounded by the refinery v0.2
 # competency challenge and ISA-106 reference surface. Procedure content stays
 # source-neutral; execution composes existing temporal, provenance, work-control
@@ -48,3 +59,19 @@ process:constraintOnUnit a owl:ObjectProperty ; rdfs:domain process:ProcessConst
 process:envelopeForUnit a owl:ObjectProperty ; rdfs:domain process:OperatingEnvelope ; rdfs:range ind:ProcessUnit .
 process:deviationAgainstEnvelope a owl:ObjectProperty ; rdfs:domain process:ProcessDeviation ; rdfs:range process:OperatingEnvelope .
 process:executesProcedure a owl:ObjectProperty ; rdfs:domain process:ProcedureExecution ; rdfs:range process:OperatingProcedure .
+
+# Planning and characterization relationships.
+process:characterizesStream a owl:ObjectProperty ; rdfs:domain process:CrudeAssay ; rdfs:range process:MaterialStream .
+process:blendPlanForSchedule a owl:ObjectProperty ; rdfs:domain process:BlendPlan ; rdfs:range mfg:OperationsSchedule .
+process:blendPlanUsesLot a owl:ObjectProperty ; rdfs:domain process:BlendPlan ; rdfs:range mfg:MaterialLot .
+
+# Bulk-material movement relationships. A MaterialMovement is an execution
+# activity; TransferRoute represents the intended path independently of any
+# customer/site-specific tank or piping identifiers.
+process:movementFromStorage a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range mfg:StorageUnit .
+process:movementToStorage a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range mfg:StorageUnit .
+process:usesTransferRoute a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range process:TransferRoute .
+process:movementCarriesLot a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range mfg:MaterialLot .
+process:movementForSchedule a owl:ObjectProperty ; rdfs:domain process:MaterialMovement ; rdfs:range mfg:OperationsSchedule .
+process:routeFromStorage a owl:ObjectProperty ; rdfs:domain process:TransferRoute ; rdfs:range mfg:StorageUnit .
+process:routeToStorage a owl:ObjectProperty ; rdfs:domain process:TransferRoute ; rdfs:range mfg:StorageUnit .

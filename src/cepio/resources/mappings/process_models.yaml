@@ -1,0 +1,25 @@
+schema_version: "1.0"
+model_mappings:
+  - id: yield-model
+    canonical_type: https://cepio.org/ontology/core#DigitalAsset
+    domain: process-planning
+    aliases:
+      - yield-model
+      - refinery-yield-model
+      - feed-yield-model
+    semantic_context:
+      inputs:
+        - https://cepio.org/ontology/process#CrudeAssay
+        - https://cepio.org/ontology/process#MaterialStream
+        - https://cepio.org/ontology/industrial#ProcessUnit
+      outputs:
+        - https://cepio.org/ontology/core#Measurement
+        - https://cepio.org/ontology/core#KPI
+    semantics:
+      execution_is_external: true
+      parameters_are_external: true
+      implementation_is_external: true
+      version_and_provenance_required: true
+    standards:
+      - iso-20815-2026
+    note: A yield model is executable analytical content represented as a versioned DigitalAsset with semantic input/output bindings. CEPIO does not create a process:YieldModel ontology class.
