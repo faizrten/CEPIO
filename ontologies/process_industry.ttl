@@ -39,6 +39,15 @@ process:BlendPlan a owl:Class ; rdfs:subClassOf cepio:Document .
 process:MaterialMovement a owl:Class ; rdfs:subClassOf cepio:Activity .
 process:TransferRoute a owl:Class ; rdfs:subClassOf cepio:Entity .
 
+# Instrumentation and engineering-topology semantics. A ProcessVariable is the
+# durable process concept being observed or controlled; individual values remain
+# Measurement-derived observations. Physical process devices continue to reuse
+# industrial:Equipment / asset:InstalledAsset identity rather than duplicating an
+# external PA-DIM device hierarchy. PipingSegment is the minimal source-neutral
+# physical topology needed to connect engineering records to ProcessStream.
+process:ProcessVariable a owl:Class ; rdfs:subClassOf cepio:Entity .
+process:PipingSegment a owl:Class ; rdfs:subClassOf cepio:PhysicalAsset .
+
 # Continuous-process procedure semantics grounded by the refinery v0.2
 # competency challenge and ISA-106 reference surface. Procedure content stays
 # source-neutral; execution composes existing temporal, provenance, work-control
@@ -59,6 +68,13 @@ process:constraintOnUnit a owl:ObjectProperty ; rdfs:domain process:ProcessConst
 process:envelopeForUnit a owl:ObjectProperty ; rdfs:domain process:OperatingEnvelope ; rdfs:range ind:ProcessUnit .
 process:deviationAgainstEnvelope a owl:ObjectProperty ; rdfs:domain process:ProcessDeviation ; rdfs:range process:OperatingEnvelope .
 process:executesProcedure a owl:ObjectProperty ; rdfs:domain process:ProcedureExecution ; rdfs:range process:OperatingProcedure .
+
+# Instrumentation and physical-topology relationships. Equipment measures the
+# process variable while time-stamped values and device diagnostics remain in
+# Measurement / ConditionSignal semantics. Detailed line classes and exchange-
+# format attributes remain external mappings.
+process:measuresProcessVariable a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range process:ProcessVariable .
+process:carriesStream a owl:ObjectProperty ; rdfs:domain process:PipingSegment ; rdfs:range process:ProcessStream .
 
 # Planning and characterization relationships.
 process:characterizesStream a owl:ObjectProperty ; rdfs:domain process:CrudeAssay ; rdfs:range process:MaterialStream .
