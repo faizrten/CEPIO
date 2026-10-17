@@ -1,5 +1,6 @@
 @prefix cepio: <https://cepio.org/ontology/core#> .
 @prefix ind: <https://cepio.org/ontology/industrial#> .
+@prefix kin: <https://cepio.org/ontology/kinetic#> .
 @prefix process: <https://cepio.org/ontology/process#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -13,6 +14,15 @@ process:QualityObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
 process:OperationalEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 process:OptimizationForecast a owl:Class ; rdfs:subClassOf cepio:Measurement .
 
+# Process-operation semantics accepted by the refinery/process-manufacturing
+# Generalization Lab. These remain process-industry concepts rather than
+# refinery- or customer-specific vocabulary.
+process:ProcessConstraint a owl:Class ; rdfs:subClassOf kin:Constraint .
+process:OperatingEnvelope a owl:Class ; rdfs:subClassOf cepio:Entity .
+process:OperatingLimit a owl:Class ; rdfs:subClassOf kin:Constraint .
+process:ProcessDeviation a owl:Class ; rdfs:subClassOf cepio:State .
+process:StartupOrRestart a owl:Class ; rdfs:subClassOf cepio:Activity .
+
 process:streamFromUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
 process:streamToUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
 process:meterAtUnit a owl:ObjectProperty ; rdfs:domain process:UtilityMeter ; rdfs:range ind:ProcessUnit .
@@ -20,3 +30,6 @@ process:emissionFromUnit a owl:ObjectProperty ; rdfs:domain process:EmissionObse
 process:sampledAtUnit a owl:ObjectProperty ; rdfs:domain process:QualityObservation ; rdfs:range ind:ProcessUnit .
 process:eventAtUnit a owl:ObjectProperty ; rdfs:domain process:OperationalEvent ; rdfs:range ind:ProcessUnit .
 process:forecastForUnit a owl:ObjectProperty ; rdfs:domain process:OptimizationForecast ; rdfs:range ind:ProcessUnit .
+process:constraintOnUnit a owl:ObjectProperty ; rdfs:domain process:ProcessConstraint ; rdfs:range ind:ProcessUnit .
+process:envelopeForUnit a owl:ObjectProperty ; rdfs:domain process:OperatingEnvelope ; rdfs:range ind:ProcessUnit .
+process:deviationAgainstEnvelope a owl:ObjectProperty ; rdfs:domain process:ProcessDeviation ; rdfs:range process:OperatingEnvelope .
