@@ -27,7 +27,7 @@ policies:
     functions: [calculateProductionLoss, calculateProductionExposure]
     decisions: []
   maintenance_engineer:
-    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI]
+    read_types: [Equipment, ConditionObservation, FailureMode, WorkOrder, Inspection, Event, KPI]
     read_scopes: [internal]
     read_properties:
       Equipment: "*"
@@ -37,13 +37,13 @@ policies:
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk]
     decisions: [maintenance-intervention-recommendation]
   maintenance_planner:
-    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI]
+    read_types: [Equipment, ConditionObservation, FailureMode, WorkOrder, Inspection, Event, KPI]
     read_scopes: [internal]
     actions: [CreateWorkOrder]
     functions: [calculateProductionLoss, calculateProductionExposure]
     decisions: [maintenance-intervention-recommendation]
   reliability_engineer:
-    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
+    read_types: [Equipment, ConditionObservation, FailureMode, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     read_properties:
       Equipment: "*"
@@ -57,7 +57,7 @@ policies:
     functions: [calculateProductionLoss, calculateProductionExposure, calculateMarginImpact]
     decisions: []
   maintenance_manager:
-    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
+    read_types: [Equipment, ConditionObservation, FailureMode, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     actions: [ApproveMaintenanceDeferral]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
@@ -69,7 +69,7 @@ policies:
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
     decisions: []
   ai_agent_recommender:
-    read_types: [Equipment, ConditionObservation, WorkOrder, Inspection, Event, KPI, Risk]
+    read_types: [Equipment, ConditionObservation, FailureMode, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     read_properties:
       Equipment: [criticality, operatingState, riskStatus]
