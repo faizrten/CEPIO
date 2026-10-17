@@ -1,0 +1,80 @@
+id: refinery-process-manufacturing-v0.2-electrical-asset-management-resolutions
+version: "0.5"
+status: implemented
+source_triage: generalization/gaps/refinery-process-manufacturing-v0.2.yaml
+scope: electrical-and-asset-management
+resolutions:
+  - gap_id: GAP-RP2-006-ELECTRICAL-EQUIPMENT
+    disposition: CORE
+    status: implemented
+    module: industrial
+    module_version: 0.2.2
+    implemented_semantics:
+      - industrial:ElectricalEquipment
+      - industrial:ElectricMotor
+      - industrial:MotorControlCenter
+      - industrial:drivesEquipment
+      - industrial:suppliesPowerTo
+    reused_semantics:
+      - industrial:Equipment
+      - industrial:RotatingEquipment
+      - asset:InstalledAsset
+      - asset:FunctionalLocation
+    standards: [ieee-841-2021]
+
+  - gap_id: GAP-RP2-006-ARC-FLASH-STUDY
+    disposition: REJECT
+    replacement_layer: MAPPING
+    status: implemented
+    mapping: mappings/electrical_asset_management_bindings.yaml
+    resolution: Map IEEE 1584 arc-flash study terminology to hse:RiskAssessment plus generic impact/evidence/provenance semantics; do not create hse:ArcFlashStudy.
+    reused_semantics:
+      - hse:RiskAssessment
+      - cepio:impacts
+      - cepio:Measurement
+      - cepio:Document
+      - industrial:ElectricalEquipment
+    standards: [ieee-1584-2018]
+
+  - gap_id: GAP-RP2-009-ASSET-MANAGEMENT
+    disposition: CORE
+    status: implemented
+    module: asset
+    module_version: 0.1.1
+    implemented_semantics:
+      - asset:AssetCriticality
+      - asset:AssetManagementPlan
+      - asset:criticalityForAsset
+      - asset:planForAsset
+      - asset:criticalityInformsPlan
+      - asset:planAddressesRisk
+      - asset:planTracksKPI
+    reused_semantics:
+      - cepio:Asset
+      - cepio:Measurement
+      - cepio:Document
+      - cepio:Risk
+      - cepio:KPI
+      - cepio:impacts
+    standards: [iso-55001-2024]
+
+guardrails:
+  - frozen refinery competency pack v0.2 is unchanged
+  - ElectricMotor and MotorControlCenter are reusable industrial-common equipment types, not process-industry classes
+  - electrical hierarchy composes existing asset system and functional-location semantics rather than creating refinery-specific electrical locations
+  - no asserted industrial:ElectricMotor --cepio:partOf--> industrial:Equipment benchmark shortcut is introduced; subclassing and explicit operational relationships preserve the model correctly
+  - IEEE 1584 arc-flash calculations remain a risk-assessment method and mapping vocabulary, not hse:ArcFlashStudy
+  - AssetCriticality is modeled as assessed Measurement semantics rather than a static label
+  - AssetManagementPlan is controlled Document semantics linked to assets, risks and KPIs
+  - industrial-common modules remain independent of process_industry and no reverse dependency is introduced
+  - no customer/profile vocabulary is introduced
+
+measured_frozen_benchmark:
+  total_checks: 87
+  passed_checks: 72
+  semantic_readiness_percent: 82.8
+  status: {PASS: 6, PARTIAL: 6, FAIL: 0, ERROR: 0}
+  question_changes:
+    RP-PE-006: "3/7 -> 6/7 PARTIAL"
+    RP-PE-009: "5/7 -> 7/7 PASS"
+  note: RP-PE-006 exceeded the pre-CI forecast because the canonical subclass hierarchy satisfied the equipment-identity semantic check without introducing the rejected benchmark-only partOf assertion. The only remaining literal in RP-PE-006 is hse:ArcFlashStudy, intentionally represented through the IEEE 1584 risk-assessment mapping boundary.

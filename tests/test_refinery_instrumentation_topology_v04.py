@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import yaml
+from packaging.version import Version
 from rdflib import Graph, Namespace, RDF, RDFS, OWL
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -82,7 +83,7 @@ def test_phase4_is_additively_versioned_without_new_cross_tier_cycles():
     modules = {item["id"]: item for item in catalogue["modules"]}
 
     process_module = modules["process_industry"]
-    assert str(process_module["version"]) == "0.1.5"
+    assert Version(str(process_module["version"])) >= Version("0.1.5")
     assert process_module["tier"] == "domain"
     dependencies = {item["module"] for item in process_module["depends_on"]}
     assert {"core", "industrial", "asset", "kinetic", "manufacturing"}.issubset(dependencies)

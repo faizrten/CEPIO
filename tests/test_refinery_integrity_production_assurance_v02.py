@@ -79,8 +79,8 @@ def test_assurance_slice_is_additively_versioned_without_cross_tier_coupling():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     modules = {item["id"]: item for item in catalogue["modules"]}
 
-    assert str(modules["reliability"]["version"]) == "0.1.1"
-    assert str(modules["performance"]["version"]) == "0.1.2"
+    assert _version_tuple(modules["reliability"]["version"]) >= (0, 1, 1)
+    assert _version_tuple(modules["performance"]["version"]) >= (0, 1, 2)
     assert _version_tuple(modules["process_industry"]["version"]) >= (0, 1, 3)
     assert modules["reliability"]["tier"] == "industrial-common"
     assert modules["performance"]["tier"] == "industrial-common"

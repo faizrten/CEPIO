@@ -2,6 +2,24 @@
 
 from ._version import __version__
 from .bootstrap import build_kinetic_runtime, build_runtime
+from .contextual_policy import (
+    ContextualPolicyEngine,
+    PolicyCondition,
+    PolicyConditionEvaluation,
+    PolicyConditionOperator,
+    PolicyDefinition,
+    PolicyEvaluation,
+    PolicyEvaluationContext,
+    PolicyObligation,
+    PolicyObligationKind,
+    PolicyReference,
+    PolicyRegistry,
+    PolicyRule,
+    PolicyRuleEvaluation,
+    PolicyScope,
+    evaluate_policy_definition,
+    evaluate_policy_set,
+)
 from .external_actions import (
     ExternalActionBinding,
     ExternalActionExecution,
@@ -49,7 +67,17 @@ from .kinetic_resilience import (
 )
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship
 from .query import ObjectQuery, ObjectQueryResult, PropertyPredicate, QueryOperator, RelationshipPredicate, SortField
-from .runtime import CEPIORuntime
+from .runtime import CEPIORuntime, DecisionDefinition
+from .skill_preflight import (
+    SkillAuthorityContract,
+    SkillGraphPathRequirement,
+    SkillGraphPathStep,
+    SkillPreflightCheck,
+    SkillPreflightResult,
+    SkillPreflightSpec,
+    SkillRegistry,
+    evaluate_skill_preflight,
+)
 
 __all__ = [
     "__version__",
@@ -60,6 +88,31 @@ __all__ = [
     "build_external_kinetic_runtime",
     "build_external_resilient_kinetic_runtime",
     "CEPIORuntime",
+    "DecisionDefinition",
+    "ContextualPolicyEngine",
+    "PolicyDefinition",
+    "PolicyReference",
+    "PolicyRegistry",
+    "PolicyScope",
+    "PolicyRule",
+    "PolicyCondition",
+    "PolicyConditionOperator",
+    "PolicyObligation",
+    "PolicyObligationKind",
+    "PolicyEvaluationContext",
+    "PolicyEvaluation",
+    "PolicyRuleEvaluation",
+    "PolicyConditionEvaluation",
+    "evaluate_policy_definition",
+    "evaluate_policy_set",
+    "SkillRegistry",
+    "SkillPreflightSpec",
+    "SkillPreflightResult",
+    "SkillPreflightCheck",
+    "SkillAuthorityContract",
+    "SkillGraphPathRequirement",
+    "SkillGraphPathStep",
+    "evaluate_skill_preflight",
     "KineticRuntime",
     "ResilientKineticRuntime",
     "ExternalKineticRuntime",
@@ -86,8 +139,8 @@ __all__ = [
     "SQLiteWorkflowOutcomeRepository",
     "StepExecutionPolicy",
     "WorkflowControlPolicy",
-    "StepResilienceState",
     "WorkflowResilienceState",
+    "StepResilienceState",
     "CompensationStatus",
     "WorkflowStepTimeout",
     "InMemoryResilienceRepository",

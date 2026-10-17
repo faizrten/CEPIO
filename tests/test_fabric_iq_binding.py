@@ -18,6 +18,10 @@ ASSET_TAG = "https://cepio.org/ontology/asset#assetTag"
 SOURCE_ID = "https://cepio.org/ontology/core#sourceId"
 
 
+def _version_tuple(value: object) -> tuple[int, ...]:
+    return tuple(int(part) for part in str(value).split("."))
+
+
 def _generate():
     generator = FabricIQBindingGenerator(ROOT)
     profile = load_fabric_binding_profile(PROFILE)
@@ -43,8 +47,10 @@ def test_asset_work_reference_binding_is_deterministic_and_versioned():
     assert len(manifest.ontology_artifact_sha256) == 64
 
     modules = {module.module_id: module for module in manifest.modules}
-    assert modules["asset"].version == "0.1.0"
-    assert modules["work_management"].version == "0.1.1"
+    # Reference bindings require at least the semantic slice they were created
+    # against; additive compatible module versions must not break the contract.
+    assert _version_tuple(modules["asset"].version) >= (0, 1, 0)
+    assert _version_tuple(modules["work_management"].version) >= (0, 1, 1)
 
     entities = {entity.canonical_iri: entity for entity in manifest.entity_types}
     assert EQUIPMENT in entities
