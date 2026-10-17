@@ -4,6 +4,8 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 ## Start here
 
+- **[Version naming and delivery status](version-naming.md)** — distinguish CEPIO releases, runtime components, Lab benchmarks and API versions.
+
 - **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality gates, security, compatibility evidence, release qualification and required check names.
 
 - **[CEPIO v0.4 Developer Preview](developer-preview.md)** — clean-environment install, startup, qualification and release boundary.
