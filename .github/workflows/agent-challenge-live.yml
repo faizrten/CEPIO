@@ -5,7 +5,7 @@ on:
     branches:
       - feat/drilling-mvp-synthetic-dataset-v01
     paths:
-      - 'scripts/github_models_agent.py'
+      - 'scripts/copilot_sdk_agent.py'
       - 'scripts/run_agent_challenge.py'
       - 'scripts/run_agent_challenge_strict.py'
       - 'mvp/benchmarks/agent-challenge-v0.1/**'
@@ -13,34 +13,37 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: GitHub Models model identifier
+        description: GitHub Copilot model identifier
         required: false
-        default: openai/gpt-5-mini
+        default: gpt-5.4
         type: string
 
 permissions:
   contents: read
-  models: read
+  copilot-requests: write
 
 jobs:
   live-agent-challenge:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install CEPIO
-        run: python -m pip install -e '.[dev]'
-      - name: Run genuine model-backed Agent Challenge
+      - name: Install CEPIO and Copilot SDK
+        run: |
+          python -m pip install -e '.[dev]'
+          python -m pip install github-copilot-sdk
+          python -m copilot download-runtime
+      - name: Run genuine Copilot Agent Challenge
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_MODELS_MODEL: ${{ inputs.model || 'openai/gpt-5-mini' }}
+          GITHUB_TOKEN: ${{ github.token }}
+          COPILOT_MODEL: ${{ inputs.model || 'gpt-5.4' }}
         run: |
           PYTHONPATH=src python scripts/run_agent_challenge_strict.py \
             --agent external \
-            --agent-command "python scripts/github_models_agent.py" \
+            --agent-command "python scripts/copilot_sdk_agent.py" \
             --telemetry-points 600 \
             --waveform-samples 512 \
             --json-out agent-challenge-live-report.json
@@ -52,9 +55,8 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path('agent-challenge-live-report.json').read_text())
-          print('## CEPIO Agent Challenge v0.1 — Live Model')
+          print('## CEPIO Agent Challenge v0.1 — Live Copilot Model')
           print()
-          print(f"- Model: `{report.get('model', 'GitHub Models external agent')}`")
           print(f"- Accuracy: **{report['passed']}/{report['total']} ({report['accuracy']:.0%})**")
           print(f"- Evidence coverage: **{report['evidence_coverage']:.0%}**")
           print(f"- Unsupported claims: **{report['unsupported_claims']}**")
@@ -63,6 +65,8 @@ jobs:
           print(f"- Median latency: **{report['median_latency_ms']:.0f} ms**")
           print(f"- Semantic abstraction leakage: **{report['semantic_abstraction_leakage']}**")
           print(f"- Gate passed: **{report['gate_passed']}**")
+          failed = [item['id'] for item in report['details'] if not item['passed']]
+          print(f"- Failed questions: **{', '.join(failed) if failed else 'none'}**")
           PY
           else
             echo '## CEPIO Agent Challenge v0.1 — no report produced' >> "$GITHUB_STEP_SUMMARY"
