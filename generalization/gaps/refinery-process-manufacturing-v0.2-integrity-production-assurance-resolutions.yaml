@@ -53,7 +53,8 @@ resolutions:
 
   - gap_id: GAP-RP2-011-AVAILABILITY-KPI
     disposition: MAPPING
-    status: preserved
+    status: implemented
+    mapping: mappings/performance_kpis.yaml
     resolution: Represent availability as an instance of cepio:KPI with performance:KPIObservation and external metric/formula mappings; do not create a class per KPI identity.
     reused_semantics:
       - cepio:KPI
