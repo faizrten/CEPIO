@@ -1,0 +1,129 @@
+id: refinery-process-standards-v0.2
+version: "0.2"
+principle: External standards challenge and inform CEPIO; they do not become canonical CEPIO vocabulary automatically. Store public metadata and intended competency use only unless the publication is openly licensed.
+references:
+  - id: isa-95-2025
+    name: ANSI/ISA-95.00.01-2025 (IEC 62264-1 Modified) — Enterprise-Control System Integration, Part 1
+    body: International Society of Automation
+    url: https://www.isa.org/standards-and-publications/isa-standards/isa-95-standard
+    use: Manufacturing/process-enterprise hierarchy, operations-management concepts and enterprise/control integration benchmark.
+    access: Copyrighted standard; use public metadata and terminology only unless separately licensed.
+
+  - id: iso-14224-2016
+    name: ISO 14224:2016 — Petroleum, petrochemical and natural gas industries — Reliability and maintenance data for equipment
+    body: International Organization for Standardization
+    url: https://www.iso.org/standard/64076.html
+    use: Equipment taxonomy, failure, maintenance and reliability-data benchmark for process assets.
+    access: Copyrighted ISO standard; use public metadata only unless separately licensed.
+
+  - id: iec-61511-series
+    name: IEC 61511 series — Functional safety, safety instrumented systems for the process industry sector
+    body: International Electrotechnical Commission
+    url: https://webstore.iec.ch/en/publication/5527
+    use: Process-safety, safety-instrumented-function and barrier-assurance challenge benchmark.
+    access: Copyrighted IEC publications; use public metadata only unless separately licensed.
+
+  - id: api-rp-754-4e
+    name: API RP 754, 4th edition — Process Safety Performance Indicators for the Refining and Petrochemical Industries
+    body: American Petroleum Institute
+    url: https://www.api.org/news-policy-and-issues/news/2026/08/06/api-publishes-fourth-edition-process-safety-performance-indicators-standard
+    use: Refining/petrochemical process-safety event, leading-indicator and lagging-indicator challenge framing.
+    access: Copyrighted API publication; use public metadata only unless separately licensed.
+
+  - id: iso-50001-2018
+    name: ISO 50001:2018 — Energy management systems — Requirements with guidance for use
+    body: International Organization for Standardization
+    url: https://www.iso.org/standard/69426.html
+    use: Energy-performance, consumption, measurement and continual-improvement challenge benchmark.
+    access: Copyrighted ISO standard; use public metadata only unless separately licensed.
+
+  - id: isa-106-2023
+    name: ANSI/ISA-106.00.01-2023 — Procedure Automation for Continuous Process Operations
+    body: International Society of Automation
+    url: https://www.isa.org/standards-and-publications/isa-standards/isa-106-standards
+    use: Startup, shutdown, transition, hold-state, abnormal-situation and procedure-execution challenge framing for continuous process operations.
+    access: Copyrighted ISA standard; use public metadata and publicly described scope only unless separately licensed.
+
+  - id: iec-62682-2022
+    name: IEC 62682:2022 — Management of alarm systems for the process industries
+    body: International Electrotechnical Commission
+    url: https://webstore.iec.ch/en/publication/65543
+    use: Alarm lifecycle, operator notification, abnormal-condition response and alarm-system governance benchmark.
+    access: Copyrighted IEC publication; use public metadata only unless separately licensed.
+
+  - id: iso-20815-2026
+    name: ISO 20815:2026 — Oil and gas industries including lower carbon energy — Production assurance and reliability management
+    body: International Organization for Standardization
+    url: https://www.iso.org/standard/89174.html
+    use: Production assurance, availability, reliability, production-loss and lifecycle-economic challenge framing across downstream and petrochemical operations.
+    access: Copyrighted ISO standard; use public metadata only unless separately licensed.
+
+  - id: iso-55001-2024
+    name: ISO 55001:2024 — Asset management — Asset management system — Requirements
+    body: International Organization for Standardization
+    url: https://www.iso.org/standard/83054.html
+    use: Asset-management decision, value, lifecycle and management-system challenge framing.
+    access: Copyrighted ISO standard; use public metadata only unless separately licensed.
+
+  - id: api-rp-580-4e
+    name: API RP 580, 4th edition (2023) — Elements of a Risk-Based Inspection Program
+    body: American Petroleum Institute
+    url: https://www.api.org/products-and-services/individual-certification-programs/certifications/api580
+    use: Risk-based inspection, probability/consequence and inspection-prioritization challenge framing.
+    access: Copyrighted API publication; use public metadata only unless separately licensed.
+
+  - id: api-rp-584-2e
+    name: API RP 584, 2nd edition — Integrity Operating Windows
+    body: American Petroleum Institute
+    url: https://www.api.org/products-and-services/standards/important-standards-announcements/rp584
+    use: Integrity operating window and process-condition challenge framing for process safety and mechanical integrity.
+    access: Copyrighted API publication; use public metadata only unless separately licensed.
+
+  - id: iso-15926-2-2003
+    name: ISO 15926-2:2003 — Integration of life-cycle data for process plants — Part 2: Data model
+    body: International Organization for Standardization
+    url: https://www.iso.org/standard/29557.html
+    use: Process-plant lifecycle information and engineering-information interoperability benchmark; edition 1 remains current while edition 2 is under development.
+    access: Copyrighted ISO standard; use public metadata only unless separately licensed.
+
+  - id: dexpi-2.0.1-2026
+    name: DEXPI Specification 2.0.1 — Process and plant information exchange
+    body: DEXPI e.V.
+    url: https://dexpi.org/dexpi-2-0-1-specification-published-the-update-replacing-dexpi-2-0/
+    use: P&ID, PFD, BFD, plant/process topology and engineering-data exchange challenge framing.
+    access: Specification is published under CC BY 4.0; retain attribution and verify licensing for any incorporated artifacts.
+
+  - id: cfihos-2.0-2025
+    name: CFIHOS 2.0 — Capital Facilities Information Handover Specification
+    body: JIP36 CFIHOS
+    url: https://www.jip36-cfihos.org/cfihos-standards/
+    use: Engineering handover, tag/equipment classification, reference-data, attributes, units, documents and spares-information benchmark.
+    access: Use public release metadata and follow CFIHOS licensing terms for specification/RDL artifacts.
+
+  - id: opc-30081-padim-1.02
+    name: OPC 30081 PA-DIM 1.02.0 — OPC UA for Process Automation Devices
+    body: OPC Foundation
+    url: https://reference.opcfoundation.org/specs/OPC-30081
+    use: Vendor-independent process-device information, diagnostics and semantic-dictionary mapping benchmark.
+    access: Follow OPC Foundation specification and model licensing terms.
+
+  - id: namur-noa-ne175-ne176
+    name: NAMUR Open Architecture — NE 175 concept and NE 176 information model
+    body: NAMUR
+    url: https://www.namur.net/en/work-areas-and-project-groups/focus-topics/namur-open-architecture.html
+    use: Brownfield monitoring-and-optimization data access, second-channel architecture and standardized information-model challenge framing.
+    access: Use public metadata and abstracts; NAMUR Recommendations themselves may require licensed access.
+
+  - id: ieee-841-2021
+    name: IEEE 841-2021 — Petroleum and Chemical Industry premium-efficiency severe-duty induction motors
+    body: IEEE Standards Association / Industry Applications Society Petroleum and Chemical Industry Committee
+    url: https://standards.ieee.org/ieee/841/10131/
+    use: Refinery electrical rotating-equipment taxonomy and severe-duty motor assurance benchmark.
+    access: Copyrighted IEEE standard; use public metadata only unless separately licensed.
+
+  - id: ieee-1584-2018
+    name: IEEE 1584-2018 — Guide for Performing Arc-Flash Hazard Calculations
+    body: IEEE Standards Association / Industry Applications Society Petroleum and Chemical Industry Committee
+    url: https://standards.ieee.org/ieee/1584/5802/
+    use: Electrical safety, arc-flash study and electrical-work-risk challenge framing. IEEE P1584 was approved in 2026 to develop a successor; 1584-2018 remains the active published standard.
+    access: Copyrighted IEEE standard; use public metadata only unless separately licensed.
