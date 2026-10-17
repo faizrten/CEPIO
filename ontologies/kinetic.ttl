@@ -10,9 +10,13 @@ kin:Rule a owl:Class ; rdfs:subClassOf cepio:Entity .
 kin:Constraint a owl:Class ; rdfs:subClassOf cepio:Entity .
 kin:Workflow a owl:Class ; rdfs:subClassOf cepio:Process .
 kin:Approval a owl:Class ; rdfs:subClassOf cepio:Event .
+kin:OperationalPlan a owl:Class ; rdfs:subClassOf cepio:Document .
+kin:PlanRevision a owl:Class ; rdfs:subClassOf cepio:Document .
 
 kin:permitsAction a owl:ObjectProperty .
 kin:requiresApproval a owl:ObjectProperty .
 kin:invokesFunction a owl:ObjectProperty .
 kin:governedBy a owl:ObjectProperty .
 kin:resultsIn a owl:ObjectProperty .
+kin:revisesPlan a owl:ObjectProperty ; rdfs:domain kin:PlanRevision ; rdfs:range kin:OperationalPlan .
+kin:authorizesRevision a owl:ObjectProperty ; rdfs:domain kin:Decision ; rdfs:range kin:PlanRevision .

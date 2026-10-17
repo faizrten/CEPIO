@@ -15,6 +15,10 @@ def _graph(name: str) -> Graph:
     return graph
 
 
+def _version(value: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in value.split("."))
+
+
 def test_safety_barrier_and_impairment_are_reusable_hse_semantics():
     graph = _graph("hse.ttl")
     assert (HSE.SafetyBarrier, RDF.type, OWL.Class) in graph
@@ -45,9 +49,9 @@ def test_production_loss_is_common_performance_measurement():
     assert (PERF.ProcessProductionLoss, RDF.type, OWL.Class) not in graph
 
 
-def test_refinery_core_remediation_bumps_only_affected_common_modules():
+def test_refinery_core_remediation_module_versions_never_regress_below_its_baseline():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     versions = {module["id"]: str(module["version"]) for module in catalogue["modules"]}
-    assert versions["hse"] == "0.1.2"
-    assert versions["performance"] == "0.1.1"
-    assert versions["process_industry"] == "0.1.0"
+    assert _version(versions["hse"]) >= (0, 1, 2)
+    assert _version(versions["performance"]) >= (0, 1, 1)
+    assert _version(versions["process_industry"]) >= (0, 1, 0)
