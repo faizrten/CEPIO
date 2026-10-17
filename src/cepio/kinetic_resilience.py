@@ -82,18 +82,18 @@ class NonRetryableWorkflowError(RuntimeError):
 
 class ResilienceRepository(Protocol):
     def save_step_policy(
-        self, definition_id: str, step_id: str, policy: StepExecutionPolicy
+        self, definition_key: str, step_id: str, policy: StepExecutionPolicy
     ) -> StepExecutionPolicy: ...
 
     def get_step_policy(
-        self, definition_id: str, step_id: str
+        self, definition_key: str, step_id: str
     ) -> StepExecutionPolicy | None: ...
 
     def save_control_policy(
-        self, definition_id: str, policy: WorkflowControlPolicy
+        self, definition_key: str, policy: WorkflowControlPolicy
     ) -> WorkflowControlPolicy: ...
 
-    def get_control_policy(self, definition_id: str) -> WorkflowControlPolicy | None: ...
+    def get_control_policy(self, definition_key: str) -> WorkflowControlPolicy | None: ...
 
     def save_step_state(self, state: StepResilienceState) -> StepResilienceState: ...
     def get_step_state(self, instance_id: str, step_id: str) -> StepResilienceState | None: ...
@@ -110,27 +110,27 @@ class InMemoryResilienceRepository(ResilienceRepository):
         self._lock = RLock()
 
     def save_step_policy(
-        self, definition_id: str, step_id: str, policy: StepExecutionPolicy
+        self, definition_key: str, step_id: str, policy: StepExecutionPolicy
     ) -> StepExecutionPolicy:
         with self._lock:
-            self._step_policies[(definition_id, step_id)] = policy.model_copy(deep=True)
+            self._step_policies[(definition_key, step_id)] = policy.model_copy(deep=True)
             return policy.model_copy(deep=True)
 
     def get_step_policy(
-        self, definition_id: str, step_id: str
+        self, definition_key: str, step_id: str
     ) -> StepExecutionPolicy | None:
-        item = self._step_policies.get((definition_id, step_id))
+        item = self._step_policies.get((definition_key, step_id))
         return item.model_copy(deep=True) if item else None
 
     def save_control_policy(
-        self, definition_id: str, policy: WorkflowControlPolicy
+        self, definition_key: str, policy: WorkflowControlPolicy
     ) -> WorkflowControlPolicy:
         with self._lock:
-            self._control_policies[definition_id] = policy.model_copy(deep=True)
+            self._control_policies[definition_key] = policy.model_copy(deep=True)
             return policy.model_copy(deep=True)
 
-    def get_control_policy(self, definition_id: str) -> WorkflowControlPolicy | None:
-        item = self._control_policies.get(definition_id)
+    def get_control_policy(self, definition_key: str) -> WorkflowControlPolicy | None:
+        item = self._control_policies.get(definition_key)
         return item.model_copy(deep=True) if item else None
 
     def save_step_state(self, state: StepResilienceState) -> StepResilienceState:
@@ -195,7 +195,7 @@ class SQLiteResilienceRepository(ResilienceRepository):
         self._conn.commit()
 
     def save_step_policy(
-        self, definition_id: str, step_id: str, policy: StepExecutionPolicy
+        self, definition_key: str, step_id: str, policy: StepExecutionPolicy
     ) -> StepExecutionPolicy:
         with self._lock:
             self._conn.execute(
@@ -204,22 +204,22 @@ class SQLiteResilienceRepository(ResilienceRepository):
                 VALUES(?,?,?)
                 ON CONFLICT(definition_id, step_id) DO UPDATE SET payload=excluded.payload
                 """,
-                (definition_id, step_id, policy.model_dump_json()),
+                (definition_key, step_id, policy.model_dump_json()),
             )
             self._conn.commit()
         return policy.model_copy(deep=True)
 
     def get_step_policy(
-        self, definition_id: str, step_id: str
+        self, definition_key: str, step_id: str
     ) -> StepExecutionPolicy | None:
         row = self._conn.execute(
             "SELECT payload FROM workflow_step_policies WHERE definition_id = ? AND step_id = ?",
-            (definition_id, step_id),
+            (definition_key, step_id),
         ).fetchone()
         return StepExecutionPolicy.model_validate_json(row["payload"]) if row else None
 
     def save_control_policy(
-        self, definition_id: str, policy: WorkflowControlPolicy
+        self, definition_key: str, policy: WorkflowControlPolicy
     ) -> WorkflowControlPolicy:
         with self._lock:
             self._conn.execute(
@@ -227,15 +227,15 @@ class SQLiteResilienceRepository(ResilienceRepository):
                 INSERT INTO workflow_control_policies(definition_id, payload) VALUES(?,?)
                 ON CONFLICT(definition_id) DO UPDATE SET payload=excluded.payload
                 """,
-                (definition_id, policy.model_dump_json()),
+                (definition_key, policy.model_dump_json()),
             )
             self._conn.commit()
         return policy.model_copy(deep=True)
 
-    def get_control_policy(self, definition_id: str) -> WorkflowControlPolicy | None:
+    def get_control_policy(self, definition_key: str) -> WorkflowControlPolicy | None:
         row = self._conn.execute(
             "SELECT payload FROM workflow_control_policies WHERE definition_id = ?",
-            (definition_id,),
+            (definition_key,),
         ).fetchone()
         return WorkflowControlPolicy.model_validate_json(row["payload"]) if row else None
 
@@ -282,7 +282,7 @@ class SQLiteResilienceRepository(ResilienceRepository):
 
 
 class ResilientKineticRuntime(KineticRuntime):
-    """Execution-resilient kinetic coordinator layered over the durable v0.1 kernel."""
+    """Execution-resilient kinetic coordinator layered over the durable workflow kernel."""
 
     def __init__(
         self,
@@ -293,6 +293,10 @@ class ResilientKineticRuntime(KineticRuntime):
         super().__init__(runtime, repository=repository)
         self.resilience_repository = resilience_repository or InMemoryResilienceRepository()
 
+    @staticmethod
+    def _definition_key(definition_id: str, definition_version: str) -> str:
+        return f"{definition_id}@{definition_version}"
+
     def register_resilient_workflow(
         self,
         definition: WorkflowDefinition,
@@ -300,15 +304,19 @@ class ResilientKineticRuntime(KineticRuntime):
         step_policies: dict[str, StepExecutionPolicy] | None = None,
         control_policy: WorkflowControlPolicy | None = None,
     ) -> WorkflowDefinition:
-        stored = super().register_workflow(definition)
+        self._validate_definition(definition)
         by_id = {step.id: step for step in definition.steps}
         for step_id, policy in (step_policies or {}).items():
             if step_id not in by_id:
                 raise ValueError(f"Unknown workflow step for resilience policy: {step_id}")
             self._validate_execution_policy(by_id[step_id], policy)
-            self.resilience_repository.save_step_policy(definition.id, step_id, policy)
+
+        stored = super().register_workflow(definition)
+        definition_key = self._definition_key(definition.id, definition.version)
+        for step_id, policy in (step_policies or {}).items():
+            self.resilience_repository.save_step_policy(definition_key, step_id, policy)
         self.resilience_repository.save_control_policy(
-            definition.id, control_policy or WorkflowControlPolicy()
+            definition_key, control_policy or WorkflowControlPolicy()
         )
         return stored
 
@@ -346,8 +354,16 @@ class ResilientKineticRuntime(KineticRuntime):
             return instance
 
         self.runtime.read_object_for_actor(instance.subject.id, set(actor_roles))
-        control = self.resilience_repository.get_control_policy(instance.definition_id) or WorkflowControlPolicy()
-        allowed = actor_id == instance.initiated_by or bool(control.cancel_roles.intersection(actor_roles))
+        definition_key = self._definition_key(
+            instance.definition_id, instance.definition_version
+        )
+        control = (
+            self.resilience_repository.get_control_policy(definition_key)
+            or WorkflowControlPolicy()
+        )
+        allowed = actor_id == instance.initiated_by or bool(
+            control.cancel_roles.intersection(actor_roles)
+        )
         if not allowed:
             raise PermissionError("Actor is not authorized to cancel this workflow")
 
@@ -366,7 +382,9 @@ class ResilientKineticRuntime(KineticRuntime):
             details={"reason": reason},
         )
 
-        should_compensate = control.compensate_on_cancel if compensate is None else compensate
+        should_compensate = (
+            control.compensate_on_cancel if compensate is None else compensate
+        )
         if should_compensate:
             self._compensate_completed_actions(instance, actor_id, set(actor_roles))
 
@@ -377,7 +395,7 @@ class ResilientKineticRuntime(KineticRuntime):
         return self.get_instance(instance.id)
 
     def _advance(self, instance: WorkflowInstance) -> WorkflowInstance:
-        definition = self._definition(instance.definition_id)
+        definition = self._definition(instance.definition_id, instance.definition_version)
         while instance.current_step < len(definition.steps):
             step = definition.steps[instance.current_step]
             state = instance.step_states[step.id]
@@ -398,7 +416,9 @@ class ResilientKineticRuntime(KineticRuntime):
                 )
                 return self._wait_for_approval(instance, step, state)
 
-            policy = self._policy(instance.definition_id, step)
+            policy = self._policy(
+                instance.definition_id, instance.definition_version, step
+            )
             state.status = WorkflowStepStatus.running
             state.started_at = state.started_at or utcnow()
             self.repository.save_instance(instance)
@@ -439,7 +459,10 @@ class ResilientKineticRuntime(KineticRuntime):
 
                     elapsed = monotonic() - started
                     resilience.last_duration_seconds = elapsed
-                    if policy.timeout_seconds is not None and elapsed > policy.timeout_seconds:
+                    if (
+                        policy.timeout_seconds is not None
+                        and elapsed > policy.timeout_seconds
+                    ):
                         resilience.timed_out = True
                         raise WorkflowStepTimeout(
                             f"Step {step.id} exceeded timeout of {policy.timeout_seconds}s "
@@ -449,6 +472,7 @@ class ResilientKineticRuntime(KineticRuntime):
                     self.resilience_repository.save_step_state(resilience)
                     break
                 except Exception as exc:
+                    state.result = None
                     elapsed = monotonic() - started
                     resilience.last_duration_seconds = elapsed
                     resilience.last_error = str(exc)
@@ -534,6 +558,7 @@ class ResilientKineticRuntime(KineticRuntime):
             parameters=self._resolve(step.parameters, instance),
             idempotency_key=f"workflow:{instance.id}:step:{step.id}",
             correlation_id=instance.id,
+            workflow_instance_id=instance.id,
             decision_id=self._latest_decision_id(instance),
         )
         try:
@@ -561,7 +586,7 @@ class ResilientKineticRuntime(KineticRuntime):
         actor_id: str,
         actor_roles: set[str],
     ) -> None:
-        definition = self._definition(instance.definition_id)
+        definition = self._definition(instance.definition_id, instance.definition_version)
         workflow_state = self.resilience_state(instance.id)
         candidates: list[tuple[WorkflowStepDefinition, Any]] = []
         for step in reversed(definition.steps[: instance.current_step + 1]):
@@ -607,6 +632,7 @@ class ResilientKineticRuntime(KineticRuntime):
                     parameters=self._resolve(step.parameters, instance),
                     idempotency_key=f"workflow:{instance.id}:compensate:{step.id}",
                     correlation_id=instance.id,
+                    workflow_instance_id=instance.id,
                     decision_id=self._latest_decision_id(instance),
                 )
                 policy = self.runtime.policy_engine.evaluate_action(
@@ -679,9 +705,13 @@ class ResilientKineticRuntime(KineticRuntime):
             )
 
     def _policy(
-        self, definition_id: str, step: WorkflowStepDefinition
+        self,
+        definition_id: str,
+        definition_version: str,
+        step: WorkflowStepDefinition,
     ) -> StepExecutionPolicy:
-        policy = self.resilience_repository.get_step_policy(definition_id, step.id)
+        definition_key = self._definition_key(definition_id, definition_version)
+        policy = self.resilience_repository.get_step_policy(definition_key, step.id)
         policy = policy or StepExecutionPolicy()
         self._validate_execution_policy(step, policy)
         return policy
@@ -694,7 +724,7 @@ class ResilientKineticRuntime(KineticRuntime):
             policy.max_attempts != 1 or policy.timeout_seconds is not None
         ):
             raise ValueError(
-                f"Automatic retry/timeout is only supported for Function steps in kinetic v0.2; "
+                "Automatic retry/timeout is only supported for Function steps in kinetic v0.2; "
                 f"step {step.id} is {step.type.value}"
             )
 
