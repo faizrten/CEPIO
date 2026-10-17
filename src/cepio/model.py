@@ -106,6 +106,7 @@ class ActionRequest(BaseModel):
     parameters: dict[str, Any] = Field(default_factory=dict)
     idempotency_key: str | None = None
     correlation_id: str | None = None
+    workflow_instance_id: str | None = None
     decision_id: str | None = None
     requested_at: datetime = Field(default_factory=utcnow)
 
@@ -137,6 +138,7 @@ class AuditEntry(BaseModel):
     message: str
     idempotency_key: str | None = None
     correlation_id: str | None = None
+    workflow_instance_id: str | None = None
     decision_id: str | None = None
     policy_effect: PolicyEffect | None = None
     policy_reasons: list[str] = Field(default_factory=list)
