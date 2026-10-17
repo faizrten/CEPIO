@@ -9,12 +9,10 @@ rel:FailureEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 rel:DowntimeEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 rel:ComponentLife a owl:Class ; rdfs:subClassOf cepio:Measurement .
 
-# Reusable reliability observation abstraction. ConditionSignal retains its existing
-# direct Measurement contract for compatibility while also specializing the new
-# ConditionObservation abstraction. This is intentionally additive.
+# Reusable governed condition evidence for procedural reasoning. This is additive:
+# the pre-existing ConditionSignal contract remains unchanged for existing consumers.
 rel:ConditionObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
-rel:ConditionSignal a owl:Class ;
-    rdfs:subClassOf cepio:Measurement, rel:ConditionObservation .
+rel:ConditionSignal a owl:Class ; rdfs:subClassOf cepio:Measurement .
 rel:RemainingUsefulLifeEstimate a owl:Class ; rdfs:subClassOf cepio:Measurement .
 
 # Reusable mechanical-integrity semantics accepted by the refinery v0.2
@@ -30,9 +28,6 @@ rel:repairedByWorkOrder a owl:ObjectProperty ; rdfs:domain rel:FailureEvent ; rd
 rel:hasComponentLife a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range rel:ComponentLife .
 rel:causesDowntime a owl:ObjectProperty ; rdfs:domain cepio:Event ; rdfs:range rel:DowntimeEvent .
 rel:hasConditionObservation a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range rel:ConditionObservation .
-# Preserve the original signal-specific inverse relation contract. Generic condition
-# observations use hasConditionObservation from Equipment; signals may also use this
-# existing inverse edge without changing its established domain.
 rel:observedOnEquipment a owl:ObjectProperty ; rdfs:domain rel:ConditionSignal ; rdfs:range ind:Equipment .
 rel:estimatesLifeOf a owl:ObjectProperty ; rdfs:domain rel:RemainingUsefulLifeEstimate ; rdfs:range ind:Equipment .
 rel:damageMechanismForEquipment a owl:ObjectProperty ; rdfs:domain rel:DamageMechanism ; rdfs:range ind:Equipment .
