@@ -23,6 +23,11 @@ process:OperatingLimit a owl:Class ; rdfs:subClassOf kin:Constraint .
 process:ProcessDeviation a owl:Class ; rdfs:subClassOf cepio:State .
 process:StartupOrRestart a owl:Class ; rdfs:subClassOf cepio:Activity .
 
+# Integrity operating windows specialize the existing process operating-envelope
+# model. Excursions continue to use ProcessDeviation + deviationAgainstEnvelope,
+# avoiding a parallel integrity-event hierarchy.
+process:IntegrityOperatingWindow a owl:Class ; rdfs:subClassOf process:OperatingEnvelope .
+
 # Continuous-process procedure semantics grounded by the refinery v0.2
 # competency challenge and ISA-106 reference surface. Procedure content stays
 # source-neutral; execution composes existing temporal, provenance, work-control
