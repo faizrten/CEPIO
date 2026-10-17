@@ -80,7 +80,7 @@ references:
     access: Copyrighted API publication; use public metadata only unless separately licensed.
 
   - id: iso-15926-2-2003
-    name: ISO 15926-2:2003 — Integration of life-cycle data for process plants — Part 2: Data model
+    name: "ISO 15926-2:2003 — Integration of life-cycle data for process plants — Part 2: Data model"
     body: International Organization for Standardization
     url: https://www.iso.org/standard/29557.html
     use: Process-plant lifecycle information and engineering-information interoperability benchmark; edition 1 remains current while edition 2 is under development.
