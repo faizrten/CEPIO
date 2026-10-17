@@ -35,7 +35,7 @@ def test_module_catalogue_is_versioned_unique_and_acyclic():
     catalogue = ModuleCatalogue.load(ROOT / "ontology-modules.yaml")
     order = catalogue.topological_order()
     assert order.index("core") < order.index("industrial") < order.index("drilling")
-    assert catalogue.modules["reliability"].version == "0.1.0"
+    assert catalogue.modules["reliability"].version == "0.1.1"
     assert len({m.namespace for m in catalogue.modules.values()}) == len(catalogue.modules)
 
 

@@ -78,6 +78,6 @@ def test_procedure_alarm_slice_is_additively_versioned():
     modules = {item["id"]: item for item in catalogue["modules"]}
 
     assert str(modules["industrial"]["version"]) == "0.2.1"
-    assert str(modules["process_industry"]["version"]) == "0.1.2"
+    assert str(modules["process_industry"]["version"]) == "0.1.3"
     assert modules["industrial"]["tier"] == "industrial-common"
     assert modules["process_industry"]["tier"] == "domain"
