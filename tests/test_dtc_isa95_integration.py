@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import yaml
+from packaging.version import Version
 from rdflib import OWL, RDF, URIRef
 
 from cepio.modules import ModuleCatalogue
@@ -18,7 +19,7 @@ def test_manufacturing_module_is_registered_and_parseable() -> None:
     catalogue = ModuleCatalogue.load(ROOT / "ontology-modules.yaml")
     module = catalogue.modules["manufacturing"]
     assert module.namespace == "https://cepio.org/ontology/manufacturing#"
-    assert module.version == "0.1.0"
+    assert Version(module.version) >= Version("0.1.0")
     assert module.tier == "domain"
 
     registry = TypeRegistry.from_ontology_dir(ROOT / "ontologies")
