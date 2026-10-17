@@ -1,0 +1,127 @@
+id: drilling-contractor-personas-v0.3
+version: "0.3"
+personas:
+  - id: rig-manager
+    role: Rig Manager
+    objectives: [safe operations, rig readiness, accountable execution]
+    information_needs: [rig state, crew readiness, maintenance constraints, HSE actions, campaign obligations]
+  - id: drilling-superintendent
+    role: Drilling Superintendent
+    objectives: [deliver well program, reduce NPT, manage operational exceptions]
+    information_needs: [well and campaign context, activity codes, NPT, rig performance, operational risks]
+  - id: toolpusher
+    role: Toolpusher
+    objectives: [execute drilling safely, coordinate crews, manage tour-level exceptions]
+    information_needs: [current activity, equipment state, permit controls, crew competence, open work]
+  - id: reliability-engineer
+    role: Reliability Engineer
+    objectives: [prevent equipment failure, prioritize condition-based work, protect availability]
+    information_needs: [condition signals, failure modes, work orders, spares, downtime consequence]
+  - id: maintenance-planner
+    role: Maintenance Planner
+    objectives: [plan executable work, protect critical equipment, minimize schedule conflict]
+    information_needs: [work backlog, asset hierarchy, spare availability, campaign window, certification constraints]
+  - id: hse-manager
+    role: HSE Manager
+    objectives: [protect people and barriers, assure compliance, close corrective actions]
+    information_needs: [permits, risk assessments, incidents, barriers, corrective actions, drills]
+  - id: competency-manager
+    role: Competency and Training Manager
+    objectives: [assure role competence, close gaps, maintain valid certification]
+    information_needs: [role requirements, assignments, certifications, assessments, training evidence]
+  - id: supply-chain-manager
+    role: Supply Chain Manager
+    objectives: [protect critical supply, reduce stockouts, manage supplier risk]
+    information_needs: [critical spares, equipment applicability, inventory, supplier, lead-time exposure]
+  - id: commercial-manager
+    role: Commercial Manager
+    objectives: [protect contract value, explain revenue leakage, manage obligations]
+    information_needs: [contracts, obligations, rate logic, downtime, availability, revenue records]
+  - id: fleet-executive
+    role: Fleet Executive
+    objectives: [compare rigs fairly, allocate capital, decide campaign readiness]
+    information_needs: [fleet KPIs, cross-domain constraints, risks, commercial exposure, action accountability]
+  - id: offshore-installation-manager
+    role: Offshore Installation Manager / Rig Superintendent
+    objectives: [exercise offshore command authority, maintain installation readiness, coordinate emergency response]
+    information_needs: [persons onboard, permit state, safety case, barrier status, marine constraints, emergency authority]
+  - id: driller
+    role: Driller
+    objectives: [execute the drilling program safely, detect well-control deviations early, operate drilling equipment within limits]
+    information_needs: [current activity, well parameters, equipment state, alarms, well-control status, operating limits]
+  - id: assistant-driller
+    role: Assistant Driller
+    objectives: [support safe drilling execution, maintain handover continuity, coordinate floor activity]
+    information_needs: [tour plan, handover state, current activity, equipment readiness, assigned crew, open hazards]
+  - id: subsea-well-control-engineer
+    role: Subsea / Well Control Engineer
+    objectives: [assure BOP and subsea readiness, verify tests, protect well-control barriers]
+    information_needs: [BOP configuration, test evidence, subsea equipment state, barrier status, defects, maintenance]
+  - id: chief-mechanic
+    role: Chief Mechanic
+    objectives: [maintain mechanical systems, prioritize defects, protect rig availability]
+    information_needs: [mechanical asset hierarchy, condition, work backlog, critical spares, failure consequence]
+  - id: chief-electrician
+    role: Chief Electrician
+    objectives: [maintain electrical power and control systems, manage electrical isolation risk, protect availability]
+    information_needs: [electrical systems, equipment condition, permits and isolations, work backlog, spares]
+  - id: directional-drilling-lead
+    role: Directional Drilling Service Lead
+    objectives: [deliver trajectory, coordinate BHA and survey execution, manage service performance]
+    information_needs: [well plan, trajectory, drilling activity, BHA state, survey results, service obligations]
+  - id: drilling-fluids-engineer
+    role: Drilling Fluids Engineer
+    objectives: [maintain fluid properties, manage hydraulics and hole-cleaning risk, support well integrity]
+    information_needs: [mud properties, material consumption, activity context, losses, treatment actions, inventory]
+  - id: cementing-supervisor
+    role: Cementing Supervisor
+    objectives: [execute cementing program, verify materials and equipment, evidence job quality]
+    information_needs: [cement program, job stage, materials, equipment readiness, test results, quality evidence]
+  - id: operator-company-man
+    role: Operator Company Man / Wellsite Leader
+    objectives: [represent the operator, authorize program changes, accept contractor delivery, manage interface risk]
+    information_needs: [well program, contractor activity, deviations, approvals, contractual boundaries, service-company status]
+  - id: finance-controller
+    role: Finance Controller / CFO Representative
+    objectives: [explain rig economics, forecast cash and margin, identify value leakage]
+    information_needs: [dayrate and rate basis, downtime, revenue, cost, penalties, utilization, capital exposure]
+  - id: crewing-manager
+    role: Crewing / HR Manager
+    objectives: [staff rigs safely, manage rotations and mobilization, close personnel readiness gaps]
+    information_needs: [crew roster, assignments, rotations, competency, certification, medical and mobilization constraints]
+  - id: marine-rig-move-manager
+    role: Marine / Rig Move Manager
+    objectives: [plan and execute safe rig moves, coordinate marine resources, manage site and weather constraints]
+    information_needs: [move plan, jack-up readiness, marine assets, location suitability, preload, weather, approvals]
+  - id: procurement-category-manager
+    role: Procurement / Category Manager
+    objectives: [secure critical goods and services, manage supplier performance, reduce supply risk]
+    information_needs: [material requirements, supplier contracts, lead times, inventory exposure, category spend, criticality]
+  - id: chief-executive
+    role: Chief Executive Officer / President
+    objectives: [grow enterprise value, protect strategic resilience, allocate capital across fleet and markets]
+    information_needs: [fleet economics, backlog quality, customer concentration, utilization, risk-adjusted return, strategic constraints]
+  - id: chief-operating-officer
+    role: Chief Operating Officer
+    objectives: [maximize safe fleet delivery, reduce systemic operating loss, prioritize enterprise interventions]
+    information_needs: [fleet readiness, NPT drivers, operational risk, maintenance exposure, workforce constraints, action accountability]
+  - id: chief-financial-officer
+    role: Chief Financial Officer
+    objectives: [protect cash generation, margin and return on capital, govern financial exposure]
+    information_needs: [rig margin, cash conversion, contract economics, working capital, capex exposure, downside scenarios]
+  - id: vp-drilling-operations
+    role: VP / Director Drilling Operations
+    objectives: [deliver campaigns consistently across the fleet, standardize operating performance, manage exceptions]
+    information_needs: [cross-rig performance, campaign plans, operating deviations, readiness constraints, contractor-customer interfaces]
+  - id: drilling-performance-engineer
+    role: Drilling Performance / Optimization Engineer
+    objectives: [reduce invisible lost time, improve drilling efficiency, identify repeatable optimization opportunities]
+    information_needs: [activity intervals, parameter trends, benchmarks, dysfunctions, lessons learned, comparable offsets]
+  - id: contract-manager
+    role: Contract Manager
+    objectives: [govern contractual obligations, changes, claims and performance exposure]
+    information_needs: [contract clauses, obligations, acceptance, deviations, downtime attribution, claims evidence]
+  - id: digital-ai-leader
+    role: Digital / Data / AI Leader
+    objectives: [scale trusted AI across operations, govern model use, maximize adoption and measurable value]
+    information_needs: [semantic coverage, data provenance, agent permissions, model evidence, workflow adoption, realized value]
