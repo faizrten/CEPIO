@@ -5,6 +5,7 @@ on:
     branches:
       - feat/drilling-mvp-synthetic-dataset-v01
     paths:
+      - 'scripts/copilot_preflight.py'
       - 'scripts/copilot_sdk_agent.py'
       - 'scripts/run_agent_challenge.py'
       - 'scripts/run_agent_challenge_strict.py'
@@ -36,6 +37,11 @@ jobs:
           python -m pip install -e '.[dev]'
           python -m pip install github-copilot-sdk
           python -m copilot download-runtime
+      - name: Verify Copilot model access
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COPILOT_MODEL: ${{ inputs.model || 'gpt-5.4' }}
+        run: python scripts/copilot_preflight.py
       - name: Run genuine Copilot Agent Challenge
         env:
           GITHUB_TOKEN: ${{ github.token }}

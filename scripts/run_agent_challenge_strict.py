@@ -82,10 +82,28 @@ class StrictReferenceToolAgent(base.ReferenceToolAgent):
 
 
 class StrictExternalProcessAgent(base.ExternalProcessAgent):
-    """Give genuine model-backed turns enough time without changing evaluation."""
+    """External agent adapter with model-friendly timeout and diagnostic stderr capture."""
 
     def __init__(self, command: str, timeout_seconds: float = 120.0) -> None:
         super().__init__(command, timeout_seconds=timeout_seconds)
+
+    def _read(self, proc, selector, deadline: float):
+        try:
+            return super()._read(proc, selector, deadline)
+        except TimeoutError as exc:
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=3)
+                except base.subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait(timeout=3)
+            stderr = ""
+            if proc.stderr is not None:
+                stderr = proc.stderr.read()
+            tail = stderr[-8000:].strip()
+            detail = f" Child stderr tail:\n{tail}" if tail else " Child stderr was empty."
+            raise TimeoutError(str(exc) + detail) from exc
 
 
 base.ReferenceToolAgent = StrictReferenceToolAgent

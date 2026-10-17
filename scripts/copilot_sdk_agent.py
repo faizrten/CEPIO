@@ -76,21 +76,11 @@ def _make_tool(schema: dict[str, Any]) -> Tool:
 
     async def handler(invocation: ToolInvocation) -> ToolResult:
         request_id = f"copilot-{name}-{id(invocation)}"
-        _emit(
-            {
-                "type": "tool_call",
-                "id": request_id,
-                "name": name,
-                "arguments": dict(invocation.arguments or {}),
-            }
-        )
+        _emit({"type": "tool_call", "id": request_id, "name": name, "arguments": dict(invocation.arguments or {})})
         response = await _read_protocol_line_async()
         if response.get("type") != "tool_result":
             raise ValueError(f"Expected tool_result for {name}, got {response.get('type')}")
-        payload = {
-            "cepio_tool_call_id": response.get("tool_call_id"),
-            "result": response.get("result"),
-        }
+        payload = {"cepio_tool_call_id": response.get("tool_call_id"), "result": response.get("result")}
         return ToolResult(
             text_result_for_llm=json.dumps(payload, separators=(",", ":")),
             result_type="success",
@@ -106,19 +96,22 @@ def _make_tool(schema: dict[str, Any]) -> Tool:
     )
 
 
+def _event_name(event: Any) -> str:
+    value = getattr(event, "type", "unknown")
+    return str(getattr(value, "value", value))
+
+
 async def _run() -> int:
     challenge = _read_protocol_line()
     if challenge.get("type") != "challenge":
         raise ValueError("First protocol message must be a CEPIO challenge")
 
     question = str(challenge["question"])
-    tool_schemas = challenge.get("tools") or []
-    tools = [_make_tool(schema) for schema in tool_schemas]
+    tools = [_make_tool(schema) for schema in (challenge.get("tools") or [])]
     available_tools = ToolSet()
     for tool in tools:
         available_tools.add_custom(tool.name)
     final_schema = challenge.get("final_schema") or {}
-
     prompt = (
         f"Industrial question: {question}\n\n"
         "Use the CEPIO tools as needed. Return only JSON matching this final schema:\n"
@@ -127,19 +120,16 @@ async def _run() -> int:
 
     token = os.environ.get("GITHUB_TOKEN")
     with tempfile.TemporaryDirectory(prefix="cepio-copilot-empty-") as base_directory:
-        async with CopilotClient(
-            mode="empty",
-            base_directory=base_directory,
-            github_token=token,
-        ) as client:
-            # Fail fast on authentication/provider problems before the challenge
-            # harness mistakes them for slow model reasoning.
-            models = await asyncio.wait_for(client.list_models(), timeout=15.0)
+        async with CopilotClient(mode="empty", base_directory=base_directory, github_token=token) as client:
+            models = await asyncio.wait_for(client.list_models(), timeout=20.0)
+            model_ids = [str(getattr(model, "id", "")) for model in models]
             print(
-                f"Copilot preflight OK: {len(models) if hasattr(models, '__len__') else 'unknown'} models visible",
+                f"CEPIO Copilot child preflight: configured={MODEL} available={MODEL in model_ids} models={','.join(model_ids)}",
                 file=sys.stderr,
                 flush=True,
             )
+            if MODEL not in model_ids:
+                raise RuntimeError(f"Configured Copilot model is unavailable: {MODEL}")
             async with await client.create_session(
                 model=MODEL,
                 tools=tools,
@@ -148,7 +138,25 @@ async def _run() -> int:
                 system_message={"mode": "append", "content": SYSTEM_PROMPT},
                 infinite_sessions={"enabled": False},
             ) as session:
-                response = await session.send_and_wait(prompt)
+                def on_event(event: Any) -> None:
+                    name = _event_name(event)
+                    if name in {"session.start", "session.idle", "session.error", "assistant.message", "tool.execution_start", "tool.execution_complete"}:
+                        if name == "session.error":
+                            data = getattr(event, "data", None)
+                            print(
+                                "CEPIO Copilot event: session.error "
+                                f"type={getattr(data, 'error_type', None)} "
+                                f"status={getattr(data, 'status_code', None)} "
+                                f"message={getattr(data, 'message', None)}",
+                                file=sys.stderr,
+                                flush=True,
+                            )
+                        else:
+                            print(f"CEPIO Copilot event: {name}", file=sys.stderr, flush=True)
+
+                session.on(on_event)
+                print("CEPIO Copilot: session created; sending challenge prompt", file=sys.stderr, flush=True)
+                response = await session.send_and_wait(prompt, timeout=90.0)
                 if response is None:
                     raise RuntimeError("Copilot session completed without an assistant message")
                 content = getattr(getattr(response, "data", None), "content", None)
