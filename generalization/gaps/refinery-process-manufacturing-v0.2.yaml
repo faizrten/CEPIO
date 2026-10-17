@@ -1,0 +1,256 @@
+id: refinery-process-manufacturing-gap-triage-v0.2
+version: "0.2"
+archetype_id: refinery-process-manufacturing-v0.1
+competency_pack_id: refinery-process-manufacturing-persona-expansion-v0.2
+status: proposed
+baseline:
+  semantic_checks_percent: 49.4
+  question_status: {PASS: 0, PARTIAL: 12, FAIL: 0, ERROR: 0}
+  questions: 12
+  interpretation: All new standards-grounded questions are partially expressible with existing CEPIO semantics; the expansion reveals targeted depth gaps rather than a missing architectural backbone.
+classification_policy:
+  CORE: Reusable canonical semantics expected to apply across multiple Energy & Process Industry archetypes; ownership may sit in an industrial-common module rather than core.ttl.
+  DOMAIN: Canonical process-industry specialization that should remain source-system and customer neutral.
+  PROFILE: Site, customer, deployment or asset-specific semantics that should not enter canonical CEPIO modules.
+  MAPPING: External model, metric, taxonomy, architecture or source vocabulary that should be federated or mapped rather than copied into CEPIO canonical semantics.
+  REJECT: The exact proposed term or relationship is redundant, misleading, executable/integration-specific, or better represented by existing CEPIO abstractions.
+principles:
+  - Build on existing CEPIO classes and relationships before introducing new vocabulary.
+  - Do not copy ISA, IEC, ISO, API, IEEE, DEXPI, CFIHOS, OPC Foundation or NAMUR vocabularies into CEPIO solely to improve a benchmark score.
+  - External engineering and device information models should normally federate through mappings unless CEPIO lacks a durable source-neutral business concept.
+  - Executable analytical models and architecture channels belong in model/integration bindings unless multiple archetypes prove a canonical ontology requirement.
+  - Specific KPI identities should remain KPI instances or semantic-metric mappings unless they have ontology-level semantics beyond the generic KPI contract.
+  - A typed benchmark edge should be rejected when an existing generic CEPIO relationship already preserves the required meaning.
+  - PROFILE remains zero unless a requirement is genuinely enterprise-specific.
+decisions:
+  - id: GAP-RP2-001-CRUDE-ASSAY
+    question_ids: [RP-PE-001]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [iso-20815-2026]
+    missing_semantics:
+      - process:CrudeAssay
+      - process:characterizesStream
+    rationale: A crude or feed assay is durable refinery/process-industry business context used to characterize a material stream for planning, yield prediction and quality decisions. It is source-neutral and materially different from a generic observation.
+    proposed_resolution: Add process:CrudeAssay as a process-domain information entity linked to process:MaterialStream. Preserve individual assay properties and measured values through existing measurement/provenance patterns rather than encoding assay property names as ontology classes.
+    benchmark_action: retain-and-remediate-domain
+
+  - id: GAP-RP2-001-YIELD-MODEL
+    question_ids: [RP-PE-001]
+    disposition: REJECT
+    replacement_layer: MAPPING
+    standards: [iso-20815-2026]
+    missing_semantics:
+      - process:YieldModel
+    rationale: A yield model is executable analytical content with versions, parameters and implementation technology. Canonicalizing each analytical model family as an ontology class would mix semantic context with the model/runtime layer.
+    proposed_resolution: Represent the deployed model as cepio:DigitalAsset with model identity, version, provenance and input/output bindings in a model registry or integration mapping. Keep material, process-unit, assay, yield observations and decisions canonical.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-RP2-002-BLENDING-AND-MOVEMENTS
+    question_ids: [RP-PE-002, RP-PE-010]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [isa-95-2025, dexpi-2.0.1-2026]
+    missing_semantics:
+      - process:BlendPlan
+      - process:MaterialMovement
+      - process:TransferRoute
+      - process:movementFromStorage
+      - process:movementToStorage
+      - process:usesTransferRoute
+    rationale: Blending, tank-to-tank/product movements and executable transfer routes are durable continuous-process operating semantics not fully represented by generic manufacturing schedules or inventory positions.
+    proposed_resolution: Add source-neutral BlendPlan, MaterialMovement and TransferRoute concepts. Reuse manufacturing:StorageUnit and MaterialLot as canonical storage/material identities, and connect movements directionally to storage and routes without creating refinery-specific tank identities.
+    benchmark_action: retain-and-remediate-domain
+
+  - id: GAP-RP2-003-PROCEDURE-AUTOMATION
+    question_ids: [RP-PE-003]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [isa-106-2023]
+    missing_semantics:
+      - process:OperatingProcedure
+      - process:ProcedureStep
+      - process:ProcedureExecution
+      - process:executesProcedure
+    rationale: Continuous-process operating procedures, ordered steps and execution state are durable process-operation concepts needed for startup, shutdown, transitions, holds and abnormal-condition response.
+    proposed_resolution: Model OperatingProcedure as controlled operational content, ProcedureStep as an ordered procedure component, and ProcedureExecution as an Activity that executes a procedure. Reuse CEPIO temporal state, provenance, authorization and activity semantics for execution status and governance.
+    benchmark_action: retain-and-remediate-domain
+
+  - id: GAP-RP2-003-PROCEDURE-WORK-CONTROL-EDGE
+    question_ids: [RP-PE-003]
+    disposition: REJECT
+    replacement_layer: CORE
+    owner_module: core
+    standards: [isa-106-2023]
+    missing_semantics:
+      - process:ProcedureExecution --cepio:dependsOn--> hse:WorkPermit
+    rationale: CEPIO already defines cepio:dependsOn over generic Entity-to-Entity semantics, which is sufficient to compose a procedure execution with permits, isolations, barriers, work items and approvals. Adding procedure-specific dependency predicates or narrowing the global predicate would create unnecessary coupling.
+    proposed_resolution: Keep cepio:dependsOn unchanged and revise the next frozen competency pack to test composability rather than an RDF domain/range declaration for this specific pair.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-RP2-004-ALARM-AND-CONTROL
+    question_ids: [RP-PE-004]
+    disposition: CORE
+    owner_module: industrial
+    standards: [iec-62682-2022]
+    missing_semantics:
+      - industrial:Alarm
+      - industrial:AlarmRationalization
+      - industrial:ControlLoop
+      - industrial:alarmForState
+      - industrial:rationalizesAlarm
+    rationale: Alarms, alarm rationalization and control loops recur across refining, chemicals, power, upstream facilities, manufacturing and other automated industrial operations. They should not be refinery-only concepts.
+    proposed_resolution: Introduce reusable industrial-common Alarm, AlarmRationalization and ControlLoop semantics. Link alarms to a generic cepio:State so process-specific abnormal situations can specialize the state without forcing the common alarm model to depend on process_industry.
+    benchmark_action: replace-literal-process-terms-and-remediate-common
+
+  - id: GAP-RP2-004-ABNORMAL-SITUATION
+    question_ids: [RP-PE-004]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [isa-106-2023, iec-62682-2022]
+    missing_semantics:
+      - process:AbnormalSituation
+    rationale: An abnormal situation in continuous process operations is a time-varying process state with operational context beyond a generic alarm event.
+    proposed_resolution: Add process:AbnormalSituation as a specialization of cepio:State and allow common industrial alarms and procedures to reference it through generic/common relationships.
+    benchmark_action: retain-and-remediate-domain
+
+  - id: GAP-RP2-005-DAMAGE-MECHANISM-RBI
+    question_ids: [RP-PE-005]
+    disposition: CORE
+    owner_module: reliability
+    standards: [api-rp-580-4e, iso-14224-2016]
+    missing_semantics:
+      - reliability:DamageMechanism
+      - reliability:RiskBasedInspectionAssessment
+      - reliability:damageMechanismForEquipment
+    rationale: Damage mechanisms and risk-based inspection are reusable integrity/reliability semantics across refineries, petrochemical plants, upstream facilities and other pressure-equipment-intensive industries.
+    proposed_resolution: Add DamageMechanism and RiskBasedInspectionAssessment to reliability. Reuse ind:Equipment, ind:Inspection, cepio:Risk, reliability:ConditionSignal and existing inspection evidence rather than adding process-specific equipment or inspection classes.
+    benchmark_action: retain-and-remediate-common
+
+  - id: GAP-RP2-005-INTEGRITY-OPERATING-WINDOW
+    question_ids: [RP-PE-005]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [api-rp-584-2e]
+    missing_semantics:
+      - process:IntegrityOperatingWindow
+    rationale: Integrity operating windows connect process conditions to degradation/integrity risk and are characteristic continuous-process operating semantics rather than a generic reliability taxonomy.
+    proposed_resolution: Add process:IntegrityOperatingWindow aligned to the existing OperatingEnvelope/OperatingLimit pattern and relate excursions through state/deviation semantics rather than creating a separate integrity-event hierarchy.
+    benchmark_action: retain-and-remediate-domain
+
+  - id: GAP-RP2-006-ELECTRICAL-EQUIPMENT
+    question_ids: [RP-PE-006]
+    disposition: CORE
+    owner_module: industrial
+    standards: [ieee-841-2021]
+    missing_semantics:
+      - industrial:ElectricMotor
+      - industrial:MotorControlCenter
+    rationale: Motors and motor-control centers are common physical industrial asset types used far beyond refining. They belong in industrial-common equipment taxonomy rather than the refinery/process domain.
+    proposed_resolution: Add ElectricMotor and MotorControlCenter as industrial equipment specializations and use existing asset-system/functional-location relationships to represent electrical hierarchy. Do not assert that a motor is part of generic Equipment merely because Equipment is its superclass.
+    benchmark_action: replace-invalid-edge-and-remediate-common
+
+  - id: GAP-RP2-006-ARC-FLASH-STUDY
+    question_ids: [RP-PE-006]
+    disposition: REJECT
+    replacement_layer: CORE
+    owner_module: hse
+    standards: [ieee-1584-2018]
+    missing_semantics:
+      - hse:ArcFlashStudy
+    rationale: Arc-flash is a risk-assessment method and study artifact, not a fundamentally new HSE object type. A dedicated class would encourage method-by-method proliferation such as HAZOPStudy, LOPAStudy and many similar document subclasses.
+    proposed_resolution: Reuse hse:RiskAssessment plus cepio:Document/evidence and classify the assessment method through mapping or controlled vocabulary. Link the risk assessment to affected electrical assets through existing/generic asset relationships.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-RP2-007-PROCESS-VARIABLE
+    question_ids: [RP-PE-007]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [opc-30081-padim-1.02]
+    missing_semantics:
+      - process:ProcessVariable
+      - process:measuresProcessVariable
+    rationale: The distinction between a process variable and individual observations of that variable is durable process semantics needed for instrumentation, control-loop and operating-envelope reasoning.
+    proposed_resolution: Add process:ProcessVariable as source-neutral process context and a relationship from canonical industrial equipment/instrument context to the variable it measures. Continue to represent actual values as cepio:Measurement-derived observations with provenance and time.
+    benchmark_action: retain-and-remediate-domain
+
+  - id: GAP-RP2-007-PADIM-DEVICE-MODEL
+    question_ids: [RP-PE-007, RP-PE-012]
+    disposition: MAPPING
+    owner_layer: mappings
+    standards: [opc-30081-padim-1.02]
+    missing_semantics:
+      - process:ProcessDevice
+      - process:DeviceDiagnosticObservation
+    rationale: PA-DIM is an external vendor-independent device information model. CEPIO already has canonical Equipment, FunctionalLocation, Measurement and reliability:ConditionSignal abstractions; copying PA-DIM device classes would create parallel device identity.
+    proposed_resolution: Map PA-DIM device identities and diagnostics to ind:Equipment/asset:InstalledAsset, asset:FunctionalLocation and reliability:ConditionSignal or generic Measurement as appropriate. Preserve PA-DIM identifiers and dictionary references as mapping provenance.
+    benchmark_action: replace-with-federation-mapping
+
+  - id: GAP-RP2-008-PROCESS-TOPOLOGY
+    question_ids: [RP-PE-008]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [iso-15926-2-2003, dexpi-2.0.1-2026, cfihos-2.0-2025]
+    missing_semantics:
+      - process:PipingSegment
+      - process:carriesStream
+    rationale: CEPIO already represents process units and streams but lacks sufficient canonical topology between them. A minimal physical connection/segment concept is useful independent of any one engineering exchange format.
+    proposed_resolution: Add a source-neutral process piping/connection semantic sufficient to connect physical topology to ProcessStream. Keep DEXPI/CFIHOS class identifiers, detailed line attributes and engineering exchange structures in mappings rather than copying their schemas.
+    benchmark_action: retain-concept-normalize-name-and-remediate-domain
+
+  - id: GAP-RP2-009-ASSET-MANAGEMENT
+    question_ids: [RP-PE-009]
+    disposition: CORE
+    owner_module: asset
+    standards: [iso-55001-2024]
+    missing_semantics:
+      - asset:AssetCriticality
+      - asset:AssetManagementPlan
+    rationale: Asset criticality and lifecycle asset-management planning apply across all capital-intensive industries and should not be refinery-specific. They complement existing asset hierarchy, risk, KPI and decision abstractions.
+    proposed_resolution: Add a reusable criticality assessment/measurement and asset-management plan abstraction in the asset module. Prefer an assessment or measured criticality semantics over a static label, and reuse kin:Decision, cepio:Risk, cepio:KPI and cepio:impacts for decision tradeoffs.
+    benchmark_action: normalize-and-remediate-common
+
+  - id: GAP-RP2-011-PRODUCTION-CAPACITY
+    question_ids: [RP-PE-011]
+    disposition: CORE
+    owner_module: performance
+    standards: [iso-20815-2026]
+    missing_semantics:
+      - performance:ProductionCapacity
+    rationale: Production capacity is a reusable operational-performance quantity across refining, upstream, power, mining and manufacturing, and directly connects reliability events to production and economic consequence.
+    proposed_resolution: Add ProductionCapacity as a reusable performance Measurement scoped to an asset/process context using existing generic relationships. Keep available, nameplate, constrained and demonstrated capacity as measurement/classification semantics rather than separate top-level classes until additional archetypes require them.
+    benchmark_action: retain-and-remediate-common
+
+  - id: GAP-RP2-011-AVAILABILITY-KPI
+    question_ids: [RP-PE-011]
+    disposition: MAPPING
+    owner_module: performance
+    standards: [iso-20815-2026]
+    missing_semantics:
+      - performance:AvailabilityKPI
+    rationale: Availability is a KPI identity/formula and does not require its own ontology class. CEPIO already has generic KPI and KPI-observation semantics; a class per KPI would create unbounded vocabulary growth.
+    proposed_resolution: Represent availability with cepio:KPI and performance:KPIObservation, with formula, scope, calculation convention and external terminology handled by the semantic-metric/mapping layer.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-RP2-012-NAMUR-NOA-CHANNEL
+    question_ids: [RP-PE-012]
+    disposition: MAPPING
+    owner_layer: integrations
+    standards: [namur-noa-ne175-ne176]
+    missing_semantics:
+      - process:MonitoringOptimizationChannel
+    rationale: A NAMUR NOA monitoring-and-optimization channel is an integration/architecture pattern describing how data is exposed without modifying the core control path. Treating it as refinery ontology would confuse deployment topology with operational semantics.
+    proposed_resolution: Represent the endpoint/channel as a cepio:DigitalAsset or integration binding with dependencies on source systems/assets, security/policy metadata and provenance. Map NAMUR NOA concepts in the connector/integration layer rather than process_industry.ttl.
+    benchmark_action: replace-with-integration-binding
+
+summary:
+  decisions: 17
+  dispositions: {CORE: 5, DOMAIN: 7, PROFILE: 0, MAPPING: 3, REJECT: 2}
+  ontology_remediation_in_this_pr: false
+  priority_order:
+    - procedure-and-alarm-operations
+    - integrity-and-production-assurance
+    - blending-movements-and-planning
+    - instrumentation-and-engineering-topology
+    - electrical-and-asset-management
+  next_step: Review and merge this triage before opening separate minimal remediation PRs by reusable semantic family. External mappings should be implemented independently from canonical ontology remediation.
