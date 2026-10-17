@@ -135,12 +135,13 @@ class RESTToolGateway:
             },
             {
                 "name": "cepio_neighbors",
-                "description": "Traverse outgoing CEPIO relationships",
+                "description": "Traverse authorized CEPIO relationships",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "object_id": {"type": "string"},
                         "relationship_type": {"type": ["string", "null"]},
+                        "direction": {"type": "string", "enum": ["out", "in"], "default": "out"},
                     },
                     "required": ["object_id"],
                 },
@@ -212,9 +213,15 @@ class RESTToolGateway:
         if name == "cepio_neighbors":
             object_id = parse.quote(str(arguments["object_id"]), safe="")
             relationship_type = arguments.get("relationship_type")
-            path = f"/objects/{object_id}/neighbors"
+            direction = str(arguments.get("direction", "out"))
+            query: dict[str, str] = {}
             if relationship_type:
-                path += "?" + parse.urlencode({"relationship_type": relationship_type})
+                query["relationship_type"] = str(relationship_type)
+            if direction != "out":
+                query["direction"] = direction
+            path = f"/objects/{object_id}/neighbors"
+            if query:
+                path += "?" + parse.urlencode(query)
             value = self._transport("GET", path, None, headers)
             if isinstance(value, list):
                 return {"objects": value}
