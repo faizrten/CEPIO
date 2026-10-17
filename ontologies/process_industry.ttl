@@ -23,6 +23,15 @@ process:OperatingLimit a owl:Class ; rdfs:subClassOf kin:Constraint .
 process:ProcessDeviation a owl:Class ; rdfs:subClassOf cepio:State .
 process:StartupOrRestart a owl:Class ; rdfs:subClassOf cepio:Activity .
 
+# Continuous-process procedure semantics grounded by the refinery v0.2
+# competency challenge and ISA-106 reference surface. Procedure content stays
+# source-neutral; execution composes existing temporal, provenance, work-control
+# and authorization semantics rather than duplicating them here.
+process:OperatingProcedure a owl:Class ; rdfs:subClassOf cepio:Document .
+process:ProcedureStep a owl:Class ; rdfs:subClassOf cepio:Entity .
+process:ProcedureExecution a owl:Class ; rdfs:subClassOf cepio:Activity .
+process:AbnormalSituation a owl:Class ; rdfs:subClassOf cepio:State .
+
 process:streamFromUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
 process:streamToUnit a owl:ObjectProperty ; rdfs:domain process:ProcessStream ; rdfs:range ind:ProcessUnit .
 process:meterAtUnit a owl:ObjectProperty ; rdfs:domain process:UtilityMeter ; rdfs:range ind:ProcessUnit .
@@ -33,3 +42,4 @@ process:forecastForUnit a owl:ObjectProperty ; rdfs:domain process:OptimizationF
 process:constraintOnUnit a owl:ObjectProperty ; rdfs:domain process:ProcessConstraint ; rdfs:range ind:ProcessUnit .
 process:envelopeForUnit a owl:ObjectProperty ; rdfs:domain process:OperatingEnvelope ; rdfs:range ind:ProcessUnit .
 process:deviationAgainstEnvelope a owl:ObjectProperty ; rdfs:domain process:ProcessDeviation ; rdfs:range process:OperatingEnvelope .
+process:executesProcedure a owl:ObjectProperty ; rdfs:domain process:ProcedureExecution ; rdfs:range process:OperatingProcedure .

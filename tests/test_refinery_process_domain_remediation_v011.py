@@ -64,7 +64,7 @@ def test_startup_or_restart_reuses_activity_dependency_and_approval_contracts():
 def test_process_industry_module_is_additively_versioned_and_depends_on_kinetic():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     module = next(item for item in catalogue["modules"] if item["id"] == "process_industry")
-    assert str(module["version"]) == "0.1.1"
+    assert str(module["version"]) == "0.1.2"
     dependencies = {item["module"] for item in module["depends_on"]}
     assert {"core", "industrial", "asset", "kinetic"}.issubset(dependencies)
 
