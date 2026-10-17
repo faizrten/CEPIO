@@ -46,3 +46,11 @@ signature changes and DDL changes, plus the full existing suite. CI publishes
 compatibility, domain, coverage and security evidence. Require the aggregate
 quality gate and CodeQL only after observing their actual check-run names.
 The trusted-base `pull_request_target` metadata check never executes PR code.
+
+## Activation evidence
+
+PR #142 merged after every check passed on head `a45bf9d3907a08cd106297ff84bbf8d302dea710`.
+The original CI and CodeQL checks passed; base-relative coverage increased from
+83.926051% to 84.152698%. The follow-up activation PR exercises the trusted-base
+guard now installed on main, adds negative controls for metadata bypasses, and
+tests release-manifest hashing and version rejection without publishing artifacts.
