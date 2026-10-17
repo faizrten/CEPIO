@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "required_modalities": ["document", "inspection_image", "engineering_diagram", "geospatial", "high_frequency_signal"],
+  "scenario_bindings": {
+    "SCN-001": {"canonical_iri": "cepio://asset/rig-07/mud-pump-01", "required_modalities": ["document", "inspection_image", "engineering_diagram", "high_frequency_signal", "geospatial"]},
+    "SCN-002": {"canonical_iri": "cepio://asset/rig-12/top-drive-01", "required_modalities": ["document", "inspection_image", "engineering_diagram", "high_frequency_signal"]},
+    "SCN-003": {"canonical_iri": "cepio://asset/rig-21/bop-01", "required_modalities": ["document", "inspection_image", "engineering_diagram", "high_frequency_signal"]},
+    "SCN-004": {"canonical_iri": "cepio://asset/rig-12/mud-pump-02", "required_modalities": ["document", "inspection_image", "engineering_diagram", "high_frequency_signal"]}
+  },
+  "expected_counts": {"document": 8, "inspection_image": 4, "engineering_diagram": 4, "geospatial": 1, "high_frequency_signal": 4},
+  "minimum_geospatial_features": 14,
+  "waveform_requirements": {"sample_rate_hz": 2048, "minimum_samples_per_scenario": 128}
+}
