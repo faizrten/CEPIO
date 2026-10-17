@@ -126,16 +126,20 @@ async def _run() -> int:
     )
 
     token = os.environ.get("GITHUB_TOKEN")
-    # Empty mode requires explicit tenant storage and explicit tool availability.
-    # Each benchmark question gets a fresh ephemeral directory and exactly the
-    # eight registered CEPIO custom tools; no built-in, MCP, filesystem, shell,
-    # repository, skill, or plugin tool is enabled.
     with tempfile.TemporaryDirectory(prefix="cepio-copilot-empty-") as base_directory:
         async with CopilotClient(
             mode="empty",
             base_directory=base_directory,
             github_token=token,
         ) as client:
+            # Fail fast on authentication/provider problems before the challenge
+            # harness mistakes them for slow model reasoning.
+            models = await asyncio.wait_for(client.list_models(), timeout=15.0)
+            print(
+                f"Copilot preflight OK: {len(models) if hasattr(models, '__len__') else 'unknown'} models visible",
+                file=sys.stderr,
+                flush=True,
+            )
             async with await client.create_session(
                 model=MODEL,
                 tools=tools,

@@ -69,7 +69,6 @@ class StrictReferenceToolAgent(base.ReferenceToolAgent):
                 calls.append(call_id)
                 return result
 
-            # Use the complete user question so root-cause terms disambiguate the asset.
             equipment = call("search_objects", query=question, object_type="DrillingEquipment", limit=10)[0]
             evidence = call("get_evidence", equipment_id=equipment["id"])
             modalities = sorted({item["modality"] for item in evidence if item["modality"] != "geospatial"})
@@ -82,7 +81,15 @@ class StrictReferenceToolAgent(base.ReferenceToolAgent):
         return super().run(question, gateway)
 
 
+class StrictExternalProcessAgent(base.ExternalProcessAgent):
+    """Give genuine model-backed turns enough time without changing evaluation."""
+
+    def __init__(self, command: str, timeout_seconds: float = 120.0) -> None:
+        super().__init__(command, timeout_seconds=timeout_seconds)
+
+
 base.ReferenceToolAgent = StrictReferenceToolAgent
+base.ExternalProcessAgent = StrictExternalProcessAgent
 
 APPROVED_TOOLS = base.APPROVED_TOOLS
 BENCHMARK = base.BENCHMARK
