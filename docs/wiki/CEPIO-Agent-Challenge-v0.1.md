@@ -10,32 +10,17 @@ The experiment asks one product question:
 
 ## Isolation contract
 
-The answering process receives only:
+The answering process receives only the natural-language question, the CEPIO tool schemas, and results returned by CEPIO tools it explicitly invokes. It does **not** receive the benchmark question ID, expected refs or values, ground-truth scenario hints, evaluator state, filesystem access, SQL access, dataframe access, or raw source-system connectors.
 
-1. the natural-language question;
-2. the CEPIO tool schemas; and
-3. results returned by CEPIO tools it explicitly invokes.
-
-It does **not** receive the benchmark question ID, expected refs or values, ground-truth scenario hints, evaluator state, filesystem access, SQL access, dataframe access, or raw source-system connectors.
-
-The evaluator owns the expected answers and scores the final answer only after the agent has finished.
-
-The evaluator files live in the repository for reproducibility; "hidden" means hidden from the answering process, not cryptographically secret from repository readers.
+The evaluator owns the expected answers and scores the final answer only after the agent has finished. The evaluator files live in the repository for reproducibility; "hidden" means hidden from the answering process, not cryptographically secret from repository readers.
 
 ## Bounded CEPIO tool surface
 
-Agent Challenge v0.1 exposes eight semantic tools:
-
-- `search_objects`
-- `get_object`
-- `get_relationships`
-- `get_events`
-- `resolve_identity`
-- `get_evidence`
-- `query_measurements`
-- `get_provenance`
+Agent Challenge v0.1 exposes eight semantic tools: `search_objects`, `get_object`, `get_relationships`, `get_events`, `resolve_identity`, `get_evidence`, `query_measurements`, and `get_provenance`.
 
 Large/raw multimodal payloads remain source-native. The agent receives CEPIO semantic bindings, summaries, provenance and source references rather than direct file/database access.
+
+The strict runner adds token-aware search normalization so industrial identifiers such as `Mud Pump 2`, `mud-pump-02`, and numeric rig identifiers are ranked by semantic tokens rather than substring coincidences.
 
 ## Challenge pack
 
@@ -64,14 +49,12 @@ Latency is recorded but is not a hard v0.1 gate because the provider/runtime env
 
 `--agent reference` validates the benchmark plumbing and must not be reported as AI performance. It is a deterministic tool-using reference agent that proves the challenge data is answerable through CEPIO, the tool schemas are sufficient, hidden-answer isolation works, scoring works, and the execution trace is complete.
 
-A real AI result uses `--agent external` with an external process implementing the JSONL protocol below.
+A real AI result uses `--agent external` with an external process implementing the JSONL protocol.
 
-## External agent protocol
-
-Start the challenge runner with:
+Run the canonical strict harness with:
 
 ```bash
-PYTHONPATH=src python scripts/run_agent_challenge.py \
+PYTHONPATH=src python scripts/run_agent_challenge_strict.py \
   --agent external \
   --agent-command "YOUR_AGENT_PROCESS"
 ```
@@ -88,30 +71,11 @@ CEPIO responds with a semantic tool result and a CEPIO `tool_call_id`:
 {"type":"tool_result","request_id":"agent-1","tool_call_id":"tc-01","result":[]}
 ```
 
-The agent ends with:
-
-```json
-{
-  "type": "final",
-  "answer": {
-    "answer": "human-readable conclusion",
-    "refs": ["canonical IDs or semantic refs"],
-    "values": [4.2],
-    "claims": [
-      {"text":"supported claim","supported_by":["tc-01","tc-02"]}
-    ],
-    "confidence": 0.91
-  }
-}
-```
-
-No evaluator fields are sent to the child process.
+The agent ends with a `final` message whose answer contains human-readable text, canonical refs, scalar values, supported claims, and confidence. No evaluator fields are sent to the child process.
 
 ## CI behavior
 
-`make agent-challenge` runs the deterministic reference harness as a regression gate. This validates infrastructure only.
-
-A live model should be run as a separate controlled benchmark job or provider environment with the required model credentials. The same questions, tools, evaluator and metrics are reused unchanged.
+`make agent-challenge` runs the deterministic reference harness as a regression gate. This validates infrastructure only. A live model should be run as a separate controlled benchmark job or provider environment with the required model credentials. The same questions, tools, evaluator and metrics are reused unchanged.
 
 ## Interpretation
 

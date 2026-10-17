@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _load_module():
-    path = ROOT / "scripts/run_agent_challenge.py"
+    path = ROOT / "scripts/run_agent_challenge_strict.py"
     spec = importlib.util.spec_from_file_location("run_agent_challenge_test_module", path)
     if spec is None or spec.loader is None:
         raise RuntimeError(path)
@@ -26,8 +26,9 @@ def test_agent_challenge_reference_harness_passes():
         waveform_samples=512,
         seed=1701,
     )
+    failed = [item["id"] for item in report["details"] if not item["passed"]]
     assert report["total"] == 10
-    assert report["passed"] == 10
+    assert report["passed"] == 10, failed
     assert report["accuracy"] == 1.0
     assert report["evidence_coverage"] == 1.0
     assert report["unsupported_claims"] == 0
