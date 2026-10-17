@@ -244,8 +244,8 @@ decisions:
     benchmark_action: replace-with-integration-binding
 
 summary:
-  decisions: 17
-  dispositions: {CORE: 5, DOMAIN: 7, PROFILE: 0, MAPPING: 3, REJECT: 2}
+  decisions: 18
+  dispositions: {CORE: 5, DOMAIN: 7, PROFILE: 0, MAPPING: 3, REJECT: 3}
   ontology_remediation_in_this_pr: false
   priority_order:
     - procedure-and-alarm-operations
