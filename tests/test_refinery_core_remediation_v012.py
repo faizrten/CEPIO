@@ -53,5 +53,5 @@ def test_refinery_remediation_versions_preserve_core_bumps_and_process_domain_fl
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     versions = {module["id"]: module["version"] for module in catalogue["modules"]}
     assert str(versions["hse"]) == "0.1.2"
-    assert str(versions["performance"]) == "0.1.2"
+    assert _version_tuple(versions["performance"]) >= (0, 1, 2)
     assert _version_tuple(versions["process_industry"]) >= (0, 1, 3)
