@@ -18,7 +18,7 @@ class MCPFacade:
         return [
             {"name": "cepio_get_object", "description": "Read an authorized CEPIO object by ID", "inputSchema": {"type": "object", "properties": {"object_id": {"type": "string"}}, "required": ["object_id"]}},
             {"name": "cepio_neighbors", "description": "Traverse outgoing CEPIO relationships", "inputSchema": {"type": "object", "properties": {"object_id": {"type": "string"}, "relationship_type": {"type": ["string", "null"]}}, "required": ["object_id"]}},
-            {"name": "cepio_call_function", "description": "Invoke a registered CEPIO business function", "inputSchema": {"type": "object", "properties": {"function": {"type": "string"}, "arguments": {"type": "object"}}, "required": ["function", "arguments"]}},
+            {"name": "cepio_call_function", "description": "Invoke an authorized registered CEPIO business function", "inputSchema": {"type": "object", "properties": {"function": {"type": "string"}, "arguments": {"type": "object"}}, "required": ["function", "arguments"]}},
             {"name": "cepio_execute_action", "description": "Attempt a governed CEPIO action. Policy may reject or constrain execution.", "inputSchema": {"type": "object", "properties": {"action_type": {"type": "string"}, "target_id": {"type": "string"}, "target_type": {"type": "string"}, "parameters": {"type": "object"}, "idempotency_key": {"type": ["string", "null"]}}, "required": ["action_type", "target_id", "target_type"]}},
         ]
 
@@ -36,6 +36,10 @@ class MCPFacade:
             return {"objects": visible}
         if name == "cepio_call_function":
             invocation = FunctionInvocation.model_validate(arguments)
+            if not self.runtime.policy_engine.can_call_function(self.actor_roles, invocation.function):
+                raise AuthorizationError(
+                    f"Actor roles are not authorized to call function {invocation.function}"
+                )
             value = self.runtime.call_function(invocation.function, **invocation.arguments)
             if hasattr(value, "model_dump"):
                 value = value.model_dump(mode="json")
