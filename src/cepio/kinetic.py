@@ -20,11 +20,13 @@ class WorkflowStepType(str, Enum):
     decision = "decision"
     approval = "approval"
     action = "action"
+    external_verification = "external_verification"
 
 
 class WorkflowStatus(str, Enum):
     running = "running"
     waiting_for_approval = "waiting_for_approval"
+    waiting_for_external_verification = "waiting_for_external_verification"
     completed = "completed"
     failed = "failed"
     cancelled = "cancelled"
@@ -34,6 +36,7 @@ class WorkflowStepStatus(str, Enum):
     pending = "pending"
     running = "running"
     waiting_for_approval = "waiting_for_approval"
+    waiting_for_external_verification = "waiting_for_external_verification"
     completed = "completed"
     failed = "failed"
 
@@ -54,6 +57,7 @@ class WorkflowStepDefinition(BaseModel):
     decision_problem: str | None = None
     decision_recommendation: str | None = None
     recommended_action: str | None = None
+    action_step_id: str | None = None
 
 
 class WorkflowDefinition(BaseModel):
@@ -69,6 +73,8 @@ class WorkflowStepState(BaseModel):
     result: Any | None = None
     decision_id: str | None = None
     action_id: str | None = None
+    external_execution_id: str | None = None
+    outcome_id: str | None = None
     error: str | None = None
     started_at: datetime | None = None
     completed_at: datetime | None = None
@@ -524,7 +530,9 @@ class SQLiteWorkflowRepository(WorkflowRepository):
 class KineticRuntime:
     """Minimal durable workflow coordinator over existing CEPIO functions, decisions and actions."""
 
-    def __init__(self, runtime: CEPIORuntime, repository: WorkflowRepository | None = None) -> None:
+    def __init__(
+        self, runtime: CEPIORuntime, repository: WorkflowRepository | None = None
+    ) -> None:
         self.runtime = runtime
         self.repository = repository or InMemoryWorkflowRepository()
 
@@ -538,6 +546,7 @@ class KineticRuntime:
         ids = [step.id for step in definition.steps]
         if len(ids) != len(set(ids)):
             raise ValueError("Workflow step ids must be unique")
+        prior_by_id: dict[str, WorkflowStepDefinition] = {}
         for step in definition.steps:
             if step.type in {WorkflowStepType.function, WorkflowStepType.action} and not step.operation:
                 raise ValueError(f"Step {step.id} requires an operation")
@@ -545,6 +554,25 @@ class KineticRuntime:
                 raise ValueError(f"Approval step {step.id} requires at least one approval role")
             if step.type == WorkflowStepType.decision and not step.decision_recommendation:
                 raise ValueError(f"Decision step {step.id} requires a recommendation")
+            if step.type == WorkflowStepType.external_verification:
+                if step.operation is not None:
+                    raise ValueError(
+                        f"External verification step {step.id} must not name a source operation"
+                    )
+                if not step.action_step_id:
+                    raise ValueError(
+                        f"External verification step {step.id} requires action_step_id"
+                    )
+                referenced = prior_by_id.get(step.action_step_id)
+                if referenced is None or referenced.type != WorkflowStepType.action:
+                    raise ValueError(
+                        f"External verification step {step.id} must reference an earlier Action step"
+                    )
+            elif step.action_step_id is not None:
+                raise ValueError(
+                    f"Step {step.id} may only set action_step_id for external verification"
+                )
+            prior_by_id[step.id] = step
 
     def start_workflow(
         self,
@@ -671,7 +699,10 @@ class KineticRuntime:
 
     def resume(self, instance_id: str) -> WorkflowInstance:
         instance = self.get_instance(instance_id)
-        if instance.status == WorkflowStatus.waiting_for_approval:
+        if instance.status in {
+            WorkflowStatus.waiting_for_approval,
+            WorkflowStatus.waiting_for_external_verification,
+        }:
             return instance
         if instance.status in {
             WorkflowStatus.completed,
@@ -689,17 +720,20 @@ class KineticRuntime:
             if state.status == WorkflowStepStatus.completed:
                 instance.current_step += 1
                 continue
+            first_start = state.started_at is None
             state.status = WorkflowStepStatus.running
             state.started_at = state.started_at or utcnow()
             self.repository.save_instance(instance)
-            self._history(
-                instance,
-                "step_started",
-                instance.last_actor_id,
-                step_id=step.id,
-                details={"type": step.type.value},
-            )
+            if first_start:
+                self._history(
+                    instance,
+                    "step_started",
+                    instance.last_actor_id,
+                    step_id=step.id,
+                    details={"type": step.type.value},
+                )
             try:
+                wait_result: WorkflowInstance | None = None
                 if step.type == WorkflowStepType.function:
                     self._run_function(instance, step, state)
                 elif step.type == WorkflowStepType.decision:
@@ -708,6 +742,10 @@ class KineticRuntime:
                     return self._wait_for_approval(instance, step, state)
                 elif step.type == WorkflowStepType.action:
                     self._run_action(instance, step, state)
+                elif step.type == WorkflowStepType.external_verification:
+                    wait_result = self._run_external_verification(instance, step, state)
+                    if wait_result is not None:
+                        return wait_result
                 else:
                     raise ValueError(f"Unsupported workflow step type: {step.type}")
             except Exception as exc:
@@ -841,6 +879,16 @@ class KineticRuntime:
             "effects": result.effects,
             "replayed": result.replayed,
         }
+
+    def _run_external_verification(
+        self,
+        instance: WorkflowInstance,
+        step: WorkflowStepDefinition,
+        state: WorkflowStepState,
+    ) -> WorkflowInstance | None:
+        raise RuntimeError(
+            "External verification step requires an external-action-aware kinetic runtime"
+        )
 
     def _definition(
         self, definition_id: str, version: str | None = None
