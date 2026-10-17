@@ -8,6 +8,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.
 - **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
+- **[Kinetic Runtime](kinetic-runtime.md)** — durable workflow kernel over CEPIO Functions, Decisions, approvals and governed Actions.
 - **[Generalization & Competency Harness](generalization-harness.md)** — agentic validation architecture and the deterministic drilling-contractor v0.1 benchmark.
 - **[Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)** — first evidence-driven remediation cycle against the frozen drilling benchmark.
 
@@ -25,6 +26,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 ## Key technical contracts
 
+- [Kinetic runtime](kinetic-runtime.md)
 - [Temporal state projection](temporal-state-projection.md)
 - [Microsoft platform extension](microsoft-platform-extension.md)
 - [Foundry + MCP](foundry-mcp.md)

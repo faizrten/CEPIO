@@ -114,6 +114,40 @@ CEPIO therefore needs explicit metadata for:
 - compensation guidance where applicable;
 - dead-letter handling in production integrations.
 
+## Workflow and orchestration layer
+
+Individual Functions, Decisions and Actions are execution primitives. The kinetic runtime adds durable process state around those primitives.
+
+The first workflow kernel introduces:
+
+```text
+WorkflowDefinition
+        |
+        v
+WorkflowInstance
+        |
+        +--> Function
+        |
+        +--> Decision
+        |
+        +--> ApprovalTask -- pause / durable wait
+        |
+        +--> Action -- existing CEPIO policy + idempotency + audit
+        |
+        v
+Completed / Failed
+```
+
+Workflow state is deliberately separate from canonical industrial semantic state. A workflow may operate on a Compressor or WorkOrder, but its execution cursor, approval state and step history are runtime process records rather than properties of that industrial object.
+
+The reference implementation provides in-memory and SQLite workflow repositories. SQLite can restore a workflow that is paused for approval and resume it through a new runtime process.
+
+Agent authority does not flow through the workflow implicitly. An agent may run authorized functions and persist a recommendation, but a human approval task can transfer active execution identity to an authenticated human before the subsequent governed Action executes.
+
+Workflow trigger keys deduplicate repeated starts, while Action steps receive deterministic workflow-step idempotency keys. This gives the first kernel replay protection at both process-start and side-effect boundaries.
+
+See [Kinetic Runtime](../kinetic-runtime.md) for the focused contract and current non-goals.
+
 ## Human and AI operating model
 
 A useful pattern is progressively increasing authority:
