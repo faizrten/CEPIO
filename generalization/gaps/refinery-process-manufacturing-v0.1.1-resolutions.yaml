@@ -1,0 +1,40 @@
+id: refinery-process-manufacturing-gap-resolutions-v0.1.1
+version: "0.1"
+archetype_id: refinery-process-manufacturing-v0.1
+competency_pack_id: refinery-process-manufacturing-capabilities-v0.1.1
+issue: 106
+principle: The normalized refinery competency pack remains unchanged; this ledger records accepted CORE semantics implemented in CEPIO while DOMAIN, MAPPING and REJECT decisions remain outside this remediation slice.
+resolutions:
+  - gap_id: GAP-RP-006-SAFETY-BARRIER
+    question_ids: [RP-PC-006, RP-PC-016]
+    disposition: CORE
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/hse#SafetyBarrier
+      - https://cepio.org/ontology/hse#BarrierImpairment
+      - https://cepio.org/ontology/hse#impairmentOfBarrier
+    notes: Safety barriers are modeled as reusable HSE entities and impairments as time-varying state. Restoration work continues to reuse hse:hasCorrectiveAction rather than a barrier-specific work predicate.
+
+  - gap_id: GAP-RP-007-MANAGEMENT-OF-CHANGE
+    question_ids: [RP-PC-007]
+    disposition: CORE
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/hse#ManagementOfChange
+      - https://cepio.org/ontology/hse#changeAffectsAsset
+    notes: Management of Change is modeled as reusable industrial work/governance semantics. Authorization and approval continue to reuse workforce AuthorityAssignment and kinetic requiresApproval rather than MOC-specific authority predicates.
+
+  - gap_id: GAP-RP-013-PRODUCTION-LOSS
+    question_ids: [RP-PC-013]
+    disposition: CORE
+    status: implemented
+    implemented_semantics:
+      - https://cepio.org/ontology/performance#ProductionLoss
+    notes: Production loss is a common operational-performance measurement. Causal events reuse cepio:impacts rather than introducing a process-specific production-loss relationship.
+
+remaining_decisions:
+  CORE: 0
+  DOMAIN: 4
+  PROFILE: 0
+  MAPPING: 1
+  REJECT: 3

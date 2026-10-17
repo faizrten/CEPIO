@@ -12,6 +12,7 @@ perf:Benchmark a owl:Class ; rdfs:subClassOf cepio:Entity .
 perf:CompositeScore a owl:Class ; rdfs:subClassOf cepio:Measurement .
 perf:FleetException a owl:Class ; rdfs:subClassOf cepio:Risk .
 perf:ActionPerformance a owl:Class ; rdfs:subClassOf cepio:Measurement .
+perf:ProductionLoss a owl:Class ; rdfs:subClassOf cepio:Measurement .
 
 perf:observationOfKPI a owl:ObjectProperty ; rdfs:domain perf:KPIObservation ; rdfs:range cepio:KPI .
 perf:observationForEntity a owl:ObjectProperty ; rdfs:domain perf:KPIObservation ; rdfs:range cepio:Entity .

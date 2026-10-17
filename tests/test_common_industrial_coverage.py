@@ -52,6 +52,6 @@ def test_purchase_order_connects_supplier_requirement_and_spare():
 def test_common_module_versions_are_bumped_additively():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     versions = {module["id"]: str(module["version"]) for module in catalogue["modules"]}
-    assert versions["hse"] == "0.1.1"
+    assert versions["hse"] == "0.1.2"
     assert versions["supply"] == "0.1.1"
     assert versions["workforce"] == "0.1.3"
