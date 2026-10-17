@@ -91,3 +91,7 @@ That is the desired behavior of the Generalization Lab: a mature domain should i
 8. proceed to cross-customer qualification.
 
 Machine-readable decisions are recorded in `generalization/gaps/drilling-contractor-domain-qualification-v0.4.1.yaml`.
+
+## Cost-inclusive successor v0.4.2
+
+The frozen v0.4 contract and its normalized v0.4.1 result remain unchanged. Successor v0.4.2 strengthens `DC-DQ-003` by requiring `CostRecord` alongside contract rate, downtime and revenue, with `rateForContract`, `revenueFor` and `costFor` links to `DrillingContract`. This makes cost semantics part of the competency composition rather than relying on the question text alone. The v0.4.2 contract is generated and evaluated separately by the qualification workflow.
