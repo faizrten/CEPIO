@@ -14,6 +14,11 @@ perf:FleetException a owl:Class ; rdfs:subClassOf cepio:Risk .
 perf:ActionPerformance a owl:Class ; rdfs:subClassOf cepio:Measurement .
 perf:ProductionLoss a owl:Class ; rdfs:subClassOf cepio:Measurement .
 
+# Reusable production-assurance quantity. Nameplate, available, constrained and
+# demonstrated capacity remain measurement/classification semantics rather than
+# proliferating top-level ontology classes.
+perf:ProductionCapacity a owl:Class ; rdfs:subClassOf cepio:Measurement .
+
 perf:observationOfKPI a owl:ObjectProperty ; rdfs:domain perf:KPIObservation ; rdfs:range cepio:KPI .
 perf:observationForEntity a owl:ObjectProperty ; rdfs:domain perf:KPIObservation ; rdfs:range cepio:Entity .
 perf:scorecardFor a owl:ObjectProperty ; rdfs:domain perf:Scorecard ; rdfs:range cepio:Entity .
