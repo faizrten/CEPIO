@@ -52,7 +52,7 @@ def test_triage_preserves_raw_and_normalized_baselines() -> None:
     }
 
 
-def test_every_normalized_missing_capability_has_one_architectural_disposition() -> None:
+def test_every_normalized_missing_capability_has_architectural_coverage() -> None:
     triage = load_triage()
     covered: list[str] = []
     for decision in triage["decisions"]:
@@ -60,7 +60,13 @@ def test_every_normalized_missing_capability_has_one_architectural_disposition()
 
     counts = Counter(covered)
     assert set(counts) == EXPECTED_MISSING_CAPABILITIES
-    assert all(count == 1 for count in counts.values())
+    assert all(count >= 1 for count in counts.values())
+    # Restart release legitimately composes a common safety-barrier decision with
+    # a process-domain startup/restart decision. No other capability is duplicated.
+    assert {capability for capability, count in counts.items() if count > 1} == {
+        "restart-safety-and-approval"
+    }
+    assert counts["restart-safety-and-approval"] == 2
     assert triage["baseline"]["normalized_v0_1_1"]["missing_capabilities"] == len(EXPECTED_MISSING_CAPABILITIES)
 
 
