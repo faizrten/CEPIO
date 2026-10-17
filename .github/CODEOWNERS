@@ -1,0 +1,15 @@
+# CEPIO repository ownership
+#
+# Governance v1 uses a single accountable maintainer. As the maintainer group
+# grows, replace or supplement these entries with domain-specific teams.
+
+*                               @faizrten
+/.github/                       @faizrten
+/src/cepio/                     @faizrten
+/ontologies/                    @faizrten
+/openapi/                       @faizrten
+/policies/                      @faizrten
+/profiles/                      @faizrten
+/integrations/                  @faizrten
+/generalization/                @faizrten
+/docs/governance/               @faizrten

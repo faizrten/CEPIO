@@ -1,0 +1,76 @@
+name: CEPIO Governance
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  governance:
+    name: governance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate pull request governance metadata
+        env:
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+
+          with open(os.environ["GITHUB_EVENT_PATH"], "r", encoding="utf-8") as f:
+              event = json.load(f)
+
+          pr = event.get("pull_request", {})
+          body = pr.get("body") or ""
+          title = pr.get("title") or ""
+
+          required_headings = [
+              "## Linked issue",
+              "## Change class",
+              "## Architecture / semantic impact",
+              "## Validation",
+              "## IP / publication review",
+              "## Documentation impact",
+              "## Breaking changes / migration",
+          ]
+
+          failures = []
+          for heading in required_headings:
+              if heading not in body:
+                  failures.append(f"Missing required PR section: {heading}")
+
+          issue_ref = re.search(r"(?im)^\s*(?:closes|fixes|refs|references)\s+#\d+\b", body)
+          explicit_na = re.search(r"(?im)^\s*N/A\s*[—-]\s*.+$", body)
+          if not issue_ref and not explicit_na:
+              failures.append(
+                  "Linked issue must contain 'Closes #<n>', 'Fixes #<n>', 'Refs #<n>', "
+                  "or an explicit 'N/A — <reason>'."
+              )
+
+          change_class_block = re.search(
+              r"## Change class(?P<section>.*?)(?=\n## |\Z)",
+              body,
+              flags=re.IGNORECASE | re.DOTALL,
+          )
+          if change_class_block and not re.search(r"(?m)^\s*- \[[xX]\] ", change_class_block.group("section")):
+              failures.append("Select at least one Change class checkbox.")
+
+          if title.lower().startswith("wip"):
+              failures.append("PR title must not start with WIP; use GitHub Draft PR state instead.")
+
+          if failures:
+              print("CEPIO governance check failed:\n")
+              for failure in failures:
+                  print(f"- {failure}")
+              sys.exit(1)
+
+          print("CEPIO governance metadata check passed.")
+          PY
