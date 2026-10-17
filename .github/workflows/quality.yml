@@ -1,0 +1,130 @@
+name: CEPIO Quality Gate
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  static:
+    name: quality-static
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
+      - name: Lint, format touched Python, and type ratchet
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+        run: python scripts/check_quality.py --base "$BASE_REF"
+  architecture:
+    name: quality-architecture
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_architecture_invariants.py tests/test_quality_governance.py tests/test_external_actions.py tests/test_operator_agent_v06.py tests/test_profiles.py tests/test_contextual_policy_v05.py tests/test_rest_security.py
+  compatibility:
+    name: quality-compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: python scripts/check_api_contract.py
+      - run: python scripts/check_client_contract.py
+      - run: mkdir -p evidence
+      - run: python scripts/check_ontology_compat.py --json-report evidence/accepted-ontology.json
+      - name: Compare public and persisted contracts with immutable PR base
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+        run: python scripts/check_compatibility_evidence.py --base "$BASE_REF"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-compatibility-${{ github.run_id }}
+          path: evidence/
+  security:
+    name: quality-security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
+      - run: mkdir -p evidence
+      - name: Static security scan (reviewed SQL false positives only)
+        run: python -m bandit -r src -ll -f json -o evidence/bandit.json -b quality/bandit-baseline.json
+      - name: Audit resolved dependencies (no vulnerability ignores)
+        run: python -m pip_audit --skip-editable --format json --output evidence/dependencies.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-security-${{ github.run_id }}
+          path: evidence/
+  tests:
+    name: quality-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
+      - run: mkdir -p evidence
+      - run: pytest -q --cov=cepio --cov-report=json:evidence/coverage.json --cov-report=xml:evidence/coverage.xml
+      - name: Coverage cannot decrease against PR base
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git worktree add --detach /tmp/cepio-base "$BASE_SHA"
+          cd /tmp/cepio-base
+          PYTHONPATH=src python -m pytest -q --cov=cepio --cov-report=json:base-coverage.json
+          cd "$GITHUB_WORKSPACE"
+          python scripts/check_coverage.py /tmp/cepio-base/base-coverage.json evidence/coverage.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-coverage-${{ github.run_id }}
+          path: evidence/
+  gate:
+    name: quality-gate
+    if: always()
+    needs: [static, architecture, compatibility, security, tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every quality job must succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python - <<'PY'
+          import json, os
+          results = json.loads(os.environ['RESULTS'])
+          assert all(job['result'] == 'success' for job in results.values()), results
+          PY

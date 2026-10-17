@@ -30,7 +30,7 @@ WORKDIR /app
 RUN addgroup --system cepio && adduser --system --ingroup cepio cepio
 
 COPY --from=builder /build/dist/cepio-*.whl /tmp/
-RUN python -m pip install --no-cache-dir --upgrade pip \
+RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=83.0.0" \
     && python -m pip install --no-cache-dir /tmp/cepio-*.whl \
     && rm -f /tmp/cepio-*.whl
 
