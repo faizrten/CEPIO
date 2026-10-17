@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import sys
+import tempfile
 from typing import Any
 
 from copilot import CopilotClient
@@ -120,25 +121,27 @@ async def _run() -> int:
         + json.dumps(final_schema, separators=(",", ":"))
     )
 
-    # mode='empty' is essential to the benchmark: no ambient Copilot CLI tools,
-    # filesystem, shell, or repository tools are available. Only CEPIO tools below.
-    async with CopilotClient(mode="empty") as client:
-        async with await client.create_session(
-            model=MODEL,
-            tools=tools,
-            on_permission_request=PermissionHandler.approve_all,
-            system_message={"mode": "append", "content": SYSTEM_PROMPT},
-            infinite_sessions={"enabled": False},
-        ) as session:
-            response = await session.send_and_wait(prompt)
-            if response is None:
-                raise RuntimeError("Copilot session completed without an assistant message")
-            content = getattr(getattr(response, "data", None), "content", None)
-            if content is None:
-                raise RuntimeError(f"Copilot response had no content: {response!r}")
-            final = _extract_json(content)
-            _emit({"type": "final", "answer": final})
-            return 0
+    # Empty mode requires explicit tenant storage and exposes no ambient CLI tools.
+    # Each benchmark question gets a fresh ephemeral directory, preventing state
+    # leakage between questions while still allowing the Copilot runtime to operate.
+    with tempfile.TemporaryDirectory(prefix="cepio-copilot-empty-") as base_directory:
+        async with CopilotClient(mode="empty", base_directory=base_directory) as client:
+            async with await client.create_session(
+                model=MODEL,
+                tools=tools,
+                on_permission_request=PermissionHandler.approve_all,
+                system_message={"mode": "append", "content": SYSTEM_PROMPT},
+                infinite_sessions={"enabled": False},
+            ) as session:
+                response = await session.send_and_wait(prompt)
+                if response is None:
+                    raise RuntimeError("Copilot session completed without an assistant message")
+                content = getattr(getattr(response, "data", None), "content", None)
+                if content is None:
+                    raise RuntimeError(f"Copilot response had no content: {response!r}")
+                final = _extract_json(content)
+                _emit({"type": "final", "answer": final})
+                return 0
 
 
 def main() -> int:
