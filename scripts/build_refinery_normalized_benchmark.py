@@ -11,6 +11,17 @@ PROCESS_UNIT = "https://cepio.org/ontology/process#ProcessUnit"
 IND_PROCESS_UNIT = "https://cepio.org/ontology/industrial#ProcessUnit"
 PROCESS_TRIP = "https://cepio.org/ontology/process#ProcessTrip"
 IND_TRIP_EVENT = "https://cepio.org/ontology/industrial#TripEvent"
+MFG_MATERIAL_LOT = "https://cepio.org/ontology/manufacturing#MaterialLot"
+MFG_GENERIC_SPEC = "https://cepio.org/ontology/manufacturing#Specification"
+MFG_MATERIAL_SPEC = "https://cepio.org/ontology/manufacturing#MaterialSpecification"
+MFG_LOT_CONFORMS = "https://cepio.org/ontology/manufacturing#lotConformsToSpecification"
+MFG_LOT_EVALUATED = "https://cepio.org/ontology/manufacturing#lotEvaluatedAgainstSpecification"
+MFG_QUALITY_DISPOSITION = "https://cepio.org/ontology/manufacturing#QualityDisposition"
+MFG_DISPOSITION_FOR_LOT = "https://cepio.org/ontology/manufacturing#dispositionForLot"
+PERF_ENERGY_INTENSITY_KPI = "https://cepio.org/ontology/performance#EnergyIntensityKPI"
+CORE_KPI = "https://cepio.org/ontology/core#KPI"
+CORE_MEASURED_BY = "https://cepio.org/ontology/core#measuredBy"
+CORE_IMPACTS = "https://cepio.org/ontology/core#impacts"
 
 
 def _replace_scalar(node: Any, old: str, new: str) -> Any:
@@ -72,11 +83,52 @@ def normalize(raw: dict[str, Any]) -> dict[str, Any]:
         "target": IND_PROCESS_UNIT,
     }]
 
+    # RP-PC-008: reuse canonical MaterialSpecification and separate lot evaluation
+    # from the actual pass/fail result. An off-spec lot cannot truthfully be linked
+    # by a predicate named lotConformsToSpecification.
+    alt = _single_alternative(pack, "RP-PC-008", "lot-specification")
+    expected_terms = [
+        {"iri": MFG_MATERIAL_LOT, "kind": "class"},
+        {"iri": MFG_GENERIC_SPEC, "kind": "class"},
+    ]
+    expected_edges = [{
+        "source": MFG_MATERIAL_LOT,
+        "predicate": MFG_LOT_CONFORMS,
+        "target": MFG_GENERIC_SPEC,
+    }]
+    if alt.get("terms") != expected_terms or alt.get("edges") != expected_edges:
+        raise ValueError("RP-PC-008 lot-specification source pattern changed; normalization must be reviewed")
+    alt["terms"] = [
+        {"iri": MFG_MATERIAL_LOT, "kind": "class"},
+        {"iri": MFG_MATERIAL_SPEC, "kind": "class"},
+    ]
+    alt["edges"] = [{
+        "source": MFG_MATERIAL_LOT,
+        "predicate": MFG_LOT_EVALUATED,
+        "target": MFG_MATERIAL_SPEC,
+    }]
+
+    # RP-PC-008: use an explicit disposition-to-lot relationship rather than the
+    # very broad core impacts predicate. The class remains manufacturing-common.
+    alt = _single_alternative(pack, "RP-PC-008", "quality-disposition")
+    expected_edges = [{
+        "source": MFG_QUALITY_DISPOSITION,
+        "predicate": CORE_IMPACTS,
+        "target": MFG_MATERIAL_LOT,
+    }]
+    if alt.get("edges") != expected_edges:
+        raise ValueError("RP-PC-008 quality-disposition source pattern changed; normalization must be reviewed")
+    alt["edges"] = [{
+        "source": MFG_QUALITY_DISPOSITION,
+        "predicate": MFG_DISPOSITION_FOR_LOT,
+        "target": MFG_MATERIAL_LOT,
+    }]
+
     # RP-PC-009: preserve the emission-limit requirement but correct the unit-context direction.
     alt = _single_alternative(pack, "RP-PC-009", "emissions-evidence")
     old_edge = {
         "source": IND_PROCESS_UNIT,
-        "predicate": "https://cepio.org/ontology/core#measuredBy",
+        "predicate": CORE_MEASURED_BY,
         "target": "https://cepio.org/ontology/process#EmissionObservation",
     }
     new_edge = {
@@ -93,7 +145,7 @@ def normalize(raw: dict[str, Any]) -> dict[str, Any]:
     alt = _single_alternative(pack, "RP-PC-010", "utility-metering")
     expected = [{
         "source": "https://cepio.org/ontology/process#UtilityStream",
-        "predicate": "https://cepio.org/ontology/core#measuredBy",
+        "predicate": CORE_MEASURED_BY,
         "target": "https://cepio.org/ontology/process#UtilityMeter",
     }]
     if alt.get("edges") != expected:
@@ -110,6 +162,25 @@ def normalize(raw: dict[str, Any]) -> dict[str, Any]:
             "target": IND_PROCESS_UNIT,
         },
     ]
+
+    # RP-PC-010: Energy intensity is a KPI identity/formula, not an ontology
+    # class. Reuse the canonical KPI contract; ISO 50001 identity, formula,
+    # denominator, units, baseline and target live in performance_kpis mappings.
+    alt = _single_alternative(pack, "RP-PC-010", "energy-intensity")
+    expected_terms = [{"iri": PERF_ENERGY_INTENSITY_KPI, "kind": "class"}]
+    expected_edges = [{
+        "source": IND_PROCESS_UNIT,
+        "predicate": CORE_MEASURED_BY,
+        "target": PERF_ENERGY_INTENSITY_KPI,
+    }]
+    if alt.get("terms") != expected_terms or alt.get("edges") != expected_edges:
+        raise ValueError("RP-PC-010 energy-intensity source pattern changed; normalization must be reviewed")
+    alt["terms"] = [{"iri": CORE_KPI, "kind": "class"}]
+    alt["edges"] = [{
+        "source": IND_PROCESS_UNIT,
+        "predicate": CORE_MEASURED_BY,
+        "target": CORE_KPI,
+    }]
 
     # RP-PC-013: reuse CEPIO's generic industrial trip event rather than inventing ProcessTrip.
     question = _question(pack, "RP-PC-013")
@@ -132,15 +203,15 @@ def normalize(raw: dict[str, Any]) -> dict[str, Any]:
         "target": IND_PROCESS_UNIT,
     }]
 
-    pack["id"] = "refinery-process-manufacturing-capabilities-v0.1.1"
-    pack["version"] = "0.1.1"
+    pack["id"] = "refinery-process-manufacturing-capabilities-v0.1.2"
+    pack["version"] = "0.1.2"
     pack["normalized_from"] = "refinery-process-manufacturing-capabilities-v0.1"
-    pack["normalization_record"] = "generalization/normalization/refinery-process-manufacturing-v0.1.1.yaml"
+    pack["normalization_record"] = "generalization/normalization/refinery-process-manufacturing-v0.1.2.yaml"
     return pack
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build the normalized refinery benchmark without modifying ontology semantics.")
+    parser = argparse.ArgumentParser(description="Build the normalized refinery benchmark without weakening genuine competency requirements.")
     parser.add_argument(
         "--source",
         default="generalization/competency/refinery-process-manufacturing-v0.1.yaml",
