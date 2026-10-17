@@ -1,0 +1,175 @@
+id: refinery-process-manufacturing-gap-triage-v0.1.1
+version: "0.1.1"
+archetype_id: refinery-process-manufacturing-v0.1
+competency_pack_id: refinery-process-manufacturing-capabilities-v0.1.1
+status: proposed
+baseline:
+  raw_v0_1:
+    semantic_checks_percent: 46.3
+    question_status: {PASS: 6, PARTIAL: 5, FAIL: 5, ERROR: 0}
+  normalized_v0_1_1:
+    semantic_checks_percent: 58.5
+    question_status: {PASS: 6, PARTIAL: 8, FAIL: 2, ERROR: 0}
+    missing_capabilities: 17
+classification_policy:
+  CORE: Reusable canonical semantics expected to apply across multiple Energy & Process Industry archetypes; ownership may sit in a common module rather than core.ttl.
+  DOMAIN: Canonical process-industry or manufacturing specialization that should remain source-system and customer neutral.
+  PROFILE: Site, customer, deployment or asset-specific semantics that should not enter canonical CEPIO modules.
+  MAPPING: External metric, code, taxonomy or source vocabulary that should be federated or mapped rather than copied into CEPIO canonical semantics.
+  REJECT: The exact proposed term or relationship is redundant, misleading, too direct or over-specific; satisfy the competency through a better abstraction instead.
+principles:
+  - Do not add duplicate concepts merely to satisfy a frozen benchmark.
+  - Prefer existing CEPIO abstractions and generic relationships when they preserve the required meaning.
+  - A benchmark miss may reveal a benchmark design defect rather than an ontology defect.
+  - Domain concepts must remain source-neutral and customer-neutral.
+  - Specific KPI identities and external classifications should normally be mappings or instances, not ontology classes.
+decisions:
+  - id: GAP-RP-001-PROCESS-CONSTRAINT
+    question_ids: [RP-PC-001, RP-PC-014]
+    covers_capabilities: [production-constraint, economic-exposure, constraint-dependencies]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [isa-95-2025, iso-50001-2018]
+    missing_semantics:
+      - process:ProcessConstraint
+      - process:constraintOnUnit
+    rationale: An explicit operating constraint is a durable process-industry concept, but it should be scoped to the existing canonical ind:ProcessUnit rather than create a second unit identity.
+    proposed_resolution: Model process:ProcessConstraint as a process-domain specialization of kin:Constraint and scope it to ind:ProcessUnit. Reuse cepio:impacts for economic exposure to comm:ValueAtRisk and cepio:dependsOn for material or utility dependencies.
+    benchmark_action: retain-capability-remediate-ontology
+
+  - id: GAP-RP-002-OPERATING-ENVELOPE
+    question_ids: [RP-PC-002]
+    covers_capabilities: [operating-envelope]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [iec-61511-series]
+    missing_semantics:
+      - process:OperatingEnvelope
+      - process:OperatingLimit
+      - process:envelopeForUnit
+    rationale: Approved operating envelopes and their limits are foundational process-operation semantics and are not customer-specific.
+    proposed_resolution: Introduce process:OperatingEnvelope for ind:ProcessUnit and process:OperatingLimit as a constrained operating boundary, preferably aligned to kin:Constraint rather than a disconnected limit hierarchy.
+    benchmark_action: retain-capability-remediate-ontology
+
+  - id: GAP-RP-002-PROCESS-DEVIATION
+    question_ids: [RP-PC-002]
+    covers_capabilities: [process-deviation]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [iec-61511-series]
+    missing_semantics:
+      - process:ProcessDeviation
+      - process:deviationAgainstEnvelope
+    rationale: A deviation from an approved operating envelope is observed operational state, not the same semantic as work:PlanDeviation from a work plan.
+    proposed_resolution: Add a source-neutral process deviation linked to the governing operating envelope and reuse existing decision and approval semantics for response governance.
+    benchmark_action: retain-capability-remediate-ontology
+
+  - id: GAP-RP-006-SAFETY-BARRIER
+    question_ids: [RP-PC-006, RP-PC-016]
+    covers_capabilities: [barrier-model, barrier-restoration, restart-safety-and-approval]
+    disposition: CORE
+    owner_module: hse
+    standards: [iec-61511-series, api-rp-754-4e]
+    missing_semantics:
+      - hse:SafetyBarrier
+      - hse:BarrierImpairment
+      - hse:impairmentOfBarrier
+    rationale: Safety barriers and barrier impairment are reusable across refining, upstream, drilling, chemicals, power and other hazardous industrial operations.
+    proposed_resolution: Add hse:SafetyBarrier and hse:BarrierImpairment as reusable HSE semantics. Use the existing hse:hasCorrectiveAction relationship for restoration work rather than inventing a barrier-specific restoration predicate.
+    benchmark_action: revise-restoration-pattern-in-next-frozen-pack
+
+  - id: GAP-RP-007-MANAGEMENT-OF-CHANGE
+    question_ids: [RP-PC-007]
+    covers_capabilities: [management-of-change, moc-authority]
+    disposition: CORE
+    owner_module: hse
+    standards: [iec-61511-series]
+    missing_semantics:
+      - hse:ManagementOfChange
+      - hse:changeAffectsAsset
+    rationale: Management of Change is reusable industrial safety and governance semantics, not refinery-specific vocabulary.
+    proposed_resolution: Model hse:ManagementOfChange as a cepio:WorkItem scoped to affected assets. Existing wf:AuthorityAssignment and kin:requiresApproval can then govern authority and approval without adding MOC-specific authority machinery.
+    benchmark_action: retain-capability-remediate-common-ontology
+
+  - id: GAP-RP-008-LOT-SPECIFICATION
+    question_ids: [RP-PC-008]
+    covers_capabilities: [lot-specification]
+    disposition: REJECT
+    replacement_layer: DOMAIN
+    owner_module: manufacturing
+    standards: [isa-95-2025]
+    missing_semantics:
+      - mfg:Specification
+      - mfg:lotConformsToSpecification
+    rationale: A generic mfg:Specification would duplicate existing mfg:MaterialSpecification and mfg:TestSpecification. The predicate lotConformsToSpecification is also wrong for an off-spec question because it asserts the conclusion before evaluation.
+    proposed_resolution: Reuse the existing manufacturing specification and test model. Add only a neutral lot-evaluated-against-specification relationship if later evidence proves it necessary; do not encode conformance in the relationship name.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-RP-008-QUALITY-DISPOSITION
+    question_ids: [RP-PC-008]
+    covers_capabilities: [quality-disposition]
+    disposition: REJECT
+    replacement_layer: CORE
+    owner_module: kinetic
+    standards: [isa-95-2025]
+    missing_semantics:
+      - mfg:QualityDisposition
+    rationale: A material disposition is fundamentally a governed decision. Adding a class for each decision subtype would create ontology-class proliferation when kin:Decision plus classification metadata already provides the operating abstraction.
+    proposed_resolution: Represent the disposition as kin:Decision impacting mfg:MaterialLot, with decision type supplied through mapping or classification. Add a specialized class only if additional archetypes demonstrate semantics beyond the generic decision contract.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-RP-009-EMISSION-LIMIT
+    question_ids: [RP-PC-009]
+    covers_capabilities: [emissions-evidence]
+    disposition: REJECT
+    replacement_layer: CORE
+    owner_module: hse
+    standards: [api-rp-754-4e]
+    missing_semantics:
+      - process:EmissionLimit
+      - process:evaluatedAgainstEmissionLimit
+    rationale: Compliance limits are not specific to refinery process streams; emissions, exposure, discharge and other regulated observations all require the same reusable limit-evaluation pattern.
+    proposed_resolution: Use a reusable HSE compliance-limit abstraction, preferably aligned to kin:Constraint, with a generic observation-evaluated-against-limit relationship. Keep process:EmissionObservation as the process-domain measurement and use existing hse:hasCorrectiveAction for corrective work.
+    benchmark_action: revise-limit-pattern-in-next-frozen-pack
+
+  - id: GAP-RP-010-ENERGY-INTENSITY-KPI
+    question_ids: [RP-PC-010]
+    covers_capabilities: [energy-intensity]
+    disposition: MAPPING
+    owner_module: performance
+    standards: [iso-50001-2018]
+    missing_semantics:
+      - perf:EnergyIntensityKPI
+    rationale: Energy intensity is a KPI identity and formula, not a fundamentally different ontology type. Canonicalizing every KPI as a class would create an unbounded KPI-class hierarchy.
+    proposed_resolution: Represent energy intensity with generic cepio:KPI and perf:KPIObservation, with metric identity, formula and source terminology handled through the mapping or semantic-metric layer.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-RP-013-PRODUCTION-LOSS
+    question_ids: [RP-PC-013]
+    covers_capabilities: [production-loss]
+    disposition: CORE
+    owner_module: performance
+    standards: [api-rp-754-4e, iso-14224-2016]
+    missing_semantics:
+      - perf:ProductionLoss
+    rationale: Production loss is a reusable operational-performance measurement across refining, upstream, drilling, power, mining and manufacturing.
+    proposed_resolution: Add perf:ProductionLoss as a reusable measurement and reuse cepio:impacts from the causal event. Do not add a process-specific trip class; ind:TripEvent already covers the event identity.
+    benchmark_action: retain-capability-remediate-common-ontology
+
+  - id: GAP-RP-016-STARTUP-RESTART
+    question_ids: [RP-PC-016]
+    covers_capabilities: [restart-activity, restart-work-controls, restart-safety-and-approval]
+    disposition: DOMAIN
+    owner_module: process_industry
+    standards: [iec-61511-series, isa-95-2025]
+    missing_semantics:
+      - process:StartupOrRestart
+    rationale: Startup and restart are explicit process-operation activities whose readiness depends on work completion, work controls, barriers and governed approval.
+    proposed_resolution: Add process:StartupOrRestart as a process-industry Activity scoped to ind:ProcessUnit. Reuse cepio:dependsOn for permits, isolations, work items and barriers, and kin:requiresApproval for governed release rather than adding restart-specific control relationships.
+    benchmark_action: retain-capability-remediate-ontology
+
+summary:
+  decisions: 11
+  dispositions: {CORE: 3, DOMAIN: 4, PROFILE: 0, MAPPING: 1, REJECT: 3}
+  ontology_remediation_in_this_pr: false
+  next_step: Review and merge this triage before opening separate, minimal remediation PRs by semantic family.
