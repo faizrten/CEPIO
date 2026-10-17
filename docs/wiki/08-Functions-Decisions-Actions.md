@@ -175,6 +175,43 @@ The original terminal state remains authoritative: a failed workflow stays `fail
 
 See [Kinetic Execution Resilience v0.2](../kinetic-execution-resilience.md) for the detailed retry, timeout, cancellation, persistence and compensation contract.
 
+## Governed external action lifecycle
+
+External enterprise writes are now modeled separately from the synchronous CEPIO Action result. A successfully authorized and audited CEPIO Action can be queued into the external-action control plane by its immutable `action_id`.
+
+```text
+CEPIO Action executed
+        |
+        v
+resolve canonical -> external identity
+        |
+        v
+PENDING_EXECUTION
+        |
+        v
+adapter write
+        |
+        v
+ACKNOWLEDGED
+        |
+        v
+PENDING_VERIFICATION
+        |
+        +--> VERIFIED
+        +--> FAILED
+        +--> UNKNOWN -> reconcile source truth
+```
+
+The calling application does not provide the source system, source operation, actor, decision or arbitrary write payload. Those values are recovered from the CEPIO Action audit and from CEPIO-owned `ExternalActionBinding` configuration. This keeps adapters behind the same identity, policy and audit boundary as the original Action.
+
+Canonical-to-source identity is explicit and fail-closed. A write requires exactly one usable mapping for the required source system and identity type; missing, stale, conflicting or ambiguous mappings never reach the adapter write call.
+
+A source acknowledgement is not treated as proof of business completion. CEPIO persists `pending_verification` until `verify_write(...)` confirms the expected source state. If a transport failure makes the write outcome uncertain, CEPIO records `unknown` and forbids blind redispatch. `reconcile_write(...)` must resolve source truth first.
+
+The adapter idempotency key is derived from source system, source operation and CEPIO `action_id`, preserving the causal chain from Decision -> Action -> Action audit -> adapter request -> verification/reconciliation.
+
+See [Governed External Action Runtime](../external-action-runtime.md) for the focused writeback contract and current limitations.
+
 ## Human and AI operating model
 
 A useful pattern is progressively increasing authority:
