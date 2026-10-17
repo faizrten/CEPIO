@@ -1,10 +1,10 @@
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
-import yaml
 
 from cepio.generalization import run_harness
-from scripts.build_drilling_domain_qualification_v041 import normalize
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "generalization"
@@ -12,13 +12,23 @@ ARCHETYPE = BASE / "archetypes/drilling-contractor-v0.1.yaml"
 PERSONAS = BASE / "personas/drilling-contractor-v0.3.yaml"
 RAW_COMPETENCY = BASE / "competency/drilling-contractor-domain-qualification-v0.4.yaml"
 STANDARDS = BASE / "standards/drilling-references.yaml"
+NORMALIZER = ROOT / "scripts/build_drilling_domain_qualification_v041.py"
 
 
 def test_normalized_v041_is_fully_answerable_after_core_remediation(tmp_path):
-    source = yaml.safe_load(RAW_COMPETENCY.read_text())
-    normalized = normalize(source)
     competency = tmp_path / "drilling-contractor-domain-qualification-v0.4.1.yaml"
-    competency.write_text(yaml.safe_dump(normalized, sort_keys=False))
+    subprocess.run(
+        [
+            sys.executable,
+            str(NORMALIZER),
+            "--source",
+            str(RAW_COMPETENCY),
+            "--out",
+            str(competency),
+        ],
+        cwd=ROOT,
+        check=True,
+    )
 
     report = run_harness(ROOT, ARCHETYPE, competency, PERSONAS, STANDARDS)
 
