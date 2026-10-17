@@ -148,6 +148,33 @@ Workflow trigger keys deduplicate repeated starts, while Action steps receive de
 
 See [Kinetic Runtime](../kinetic-runtime.md) for the focused contract and current non-goals.
 
+## Execution resilience
+
+The next kinetic slice adds durable execution-resilience state around the workflow kernel:
+
+```text
+Function
+  +-- success -> next
+  +-- transient failure -> bounded retry
+  +-- timeout -> retry / terminal failure
+
+terminal failure or cancellation
+  -> reverse completed compensatable Actions
+  -> policy check
+  -> compensation handler
+  -> Action audit
+```
+
+Retries and synchronous timeout guards are deliberately limited to side-effect-free Function steps. CEPIO does **not** automatically retry governed Action steps until the live-integration layer can prove source-system idempotency and reconciliation. A transport failure after creating a work order, for example, must not cause CEPIO to blindly create a second work order.
+
+Workflow cancellation is an explicit governed control operation. The workflow initiator or a role declared in the workflow control policy can cancel, subject to normal visibility of the workflow subject. Cancellation may reverse earlier compensatable Actions in reverse execution order.
+
+Compensation does not bypass Action governance. The compensating actor is evaluated against the same Action definition, and successful compensation is written through the immutable Action audit path with a deterministic compensation idempotency key.
+
+The original terminal state remains authoritative: a failed workflow stays `failed` even if rollback succeeds, and a cancelled workflow stays `cancelled`. Compensation status is tracked separately as `not_required`, `pending`, `completed` or `failed`.
+
+See [Kinetic Execution Resilience v0.2](../kinetic-execution-resilience.md) for the detailed retry, timeout, cancellation, persistence and compensation contract.
+
 ## Human and AI operating model
 
 A useful pattern is progressively increasing authority:
