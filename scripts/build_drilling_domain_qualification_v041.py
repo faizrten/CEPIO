@@ -46,7 +46,11 @@ def normalize(source: dict) -> dict:
                         term(f"{DRILL}ActivityInterval"),
                     ],
                     "edges": [
-                        edge(f"{AGENTIC}Prediction", f"{AGENTIC}predictionFor", f"{DRILL}ActivityInterval"),
+                        edge(
+                            f"{AGENTIC}Prediction",
+                            f"{AGENTIC}predictionFor",
+                            f"{DRILL}ActivityInterval",
+                        ),
                         edge(f"{AGENTIC}Prediction", f"{AGENTIC}predictsRisk", f"{CORE}Risk"),
                     ],
                 }
@@ -72,9 +76,21 @@ def normalize(source: dict) -> dict:
                         term(f"{WF}AuthorityAssignment"),
                     ],
                     "edges": [
-                        edge(f"{AGENTIC}Recommendation", f"{AGENTIC}recommendationFor", f"{DRILL}BlowoutPreventer"),
-                        edge(f"{AGENTIC}Recommendation", f"{AGENTIC}supportedByEvidence", f"{DRILL}WellControlTest"),
-                        edge(f"{AGENTIC}Recommendation", f"{AGENTIC}governedAtControlPoint", f"{AGENTIC}ControlPoint"),
+                        edge(
+                            f"{AGENTIC}Recommendation",
+                            f"{AGENTIC}recommendationFor",
+                            f"{DRILL}BlowoutPreventer",
+                        ),
+                        edge(
+                            f"{AGENTIC}Recommendation",
+                            f"{AGENTIC}supportedByEvidence",
+                            f"{DRILL}WellControlTest",
+                        ),
+                        edge(
+                            f"{AGENTIC}Recommendation",
+                            f"{AGENTIC}governedAtControlPoint",
+                            f"{AGENTIC}ControlPoint",
+                        ),
                     ],
                 }
             ],
@@ -123,8 +139,16 @@ def normalize(source: dict) -> dict:
                         term(f"{CORE}Risk"),
                     ],
                     "edges": [
-                        edge(f"{PERF}OutcomeAssessment", f"{PERF}assessmentOfDecision", f"{KIN}Decision"),
-                        edge(f"{PERF}OutcomeAssessment", f"{PERF}observedOutcome", f"{PERF}KPIObservation"),
+                        edge(
+                            f"{PERF}OutcomeAssessment",
+                            f"{PERF}assessmentOfDecision",
+                            f"{KIN}Decision",
+                        ),
+                        edge(
+                            f"{PERF}OutcomeAssessment",
+                            f"{PERF}observedOutcome",
+                            f"{PERF}KPIObservation",
+                        ),
                         edge(f"{PERF}OutcomeAssessment", f"{PERF}considersRisk", f"{CORE}Risk"),
                     ],
                 }

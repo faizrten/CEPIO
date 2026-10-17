@@ -29,7 +29,10 @@ def test_gap_triage_matches_normalized_v041_failures(tmp_path):
             sys.executable,
             str(ROOT / "scripts/build_drilling_domain_qualification_v041.py"),
             "--source",
-            str(ROOT / "generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml"),
+            str(
+                ROOT
+                / "generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml"
+            ),
             "--out",
             str(normalized),
         ],
@@ -58,7 +61,8 @@ def test_gap_triage_matches_normalized_v041_failures(tmp_path):
         for capability in result["capability_details"]:
             if not capability["ok"]:
                 best = next(
-                    pattern for pattern in capability["alternatives"]
+                    pattern
+                    for pattern in capability["alternatives"]
                     if pattern["id"] == capability["best_pattern"]
                 )
                 missing.update(best["missing"])
