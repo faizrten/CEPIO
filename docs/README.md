@@ -10,6 +10,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
 - **[Kinetic Runtime](kinetic-runtime.md)** — durable workflow kernel over CEPIO Functions, Decisions, approvals and governed Actions.
 - **[Kinetic Execution Resilience v0.2](kinetic-execution-resilience.md)** — bounded Function retry/timeout, workflow cancellation and governed reverse compensation.
+- **[Governed External Action Runtime](external-action-runtime.md)** — canonical-to-source identity resolution, async writeback, verification and reconciliation.
 - **[Generalization & Competency Harness](generalization-harness.md)** — agentic validation architecture and the deterministic drilling-contractor v0.1 benchmark.
 - **[Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)** — first evidence-driven remediation cycle against the frozen drilling benchmark.
 
@@ -29,6 +30,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 - [Kinetic runtime](kinetic-runtime.md)
 - [Kinetic execution resilience v0.2](kinetic-execution-resilience.md)
+- [Governed external action runtime](external-action-runtime.md)
 - [Temporal state projection](temporal-state-projection.md)
 - [Microsoft platform extension](microsoft-platform-extension.md)
 - [Foundry + MCP](foundry-mcp.md)

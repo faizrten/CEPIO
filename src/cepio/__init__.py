@@ -2,6 +2,18 @@
 
 from ._version import __version__
 from .bootstrap import build_kinetic_runtime, build_runtime
+from .external_actions import (
+    ExternalActionBinding,
+    ExternalActionExecution,
+    ExternalActionRuntime,
+    ExternalActionStatus,
+    ExternalIdentityMapping,
+    IdentityReconciliationStatus,
+    InMemoryExternalActionRepository,
+    SQLiteExternalActionRepository,
+    UnsafeExternalRedispatchError,
+    build_external_action_runtime,
+)
 from .graph_analytics import GraphAnalyticsEngine
 from .kinetic import (
     ApprovalTask,
@@ -34,9 +46,19 @@ __all__ = [
     "build_runtime",
     "build_kinetic_runtime",
     "build_resilient_kinetic_runtime",
+    "build_external_action_runtime",
     "CEPIORuntime",
     "KineticRuntime",
     "ResilientKineticRuntime",
+    "ExternalActionRuntime",
+    "ExternalActionBinding",
+    "ExternalActionExecution",
+    "ExternalActionStatus",
+    "ExternalIdentityMapping",
+    "IdentityReconciliationStatus",
+    "UnsafeExternalRedispatchError",
+    "InMemoryExternalActionRepository",
+    "SQLiteExternalActionRepository",
     "WorkflowDefinition",
     "WorkflowInstance",
     "WorkflowStatus",
