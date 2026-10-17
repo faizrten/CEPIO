@@ -2,7 +2,7 @@
 
 ## Purpose
 
-CEPIO Subsurface must not recreate OSDU or Azure Data Manager for Energy (ADME). OSDU/ADME is the governed technical data plane for subsurface domain data; CEPIO adds enterprise reasoning, uncertainty, decision provenance, governed action and cross-domain operating context.
+CEPIO Subsurface must not recreate OSDU or Azure Data Manager for Energy (ADME). OSDU/ADME is the governed technical data plane for subsurface domain data; CEPIO adds enterprise reasoning, uncertainty, opportunity semantics, decision provenance, governed action and cross-domain operating context.
 
 The architecture rule is:
 
@@ -48,6 +48,7 @@ Official references:
 | Enterprise semantics                                 |
 | Evidence · Hypothesis · Assumption                   |
 | Uncertainty · Confidence · Information Gain          |
+| Opportunity · Option · Recommendation                |
 | Decision provenance · Policy · Governed action       |
 +---------------------------+---------------------------+
                             |
@@ -148,6 +149,8 @@ OSDU ReservoirModelScenario RM-21
         |
         +--> has CEPIO UncertaintyAssessments
         |
+        +--> informs CEPIO Opportunity / Option evaluation
+        |
         +--> informs a CEPIO/Kinetic Decision
 ```
 
@@ -156,7 +159,7 @@ This allows CEPIO to answer questions such as:
 - Which assumptions were active when a well decision was made?
 - Which uncertainty changed between model scenarios?
 - What evidence caused confidence in a reservoir hypothesis to increase?
-- Which decisions are exposed to one geological interpretation?
+- Which opportunities and decisions are exposed to one geological interpretation?
 - What additional information would most reduce decision uncertainty?
 
 without becoming a reservoir-model store or simulator.
@@ -175,7 +178,8 @@ CEPIO owns the semantics of uncertainty but not the numerical engine.
 - dependencies and correlations;
 - assessment history/supersession;
 - information-gain semantics;
-- decision relevance and provenance.
+- opportunity and decision relevance;
+- decision provenance.
 
 ### External/domain engines own
 
@@ -232,9 +236,13 @@ The v0.1 contract requires that CEPIO:
 
 ## Reference decision loop
 
-The first Subsurface reference scenario remains an infill-well decision:
+The first Subsurface reference scenario is an infill-well opportunity/decision:
 
 ```text
+Objective
+  maximize economic recovery from Reservoir R3
+                         |
+                         v
 OSDU/ADME evidence
   wells · logs · seismic · interpretations · reservoir scenarios
                          |
@@ -242,28 +250,55 @@ OSDU/ADME evidence
 CEPIO Evidence + Hypothesis + Uncertainty + Confidence
                          |
                          v
-                 candidate opportunities
+                    Opportunity
+          "develop remaining R3 hydrocarbons"
+                         |
+          +--------------+--------------+
+          |              |              |
+          v              v              v
+       Option P117    Option P118    Option P121
+          |              |              |
+          +--------------+--------------+
                          |
                          v
-                    Decision
+                  Recommendation
                          |
                          v
-                     Action
+                     Decision
                          |
                          v
-                     Outcome
+                      Action
+                         |
+                         v
+                      Outcome
                          |
                          +----> new evidence / revised uncertainty
 ```
 
-This scenario is broad enough to validate OSDU identity preservation, DDMS runtime binding, uncertainty provenance, decision reasoning and the learning loop without requiring CEPIO to duplicate subsurface technical data.
+This scenario is broad enough to validate OSDU identity preservation, DDMS runtime binding, uncertainty provenance, opportunity semantics, decision reasoning and the learning loop without requiring CEPIO to duplicate subsurface technical data.
+
+## Runtime reference pattern
+
+CEPIO uses a provider-neutral external record reference instead of importing an OSDU schema into the runtime.
+
+```text
+ExternalRecordReference
+  source_system: osdu
+  source_service: reservoir_ddms
+  record_kind: ReservoirModelScenario
+  record_id: <authoritative OSDU id>
+  record_version: <authoritative OSDU version>
+  partition: <OSDU partition>
+```
+
+A `DomainBindingContract` resolves logical capabilities such as `subsurface.reservoir.model_scenario` to provider bindings. Current ADME gaps therefore remain deployment concerns, not ontology gaps.
 
 ## Next implementation increment
 
-v0.2 should implement the runtime abstraction behind the mapping contract:
+v0.2 should now focus on behavior rather than new infrastructure:
 
-1. `ExternalDomainReference` or equivalent source-reference contract without importing OSDU schemas into Core;
-2. provider adapters for OSDU Core Search/Storage and ADME Wellbore/Reservoir DDMS reads;
-3. evidence creation from authoritative OSDU references with source/version provenance;
-4. one end-to-end scenario linking `ReservoirModelScenario -> Evidence -> UncertaintyAssessment -> Decision`;
-5. customer-profile fallback binding for production time-series until a managed Production DDMS path is available.
+1. provider adapters for OSDU Core Search/Storage and ADME Wellbore/Reservoir DDMS reads;
+2. evidence creation from authoritative OSDU references with source/version provenance;
+3. one end-to-end scenario linking `ReservoirModelScenario -> Evidence -> UncertaintyAssessment -> Opportunity -> Option -> Recommendation -> Decision`;
+4. customer-profile fallback binding for production time-series until a managed Production DDMS path is available;
+5. domain-specific Subsurface characteristics and competency questions only where the reference scenario proves they are required.
