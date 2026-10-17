@@ -54,3 +54,7 @@ The original CI and CodeQL checks passed; base-relative coverage increased from
 83.926051% to 84.152698%. The follow-up activation PR exercises the trusted-base
 guard now installed on main, adds negative controls for metadata bypasses, and
 tests release-manifest hashing and version rejection without publishing artifacts.
+The activation follow-up also tightens security exception matching to exact code
+context and multiplicity. Bandit's native baseline matches file/rule/message and
+could hide another SQL warning in the same file; the CEPIO wrapper rejects that
+case and retains the raw scan report. Negative controls verify this behavior.

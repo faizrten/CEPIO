@@ -38,6 +38,23 @@ def test_public_signature_and_persistence_changes_are_detected():
     )
 
 
+def test_security_exceptions_cannot_hide_new_sql_in_same_file():
+    module = load_script("check_security")
+    issue = {
+        "filename": "src/cepio/query_backend.py",
+        "test_id": "B608",
+        "issue_text": "Possible SQL injection",
+        "issue_severity": "MEDIUM",
+        "issue_confidence": "LOW",
+        "code": "76 SELECT trusted\n77 bound parameters\n",
+    }
+    moved = dict(issue, code="90 SELECT trusted\n91 bound parameters\n")
+    injected = dict(issue, code="76 SELECT untrusted\n77 concatenated user input\n")
+    assert not module.unexpected([moved], [issue])
+    assert module.unexpected([injected], [issue])
+    assert module.unexpected([issue, issue], [issue])
+
+
 def test_trusted_base_governance_guard_accepts_evidence_and_rejects_bypasses():
     node = shutil.which("node")
     if node is None:
