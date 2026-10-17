@@ -45,9 +45,9 @@ def test_production_loss_is_common_performance_measurement():
     assert (PERF.ProcessProductionLoss, RDF.type, OWL.Class) not in graph
 
 
-def test_refinery_core_remediation_bumps_only_affected_common_modules():
+def test_refinery_remediation_versions_preserve_core_bumps_and_add_process_domain_bump():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     versions = {module["id"]: str(module["version"]) for module in catalogue["modules"]}
     assert versions["hse"] == "0.1.2"
     assert versions["performance"] == "0.1.1"
-    assert versions["process_industry"] == "0.1.0"
+    assert versions["process_industry"] == "0.1.1"
