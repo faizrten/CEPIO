@@ -12,11 +12,11 @@ CEPIO combines three dimensions:
       SEMANTICS            STATE             KINETICS
           |                  |                  |
       Objects              Events             Functions
-      Relationships        Time               Decisions
-      Properties           History            Actions
-      Evidence             Provenance         Workflows
-      Uncertainty          Projection         Constraints
-          |                  |                  |
+      Relationships        Time               Opportunities
+      Properties           History            Decisions
+      Evidence             Provenance         Actions
+      Uncertainty          Projection         Workflows
+          |                  |                Constraints
           +------------------+------------------+
                              |
                       Policy + Audit
@@ -28,7 +28,10 @@ A cross-cutting decision-learning loop connects these dimensions:
 Evidence
    -> Claim / Hypothesis / Assumption
    -> Uncertainty + Confidence
-   -> Recommendation / Decision
+   -> Opportunity
+   -> Options
+   -> Recommendation
+   -> Decision
    -> Action
    -> Outcome
    -> New Evidence
@@ -219,13 +222,55 @@ Examples:
 - recommend maintenance priority;
 - evaluate or propagate uncertainty using a bound analytical engine.
 
+## Opportunity, Option and Recommendation
+
+An **Opportunity** is a Kinetic object representing a prospective, actionable situation in which one or more possible courses of action could advance an objective or avoid loss.
+
+An **Option** is one possible course of action evaluated within an opportunity or decision context.
+
+A **Recommendation** is a reasoned proposal favoring one or more options. It is deliberately not a Decision: an AI agent, engineer or analytical workflow may recommend an option without possessing the authority to select it.
+
+The universal pattern is:
+
+```text
+Objective
+   <- opportunityForObjective - Opportunity
+                                  |
+                                  +-- hasOption --------> Option A
+                                  +-- hasOption --------> Option B
+                                  +-- hasOption --------> Option C
+                                  |
+                                  +-- hasRecommendation -> Recommendation
+                                                              |
+                                                              +-- recommendsOption -> Option B
+
+Decision
+   -- addressesOpportunity --> Opportunity
+   -- selectedOption --------> Option B
+   -- basedOnRecommendation -> Recommendation
+```
+
+Opportunity belongs in Kinetic rather than Core because it is prospective and action-oriented. Core describes what the enterprise knows, assumes and assesses; Kinetic describes what the enterprise may choose to pursue or change.
+
+Domains should not redefine their own incompatible opportunity lifecycle. They specialize what an opportunity concerns and may attach domain-specific maturity, value, feasibility or ranking semantics in domain modules, profiles or bound analytical models.
+
+Examples include:
+
+```text
+Subsurface  -> infill-well opportunity
+Refinery    -> margin-improvement opportunity
+Reliability -> intervention opportunity
+Drilling    -> performance-improvement opportunity
+Commercial  -> contracting or portfolio opportunity
+```
+
 ## Decision
 
-A **Decision** records the evidence, logic and conclusion connecting observed state to a recommended course of action.
+A **Decision** records the evidence, logic and conclusion connecting observed state to a selected course of action.
 
-Decision remains a Kinetic concept rather than a Core concept so the Core ontology remains the dependency root. Decisions can reference Core evidence, claims, assumptions, uncertainty assessments and confidence assessments.
+Decision remains a Kinetic concept rather than a Core concept so the Core ontology remains the dependency root. Decisions can reference Core evidence, claims, assumptions, uncertainty assessments and confidence assessments, and can explicitly address an Opportunity and select an Option.
 
-Decision records are useful because industrial AI should be able to explain not only *what* it recommends, but *why* and under what information state the recommendation was made.
+Decision records are useful because industrial AI should be able to explain not only *what* it recommends, but *why*, under what information state, and who had authority to select the option.
 
 ## Action
 
@@ -264,7 +309,7 @@ Typical provenance elements include:
 - observed time;
 - ingestion time.
 
-Because uncertainty and confidence assessments are first-class entities, CEPIO can preserve what evidence and assumptions were available when an assessment or historical decision was made.
+Because uncertainty, confidence, opportunity and recommendation are first-class entities, CEPIO can preserve what evidence and assumptions were available when a recommendation or historical decision was made.
 
 ## Profile
 
@@ -272,7 +317,7 @@ A **Profile** specializes canonical CEPIO semantics for a customer, asset, site 
 
 Examples in the repository include profile directions for SATORP/SEO and ARO/AD.
 
-Domain-specific uncertainty characteristics and quantitative representations belong in domain modules or profiles rather than CEPIO Core.
+Domain-specific uncertainty characteristics, opportunity categories, quantitative representations and ranking models belong in domain modules or profiles rather than CEPIO Core.
 
 ## Binding
 
