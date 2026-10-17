@@ -1,0 +1,199 @@
+id: refinery-process-manufacturing-persona-expansion-v0.2
+version: "0.2"
+archetype_id: refinery-process-manufacturing-v0.1
+frozen: true
+questions:
+  - id: RP-PE-001
+    question: Which crude or feed slate should the refinery run next, what process-unit constraints shape the feasible plan, and what margin exposure follows from the expected yields?
+    priority: critical
+    personas: [refinery-economist, plant-manager, finance-controller]
+    standards: [isa-95-2025, iso-20815-2026]
+    capability_tags: [planning, crude-slate, yield, margin]
+    terms:
+      - {iri: "https://cepio.org/ontology/process#MaterialStream", kind: class}
+      - {iri: "https://cepio.org/ontology/manufacturing#OperationsSchedule", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+      - {iri: "https://cepio.org/ontology/process#CrudeAssay", kind: class}
+      - {iri: "https://cepio.org/ontology/process#YieldModel", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/process#MaterialStream", predicate: "https://cepio.org/ontology/process#streamToUnit", target: "https://cepio.org/ontology/industrial#ProcessUnit"}
+      - {source: "https://cepio.org/ontology/process#CrudeAssay", predicate: "https://cepio.org/ontology/process#characterizesStream", target: "https://cepio.org/ontology/process#MaterialStream"}
+
+  - id: RP-PE-002
+    question: Is the next production schedule executable across tanks, blend requirements, transfer routes, inventory and committed product movements?
+    priority: critical
+    personas: [production-scheduler, tank-farm-movements-manager, quality-manager]
+    standards: [isa-95-2025, dexpi-2.0.1-2026]
+    capability_tags: [scheduling, blending, storage, movements]
+    terms:
+      - {iri: "https://cepio.org/ontology/manufacturing#OperationsSchedule", kind: class}
+      - {iri: "https://cepio.org/ontology/manufacturing#StorageUnit", kind: class}
+      - {iri: "https://cepio.org/ontology/manufacturing#MaterialLot", kind: class}
+      - {iri: "https://cepio.org/ontology/process#BlendPlan", kind: class}
+      - {iri: "https://cepio.org/ontology/process#MaterialMovement", kind: class}
+      - {iri: "https://cepio.org/ontology/process#TransferRoute", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/process#MaterialMovement", predicate: "https://cepio.org/ontology/process#movementFromStorage", target: "https://cepio.org/ontology/manufacturing#StorageUnit"}
+      - {source: "https://cepio.org/ontology/process#MaterialMovement", predicate: "https://cepio.org/ontology/process#movementToStorage", target: "https://cepio.org/ontology/manufacturing#StorageUnit"}
+
+  - id: RP-PE-003
+    question: Which operating procedure is the field operator executing, which step is active, what equipment state must be verified, and which permit or isolation gates the next step?
+    priority: critical
+    personas: [field-operator, console-operator, shift-supervisor]
+    standards: [isa-106-2023]
+    capability_tags: [procedure, field-execution, startup-shutdown, work-control]
+    terms:
+      - {iri: "https://cepio.org/ontology/process#OperatingProcedure", kind: class}
+      - {iri: "https://cepio.org/ontology/process#ProcedureStep", kind: class}
+      - {iri: "https://cepio.org/ontology/process#ProcedureExecution", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#WorkPermit", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#EnergyIsolation", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/process#ProcedureExecution", predicate: "https://cepio.org/ontology/process#executesProcedure", target: "https://cepio.org/ontology/process#OperatingProcedure"}
+      - {source: "https://cepio.org/ontology/process#ProcedureExecution", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/hse#WorkPermit"}
+
+  - id: RP-PE-004
+    question: Which alarm is currently the highest operator burden, what abnormal condition does it represent, what rationalized response is expected, and which control loop or equipment is involved?
+    priority: critical
+    personas: [process-control-engineer, console-operator, process-safety-manager]
+    standards: [iec-62682-2022, isa-106-2023]
+    capability_tags: [alarm-management, abnormal-situation, control, operator-response]
+    terms:
+      - {iri: "https://cepio.org/ontology/process#Alarm", kind: class}
+      - {iri: "https://cepio.org/ontology/process#AlarmRationalization", kind: class}
+      - {iri: "https://cepio.org/ontology/process#ControlLoop", kind: class}
+      - {iri: "https://cepio.org/ontology/process#AbnormalSituation", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/process#Alarm", predicate: "https://cepio.org/ontology/process#alarmForCondition", target: "https://cepio.org/ontology/process#AbnormalSituation"}
+      - {source: "https://cepio.org/ontology/process#AlarmRationalization", predicate: "https://cepio.org/ontology/process#rationalizesAlarm", target: "https://cepio.org/ontology/process#Alarm"}
+
+  - id: RP-PE-005
+    question: Which equipment has the highest integrity risk, which damage mechanism and inspection evidence drive that risk, and which integrity operating window excursion changes the inspection priority?
+    priority: critical
+    personas: [inspection-corrosion-engineer, reliability-engineer, process-safety-manager]
+    standards: [api-rp-580-4e, api-rp-584-2e, iso-14224-2016]
+    capability_tags: [mechanical-integrity, rbi, damage-mechanism, iow]
+    terms:
+      - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#Inspection", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#ConditionSignal", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#DamageMechanism", kind: class}
+      - {iri: "https://cepio.org/ontology/reliability#RiskBasedInspectionAssessment", kind: class}
+      - {iri: "https://cepio.org/ontology/process#IntegrityOperatingWindow", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/industrial#Equipment", predicate: "https://cepio.org/ontology/industrial#hasInspection", target: "https://cepio.org/ontology/industrial#Inspection"}
+      - {source: "https://cepio.org/ontology/reliability#DamageMechanism", predicate: "https://cepio.org/ontology/reliability#damageMechanismForEquipment", target: "https://cepio.org/ontology/industrial#Equipment"}
+
+  - id: RP-PE-006
+    question: Which electrical asset threatens unit availability, which motor or distribution component is affected, what isolation applies, and what arc-flash study bounds the planned intervention?
+    priority: critical
+    personas: [electrical-power-engineer, maintenance-planner, process-safety-manager]
+    standards: [ieee-841-2021, ieee-1584-2018]
+    capability_tags: [electrical, motor, power-distribution, arc-flash]
+    terms:
+      - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#EnergyIsolation", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#ElectricMotor", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#MotorControlCenter", kind: class}
+      - {iri: "https://cepio.org/ontology/hse#ArcFlashStudy", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/hse#EnergyIsolation", predicate: "https://cepio.org/ontology/hse#isolationForAsset", target: "https://cepio.org/ontology/industrial#Equipment"}
+      - {source: "https://cepio.org/ontology/industrial#ElectricMotor", predicate: "https://cepio.org/ontology/core#partOf", target: "https://cepio.org/ontology/industrial#Equipment"}
+
+  - id: RP-PE-007
+    question: Which field device or analyzer has degraded diagnostics, what process variable does it serve, where is it installed, and which control or safety function depends on it?
+    priority: required
+    personas: [instrumentation-analyzer-engineer, process-control-engineer, reliability-engineer]
+    standards: [opc-30081-padim-1.02, namur-noa-ne175-ne176]
+    capability_tags: [instrumentation, diagnostics, semantic-device-model, functional-location]
+    terms:
+      - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+      - {iri: "https://cepio.org/ontology/asset#FunctionalLocation", kind: class}
+      - {iri: "https://cepio.org/ontology/process#ProcessDevice", kind: class}
+      - {iri: "https://cepio.org/ontology/process#DeviceDiagnosticObservation", kind: class}
+      - {iri: "https://cepio.org/ontology/process#ProcessVariable", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/asset#InstalledAsset", predicate: "https://cepio.org/ontology/asset#installedAt", target: "https://cepio.org/ontology/asset#FunctionalLocation"}
+      - {source: "https://cepio.org/ontology/process#ProcessDevice", predicate: "https://cepio.org/ontology/process#measuresProcessVariable", target: "https://cepio.org/ontology/process#ProcessVariable"}
+
+  - id: RP-PE-008
+    question: Can the authoritative engineering record reconstruct the process topology from design tags through installed equipment, streams and handover documents without losing source provenance?
+    priority: required
+    personas: [engineering-information-manager, process-engineer]
+    standards: [iso-15926-2-2003, dexpi-2.0.1-2026, cfihos-2.0-2025]
+    capability_tags: [engineering-information, pid, topology, handover, provenance]
+    terms:
+      - {iri: "https://cepio.org/ontology/epcic#DesignTag", kind: class}
+      - {iri: "https://cepio.org/ontology/epcic#HandoverDocument", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+      - {iri: "https://cepio.org/ontology/process#ProcessStream", kind: class}
+      - {iri: "https://cepio.org/ontology/process#PipingSegment", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/asset#InstalledAsset", predicate: "https://cepio.org/ontology/epcic#realizesDesignTag", target: "https://cepio.org/ontology/epcic#DesignTag"}
+      - {source: "https://cepio.org/ontology/epcic#DesignTag", predicate: "https://cepio.org/ontology/epcic#hasHandoverDocument", target: "https://cepio.org/ontology/epcic#HandoverDocument"}
+      - {source: "https://cepio.org/ontology/process#PipingSegment", predicate: "https://cepio.org/ontology/process#carriesStream", target: "https://cepio.org/ontology/process#ProcessStream"}
+
+  - id: RP-PE-009
+    question: Which asset-management decision produces the best lifecycle value when cost, risk, performance, criticality and strategic objectives are evaluated together?
+    priority: required
+    personas: [asset-management-lead, finance-controller, reliability-engineer]
+    standards: [iso-55001-2024]
+    capability_tags: [asset-management, lifecycle-value, criticality, decision]
+    terms:
+      - {iri: "https://cepio.org/ontology/core#Asset", kind: class}
+      - {iri: "https://cepio.org/ontology/core#Risk", kind: class}
+      - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+      - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+      - {iri: "https://cepio.org/ontology/asset#AssetCriticality", kind: class}
+      - {iri: "https://cepio.org/ontology/asset#AssetManagementPlan", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/core#Asset"}
+
+  - id: RP-PE-010
+    question: Which tank or transfer route is constraining the current product movement plan, what material is in motion, and which inventory or quality commitment is exposed?
+    priority: critical
+    personas: [tank-farm-movements-manager, production-scheduler, quality-manager]
+    standards: [isa-95-2025, dexpi-2.0.1-2026]
+    capability_tags: [tankage, movement, route, inventory, product-quality]
+    terms:
+      - {iri: "https://cepio.org/ontology/manufacturing#StorageUnit", kind: class}
+      - {iri: "https://cepio.org/ontology/manufacturing#MaterialLot", kind: class}
+      - {iri: "https://cepio.org/ontology/process#MaterialStream", kind: class}
+      - {iri: "https://cepio.org/ontology/process#MaterialMovement", kind: class}
+      - {iri: "https://cepio.org/ontology/process#TransferRoute", kind: class}
+      - {iri: "https://cepio.org/ontology/supply#InventoryPosition", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/process#MaterialMovement", predicate: "https://cepio.org/ontology/process#usesTransferRoute", target: "https://cepio.org/ontology/process#TransferRoute"}
+
+  - id: RP-PE-011
+    question: Which failure scenario creates the greatest production-assurance exposure, how much available capacity and production are at risk, and which reliability intervention has the highest economic leverage?
+    priority: critical
+    personas: [production-assurance-engineer, reliability-engineer, plant-manager, finance-controller]
+    standards: [iso-20815-2026, iso-14224-2016]
+    capability_tags: [production-assurance, availability, capacity, production-loss, economics]
+    terms:
+      - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#ProductionLoss", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#ProcessUnit", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#ProductionCapacity", kind: class}
+      - {iri: "https://cepio.org/ontology/performance#AvailabilityKPI", kind: class}
+      - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/performance#ProductionLoss"}
+
+  - id: RP-PE-012
+    question: Which production data can be exposed to monitoring and optimization without changing the control path, which device or source supplies it, and what semantic context makes it safely consumable by an optimization application?
+    priority: required
+    personas: [ot-automation-engineer, instrumentation-analyzer-engineer, process-control-engineer]
+    standards: [namur-noa-ne175-ne176, opc-30081-padim-1.02]
+    capability_tags: [brownfield, monitoring-optimization, ot, information-model, data-path]
+    terms:
+      - {iri: "https://cepio.org/ontology/core#DigitalAsset", kind: class}
+      - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+      - {iri: "https://cepio.org/ontology/process#MonitoringOptimizationChannel", kind: class}
+      - {iri: "https://cepio.org/ontology/process#ProcessDevice", kind: class}
+      - {iri: "https://cepio.org/ontology/process#DeviceDiagnosticObservation", kind: class}
+    edges:
+      - {source: "https://cepio.org/ontology/process#MonitoringOptimizationChannel", predicate: "https://cepio.org/ontology/core#dependsOn", target: "https://cepio.org/ontology/industrial#Equipment"}
