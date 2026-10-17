@@ -2,6 +2,11 @@
 
 ## Purpose
 
+Quality automation is extended by [Code Quality & Governance v2](code-quality-governance-v2.md).
+That document corrects the check-name setup below using observed GitHub API names.
+The v2 solo-maintainer model still requires zero approvals and no merge queue;
+multi-maintainer controls discussed here remain future options.
+
 `main` is the trusted integration branch for CEPIO. Changes should reach `main` only after the repository has proved that the change is reviewable, traceable and compatible with CEPIO's architecture and release claims.
 
 This governance profile is intentionally optimized for a solo maintainer today while remaining suitable for a future multi-maintainer project.

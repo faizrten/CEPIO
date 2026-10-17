@@ -493,3 +493,7 @@ INDUSTRIAL OPERATING ABSTRACTION
 ```
 
 That is the direction of CEPIO.
+## Code quality and governance
+
+See [CEPIO Code Quality & Governance v2](docs/governance/code-quality-governance-v2.md)
+for automated quality evidence, release qualification, and exact ruleset setup.

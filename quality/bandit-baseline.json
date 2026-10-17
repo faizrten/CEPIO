@@ -1,0 +1,68 @@
+{
+  "errors": [],
+  "generated_at": "2026-10-17T18:35:16Z",
+  "metrics": {},
+  "results": [
+    {
+      "code": "350         rows = self._conn.execute(\n351             f\"SELECT payload FROM external_identity_mappings WHERE {' AND '.join(clauses)} \"\n352             \"ORDER BY system, identity_type, id\",\n353             tuple(params),\n",
+      "col_offset": 14,
+      "end_col_offset": 67,
+      "filename": "src/cepio/external_actions.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 351,
+      "line_range": [
+        351,
+        352
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "75         params.extend(order_params)\n76         return f\"SELECT o.payload FROM objects o{where}{order_sql}\", params\n77 \n",
+      "col_offset": 17,
+      "end_col_offset": 48,
+      "filename": "src/cepio/query_backend.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 76,
+      "line_range": [
+        76
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "192         return (\n193             f\"EXISTS (SELECT 1 FROM relationships {alias} JOIN objects {other} ON {other_join} WHERE {joined})\",\n194             params,\n",
+      "col_offset": 14,
+      "end_col_offset": 50,
+      "filename": "src/cepio/query_backend.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 193,
+      "line_range": [
+        193
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    }
+  ]
+}

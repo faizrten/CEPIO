@@ -1,5 +1,18 @@
 ## Summary
 
+## Risk classification
+
+- [ ] low
+- [ ] medium
+- [ ] high
+
+## Governance changes
+
+For protected paths, explain why the controls remain effective, identify the ADR,
+and describe validation. Otherwise write N/A with a reason.
+
+- [ ] Existing gates remain enforced.
+
 Describe the change and why it is needed.
 
 ## Linked issue

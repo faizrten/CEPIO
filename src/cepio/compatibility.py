@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 import json
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -66,9 +67,7 @@ class MigrationManifest:
         for item in raw.get("changes", []):
             for required in ("change", "rationale", "strategy"):
                 if not item.get(required):
-                    raise ValueError(
-                        f"Migration manifest {path} change requires {required}"
-                    )
+                    raise ValueError(f"Migration manifest {path} change requires {required}")
             if str(item["strategy"]) not in allowed_strategies:
                 raise ValueError(
                     f"Migration manifest {path} uses unsupported strategy {item['strategy']}"
@@ -264,7 +263,12 @@ def analyze_snapshots(old: dict, new: dict) -> list[ContractChange]:
         )
         for field_name, label, removed_kind, added_kind in [
             ("parents", "subclass edge", "subclass_edge_removed", "subclass_edge_added"),
-            ("domains", "domain constraint", "domain_constraint_removed", "domain_constraint_added"),
+            (
+                "domains",
+                "domain constraint",
+                "domain_constraint_removed",
+                "domain_constraint_added",
+            ),
             ("ranges", "range constraint", "range_constraint_removed", "range_constraint_added"),
             (
                 "datatype_ranges",
@@ -438,9 +442,26 @@ def snapshot_from_git_ref(
         with tarfile.open(tar_path) as tf:
             for member in tf.getmembers():
                 member_path = Path(member.name)
-                if member_path.is_absolute() or ".." in member_path.parts:
+                if (
+                    member_path.is_absolute()
+                    or ".." in member_path.parts
+                    or not (member.isdir() or member.isfile())
+                ):
                     raise ValueError(f"Unsafe path in git archive: {member.name}")
-            tf.extractall(exported_root)
+                destination = (exported_root / member_path).resolve()
+                if not destination.is_relative_to(exported_root.resolve()):
+                    raise ValueError(f"Unsafe path in git archive: {member.name}")
+            for member in tf.getmembers():
+                destination = exported_root / member.name
+                if member.isdir():
+                    destination.mkdir(parents=True, exist_ok=True)
+                else:
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    source = tf.extractfile(member)
+                    if source is None:
+                        raise ValueError(f"Unreadable archive member: {member.name}")
+                    with source, destination.open("wb") as output:
+                        shutil.copyfileobj(source, output)
         catalogue = ModuleCatalogue.load(exported_root / manifest_path)
         return catalogue.snapshot(exported_root)
 

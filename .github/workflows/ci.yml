@@ -2,6 +2,7 @@ name: CEPIO CI
 on:
   push:
   pull_request:
+  workflow_call:
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -134,3 +135,10 @@ jobs:
           done
           cat /tmp/cepio-health.json 2>/dev/null || true
           test "$healthy" -eq 1
+      - name: Retain compatibility and domain qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cepio-existing-ci-evidence-${{ github.run_id }}
+          path: '*report.json'
+          if-no-files-found: warn

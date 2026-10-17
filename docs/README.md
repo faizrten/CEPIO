@@ -4,6 +4,8 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 ## Start here
 
+- **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality gates, security, compatibility evidence, release qualification and required check names.
+
 - **[CEPIO v0.4 Developer Preview](developer-preview.md)** — clean-environment install, startup, qualification and release boundary.
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.

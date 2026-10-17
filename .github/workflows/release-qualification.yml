@@ -1,0 +1,61 @@
+name: CEPIO Release Qualification
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  existing-ci:
+    uses: ./.github/workflows/ci.yml
+  quality:
+    uses: ./.github/workflows/quality.yml
+  codeql:
+    uses: ./.github/workflows/codeql.yml
+    permissions:
+      contents: read
+      security-events: write
+  qualify:
+    name: release-qualification
+    needs: [existing-ci, quality, codeql]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Qualify integrated commits only
+        run: git merge-base --is-ancestor HEAD origin/main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
+      - run: mkdir -p evidence
+      - run: python -m build
+      - run: docker build -t cepio:qualified .
+      - name: Scan container and generate SBOM
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/evidence:/evidence" aquasec/trivy:0.67.2 image --format json --output /evidence/container-vulnerabilities.json --severity HIGH,CRITICAL --exit-code 1 cepio:qualified
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/evidence:/evidence" aquasec/trivy:0.67.2 image --format cyclonedx --output /evidence/container-sbom.json cepio:qualified
+      - run: python -m pip_audit --skip-editable --format cyclonedx-json --output evidence/python-sbom.json
+      - run: docker save cepio:qualified -o dist/cepio-container.tar
+      - name: Validate version, notes, and artifact integrity
+        env:
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        run: python scripts/qualify_release.py --tag "$RELEASE_TAG"
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/*
+            evidence/release-manifest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-release-qualification-${{ github.run_id }}
+          path: |
+            dist/
+            evidence/
