@@ -497,3 +497,7 @@ That is the direction of CEPIO.
 
 See [CEPIO Code Quality & Governance v2](docs/governance/code-quality-governance-v2.md)
 for automated quality evidence, release qualification, and exact ruleset setup.
+
+## Workflow policy v0.5.1
+
+[Workflow policy integration](docs/workflow-policy-v0.5.1.md) binds exact policy versions to durable workflow instances, derives trusted canonical context, pauses governed actions for human approval, and persists policy evidence through Action, external execution and Outcome.

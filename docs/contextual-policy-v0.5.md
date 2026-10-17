@@ -185,6 +185,8 @@ Not yet implemented in this slice:
 
 ## Recommended next slice
 
+Workflow integration is implemented in [v0.5.1](workflow-policy-v0.5.1.md). The first four integration items below are now available for governed Action steps; policy simulation/explanation remains future work.
+
 1. Add policy references to `WorkflowDefinition` and persist them on `WorkflowInstance`.
 2. Persist `PolicyEvaluation` identity/evidence with governed Action and workflow audit lineage.
 3. Add a runtime `PolicyContextProvider` that derives operating state, risk and evidence from CEPIO canonical state rather than trusting arbitrary client-supplied context.

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .workflow_policy import WorkflowPolicyApprovalPending
+
 import sqlite3
 from enum import Enum
 from pathlib import Path
@@ -231,6 +233,7 @@ class SQLiteWorkflowOutcomeRepository(WorkflowOutcomeRepository):
 
 
 class _ExternalVerificationMixin:
+    runtime: CEPIORuntime
     external_actions: ExternalActionRuntime
     outcome_repository: WorkflowOutcomeRepository
 
@@ -246,9 +249,7 @@ class _ExternalVerificationMixin:
         self.external_actions = external_actions
         self.outcome_repository = outcome_repository or InMemoryWorkflowOutcomeRepository()
 
-    def outcome_for_step(
-        self, instance_id: str, step_id: str
-    ) -> WorkflowOutcome | None:
+    def outcome_for_step(self, instance_id: str, step_id: str) -> WorkflowOutcome | None:
         self.get_instance(instance_id)
         return self.outcome_repository.find_outcome_for_step(instance_id, step_id)
 
@@ -270,9 +271,7 @@ class _ExternalVerificationMixin:
         }:
             return instance
         if instance.status != WorkflowStatus.waiting_for_external_verification:
-            raise RuntimeError(
-                f"Workflow {instance.id} is not waiting for external verification"
-            )
+            raise RuntimeError(f"Workflow {instance.id} is not waiting for external verification")
 
         definition = self._definition(instance.definition_id, instance.definition_version)
         step = definition.steps[instance.current_step]
@@ -447,15 +446,18 @@ class _ExternalVerificationMixin:
             external_execution_id=execution.id,
             status=status,
             evidence={
+                "policy_evidence": [
+                    a.policy_evidence
+                    for a in self.runtime.audits_for_action(action_id)
+                    if a.policy_evidence
+                ],
                 "external_status": execution.status.value,
                 "source_request_id": execution.source_request_id,
                 "source_payload": dict(execution.source_payload),
                 "message": execution.message,
                 "failure_reason": execution.failure_reason,
                 "verified_at": (
-                    execution.verified_at.isoformat()
-                    if execution.verified_at is not None
-                    else None
+                    execution.verified_at.isoformat() if execution.verified_at is not None else None
                 ),
                 "system": execution.system,
                 "operation": execution.operation,
@@ -616,6 +618,10 @@ class ExternalResilientKineticRuntime(_ExternalVerificationMixin, ResilientKinet
                     success = True
                     self.resilience_repository.save_step_state(resilience)
                     break
+                except WorkflowPolicyApprovalPending as exc:
+                    resilience.attempts -= 1
+                    self.resilience_repository.save_step_state(resilience)
+                    return self._wait_for_policy_approval(instance, step, state, exc)
                 except Exception as exc:
                     state.result = None
                     elapsed = monotonic() - started

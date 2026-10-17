@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -30,7 +31,9 @@ from .repositories import (
 
 ActionHandler = Callable[[ActionRequest, OntologyObject, "CEPIORuntime"], dict[str, Any]]
 Precondition = Callable[[ActionRequest, OntologyObject, "CEPIORuntime"], tuple[bool, str]]
-CompensationHandler = Callable[[ActionRequest, OntologyObject, dict[str, Any], "CEPIORuntime"], dict[str, Any]]
+CompensationHandler = Callable[
+    [ActionRequest, OntologyObject, dict[str, Any], "CEPIORuntime"], dict[str, Any]
+]
 FunctionHandler = Callable[..., Any]
 
 
@@ -95,7 +98,9 @@ class CEPIORuntime:
         self._functions: dict[str, FunctionDefinition] = {}
         self._decisions: dict[str, DecisionDefinition] = {}
 
-    def upsert_object(self, obj: OntologyObject, expected_version: int | None = None) -> OntologyObject:
+    def upsert_object(
+        self, obj: OntologyObject, expected_version: int | None = None
+    ) -> OntologyObject:
         if self.type_registry and not self.type_registry.is_declared_type(obj.type):
             raise ValueError(f"Undeclared CEPIO object type: {obj.type}")
         return self.object_repository.upsert_object(obj, expected_version=expected_version)
@@ -122,7 +127,9 @@ class CEPIORuntime:
             self.type_registry.validate_relationship_types(rel.type, source.type, target.type)
         return self.object_repository.add_relationship(rel)
 
-    def neighbors(self, object_id: str, relationship_type: str | None = None) -> list[OntologyObject]:
+    def neighbors(
+        self, object_id: str, relationship_type: str | None = None
+    ) -> list[OntologyObject]:
         self.get_object(object_id)
         result: list[OntologyObject] = []
         for rel in self.object_repository.get_relationships(object_id, direction="out"):
@@ -130,7 +137,9 @@ class CEPIORuntime:
                 result.append(self.get_object(rel.target.id))
         return result
 
-    def reverse_neighbors(self, object_id: str, relationship_type: str | None = None) -> list[OntologyObject]:
+    def reverse_neighbors(
+        self, object_id: str, relationship_type: str | None = None
+    ) -> list[OntologyObject]:
         self.get_object(object_id)
         result: list[OntologyObject] = []
         for rel in self.object_repository.get_relationships(object_id, direction="in"):
@@ -145,7 +154,11 @@ class CEPIORuntime:
             relationship_type = step[1:] if inverse else step
             next_objects: dict[str, OntologyObject] = {}
             for obj in current:
-                neighbors = self.reverse_neighbors(obj.id, relationship_type) if inverse else self.neighbors(obj.id, relationship_type)
+                neighbors = (
+                    self.reverse_neighbors(obj.id, relationship_type)
+                    if inverse
+                    else self.neighbors(obj.id, relationship_type)
+                )
                 for neighbor in neighbors:
                     next_objects[neighbor.id] = neighbor
             current = list(next_objects.values())
@@ -184,22 +197,71 @@ class CEPIORuntime:
         return name in self._actions
 
     def execute_action(self, request: ActionRequest) -> ActionResult:
+        return self._execute_action(request)
+
+    def execute_guarded_action(
+        self,
+        request: ActionRequest,
+        *,
+        policy_guard: Callable[
+            [ActionRequest, OntologyObject], tuple[PolicyDecision, dict[str, Any]]
+        ],
+    ) -> ActionResult:
+        """Trusted host integration; API/SDK callers cannot supply a policy guard."""
+        return self._execute_action(request, policy_guard=policy_guard)
+
+    def _execute_action(
+        self,
+        request: ActionRequest,
+        *,
+        policy_guard: Callable[
+            [ActionRequest, OntologyObject], tuple[PolicyDecision, dict[str, Any]]
+        ]
+        | None = None,
+    ) -> ActionResult:
         try:
             target = self.get_object(request.target.id)
         except KeyError as exc:
-            result = ActionResult(action_type=request.action_type, target=request.target, status=ActionStatus.failed, message=str(exc))
+            result = ActionResult(
+                action_type=request.action_type,
+                target=request.target,
+                status=ActionStatus.failed,
+                message=str(exc),
+            )
             audit = self._audit(request, result, None)
             result.audit_id = audit.id
             return result
 
         definition = self._actions.get(request.action_type)
         if not definition:
-            result = ActionResult(action_type=request.action_type, target=request.target, status=ActionStatus.failed, message="Unknown action type")
+            result = ActionResult(
+                action_type=request.action_type,
+                target=request.target,
+                status=ActionStatus.failed,
+                message="Unknown action type",
+            )
             audit = self._audit(request, result, None)
             result.audit_id = audit.id
             return result
 
         policy = self.policy_engine.evaluate_action(request, target, definition)
+        policy_evidence: dict[str, Any] = {}
+        if policy_guard is not None:
+            contextual, policy_evidence = policy_guard(request, target)
+            precedence = {
+                PolicyEffect.allow: 0,
+                PolicyEffect.recommend_only: 1,
+                PolicyEffect.approval_required: 2,
+                PolicyEffect.deny: 3,
+            }
+            policy = policy.model_copy(
+                update={
+                    "effect": max((policy.effect, contextual.effect), key=precedence.__getitem__),
+                    "reasons": [*policy.reasons, *contextual.reasons],
+                }
+            )
+        if policy_guard is not None:
+            policy_evidence["effective_effect"] = policy.effect.value
         if policy.effect != PolicyEffect.allow:
             result = ActionResult(
                 action_type=request.action_type,
@@ -208,6 +270,7 @@ class CEPIORuntime:
                 message="; ".join(policy.reasons) or "Action rejected by policy",
                 policy_reasons=policy.reasons,
             )
+            result.policy_evidence = policy_evidence
             audit = self._audit(request, result, policy)
             result.audit_id = audit.id
             raise AuthorizationError(result.message, result=result)
@@ -218,6 +281,7 @@ class CEPIORuntime:
             if prior:
                 replay = prior.model_copy(deep=True)
                 replay.replayed = True
+                replay.policy_evidence = policy_evidence
                 audit = self._audit(request, replay, policy, replayed=True)
                 replay.audit_id = audit.id
                 return replay
@@ -235,6 +299,7 @@ class CEPIORuntime:
                 message="Preconditions failed: " + "; ".join(failed_preconditions),
                 policy_reasons=policy.reasons,
             )
+            result.policy_evidence = policy_evidence
             audit = self._audit(request, result, policy)
             result.audit_id = audit.id
             self._cache_idempotent(scoped_key, result)
@@ -263,6 +328,7 @@ class CEPIORuntime:
                 message=str(exc),
                 policy_reasons=policy.reasons,
             )
+        result.policy_evidence = policy_evidence
         audit = self._audit(request, result, policy)
         result.audit_id = audit.id
         self._cache_idempotent(scoped_key, result)
@@ -272,7 +338,9 @@ class CEPIORuntime:
     def _scoped_idempotency_key(request: ActionRequest) -> str | None:
         if not request.idempotency_key:
             return None
-        return "|".join([request.actor_id, request.action_type, request.target.id, request.idempotency_key])
+        return "|".join(
+            [request.actor_id, request.action_type, request.target.id, request.idempotency_key]
+        )
 
     def _audit(
         self,
@@ -297,6 +365,7 @@ class CEPIORuntime:
             policy_effect=policy.effect if policy else None,
             policy_reasons=policy.reasons if policy else result.policy_reasons,
             effects=result.effects,
+            policy_evidence=deepcopy(result.policy_evidence),
             replayed=replayed,
         )
         return self.audit_repository.append_audit(entry)
@@ -372,7 +441,11 @@ class CEPIORuntime:
                     f"allowed: {sorted(definition.allowed_subject_types)}"
                 )
             for action in (decision.recommended_action, decision.selected_action):
-                if action and definition.allowed_actions and action not in definition.allowed_actions:
+                if (
+                    action
+                    and definition.allowed_actions
+                    and action not in definition.allowed_actions
+                ):
                     raise ValueError(
                         f"Decision {decision.decision_type} does not allow action {action}; "
                         f"allowed: {sorted(definition.allowed_actions)}"
@@ -396,5 +469,7 @@ class CEPIORuntime:
     def read_object_for_actor(self, object_id: str, roles: set[str]) -> OntologyObject:
         obj = self.get_object(object_id)
         if not self.policy_engine.can_read_type(roles, obj.type):
-            raise AuthorizationError(f"Actor roles are not authorized to read object type {obj.type}")
+            raise AuthorizationError(
+                f"Actor roles are not authorized to read object type {obj.type}"
+            )
         return self.policy_engine.filter_properties(roles, obj)

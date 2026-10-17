@@ -66,7 +66,14 @@ from .kinetic_resilience import (
     build_resilient_kinetic_runtime,
 )
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship
-from .query import ObjectQuery, ObjectQueryResult, PropertyPredicate, QueryOperator, RelationshipPredicate, SortField
+from .query import (
+    ObjectQuery,
+    ObjectQueryResult,
+    PropertyPredicate,
+    QueryOperator,
+    RelationshipPredicate,
+    SortField,
+)
 from .runtime import CEPIORuntime, DecisionDefinition
 from .skill_preflight import (
     SkillAuthorityContract,
@@ -80,6 +87,10 @@ from .skill_preflight import (
 )
 
 __all__ = [
+    "CanonicalPolicyContextProvider",
+    "PolicyContextProvider",
+    "TrustedPolicyContext",
+    "WorkflowPolicyBoundary",
     "__version__",
     "build_runtime",
     "build_kinetic_runtime",
@@ -158,3 +169,10 @@ __all__ = [
     "SortField",
     "QueryOperator",
 ]
+
+from .workflow_policy import (
+    CanonicalPolicyContextProvider,
+    PolicyContextProvider,
+    TrustedPolicyContext,
+    WorkflowPolicyBoundary,
+)
