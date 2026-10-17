@@ -279,6 +279,7 @@ class CEPIORuntime:
             message=result.message,
             idempotency_key=request.idempotency_key,
             correlation_id=request.correlation_id,
+            workflow_instance_id=request.workflow_instance_id,
             decision_id=request.decision_id,
             policy_effect=policy.effect if policy else None,
             policy_reasons=policy.reasons if policy else result.policy_reasons,
