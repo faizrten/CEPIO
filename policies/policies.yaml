@@ -21,7 +21,7 @@ policies:
     read_types: [Equipment, ProcessUnit, Measurement, KPI, Event]
     read_scopes: [internal]
     actions: []
-    functions: [calculateProductionLoss]
+    functions: [calculateProductionLoss, calculateProductionExposure]
   maintenance_engineer:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI]
     read_scopes: [internal]
@@ -30,34 +30,34 @@ policies:
       WorkOrder: "*"
       Inspection: "*"
     actions: [CreateWorkOrder, CreateInspection]
-    functions: [calculateProductionLoss, calculateAssetRisk]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk]
   maintenance_planner:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI]
     read_scopes: [internal]
     actions: [CreateWorkOrder]
-    functions: [calculateProductionLoss]
+    functions: [calculateProductionLoss, calculateProductionExposure]
   reliability_engineer:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     read_properties:
       Equipment: "*"
     actions: [CreateInspection, EscalateRisk]
-    functions: [calculateProductionLoss, calculateAssetRisk, calculateMarginImpact]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
   operations_supervisor:
     read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
     read_scopes: [internal]
     actions: [EscalateRisk]
-    functions: [calculateProductionLoss, calculateMarginImpact]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateMarginImpact]
   maintenance_manager:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
     actions: [ApproveMaintenanceDeferral]
-    functions: [calculateProductionLoss, calculateAssetRisk, calculateMarginImpact]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
   operations_manager:
     read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
     read_scopes: [internal]
     actions: [ApproveMaintenanceDeferral]
-    functions: [calculateProductionLoss, calculateAssetRisk, calculateMarginImpact]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
   ai_agent_recommender:
     read_types: [Equipment, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
@@ -66,7 +66,7 @@ policies:
       WorkOrder: [status, priority]
     actions: []
     can_recommend: [CreateWorkOrder, CreateInspection, EscalateRisk]
-    functions: [calculateProductionLoss, calculateAssetRisk, calculateMarginImpact]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
   autonomous_control_agent:
     read_types: [Equipment, Event, State, KPI]
     read_scopes: [internal]
