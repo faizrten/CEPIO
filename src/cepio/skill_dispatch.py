@@ -1,4 +1,5 @@
 """Host-only admission and deterministic dispatch; never an Operator tool."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -56,14 +57,13 @@ def dispatch_skill(
             raise ValueError("BOUND candidate requires an identity-matched resolved contract")
     roles = set(actor_roles)
     checks = tuple(
-        evaluate_skill_preflight(
-            runtime, candidate.spec, actor_id=actor_id, actor_roles=roles
-        )
+        evaluate_skill_preflight(runtime, candidate.spec, actor_id=actor_id, actor_roles=roles)
         for candidate in ordered
         if candidate.static_status == "BOUND" and candidate.spec is not None
     )
     ready = tuple(check.skill_id for check in checks if check.status == "READY")
     matched = tuple(skill_id for skill_id in ready if matches(skill_id))
+    status: Literal["NO_READY_SKILL", "NO_MATCH", "CONFLICT"]
     if not ready:
         status = "NO_READY_SKILL"
     elif not matched:

@@ -15,7 +15,9 @@ def candidate(skill_id="equipment", status="BOUND"):
 def run(candidates, roles=None, match=True):
     calls = []
     result = dispatch_skill(
-        build_runtime(), candidates, actor_id="actor",
+        build_runtime(),
+        candidates,
+        actor_id="actor",
         actor_roles=roles or {"ai_agent_recommender"},
         matches=lambda sid: calls.append(("match", sid)) or match,
         dispatch=lambda sid: calls.append(("dispatch", sid)) or sid,
@@ -61,19 +63,27 @@ def test_conflicts_are_order_independent_and_never_dispatch():
 
 
 def test_multiple_ready_unique_match_dispatches_only_matching_skill():
-    result = dispatch_skill(build_runtime(), [candidate("a"), candidate("b")],
-        actor_id="actor", actor_roles={"ai_agent_recommender"},
-        matches=lambda sid: sid == "b", dispatch=lambda sid: sid)
+    result = dispatch_skill(
+        build_runtime(),
+        [candidate("a"), candidate("b")],
+        actor_id="actor",
+        actor_roles={"ai_agent_recommender"},
+        matches=lambda sid: sid == "b",
+        dispatch=lambda sid: sid,
+    )
     assert result.status == "DISPATCHED"
     assert result.ready_ids == ("a", "b")
     assert result.output == "b"
 
 
-@pytest.mark.parametrize("candidates", [
-    [candidate(), candidate()],
-    [SkillCandidate("bad", "BOUND")],
-    [replace(candidate(), skill_id="mismatch")],
-])
+@pytest.mark.parametrize(
+    "candidates",
+    [
+        [candidate(), candidate()],
+        [SkillCandidate("bad", "BOUND")],
+        [replace(candidate(), skill_id="mismatch")],
+    ],
+)
 def test_invalid_configuration_fails_before_matching(candidates):
     with pytest.raises(ValueError):
         run(candidates)
@@ -83,5 +93,11 @@ def test_preflight_is_repeated_for_each_dispatch():
     runtime = build_runtime()
     spec = candidate()
     kwargs = dict(actor_id="actor", matches=lambda sid: True, dispatch=lambda sid: sid)
-    assert dispatch_skill(runtime, [spec], actor_roles={"ai_agent_recommender"}, **kwargs).status == "DISPATCHED"
-    assert dispatch_skill(runtime, [spec], actor_roles={"maintenance_engineer"}, **kwargs).status == "NO_READY_SKILL"
+    assert (
+        dispatch_skill(runtime, [spec], actor_roles={"ai_agent_recommender"}, **kwargs).status
+        == "DISPATCHED"
+    )
+    assert (
+        dispatch_skill(runtime, [spec], actor_roles={"maintenance_engineer"}, **kwargs).status
+        == "NO_READY_SKILL"
+    )
