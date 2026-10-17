@@ -1,0 +1,82 @@
+from pathlib import Path
+
+import yaml
+from rdflib import Graph, Namespace, RDF, RDFS, OWL
+
+ROOT = Path(__file__).resolve().parents[1]
+CEPIO = Namespace("https://cepio.org/ontology/core#")
+IND = Namespace("https://cepio.org/ontology/industrial#")
+MFG = Namespace("https://cepio.org/ontology/manufacturing#")
+PROCESS = Namespace("https://cepio.org/ontology/process#")
+
+
+def _graph(name: str) -> Graph:
+    graph = Graph()
+    graph.parse(ROOT / "ontologies" / name, format="turtle")
+    return graph
+
+
+def test_crude_assay_and_yield_model_connect_feed_characterization_to_units():
+    graph = _graph("process_industry.ttl")
+
+    assert (PROCESS.CrudeAssay, RDF.type, OWL.Class) in graph
+    assert (PROCESS.CrudeAssay, RDFS.subClassOf, CEPIO.Document) in graph
+    assert (PROCESS.YieldModel, RDF.type, OWL.Class) in graph
+    assert (PROCESS.YieldModel, RDFS.subClassOf, CEPIO.Entity) in graph
+
+    assert (PROCESS.characterizesStream, RDFS.domain, PROCESS.CrudeAssay) in graph
+    assert (PROCESS.characterizesStream, RDFS.range, PROCESS.MaterialStream) in graph
+    assert (PROCESS.yieldModelForStream, RDFS.range, PROCESS.MaterialStream) in graph
+    assert (PROCESS.yieldModelForUnit, RDFS.range, IND.ProcessUnit) in graph
+
+
+def test_blend_plan_reuses_isa95_schedule_and_material_lot_semantics():
+    graph = _graph("process_industry.ttl")
+
+    assert (PROCESS.BlendPlan, RDF.type, OWL.Class) in graph
+    assert (PROCESS.BlendPlan, RDFS.subClassOf, CEPIO.Document) in graph
+    assert (PROCESS.blendPlanForSchedule, RDFS.domain, PROCESS.BlendPlan) in graph
+    assert (PROCESS.blendPlanForSchedule, RDFS.range, MFG.OperationsSchedule) in graph
+    assert (PROCESS.blendPlanUsesLot, RDFS.range, MFG.MaterialLot) in graph
+
+    # Do not duplicate generic ISA-95 storage, lot, or schedule concepts in the
+    # process namespace merely to satisfy refinery terminology.
+    assert (PROCESS.StorageUnit, RDF.type, OWL.Class) not in graph
+    assert (PROCESS.MaterialLot, RDF.type, OWL.Class) not in graph
+    assert (PROCESS.OperationsSchedule, RDF.type, OWL.Class) not in graph
+
+
+def test_material_movement_and_transfer_route_form_a_reusable_bulk_transfer_graph():
+    graph = _graph("process_industry.ttl")
+
+    assert (PROCESS.MaterialMovement, RDF.type, OWL.Class) in graph
+    assert (PROCESS.MaterialMovement, RDFS.subClassOf, CEPIO.Activity) in graph
+    assert (PROCESS.TransferRoute, RDF.type, OWL.Class) in graph
+    assert (PROCESS.TransferRoute, RDFS.subClassOf, CEPIO.Entity) in graph
+
+    assert (PROCESS.movementFromStorage, RDFS.domain, PROCESS.MaterialMovement) in graph
+    assert (PROCESS.movementFromStorage, RDFS.range, MFG.StorageUnit) in graph
+    assert (PROCESS.movementToStorage, RDFS.domain, PROCESS.MaterialMovement) in graph
+    assert (PROCESS.movementToStorage, RDFS.range, MFG.StorageUnit) in graph
+    assert (PROCESS.usesTransferRoute, RDFS.domain, PROCESS.MaterialMovement) in graph
+    assert (PROCESS.usesTransferRoute, RDFS.range, PROCESS.TransferRoute) in graph
+    assert (PROCESS.movementCarriesLot, RDFS.range, MFG.MaterialLot) in graph
+    assert (PROCESS.movementForSchedule, RDFS.range, MFG.OperationsSchedule) in graph
+    assert (PROCESS.routeFromStorage, RDFS.range, MFG.StorageUnit) in graph
+    assert (PROCESS.routeToStorage, RDFS.range, MFG.StorageUnit) in graph
+
+
+def test_phase3_is_additively_versioned_and_declares_manufacturing_dependency():
+    catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
+    modules = {item["id"]: item for item in catalogue["modules"]}
+
+    process_module = modules["process_industry"]
+    assert str(process_module["version"]) == "0.1.4"
+    assert process_module["tier"] == "domain"
+
+    dependencies = {item["module"] for item in process_module["depends_on"]}
+    assert {"core", "industrial", "asset", "kinetic", "manufacturing"}.issubset(dependencies)
+
+    manufacturing = modules["manufacturing"]
+    manufacturing_dependencies = {item["module"] for item in manufacturing["depends_on"]}
+    assert "process_industry" not in manufacturing_dependencies
