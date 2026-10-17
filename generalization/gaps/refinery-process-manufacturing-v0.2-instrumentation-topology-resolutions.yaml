@@ -1,0 +1,78 @@
+id: refinery-process-manufacturing-v0.2-instrumentation-topology-resolutions
+version: "0.4"
+status: implemented
+source_triage: generalization/gaps/refinery-process-manufacturing-v0.2.yaml
+scope: instrumentation-and-engineering-topology
+resolutions:
+  - gap_id: GAP-RP2-007-PROCESS-VARIABLE
+    disposition: DOMAIN
+    status: implemented
+    module: process_industry
+    module_version: 0.1.5
+    implemented_semantics:
+      - process:ProcessVariable
+      - process:measuresProcessVariable
+    reused_semantics:
+      - industrial:Equipment
+      - cepio:Measurement
+    standards: [opc-30081-padim-1.02]
+
+  - gap_id: GAP-RP2-007-PADIM-DEVICE-MODEL
+    disposition: MAPPING
+    status: implemented
+    mapping: mappings/process_instrumentation_bindings.yaml
+    resolution: Map PA-DIM ProcessDevice identity to industrial:Equipment / asset:InstalledAsset and device diagnostics to reliability:ConditionSignal; preserve external identifiers and dictionary references as provenance rather than introducing parallel process ontology classes.
+    reused_semantics:
+      - industrial:Equipment
+      - asset:InstalledAsset
+      - asset:FunctionalLocation
+      - reliability:ConditionSignal
+      - reliability:observedOnEquipment
+      - process:ProcessVariable
+      - process:measuresProcessVariable
+    standards: [opc-30081-padim-1.02]
+
+  - gap_id: GAP-RP2-008-PROCESS-TOPOLOGY
+    disposition: DOMAIN
+    status: implemented
+    module: process_industry
+    module_version: 0.1.5
+    implemented_semantics:
+      - process:PipingSegment
+      - process:carriesStream
+    reused_semantics:
+      - cepio:PhysicalAsset
+      - process:ProcessStream
+    standards: [iso-15926-2-2003, dexpi-2.0.1-2026, cfihos-2.0-2025]
+
+  - gap_id: GAP-RP2-012-NAMUR-NOA-CHANNEL
+    disposition: MAPPING
+    status: implemented
+    mapping: mappings/process_instrumentation_bindings.yaml
+    resolution: Represent a NAMUR NOA monitoring-and-optimization channel as a cepio:DigitalAsset integration binding with explicit cepio:dependsOn links to source equipment plus policy and provenance metadata; do not create process:MonitoringOptimizationChannel.
+    reused_semantics:
+      - cepio:DigitalAsset
+      - cepio:dependsOn
+      - industrial:Equipment
+      - process:ProcessVariable
+    standards: [namur-noa-ne175-ne176]
+
+guardrails:
+  - frozen refinery competency pack v0.2 is unchanged
+  - process:ProcessVariable represents the durable phenomenon/context while observed values remain Measurement-derived records
+  - PA-DIM device identity is federated to existing Equipment and InstalledAsset semantics rather than copied into CEPIO
+  - PA-DIM diagnostics reuse reliability:ConditionSignal rather than introducing process-specific diagnostic observations
+  - process:PipingSegment is deliberately minimal; detailed DEXPI and CFIHOS exchange structures remain external mappings
+  - NAMUR NOA remains an integration/deployment pattern represented by DigitalAsset bindings, not process ontology vocabulary
+  - industrial-common modules remain independent of process_industry and no reverse dependency is introduced
+  - no customer/profile vocabulary is introduced
+
+expected_frozen_benchmark:
+  total_checks: 87
+  expected_passed_checks: 67
+  expected_semantic_readiness_percent: 77.0
+  expected_status: {PASS: 5, PARTIAL: 7, FAIL: 0, ERROR: 0}
+  expected_question_changes:
+    RP-PE-007: "3/7 -> 4/7 PARTIAL"
+    RP-PE-008: "6/8 -> 8/8 PASS"
+    RP-PE-012: "2/6 -> 2/6 PARTIAL"
