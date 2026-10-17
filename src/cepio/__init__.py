@@ -50,6 +50,16 @@ from .kinetic_resilience import (
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship
 from .query import ObjectQuery, ObjectQueryResult, PropertyPredicate, QueryOperator, RelationshipPredicate, SortField
 from .runtime import CEPIORuntime, DecisionDefinition
+from .skill_preflight import (
+    SkillAuthorityContract,
+    SkillGraphPathRequirement,
+    SkillGraphPathStep,
+    SkillPreflightCheck,
+    SkillPreflightResult,
+    SkillPreflightSpec,
+    SkillRegistry,
+    evaluate_skill_preflight,
+)
 
 __all__ = [
     "__version__",
@@ -61,6 +71,14 @@ __all__ = [
     "build_external_resilient_kinetic_runtime",
     "CEPIORuntime",
     "DecisionDefinition",
+    "SkillRegistry",
+    "SkillPreflightSpec",
+    "SkillPreflightResult",
+    "SkillPreflightCheck",
+    "SkillAuthorityContract",
+    "SkillGraphPathRequirement",
+    "SkillGraphPathStep",
+    "evaluate_skill_preflight",
     "KineticRuntime",
     "ResilientKineticRuntime",
     "ExternalKineticRuntime",
@@ -87,8 +105,8 @@ __all__ = [
     "SQLiteWorkflowOutcomeRepository",
     "StepExecutionPolicy",
     "WorkflowControlPolicy",
-    "StepResilienceState",
     "WorkflowResilienceState",
+    "StepResilienceState",
     "CompensationStatus",
     "WorkflowStepTimeout",
     "InMemoryResilienceRepository",
