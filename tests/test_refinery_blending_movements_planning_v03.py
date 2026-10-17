@@ -5,7 +5,6 @@ from rdflib import Graph, Namespace, RDF, RDFS, OWL
 
 ROOT = Path(__file__).resolve().parents[1]
 CEPIO = Namespace("https://cepio.org/ontology/core#")
-IND = Namespace("https://cepio.org/ontology/industrial#")
 MFG = Namespace("https://cepio.org/ontology/manufacturing#")
 PROCESS = Namespace("https://cepio.org/ontology/process#")
 
@@ -16,18 +15,19 @@ def _graph(name: str) -> Graph:
     return graph
 
 
-def test_crude_assay_and_yield_model_connect_feed_characterization_to_units():
+def test_crude_assay_is_canonical_but_yield_model_remains_outside_ontology():
     graph = _graph("process_industry.ttl")
 
     assert (PROCESS.CrudeAssay, RDF.type, OWL.Class) in graph
     assert (PROCESS.CrudeAssay, RDFS.subClassOf, CEPIO.Document) in graph
-    assert (PROCESS.YieldModel, RDF.type, OWL.Class) in graph
-    assert (PROCESS.YieldModel, RDFS.subClassOf, CEPIO.Entity) in graph
-
     assert (PROCESS.characterizesStream, RDFS.domain, PROCESS.CrudeAssay) in graph
     assert (PROCESS.characterizesStream, RDFS.range, PROCESS.MaterialStream) in graph
-    assert (PROCESS.yieldModelForStream, RDFS.range, PROCESS.MaterialStream) in graph
-    assert (PROCESS.yieldModelForUnit, RDFS.range, IND.ProcessUnit) in graph
+
+    # The accepted v0.2 triage classifies executable yield models as a
+    # model-registry / mapping-layer concern, not canonical ontology vocabulary.
+    assert (PROCESS.YieldModel, RDF.type, OWL.Class) not in graph
+    assert (PROCESS.yieldModelForStream, RDF.type, OWL.ObjectProperty) not in graph
+    assert (PROCESS.yieldModelForUnit, RDF.type, OWL.ObjectProperty) not in graph
 
 
 def test_blend_plan_reuses_isa95_schedule_and_material_lot_semantics():
