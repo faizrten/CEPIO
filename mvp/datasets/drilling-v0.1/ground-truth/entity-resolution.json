@@ -1,0 +1,35 @@
+[
+  {
+    "canonical_iri": "cepio://asset/rig-07/mud-pump-01",
+    "canonical_id": "rig-07-mud-pump-01",
+    "aliases": {
+      "equipment_master": "MUD_PUMP_01",
+      "historian": "MP-001",
+      "maintenance": "PUMP-1",
+      "daily_drilling_report": "Mud Pump A",
+      "vendor_manual": "National 12-P-160 / Unit A"
+    }
+  },
+  {
+    "canonical_iri": "cepio://asset/rig-12/top-drive-01",
+    "canonical_id": "rig-12-top-drive-01",
+    "aliases": {
+      "equipment_master": "TOP_DRIVE_01",
+      "historian": "TD12-001",
+      "maintenance": "TD-01",
+      "daily_drilling_report": "Top Drive",
+      "vendor_manual": "TDS-11SA / Rig 12"
+    }
+  },
+  {
+    "canonical_iri": "cepio://asset/rig-21/bop-01",
+    "canonical_id": "rig-21-bop-01",
+    "aliases": {
+      "equipment_master": "BOP_STACK_01",
+      "historian": "BOP21-ANN",
+      "maintenance": "BOP-A",
+      "daily_drilling_report": "BOP Stack",
+      "vendor_manual": "18-3/4 15K BOP"
+    }
+  }
+]

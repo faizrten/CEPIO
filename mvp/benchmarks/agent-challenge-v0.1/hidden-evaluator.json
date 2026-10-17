@@ -1,0 +1,58 @@
+{
+  "benchmark": "CEPIO Agent Challenge v0.1",
+  "visibility": "evaluator_only",
+  "scoring_version": "0.1",
+  "answers": [
+    {
+      "id": "AC-001",
+      "expected_refs": ["rig-07-mud-pump-01", "FAIL-001", "NPT-001", "WO-0071"],
+      "expected_values": [4.2]
+    },
+    {
+      "id": "AC-002",
+      "expected_refs": ["rig-12-top-drive-01", "WO-0124", "SCN-002"],
+      "expected_values": []
+    },
+    {
+      "id": "AC-003",
+      "expected_refs": ["rig-12-mud-pump-02", "SCN-004", "document", "inspection_image", "engineering_diagram", "high_frequency_signal"],
+      "expected_values": []
+    },
+    {
+      "id": "AC-004",
+      "expected_refs": ["rig-07-mud-pump-01", "vibration_rms", "bearing_temperature", "WO-0071"],
+      "expected_values": [true]
+    },
+    {
+      "id": "AC-005",
+      "expected_refs": ["rig-21-bop-01", "FAIL-003", "NPT-003", "WO-0219"],
+      "expected_values": [1.5]
+    },
+    {
+      "id": "AC-006",
+      "expected_refs": ["cepio://asset/rig-07/mud-pump-01"],
+      "expected_values": [],
+      "identity_question": true
+    },
+    {
+      "id": "AC-007",
+      "expected_refs": ["rig-12", "well-02", "well-05", "well-08"],
+      "expected_values": []
+    },
+    {
+      "id": "AC-008",
+      "expected_refs": ["SCN-002", "rig-12-top-drive-01", "WO-0124"],
+      "expected_values": []
+    },
+    {
+      "id": "AC-009",
+      "expected_refs": ["SCN-004", "document", "inspection_image", "engineering_diagram", "high_frequency_signal"],
+      "expected_values": []
+    },
+    {
+      "id": "AC-010",
+      "expected_refs": ["SCN-001", "rig-07-mud-pump-01", "NPT-001"],
+      "expected_values": [4.2]
+    }
+  ]
+}

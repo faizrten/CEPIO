@@ -1,0 +1,88 @@
+{
+  "benchmark": "CEPIO Agent Challenge v0.1",
+  "dataset_version": "0.2.0",
+  "rules": {
+    "agent_input": [
+      "question_text",
+      "cepio_tool_schemas"
+    ],
+    "forbidden_agent_inputs": [
+      "question_id",
+      "expected_refs",
+      "expected_values",
+      "ground_truth",
+      "scenario_hint"
+    ],
+    "direct_source_access": false,
+    "final_answer_schema": {
+      "answer": "string",
+      "refs": [
+        "string"
+      ],
+      "values": [
+        "number|string|boolean"
+      ],
+      "claims": [
+        {
+          "text": "string",
+          "supported_by": [
+            "tool_call_id"
+          ]
+        }
+      ],
+      "confidence": "0..1"
+    }
+  },
+  "questions": [
+    {
+      "id": "AC-001",
+      "level": "L4",
+      "question": "On Rig-07, which asset caused the most realized NPT, what failed, and which work order repaired it?"
+    },
+    {
+      "id": "AC-002",
+      "level": "L4",
+      "question": "Which active maintenance item on Rig-12 should be investigated before it becomes NPT, and which equipment is it protecting?"
+    },
+    {
+      "id": "AC-003",
+      "level": "L5",
+      "question": "What independent evidence supports the diagnosis of intermittent valve sticking on Rig-12 Mud Pump 2?"
+    },
+    {
+      "id": "AC-004",
+      "level": "L3",
+      "question": "Did Rig-07 Mud Pump 1 improve after maintenance, and which condition signals support that conclusion?"
+    },
+    {
+      "id": "AC-005",
+      "level": "L4",
+      "question": "Which BOP failure caused downtime, how much downtime did it create, and what maintenance action addressed it?"
+    },
+    {
+      "id": "AC-006",
+      "level": "L2",
+      "question": "What physical asset does historian identity MP-001 resolve to?"
+    },
+    {
+      "id": "AC-007",
+      "level": "L3",
+      "question": "Which rig is spatially associated with wells well-02, well-05 and well-08?"
+    },
+    {
+      "id": "AC-008",
+      "level": "L4",
+      "question": "Which scenario is the clearest proactive-maintenance case because maintenance is open but no failure or NPT has occurred?"
+    },
+    {
+      "id": "AC-009",
+      "level": "L5",
+      "question": "For SCN-004, which non-tabular evidence modalities can CEPIO retrieve to support the diagnosis?"
+    },
+    {
+      "id": "AC-010",
+      "level": "L5",
+      "question": "What should a maintenance superintendent prioritize by realized NPT impact, and what evidence supports that priority?"
+    }
+  ]
+}
