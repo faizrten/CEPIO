@@ -4,12 +4,14 @@ import argparse
 import importlib.util
 import json
 import math
-import selectors
+import queue
 import shlex
 import statistics
 import subprocess
 import tempfile
+import threading
 import time
+from collections import deque
 from pathlib import Path
 from typing import Any
 
@@ -516,18 +518,16 @@ class ExternalProcessAgent:
         proc.stdin.write(json.dumps(payload, separators=(",", ":")) + "\n")
         proc.stdin.flush()
 
-    def _read(self, proc: subprocess.Popen[str], selector: selectors.BaseSelector, deadline: float) -> dict[str, Any]:
+    def _read(self, proc, messages, deadline: float) -> dict[str, Any]:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError("Agent process exceeded challenge timeout")
-        events = selector.select(timeout=remaining)
-        if not events:
-            raise TimeoutError("Agent process did not produce a response before timeout")
-        assert proc.stdout is not None
-        line = proc.stdout.readline()
-        if not line:
-            stderr = proc.stderr.read() if proc.stderr is not None else ""
-            raise RuntimeError(f"Agent process exited before final answer: {stderr}")
+        try:
+            line = messages.get(timeout=remaining)
+        except queue.Empty as exc:
+            raise TimeoutError("Agent process did not produce a response before timeout") from exc
+        if line is None:
+            raise RuntimeError("Agent process exited before final answer")
         return json.loads(line)
 
     def run(self, question: str, gateway: CEPIOToolGateway) -> dict[str, Any]:
@@ -540,8 +540,25 @@ class ExternalProcessAgent:
             bufsize=1,
         )
         assert proc.stdout is not None
-        selector = selectors.DefaultSelector()
-        selector.register(proc.stdout, selectors.EVENT_READ)
+        messages: queue.Queue[str | None] = queue.Queue()
+        stderr_tail: deque[str] = deque(maxlen=80)
+
+        def read_stdout() -> None:
+            try:
+                for line in proc.stdout:
+                    messages.put(line)
+            finally:
+                messages.put(None)
+
+        def read_stderr() -> None:
+            if proc.stderr is not None:
+                for line in proc.stderr:
+                    stderr_tail.append(line[-8000:])
+
+        readers = [threading.Thread(target=read_stdout, daemon=True),
+                   threading.Thread(target=read_stderr, daemon=True)]
+        for reader in readers:
+            reader.start()
         deadline = time.monotonic() + self.timeout_seconds
         try:
             self._write(
@@ -560,7 +577,7 @@ class ExternalProcessAgent:
                 },
             )
             while True:
-                message = self._read(proc, selector, deadline)
+                message = self._read(proc, messages, deadline)
                 if message.get("type") == "tool_call":
                     requested_id = str(message.get("id", "agent-call"))
                     call_id, result = gateway.call(str(message.get("name")), message.get("arguments") or {})
@@ -580,14 +597,21 @@ class ExternalProcessAgent:
                         raise ValueError("Final agent message must contain an answer object")
                     return answer
                 raise ValueError(f"Unknown agent protocol message: {message}")
+        except (TimeoutError, RuntimeError) as exc:
+            raise type(exc)(f"{exc} Child stderr tail:\n{''.join(stderr_tail.copy())[-8000:]}") from exc
         finally:
-            selector.close()
             if proc.poll() is None:
                 proc.terminate()
                 try:
                     proc.wait(timeout=2)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+                    proc.wait(timeout=2)
+            for reader in readers:
+                reader.join(timeout=2)
+            for stream in (proc.stdin, proc.stdout, proc.stderr):
+                if stream is not None:
+                    stream.close()
 
 
 def _value_matches(expected: Any, observed: Any) -> bool:

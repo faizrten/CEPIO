@@ -71,6 +71,15 @@ CEPIO responds with a semantic tool result and a CEPIO `tool_call_id`:
 {"type":"tool_result","request_id":"agent-1","tool_call_id":"tc-01","result":[]}
 ```
 
+Concurrent Copilot handlers share one stdin reader/dispatcher. Each request has a unique ID;
+results are routed by `request_id`, including out-of-order responses, and preserve the
+CEPIO `tool_call_id` as `cepio_tool_call_id` in model-visible evidence. EOF or invalid
+correlation fails pending calls explicitly. Reader shutdown never waits for an open
+parent stdin. The harness drains stdout through one line reader (including buffered
+bursts) and stderr separately, then reaps the child and closes its pipes on every exit.
+The strict challenge deadline remains 120 seconds; model, prompt, questions, evaluator,
+and approved tool schemas are unchanged.
+
 The agent ends with a `final` message whose answer contains human-readable text, canonical refs, scalar values, supported claims, and confidence. No evaluator fields are sent to the child process.
 
 ## CI behavior

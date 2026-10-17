@@ -5,6 +5,8 @@ import json
 import os
 import sys
 import tempfile
+import threading
+from itertools import count
 from typing import Any
 
 from copilot import CopilotClient
@@ -42,8 +44,66 @@ def _read_protocol_line() -> dict[str, Any]:
     return json.loads(line)
 
 
-async def _read_protocol_line_async() -> dict[str, Any]:
-    return await asyncio.to_thread(_read_protocol_line)
+class ProtocolRouter:
+    """One daemon reader routes stdin results to event-loop-owned futures.
+
+    A daemon is intentional: stdin may remain open after the final answer, and
+    asyncio's default executor would otherwise wait forever during shutdown.
+    """
+
+    def __init__(self) -> None:
+        self.loop = asyncio.get_running_loop()
+        self.pending: dict[str, asyncio.Future] = {}
+        self.sequence = count(1)
+        self.closed = False
+        self.reader = threading.Thread(target=self._read, daemon=True)
+        self.reader.start()
+
+    def _read(self) -> None:
+        while not self.closed:
+            try:
+                response = _read_protocol_line()
+            except Exception as exc:
+                self._schedule(self.close, exc)
+                return
+            self._schedule(self._dispatch, response)
+
+    def _schedule(self, callback, value) -> None:
+        try:
+            self.loop.call_soon_threadsafe(callback, value)
+        except RuntimeError:
+            pass  # Event loop already closed after final answer.
+
+    def _dispatch(self, response: dict[str, Any]) -> None:
+        if self.closed:
+            return
+        request_id = response.get("request_id") if isinstance(response, dict) else None
+        if (not isinstance(request_id, str) or response.get("type") != "tool_result"
+                or request_id not in self.pending):
+            self.close(ValueError(f"Unexpected protocol response: {response}"))
+            return
+        future = self.pending.pop(request_id)
+        if not future.done():
+            future.set_result(response)
+
+    async def call(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        if self.closed:
+            raise EOFError("CEPIO protocol router is closed")
+        request_id = f"copilot-{next(self.sequence)}"
+        future = self.loop.create_future()
+        self.pending[request_id] = future
+        try:
+            _emit({"type": "tool_call", "id": request_id, "name": name, "arguments": arguments})
+            return await future
+        finally:
+            self.pending.pop(request_id, None)
+
+    def close(self, error: Exception | None = None) -> None:
+        self.closed = True
+        for future in self.pending.values():
+            if not future.done():
+                future.set_exception(error or EOFError("CEPIO protocol router closed"))
+        self.pending.clear()
 
 
 def _extract_json(content: Any) -> dict[str, Any]:
@@ -71,16 +131,11 @@ def _extract_json(content: Any) -> dict[str, Any]:
         raise
 
 
-def _make_tool(schema: dict[str, Any], protocol_lock: asyncio.Lock) -> Tool:
+def _make_tool(schema: dict[str, Any], router: ProtocolRouter) -> Tool:
     name = str(schema["name"])
 
     async def handler(invocation: ToolInvocation) -> ToolResult:
-        request_id = f"copilot-{name}-{id(invocation)}"
-        async with protocol_lock:
-            _emit({"type": "tool_call", "id": request_id, "name": name, "arguments": dict(invocation.arguments or {})})
-            response = await _read_protocol_line_async()
-        if response.get("type") != "tool_result" or response.get("request_id") != request_id:
-            raise ValueError(f"Expected tool_result for {request_id}, got {response}")
+        response = await router.call(name, dict(invocation.arguments or {}))
         payload = {"cepio_tool_call_id": response.get("tool_call_id"), "result": response.get("result")}
         return ToolResult(
             text_result_for_llm=json.dumps(payload, separators=(",", ":")),
@@ -108,8 +163,8 @@ async def _run() -> int:
         raise ValueError("First protocol message must be a CEPIO challenge")
 
     question = str(challenge["question"])
-    protocol_lock = asyncio.Lock()
-    tools = [_make_tool(schema, protocol_lock) for schema in (challenge.get("tools") or [])]
+    router = ProtocolRouter()
+    tools = [_make_tool(schema, router) for schema in (challenge.get("tools") or [])]
     available_tools = ToolSet()
     for tool in tools:
         available_tools.add_custom(tool.name)
@@ -120,53 +175,56 @@ async def _run() -> int:
         + json.dumps(final_schema, separators=(",", ":"))
     )
 
-    token = os.environ.get("GITHUB_TOKEN")
-    with tempfile.TemporaryDirectory(prefix="cepio-copilot-empty-") as base_directory:
-        async with CopilotClient(mode="empty", base_directory=base_directory, github_token=token) as client:
-            models = await asyncio.wait_for(client.list_models(), timeout=20.0)
-            model_ids = [str(getattr(model, "id", "")) for model in models]
-            print(
-                f"CEPIO Copilot child preflight: configured={MODEL} available={MODEL in model_ids} models={','.join(model_ids)}",
-                file=sys.stderr,
-                flush=True,
-            )
-            if MODEL not in model_ids:
-                raise RuntimeError(f"Configured Copilot model is unavailable: {MODEL}")
-            async with await client.create_session(
-                model=MODEL,
-                tools=tools,
-                available_tools=available_tools,
-                on_permission_request=PermissionHandler.approve_all,
-                system_message={"mode": "append", "content": SYSTEM_PROMPT},
-                infinite_sessions={"enabled": False},
-            ) as session:
-                def on_event(event: Any) -> None:
-                    name = _event_name(event)
-                    if name in {"session.start", "session.idle", "session.error", "assistant.message", "tool.execution_start", "tool.execution_complete"}:
-                        if name == "session.error":
-                            data = getattr(event, "data", None)
-                            print(
-                                "CEPIO Copilot event: session.error "
-                                f"type={getattr(data, 'error_type', None)} "
-                                f"status={getattr(data, 'status_code', None)} "
-                                f"message={getattr(data, 'message', None)}",
-                                file=sys.stderr,
-                                flush=True,
-                            )
-                        else:
-                            print(f"CEPIO Copilot event: {name}", file=sys.stderr, flush=True)
+    try:
+        token = os.environ.get("GITHUB_TOKEN")
+        with tempfile.TemporaryDirectory(prefix="cepio-copilot-empty-") as base_directory:
+            async with CopilotClient(mode="empty", base_directory=base_directory, github_token=token) as client:
+                models = await asyncio.wait_for(client.list_models(), timeout=20.0)
+                model_ids = [str(getattr(model, "id", "")) for model in models]
+                print(
+                    f"CEPIO Copilot child preflight: configured={MODEL} available={MODEL in model_ids} models={','.join(model_ids)}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                if MODEL not in model_ids:
+                    raise RuntimeError(f"Configured Copilot model is unavailable: {MODEL}")
+                async with await client.create_session(
+                    model=MODEL,
+                    tools=tools,
+                    available_tools=available_tools,
+                    on_permission_request=PermissionHandler.approve_all,
+                    system_message={"mode": "append", "content": SYSTEM_PROMPT},
+                    infinite_sessions={"enabled": False},
+                ) as session:
+                    def on_event(event: Any) -> None:
+                        name = _event_name(event)
+                        if name in {"session.start", "session.idle", "session.error", "assistant.message", "tool.execution_start", "tool.execution_complete"}:
+                            if name == "session.error":
+                                data = getattr(event, "data", None)
+                                print(
+                                    "CEPIO Copilot event: session.error "
+                                    f"type={getattr(data, 'error_type', None)} "
+                                    f"status={getattr(data, 'status_code', None)} "
+                                    f"message={getattr(data, 'message', None)}",
+                                    file=sys.stderr,
+                                    flush=True,
+                                )
+                            else:
+                                print(f"CEPIO Copilot event: {name}", file=sys.stderr, flush=True)
 
-                session.on(on_event)
-                print("CEPIO Copilot: session created; sending challenge prompt", file=sys.stderr, flush=True)
-                response = await session.send_and_wait(prompt, timeout=90.0)
-                if response is None:
-                    raise RuntimeError("Copilot session completed without an assistant message")
-                content = getattr(getattr(response, "data", None), "content", None)
-                if content is None:
-                    raise RuntimeError(f"Copilot response had no content: {response!r}")
-                final = _extract_json(content)
-                _emit({"type": "final", "answer": final})
-                return 0
+                    session.on(on_event)
+                    print("CEPIO Copilot: session created; sending challenge prompt", file=sys.stderr, flush=True)
+                    response = await session.send_and_wait(prompt, timeout=90.0)
+                    if response is None:
+                        raise RuntimeError("Copilot session completed without an assistant message")
+                    content = getattr(getattr(response, "data", None), "content", None)
+                    if content is None:
+                        raise RuntimeError(f"Copilot response had no content: {response!r}")
+                    final = _extract_json(content)
+                    _emit({"type": "final", "answer": final})
+                    return 0
+    finally:
+        router.close()
 
 
 def main() -> int:
