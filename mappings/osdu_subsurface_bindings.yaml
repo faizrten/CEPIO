@@ -1,0 +1,273 @@
+schema_version: '0.1'
+profile: osdu-adme-subsurface
+status: experimental
+baseline:
+  reviewed_at: '2026-10-17'
+  osdu_milestone: M26
+  adme_alignment: M26
+
+principles:
+  canonical_data_plane: osdu_adme
+  cepio_role: semantic_reasoning_decision_action_plane
+  treatments: [REUSE, BIND, EXTEND, OWN]
+  rules:
+    - preserve_external_identity
+    - do_not_duplicate_bulk_or_domain_payloads
+    - attach_cepio_semantics_as_sidecars
+    - resolve_platform_access_through_capabilities
+    - keep_domain_computation_outside_cepio_core
+
+providers:
+  adme:
+    available:
+      - osdu_core
+      - seismic_ddms
+      - wellbore_ddms
+      - rock_fluid_samples_ddms
+      - reservoir_ddms
+      - external_data_services
+    unavailable_or_not_primary:
+      - production_ddms
+      - well_delivery_ddms
+      - seismic_ddms_v4
+      - energistics_parser_dags
+      - policy_service
+    analytics_consumption_zone:
+      status: preview_partial
+      supported_scope:
+        - catalog_kinds
+        - wellbore_ddms_kinds
+      unsupported_scope:
+        - reservoir_ddms
+        - seismic_ddms
+        - rock_fluid_samples_ddms
+
+objects:
+  - id: well
+    external_kind: master-data--Well
+    provider_capability: subsurface.well.master
+    adme_service: osdu_core
+    treatment: BIND
+    cepio_type: https://cepio.org/ontology/energy#Well
+    storage_policy: identity_operating_context_only
+    reasoning_roles: [subject, context]
+
+  - id: wellbore
+    external_kind: master-data--Wellbore
+    provider_capability: subsurface.wellbore.master
+    adme_service: wellbore_ddms
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [subject, evidence_context]
+
+  - id: trajectory
+    external_kind: work-product-component--WellboreTrajectory
+    provider_capability: subsurface.wellbore.trajectory
+    adme_service: wellbore_ddms
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [evidence]
+
+  - id: well_log
+    external_kind: work-product-component--WellLog
+    provider_capability: subsurface.wellbore.log
+    adme_service: wellbore_ddms
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [evidence]
+
+  - id: well_marker
+    external_kind: work-product-component--WellboreMarkerSet
+    provider_capability: subsurface.wellbore.marker
+    adme_service: wellbore_ddms
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [evidence]
+
+  - id: seismic_dataset
+    external_kind: dataset--Seismic*
+    provider_capability: subsurface.seismic.dataset
+    adme_service: seismic_ddms
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [evidence]
+
+  - id: reservoir
+    external_kind: master-data--Reservoir
+    provider_capability: subsurface.reservoir.master
+    adme_service: osdu_core
+    treatment: BIND
+    cepio_type: https://cepio.org/ontology/energy#Reservoir
+    storage_policy: identity_operating_context_only
+    reasoning_roles: [subject, context]
+
+  - id: reservoir_segment
+    external_kind: master-data--ReservoirSegment
+    provider_capability: subsurface.reservoir.segment
+    adme_service: osdu_core
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [subject, evidence_context]
+
+  - id: fault_interpretation
+    external_kind: work-product-component--FaultInterpretation
+    provider_capability: subsurface.interpretation.fault
+    adme_service: reservoir_ddms
+    treatment: EXTEND
+    storage_policy: external_reference_plus_cepio_sidecar
+    reasoning_roles: [evidence, hypothesis_subject, uncertainty_subject]
+    sidecar_semantics:
+      - https://cepio.org/ontology/core#Hypothesis
+      - https://cepio.org/ontology/core#ConfidenceAssessment
+      - https://cepio.org/ontology/core#UncertaintyAssessment
+
+  - id: stratigraphic_unit_interpretation
+    external_kind: work-product-component--StratigraphicUnitInterpretation
+    provider_capability: subsurface.interpretation.stratigraphy
+    adme_service: reservoir_ddms
+    treatment: EXTEND
+    storage_policy: external_reference_plus_cepio_sidecar
+    reasoning_roles: [evidence, hypothesis_subject, uncertainty_subject]
+    sidecar_semantics:
+      - https://cepio.org/ontology/core#Hypothesis
+      - https://cepio.org/ontology/core#ConfidenceAssessment
+      - https://cepio.org/ontology/core#UncertaintyAssessment
+
+  - id: fluid_boundary_interpretation
+    external_kind: work-product-component--FluidBoundaryInterpretation
+    provider_capability: subsurface.interpretation.fluid_boundary
+    adme_service: reservoir_ddms
+    treatment: EXTEND
+    storage_policy: external_reference_plus_cepio_sidecar
+    reasoning_roles: [evidence, hypothesis_subject, uncertainty_subject]
+    sidecar_semantics:
+      - https://cepio.org/ontology/core#Hypothesis
+      - https://cepio.org/ontology/core#ConfidenceAssessment
+      - https://cepio.org/ontology/core#UncertaintyAssessment
+
+  - id: rock_fluid_unit_interpretation
+    external_kind: work-product-component--RockFluidUnitInterpretation
+    provider_capability: subsurface.interpretation.rock_fluid_unit
+    adme_service: reservoir_ddms
+    treatment: EXTEND
+    storage_policy: external_reference_plus_cepio_sidecar
+    reasoning_roles: [evidence, hypothesis_subject, uncertainty_subject]
+    sidecar_semantics:
+      - https://cepio.org/ontology/core#Hypothesis
+      - https://cepio.org/ontology/core#ConfidenceAssessment
+      - https://cepio.org/ontology/core#UncertaintyAssessment
+
+  - id: seismic_3d_interpretation_set
+    external_kind: work-product-component--Seismic3DInterpretationSet
+    provider_capability: subsurface.interpretation.seismic3d
+    adme_service: reservoir_ddms
+    treatment: EXTEND
+    storage_policy: external_reference_plus_cepio_sidecar
+    reasoning_roles: [evidence, hypothesis_subject, uncertainty_subject]
+    sidecar_semantics:
+      - https://cepio.org/ontology/core#Hypothesis
+      - https://cepio.org/ontology/core#ConfidenceAssessment
+      - https://cepio.org/ontology/core#UncertaintyAssessment
+
+  - id: reservoir_model_scenario
+    external_kind: work-product-component--ReservoirModelScenario
+    provider_capability: subsurface.reservoir.model_scenario
+    adme_service: reservoir_ddms
+    treatment: EXTEND
+    storage_policy: external_reference_plus_cepio_sidecar
+    reasoning_roles: [evidence, assumption_context, uncertainty_context, decision_input]
+    sidecar_semantics:
+      - https://cepio.org/ontology/core#Evidence
+      - https://cepio.org/ontology/core#Assumption
+      - https://cepio.org/ontology/core#UncertaintyAssessment
+      - https://cepio.org/ontology/core#ConfidenceAssessment
+
+  - id: reservoir_grid_or_resqml_object
+    external_kind: reservoir-ddms--RESQML*
+    provider_capability: subsurface.reservoir.model_object
+    adme_service: reservoir_ddms
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [evidence]
+
+  - id: rock_fluid_sample
+    external_kind: rafs--Sample*
+    provider_capability: subsurface.sample.master
+    adme_service: rock_fluid_samples_ddms
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [evidence]
+
+  - id: rock_fluid_analysis
+    external_kind: rafs--Analysis*
+    provider_capability: subsurface.sample.analysis
+    adme_service: rock_fluid_samples_ddms
+    treatment: REUSE
+    storage_policy: external_reference_only
+    reasoning_roles: [evidence]
+
+cepio_native:
+  - id: evidence
+    type: https://cepio.org/ontology/core#Evidence
+    treatment: OWN
+    purpose: provenance-bearing evidence wrapper or assertion about external/domain facts
+
+  - id: hypothesis
+    type: https://cepio.org/ontology/core#Hypothesis
+    treatment: OWN
+    purpose: testable enterprise belief supported or contradicted by evidence
+
+  - id: assumption
+    type: https://cepio.org/ontology/core#Assumption
+    treatment: OWN
+    purpose: explicit premise used in analysis or decision context
+
+  - id: uncertainty_assessment
+    type: https://cepio.org/ontology/core#UncertaintyAssessment
+    treatment: OWN
+    purpose: time-bound assessment of uncertainty about an entity, claim, property, scenario or forecast
+
+  - id: confidence_assessment
+    type: https://cepio.org/ontology/core#ConfidenceAssessment
+    treatment: OWN
+    purpose: assessment of belief strength distinct from parameter uncertainty
+
+  - id: information_gain
+    type: https://cepio.org/ontology/core#InformationGain
+    treatment: OWN
+    purpose: expected or realized reduction of decision-relevant uncertainty from new evidence
+
+runtime_capabilities:
+  subsurface.well.master:
+    preferred_binding: adme.osdu_core
+  subsurface.wellbore.master:
+    preferred_binding: adme.wellbore_ddms
+  subsurface.wellbore.log:
+    preferred_binding: adme.wellbore_ddms
+  subsurface.wellbore.trajectory:
+    preferred_binding: adme.wellbore_ddms
+  subsurface.seismic.dataset:
+    preferred_binding: adme.seismic_ddms
+  subsurface.sample.master:
+    preferred_binding: adme.rock_fluid_samples_ddms
+  subsurface.sample.analysis:
+    preferred_binding: adme.rock_fluid_samples_ddms
+  subsurface.reservoir.master:
+    preferred_binding: adme.osdu_core
+  subsurface.reservoir.model_scenario:
+    preferred_binding: adme.reservoir_ddms
+  subsurface.reservoir.model_object:
+    preferred_binding: adme.reservoir_ddms
+  subsurface.production.timeseries:
+    preferred_binding: null
+    fallback_strategy: customer_profile_binding
+    note: ADME M26 does not provide Production DDMS; do not synthesize a CEPIO replacement.
+
+anti_duplication_invariants:
+  - cepio_must_not_store_seismic_bulk_payload
+  - cepio_must_not_store_well_log_bulk_payload
+  - cepio_must_not_store_resqml_bulk_payload
+  - cepio_must_not_copy_osdu_interpretation_payload_as_canonical_state
+  - cepio_must_not_assume_acz_supports_all_subsurface_ddms
+  - cepio_must_preserve_osdu_record_and_version_identity
+  - cepio_sidecars_must_retain_source_provenance
