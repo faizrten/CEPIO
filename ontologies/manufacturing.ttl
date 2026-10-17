@@ -101,6 +101,11 @@ mfg:TestResult a owl:Class ; rdfs:subClassOf cepio:Measurement .
 mfg:PropertyMeasurement a owl:Class ; rdfs:subClassOf cepio:Measurement .
 mfg:EvaluatedProperty a owl:Class ; rdfs:subClassOf cepio:Entity .
 mfg:TestableObject a owl:Class ; rdfs:subClassOf cepio:Entity .
+# A quality disposition is a governed operational work item (hold, release,
+# rework, regrade, blend-back, scrap, etc.) applied after lot evaluation. It is
+# not a refinery-specific class and does not require manufacturing to depend on
+# the kinetic decision module.
+mfg:QualityDisposition a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 
 # ISA-95 Part 4 work model.
 mfg:WorkDefinition a owl:Class ; rdfs:subClassOf cepio:Document .
@@ -151,6 +156,11 @@ mfg:classifiedAsPhysicalAsset a owl:ObjectProperty ; rdfs:domain cepio:PhysicalA
 mfg:materialDefinedBy a owl:ObjectProperty ; rdfs:domain mfg:Material ; rdfs:range mfg:MaterialDefinition .
 mfg:materialClassifiedAs a owl:ObjectProperty ; rdfs:domain mfg:Material ; rdfs:range mfg:MaterialClass .
 mfg:lotContainsSublot a owl:ObjectProperty ; rdfs:domain mfg:MaterialLot ; rdfs:range mfg:MaterialSublot .
+# Lot/specification and disposition relationships deliberately avoid encoding
+# a boolean conformance claim in the graph edge. The measured result carries the
+# pass/fail evidence; the edge records what specification governed evaluation.
+mfg:lotEvaluatedAgainstSpecification a owl:ObjectProperty ; rdfs:domain mfg:MaterialLot ; rdfs:range mfg:MaterialSpecification .
+mfg:dispositionForLot a owl:ObjectProperty ; rdfs:domain mfg:QualityDisposition ; rdfs:range mfg:MaterialLot .
 
 mfg:definitionHasSegment a owl:ObjectProperty ; rdfs:domain mfg:OperationsDefinition ; rdfs:range mfg:OperationsSegment .
 mfg:segmentDependsOn a owl:ObjectProperty ; rdfs:domain mfg:OperationsSegment ; rdfs:range mfg:OperationsSegment .
