@@ -85,16 +85,16 @@ CEPIO canonicalizes the durable decision concepts needed across asset-heavy indu
 - Industrial and asset modules remain industrial-common and independent of `process_industry`.
 - No customer/profile vocabulary is introduced.
 
-## Frozen benchmark expectation
+## Frozen benchmark result
 
-Expected movement:
+Measured by CI after implementation:
 
-- `RP-PE-006`: 3/7 -> 5/7 PARTIAL
+- `RP-PE-006`: 3/7 -> 6/7 PARTIAL
 - `RP-PE-009`: 5/7 -> 7/7 PASS
-- aggregate: 67/87 (77.0%) -> 71/87 (81.6%)
-- expected status: PASS 6 / PARTIAL 6 / FAIL 0 / ERROR 0
+- aggregate: 67/87 (77.0%) -> **72/87 (82.8%)**
+- status: **PASS 6 / PARTIAL 6 / FAIL 0 / ERROR 0**
 
-The remaining two literals in `RP-PE-006` are intentional architecture boundaries rather than missing canonical semantics.
+The measured result exceeded the pre-CI forecast. The canonical `ElectricMotor` subclass hierarchy satisfied the equipment-identity semantic check without introducing the rejected benchmark-only `ElectricMotor -> cepio:partOf -> Equipment` assertion. The only remaining literal in `RP-PE-006` is `hse:ArcFlashStudy`, which intentionally remains represented through the IEEE 1584 risk-assessment mapping boundary.
 
 ## Versioning
 
