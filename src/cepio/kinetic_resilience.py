@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .workflow_policy import WorkflowPolicyApprovalPending
+
 import sqlite3
 from enum import Enum
 from pathlib import Path
@@ -85,9 +87,7 @@ class ResilienceRepository(Protocol):
         self, definition_key: str, step_id: str, policy: StepExecutionPolicy
     ) -> StepExecutionPolicy: ...
 
-    def get_step_policy(
-        self, definition_key: str, step_id: str
-    ) -> StepExecutionPolicy | None: ...
+    def get_step_policy(self, definition_key: str, step_id: str) -> StepExecutionPolicy | None: ...
 
     def save_control_policy(
         self, definition_key: str, policy: WorkflowControlPolicy
@@ -116,9 +116,7 @@ class InMemoryResilienceRepository(ResilienceRepository):
             self._step_policies[(definition_key, step_id)] = policy.model_copy(deep=True)
             return policy.model_copy(deep=True)
 
-    def get_step_policy(
-        self, definition_key: str, step_id: str
-    ) -> StepExecutionPolicy | None:
+    def get_step_policy(self, definition_key: str, step_id: str) -> StepExecutionPolicy | None:
         item = self._step_policies.get((definition_key, step_id))
         return item.model_copy(deep=True) if item else None
 
@@ -209,9 +207,7 @@ class SQLiteResilienceRepository(ResilienceRepository):
             self._conn.commit()
         return policy.model_copy(deep=True)
 
-    def get_step_policy(
-        self, definition_key: str, step_id: str
-    ) -> StepExecutionPolicy | None:
+    def get_step_policy(self, definition_key: str, step_id: str) -> StepExecutionPolicy | None:
         row = self._conn.execute(
             "SELECT payload FROM workflow_step_policies WHERE definition_id = ? AND step_id = ?",
             (definition_key, step_id),
@@ -354,12 +350,9 @@ class ResilientKineticRuntime(KineticRuntime):
             return instance
 
         self.runtime.read_object_for_actor(instance.subject.id, set(actor_roles))
-        definition_key = self._definition_key(
-            instance.definition_id, instance.definition_version
-        )
+        definition_key = self._definition_key(instance.definition_id, instance.definition_version)
         control = (
-            self.resilience_repository.get_control_policy(definition_key)
-            or WorkflowControlPolicy()
+            self.resilience_repository.get_control_policy(definition_key) or WorkflowControlPolicy()
         )
         allowed = actor_id == instance.initiated_by or bool(
             control.cancel_roles.intersection(actor_roles)
@@ -382,9 +375,7 @@ class ResilientKineticRuntime(KineticRuntime):
             details={"reason": reason},
         )
 
-        should_compensate = (
-            control.compensate_on_cancel if compensate is None else compensate
-        )
+        should_compensate = control.compensate_on_cancel if compensate is None else compensate
         if should_compensate:
             self._compensate_completed_actions(instance, actor_id, set(actor_roles))
 
@@ -416,9 +407,7 @@ class ResilientKineticRuntime(KineticRuntime):
                 )
                 return self._wait_for_approval(instance, step, state)
 
-            policy = self._policy(
-                instance.definition_id, instance.definition_version, step
-            )
+            policy = self._policy(instance.definition_id, instance.definition_version, step)
             state.status = WorkflowStepStatus.running
             state.started_at = state.started_at or utcnow()
             self.repository.save_instance(instance)
@@ -459,10 +448,7 @@ class ResilientKineticRuntime(KineticRuntime):
 
                     elapsed = monotonic() - started
                     resilience.last_duration_seconds = elapsed
-                    if (
-                        policy.timeout_seconds is not None
-                        and elapsed > policy.timeout_seconds
-                    ):
+                    if policy.timeout_seconds is not None and elapsed > policy.timeout_seconds:
                         resilience.timed_out = True
                         raise WorkflowStepTimeout(
                             f"Step {step.id} exceeded timeout of {policy.timeout_seconds}s "
@@ -471,6 +457,10 @@ class ResilientKineticRuntime(KineticRuntime):
                     success = True
                     self.resilience_repository.save_step_state(resilience)
                     break
+                except WorkflowPolicyApprovalPending as exc:
+                    resilience.attempts -= 1
+                    self.resilience_repository.save_step_state(resilience)
+                    return self._wait_for_policy_approval(instance, step, state, exc)
                 except Exception as exc:
                     state.result = None
                     elapsed = monotonic() - started
@@ -562,7 +552,7 @@ class ResilientKineticRuntime(KineticRuntime):
             decision_id=self._latest_decision_id(instance),
         )
         try:
-            result = self.runtime.execute_action(request)
+            result = self._execute_workflow_action(instance, step, request)
         except AuthorizationError as exc:
             raise NonRetryableWorkflowError(str(exc)) from exc
         if result.status == ActionStatus.rejected:

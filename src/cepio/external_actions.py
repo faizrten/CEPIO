@@ -70,6 +70,7 @@ class ExternalActionBinding:
 
 class ExternalActionExecution(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
+    policy_evidence: dict[str, Any] = Field(default_factory=dict)
     action_id: str
     action_type: str
     target: ObjectRef
@@ -131,7 +132,9 @@ class ExternalActionRepository(Protocol):
         expected_revision: int | None = None,
     ) -> ExternalActionExecution: ...
     def get_execution(self, execution_id: str) -> ExternalActionExecution | None: ...
-    def find_execution_by_idempotency(self, idempotency_key: str) -> ExternalActionExecution | None: ...
+    def find_execution_by_idempotency(
+        self, idempotency_key: str
+    ) -> ExternalActionExecution | None: ...
     def list_executions(
         self, status: ExternalActionStatus | None = None
     ) -> list[ExternalActionExecution]: ...
@@ -194,10 +197,7 @@ class InMemoryExternalActionRepository(ExternalActionRepository):
                     )
                 next_revision = 1
             else:
-                if (
-                    expected_revision is not None
-                    and prior.revision != expected_revision
-                ):
+                if expected_revision is not None and prior.revision != expected_revision:
                     raise ConcurrentExternalActionUpdate(
                         f"External action {execution.id} revision changed from "
                         f"{expected_revision} to {prior.revision}"
@@ -526,17 +526,12 @@ class ExternalActionRuntime:
 
     def register_binding(self, binding: ExternalActionBinding) -> None:
         if binding.system not in self._adapters:
-            raise ValueError(
-                f"No governed write adapter registered for system {binding.system}"
-            )
+            raise ValueError(f"No governed write adapter registered for system {binding.system}")
         self._bindings[binding.action_type] = binding
 
     def register_identity(self, mapping: ExternalIdentityMapping) -> ExternalIdentityMapping:
         self.runtime.get_object(mapping.cepio_object_id)
-        if (
-            mapping.status == IdentityReconciliationStatus.verified
-            and mapping.verified_at is None
-        ):
+        if mapping.status == IdentityReconciliationStatus.verified and mapping.verified_at is None:
             mapping.verified_at = utcnow()
         return self.repository.save_identity(mapping)
 
@@ -577,6 +572,7 @@ class ExternalActionRuntime:
         )
         execution = ExternalActionExecution(
             action_id=audit.action_id,
+            policy_evidence=audit.policy_evidence,
             action_type=audit.action_type,
             target=audit.target,
             actor_id=audit.actor_id,
@@ -616,6 +612,7 @@ class ExternalActionRuntime:
             "external_write_queued" if identity else "external_write_blocked",
             details={
                 "action_id": audit.action_id,
+                "policy_evidence": audit.policy_evidence,
                 "system": binding.system,
                 "operation": binding.operation,
                 "failure_reason": failure_reason,
@@ -650,9 +647,7 @@ class ExternalActionRuntime:
             execution.failure_reason = identity_reason
             execution.message = "External identity changed after enqueue; write blocked"
             try:
-                stored = self.repository.save_execution(
-                    execution, expected_revision=expected
-                )
+                stored = self.repository.save_execution(execution, expected_revision=expected)
             except ConcurrentExternalActionUpdate:
                 return self.get_execution(execution.id)
             self._history(
@@ -666,9 +661,7 @@ class ExternalActionRuntime:
         execution.status = ExternalActionStatus.dispatching
         execution.dispatch_attempts += 1
         try:
-            claimed = self.repository.save_execution(
-                execution, expected_revision=expected
-            )
+            claimed = self.repository.save_execution(execution, expected_revision=expected)
         except ConcurrentExternalActionUpdate:
             return self.get_execution(execution.id)
 
@@ -684,9 +677,7 @@ class ExternalActionRuntime:
             claimed.status = ExternalActionStatus.unknown
             claimed.failure_reason = "adapter_write_outcome_unknown"
             claimed.message = str(exc)
-            stored = self.repository.save_execution(
-                claimed, expected_revision=claimed.revision
-            )
+            stored = self.repository.save_execution(claimed, expected_revision=claimed.revision)
             self._history(
                 stored,
                 "adapter_dispatch_unknown",
@@ -700,9 +691,7 @@ class ExternalActionRuntime:
         if not receipt.accepted:
             claimed.status = ExternalActionStatus.failed
             claimed.failure_reason = "adapter_rejected_write"
-            stored = self.repository.save_execution(
-                claimed, expected_revision=claimed.revision
-            )
+            stored = self.repository.save_execution(claimed, expected_revision=claimed.revision)
             self._history(
                 stored,
                 "adapter_dispatch_rejected",
@@ -713,9 +702,7 @@ class ExternalActionRuntime:
         claimed.status = ExternalActionStatus.acknowledged
         claimed.acknowledged_at = utcnow()
         claimed.failure_reason = None
-        acknowledged = self.repository.save_execution(
-            claimed, expected_revision=claimed.revision
-        )
+        acknowledged = self.repository.save_execution(claimed, expected_revision=claimed.revision)
         self._history(
             acknowledged,
             "adapter_write_acknowledged",
@@ -753,9 +740,7 @@ class ExternalActionRuntime:
         adapter = self._adapter(execution.system)
         expected = execution.revision
         execution.verification_attempts += 1
-        execution = self.repository.save_execution(
-            execution, expected_revision=expected
-        )
+        execution = self.repository.save_execution(execution, expected_revision=expected)
         try:
             result = adapter.verify_write(self._verification_request(execution))
         except Exception as exc:
@@ -784,9 +769,7 @@ class ExternalActionRuntime:
         adapter = self._adapter(execution.system)
         expected = execution.revision
         execution.verification_attempts += 1
-        execution = self.repository.save_execution(
-            execution, expected_revision=expected
-        )
+        execution = self.repository.save_execution(execution, expected_revision=expected)
         self._history(execution, "reconciliation_started")
         try:
             result = adapter.reconcile_write(self._verification_request(execution))
@@ -865,8 +848,7 @@ class ExternalActionRuntime:
         ]
         if len(eligible) != 1:
             if not eligible and all(
-                item.status == IdentityReconciliationStatus.stale
-                for item in mappings
+                item.status == IdentityReconciliationStatus.stale for item in mappings
             ):
                 return None, "identity_stale"
             return None, "identity_ambiguous"
@@ -874,9 +856,7 @@ class ExternalActionRuntime:
             return None, "identity_ambiguous"
         return eligible[0], None
 
-    def _identity_drift_reason(
-        self, execution: ExternalActionExecution
-    ) -> str | None:
+    def _identity_drift_reason(self, execution: ExternalActionExecution) -> str | None:
         identity, resolution_error = self._resolve_identity(
             execution.target.id,
             system=execution.system,
@@ -966,9 +946,7 @@ class ExternalActionRuntime:
                 if result.status == AdapterVerificationStatus.conflict
                 else "source_outcome_unknown"
             )
-        stored = self.repository.save_execution(
-            execution, expected_revision=expected_revision
-        )
+        stored = self.repository.save_execution(execution, expected_revision=expected_revision)
         self._history(
             stored,
             f"{event_prefix}_{stored.status.value}",
@@ -990,9 +968,7 @@ class ExternalActionRuntime:
         execution.status = ExternalActionStatus.unknown
         execution.failure_reason = reason
         execution.message = message
-        stored = self.repository.save_execution(
-            execution, expected_revision=expected_revision
-        )
+        stored = self.repository.save_execution(execution, expected_revision=expected_revision)
         self._history(
             stored,
             "external_outcome_unknown",
