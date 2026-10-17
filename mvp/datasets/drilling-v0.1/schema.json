@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CEPIO Synthetic Industrial Dataset — Drilling v0.1",
+  "dataset_version": "0.1.0",
+  "canonical_base_iri": "cepio://asset/",
+  "tables": {
+    "rigs": ["rig_id", "canonical_iri", "name", "rig_type", "status"],
+    "wells": ["well_id", "canonical_iri", "name", "rig_id", "status"],
+    "equipment": ["equipment_id", "canonical_iri", "rig_id", "equipment_type", "name", "manufacturer", "model", "criticality"],
+    "components": ["component_id", "canonical_iri", "equipment_id", "component_type", "name"],
+    "sensors": ["sensor_id", "canonical_iri", "equipment_id", "signal_type", "unit", "source_tag"],
+    "personnel": ["person_id", "name", "role", "rig_id"],
+    "activities": ["activity_id", "rig_id", "well_id", "classification", "start_time", "end_time"],
+    "npt_events": ["npt_event_id", "rig_id", "well_id", "equipment_id", "start_time", "end_time", "duration_hours", "category", "scenario_id"],
+    "work_orders": ["work_order_id", "equipment_id", "status", "priority", "created_time", "completed_time", "description", "scenario_id"],
+    "maintenance_events": ["maintenance_event_id", "equipment_id", "work_order_id", "event_type", "timestamp", "scenario_id"],
+    "telemetry": ["timestamp", "sensor_id", "equipment_id", "value", "unit", "quality", "scenario_id"],
+    "failure_events": ["failure_event_id", "equipment_id", "timestamp", "failure_mode", "scenario_id"]
+  },
+  "ontology_alignment": {
+    "rig": "https://cepio.org/ontology/drilling#OperatingRig",
+    "equipment": "https://cepio.org/ontology/drilling#DrillingEquipment",
+    "activity": "https://cepio.org/ontology/drilling#ActivityInterval",
+    "work_order": "https://cepio.org/ontology/industrial#WorkOrder",
+    "failure_event": "https://cepio.org/ontology/reliability#FailureEvent",
+    "downtime_event": "https://cepio.org/ontology/reliability#DowntimeEvent",
+    "condition_signal": "https://cepio.org/ontology/reliability#ConditionSignal"
+  }
+}
