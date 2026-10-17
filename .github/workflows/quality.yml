@@ -76,7 +76,7 @@ jobs:
       - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
       - run: mkdir -p evidence
       - name: Static security scan (reviewed SQL false positives only)
-        run: python -m bandit -r src -ll -f json -o evidence/bandit.json -b quality/bandit-baseline.json
+        run: python scripts/check_security.py
       - name: Audit resolved dependencies (no vulnerability ignores)
         run: python -m pip_audit --skip-editable --format json --output evidence/dependencies.json
       - uses: actions/upload-artifact@v4
