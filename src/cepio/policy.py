@@ -20,6 +20,10 @@ class PolicyEngine(Protocol):
         self, request: ActionRequest, target: OntologyObject, definition: ActionDefinitionLike
     ) -> PolicyDecision: ...
 
+    def evaluate_action_capability(
+        self, roles: set[str], action_type: str, definition: ActionDefinitionLike
+    ) -> PolicyDecision: ...
+
     def can_read_type(self, roles: set[str], object_type: str) -> bool: ...
 
     def can_read_object(self, roles: set[str], obj: OntologyObject) -> bool: ...
@@ -59,7 +63,19 @@ class RolePolicyEngine:
     def evaluate_action(
         self, request: ActionRequest, target: OntologyObject, definition: ActionDefinitionLike
     ) -> PolicyDecision:
-        roles = request.actor_roles
+        return self.evaluate_action_capability(
+            request.actor_roles, request.action_type, definition
+        )
+
+    def evaluate_action_capability(
+        self, roles: set[str], action_type: str, definition: ActionDefinitionLike
+    ) -> PolicyDecision:
+        """Evaluate action authority without executing an action or requiring an instance.
+
+        Skill admission uses this path to verify separation of duties before a planner is
+        dispatched. Runtime execution still calls ``evaluate_action`` so both paths share
+        the same role/approval semantics.
+        """
         if definition.allowed_roles and roles.intersection(definition.allowed_roles):
             if definition.requires_human_approval and not self._has_human_role(roles):
                 return PolicyDecision(
@@ -72,7 +88,7 @@ class RolePolicyEngine:
         recommendable = {
             role
             for role in roles
-            if request.action_type in set(self.policies.get(role, {}).get("can_recommend", []))
+            if action_type in set(self.policies.get(role, {}).get("can_recommend", []))
         }
         if recommendable:
             return PolicyDecision(
@@ -82,7 +98,7 @@ class RolePolicyEngine:
 
         return PolicyDecision(
             effect=PolicyEffect.deny,
-            reasons=[f"No actor role is permitted to execute {request.action_type}"],
+            reasons=[f"No actor role is permitted to execute {action_type}"],
         )
 
     def can_read_type(self, roles: set[str], object_type: str) -> bool:
