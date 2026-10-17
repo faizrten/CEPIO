@@ -19,6 +19,9 @@ hse:EmergencyDrillRecord a owl:Class ; rdfs:subClassOf cepio:Event .
 hse:ExposureObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
 hse:SecurityRecord a owl:Class ; rdfs:subClassOf cepio:Event .
 hse:EnergyIsolation a owl:Class ; rdfs:subClassOf cepio:WorkItem .
+hse:SafetyBarrier a owl:Class ; rdfs:subClassOf cepio:Entity .
+hse:BarrierImpairment a owl:Class ; rdfs:subClassOf cepio:State .
+hse:ManagementOfChange a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 
 hse:permitForAsset a owl:ObjectProperty ; rdfs:domain hse:WorkPermit ; rdfs:range cepio:Asset .
 hse:hasSafetyCase a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range hse:SafetyCase .
@@ -32,3 +35,5 @@ hse:isolationForAsset a owl:ObjectProperty ; rdfs:domain hse:EnergyIsolation ; r
 hse:isolationGovernsWork a owl:ObjectProperty ; rdfs:domain hse:EnergyIsolation ; rdfs:range cepio:WorkItem .
 hse:isolationIssuedBy a owl:ObjectProperty ; rdfs:domain hse:EnergyIsolation ; rdfs:range cepio:Party .
 hse:isolationVerifiedBy a owl:ObjectProperty ; rdfs:domain hse:EnergyIsolation ; rdfs:range cepio:Party .
+hse:impairmentOfBarrier a owl:ObjectProperty ; rdfs:domain hse:BarrierImpairment ; rdfs:range hse:SafetyBarrier .
+hse:changeAffectsAsset a owl:ObjectProperty ; rdfs:domain hse:ManagementOfChange ; rdfs:range cepio:Asset .

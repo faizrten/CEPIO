@@ -48,9 +48,9 @@ modules:
   - {id: asset, namespace: 'https://cepio.org/ontology/asset#', version: 0.1.0, file: ontologies/asset.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
   - {id: work_management, namespace: 'https://cepio.org/ontology/work#', version: 0.1.1, file: ontologies/work_management.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
   - {id: reliability, namespace: 'https://cepio.org/ontology/reliability#', version: 0.1.0, file: ontologies/reliability.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
-  - {id: hse, namespace: 'https://cepio.org/ontology/hse#', version: 0.1.1, file: ontologies/hse.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
+  - {id: hse, namespace: 'https://cepio.org/ontology/hse#', version: 0.1.2, file: ontologies/hse.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}]}
   - {id: supply, namespace: 'https://cepio.org/ontology/supply#', version: 0.1.1, file: ontologies/supply.ttl, tier: industrial-common, depends_on: [{module: core}, {module: industrial}, {module: enterprise}]}
-  - {id: performance, namespace: 'https://cepio.org/ontology/performance#', version: 0.1.0, file: ontologies/performance.ttl, tier: industrial-common, depends_on: [{module: core}]}
+  - {id: performance, namespace: 'https://cepio.org/ontology/performance#', version: 0.1.1, file: ontologies/performance.ttl, tier: industrial-common, depends_on: [{module: core}]}
   - {id: workforce, namespace: 'https://cepio.org/ontology/workforce#', version: 0.1.3, file: ontologies/workforce.ttl, tier: industrial-common, depends_on: [{module: core}]}
   - {id: agentic_operations, namespace: 'https://cepio.org/ontology/agentic#', version: 0.1.0, file: ontologies/agentic_operations.ttl, tier: industrial-common, depends_on: [{module: core}, {module: kinetic}]}
   - {id: process_industry, namespace: 'https://cepio.org/ontology/process#', version: 0.1.0, file: ontologies/process_industry.ttl, tier: domain, depends_on: [{module: core}, {module: industrial}, {module: asset}]}
