@@ -1,0 +1,32 @@
+id: drilling-contractor-persona-expansion-v0.3
+version: "0.3"
+extends: drilling-contractor-personas-v0.2
+personas:
+  - id: enterprise-operations-director
+    role: Enterprise Operations Director
+    objectives: [fleet-wide performance, predictable delivery, accountable enterprise decisions]
+    information_needs: [rig performance, campaign commitments, operational risk, financial exposure, decision ownership]
+  - id: fleet-performance-manager
+    role: Fleet Performance Manager
+    objectives: [compare rig performance, identify avoidable loss, verify improvement]
+    information_needs: [KPI definitions, activity context, rig benchmarks, downtime, intervention outcomes]
+  - id: drilling-optimization-engineer
+    role: Drilling Optimization Engineer
+    objectives: [improve drilling performance, evaluate operating trade-offs, reduce avoidable downtime]
+    information_needs: [well and rig context, activity intervals, performance observations, operating constraints, forecast assumptions]
+  - id: contract-performance-manager
+    role: Contract Performance Manager
+    objectives: [measure delivery against contract, resolve obligation exposure, substantiate acceptance]
+    information_needs: [contract obligations, service execution, rate basis, delivery evidence, acceptance status]
+  - id: digital-transformation-lead
+    role: Digital Transformation Lead
+    objectives: [prioritize trusted digital capabilities, establish accountable adoption, manage operational change]
+    information_needs: [business objectives, governed recommendations, adoption evidence, risk, decision authority]
+  - id: industrial-data-product-owner
+    role: Industrial Data Product Owner
+    objectives: [provide reusable operational data products, preserve semantic consistency, make lineage explainable]
+    information_needs: [canonical activity context, KPI meaning, provenance, source mappings, consumer requirements]
+  - id: ai-operations-governance-lead
+    role: AI Operations Governance Lead
+    objectives: [bound agent authority, require accountable approval, retain decision evidence]
+    information_needs: [agent identity and runs, recommendation evidence, control points, human approvals, action audit]

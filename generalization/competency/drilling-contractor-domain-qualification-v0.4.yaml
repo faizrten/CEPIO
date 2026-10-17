@@ -1,0 +1,206 @@
+id: drilling-contractor-domain-qualification-v0.4
+version: "0.4"
+archetype_id: drilling-contractor-v0.1
+frozen: true
+questions:
+  - id: DC-DQ-001
+    scope: enterprise
+    question: Which rigs are falling behind fleet commitments, and how do their operating results and contract exposure compare?
+    priority: critical
+    personas: [enterprise-operations-director, fleet-performance-manager]
+    standards: [iadc-ddr-plus-v2, iadc-model-contracts]
+    capability_tags: [fleet-performance, enterprise, contract-exposure]
+    capabilities:
+      - id: compare-rig-performance
+        description: Compare measured performance observations against operating rigs.
+        alternatives:
+          - id: kpi-observation-by-rig
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - id: relate-rig-contract-exposure
+        description: Resolve the rig's contract and contract-level value exposure.
+        alternatives:
+          - id: assigned-contract-and-value-at-risk
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/drilling#assignedContract", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+
+  - id: DC-DQ-002
+    scope: enterprise
+    question: Which contracted service obligations are at risk of non-acceptance, and what delivery evidence and acceptance decision support the close-out?
+    priority: required
+    personas: [contract-performance-manager]
+    standards: [iadc-model-contracts]
+    capability_tags: [contract-performance, service-acceptance, evidence]
+    capabilities:
+      - id: service-delivery-and-acceptance
+        description: Link contracted execution to its obligation, evidence, and acceptance.
+        alternatives:
+          - id: governed-service-execution
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceExecution", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ServiceAcceptance", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#governedByObligation", target: "https://cepio.org/ontology/commercial#ContractObligation"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", target: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceAcceptance", predicate: "https://cepio.org/ontology/commercial#acceptanceOfService", target: "https://cepio.org/ontology/commercial#ServiceExecution"}
+
+  - id: DC-DQ-003
+    scope: operational-optimization
+    question: Which drilling performance trend is likely to miss the well objective, and what operating evidence supports the forecast?
+    priority: critical
+    personas: [drilling-optimization-engineer, fleet-performance-manager]
+    standards: [iadc-ddr-plus-v2, energistics-witsml-2.1, spe-dsats]
+    capability_tags: [optimization, performance-trend, forecast]
+    capabilities:
+      - id: relate-observed-performance-to-rig
+        description: Ground performance trends in observations scoped to the rig.
+        alternatives:
+          - id: observed-kpi-by-rig
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - id: forecast-drilling-performance
+        description: Relate a forward-looking performance forecast to the drilling rig it concerns.
+        alternatives:
+          - id: forecast-for-operating-rig
+            terms:
+              - {iri: "https://cepio.org/ontology/process#OptimizationForecast", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#OptimizationForecast", predicate: "https://cepio.org/ontology/process#forecastForUnit", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+
+  - id: DC-DQ-004
+    scope: operational-optimization
+    question: What change to the drilling plan could reduce avoidable time without pushing the rig or well outside its operating limits?
+    priority: critical
+    personas: [drilling-optimization-engineer]
+    standards: [iadc-ddr-plus-v2, spe-dsats]
+    capability_tags: [optimization, operating-limits, plan-change]
+    capabilities:
+      - id: optimize-within-operating-limits
+        description: Relate an operating constraint to the rig and the proposed plan decision.
+        alternatives:
+          - id: constraint-scoped-to-operating-rig
+            terms:
+              - {iri: "https://cepio.org/ontology/kinetic#Constraint", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Constraint", predicate: "https://cepio.org/ontology/kinetic#constraintOn", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#considersConstraint", target: "https://cepio.org/ontology/kinetic#Constraint"}
+
+  - id: DC-DQ-005
+    scope: operational-optimization
+    question: Can the operations team compare daily drilling performance consistently when activity reports arrive from different service providers?
+    priority: required
+    personas: [industrial-data-product-owner, fleet-performance-manager]
+    standards: [iadc-ddr-plus-v2, energistics-witsml-2.1]
+    capability_tags: [semantic-consistency, activity-classification, federation]
+    capabilities:
+      - id: canonical-drilling-activity
+        description: Represent reported drilling work with source-neutral activity and classification semantics.
+        alternatives:
+          - id: activity-classification-contract
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingActivityClassification", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#ActivityInterval", predicate: "https://cepio.org/ontology/drilling#classifiedBy", target: "https://cepio.org/ontology/drilling#DrillingActivityClassification"}
+
+  - id: DC-DQ-006
+    scope: enterprise
+    question: Which digital improvement should be prioritized next, and what business objective, operating risk, and accountable decision support the choice?
+    priority: required
+    personas: [digital-transformation-lead, enterprise-operations-director]
+    standards: [spe-dsats]
+    capability_tags: [digital-investment, objective, risk]
+    capabilities:
+      - id: objective-and-enterprise-risk-context
+        description: Relate enterprise objectives to operational risks and decisions.
+        alternatives:
+          - id: objective-risk-links
+            terms:
+              - {iri: "https://cepio.org/ontology/enterprise#BusinessObjective", kind: class}
+              - {iri: "https://cepio.org/ontology/enterprise#EnterpriseRisk", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/enterprise#BusinessObjective", predicate: "https://cepio.org/ontology/enterprise#exposedToRisk", target: "https://cepio.org/ontology/enterprise#EnterpriseRisk"}
+
+  - id: DC-DQ-007
+    scope: agentic-operations
+    question: What operational recommendation did the assistant make for this rig, which evidence supports it, and where is the human control point?
+    priority: critical
+    personas: [ai-operations-governance-lead, digital-transformation-lead]
+    standards: [spe-dsats, iadc-ksa]
+    capability_tags: [agent-recommendation, evidence, control-point]
+    runtime:
+      policy: true
+      provenance: true
+    capabilities:
+      - id: recommendation-target-and-control-point
+        description: Bind an agent recommendation to an operating object and an explicit control point.
+        alternatives:
+          - id: recommendation-with-control-point
+            terms:
+              - {iri: "https://cepio.org/ontology/agentic#Recommendation", kind: class}
+              - {iri: "https://cepio.org/ontology/agentic#ControlPoint", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/agentic#Recommendation", predicate: "https://cepio.org/ontology/agentic#recommendationFor", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+              - {source: "https://cepio.org/ontology/agentic#Recommendation", predicate: "https://cepio.org/ontology/agentic#governedAtControlPoint", target: "https://cepio.org/ontology/agentic#ControlPoint"}
+
+  - id: DC-DQ-008
+    scope: agentic-operations
+    question: If an agent proposes a work action, how can the team trace the case to its recommendation and retain an auditable record of what happened?
+    priority: critical
+    personas: [ai-operations-governance-lead, industrial-data-product-owner]
+    standards: [spe-dsats]
+    capability_tags: [agentic-action, audit, decision-lineage]
+    runtime:
+      policy: true
+    capabilities:
+      - id: recommendation-to-governed-case
+        description: Preserve the link from a recommendation to a governed action case and audit record.
+        alternatives:
+          - id: action-case-and-audit
+            terms:
+              - {iri: "https://cepio.org/ontology/agentic#ActionCase", kind: class}
+              - {iri: "https://cepio.org/ontology/agentic#Recommendation", kind: class}
+              - {iri: "https://cepio.org/ontology/agentic#AuditEntry", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/agentic#ActionCase", predicate: "https://cepio.org/ontology/agentic#caseFromRecommendation", target: "https://cepio.org/ontology/agentic#Recommendation"}
+              - {source: "https://cepio.org/ontology/agentic#ActionCase", predicate: "https://cepio.org/ontology/agentic#hasAuditEntry", target: "https://cepio.org/ontology/agentic#AuditEntry"}
+
+  - id: DC-DQ-009
+    scope: agentic-operations
+    question: Can an operations leader see which agent ran, what recommendation it produced, and whether an accountable person approved the next step?
+    priority: required
+    personas: [ai-operations-governance-lead, enterprise-operations-director]
+    standards: [iadc-ksa, spe-dsats]
+    capability_tags: [agent-run, approval, accountability]
+    runtime:
+      policy: true
+      provenance: true
+    capabilities:
+      - id: agent-run-and-recommendation-evidence
+        description: Identify the agent behind an operational recommendation and retain its audit evidence.
+        alternatives:
+          - id: agent-run-recommendation-audit
+            terms:
+              - {iri: "https://cepio.org/ontology/agentic#Agent", kind: class}
+              - {iri: "https://cepio.org/ontology/agentic#AgentRun", kind: class}
+              - {iri: "https://cepio.org/ontology/agentic#Recommendation", kind: class}
+              - {iri: "https://cepio.org/ontology/agentic#AuditEntry", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/agentic#AgentRun", predicate: "https://cepio.org/ontology/agentic#producedByAgent", target: "https://cepio.org/ontology/agentic#Agent"}
+              - {source: "https://cepio.org/ontology/agentic#Recommendation", predicate: "https://cepio.org/ontology/agentic#hasAuditEntry", target: "https://cepio.org/ontology/agentic#AuditEntry"}
