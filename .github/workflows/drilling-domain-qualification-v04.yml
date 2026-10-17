@@ -9,8 +9,9 @@ on:
       - 'ontologies/**'
       - 'src/cepio/generalization.py'
       - 'scripts/run_generalization_harness.py'
+      - 'scripts/build_drilling_domain_qualification_v041.py'
       - 'tests/test_drilling_domain_qualification_v04.py'
-      - '.github/workflows/drilling-domain-qualification-v0.4.yml'
+      - '.github/workflows/drilling-domain-qualification-v04.yml'
   pull_request:
     paths:
       - 'generalization/personas/drilling-contractor-v0.3.yaml'
@@ -20,8 +21,9 @@ on:
       - 'ontologies/**'
       - 'src/cepio/generalization.py'
       - 'scripts/run_generalization_harness.py'
+      - 'scripts/build_drilling_domain_qualification_v041.py'
       - 'tests/test_drilling_domain_qualification_v04.py'
-      - '.github/workflows/drilling-domain-qualification-v0.4.yml'
+      - '.github/workflows/drilling-domain-qualification-v04.yml'
 
 jobs:
   baseline:
@@ -34,7 +36,7 @@ jobs:
       - run: python -m pip install -e '.[dev]'
       - name: Guard frozen v0.4 qualification contract
         run: pytest -q tests/test_drilling_domain_qualification_v04.py
-      - name: Run drilling contractor domain qualification v0.4 baseline
+      - name: Run raw drilling contractor domain qualification v0.4 baseline
         run: >-
           PYTHONPATH=src python scripts/run_generalization_harness.py
           --archetype generalization/archetypes/drilling-contractor-v0.1.yaml
@@ -43,6 +45,20 @@ jobs:
           --standards generalization/standards/drilling-references.yaml
           --skip-gap-triage
           --json-out drilling-domain-qualification-v0.4-report.json
+      - name: Build normalized qualification benchmark v0.4.1
+        run: >-
+          python scripts/build_drilling_domain_qualification_v041.py
+          --source generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml
+          --out /tmp/drilling-contractor-domain-qualification-v0.4.1.yaml
+      - name: Run normalized qualification benchmark v0.4.1
+        run: >-
+          PYTHONPATH=src python scripts/run_generalization_harness.py
+          --archetype generalization/archetypes/drilling-contractor-v0.1.yaml
+          --competency /tmp/drilling-contractor-domain-qualification-v0.4.1.yaml
+          --personas generalization/personas/drilling-contractor-v0.3.yaml
+          --standards generalization/standards/drilling-references.yaml
+          --skip-gap-triage
+          --json-out drilling-domain-qualification-v0.4.1-report.json
       - name: Publish baseline summary
         shell: bash
         run: |
@@ -50,15 +66,16 @@ jobs:
           import json
           from pathlib import Path
 
-          report = json.loads(Path('drilling-domain-qualification-v0.4-report.json').read_text())
-          print('Drilling Contractor Domain Qualification v0.4')
-          print('questions:', report['question_count'])
-          print('status_counts:', report['status_counts'])
-          print('semantic_check_pass_rate:', report['semantic_check_pass_rate'])
-          Path('drilling-domain-qualification-v0.4-summary.txt').write_text(
-              'questions: ' + str(report['question_count']) + '\n'
-              + 'status_counts: ' + json.dumps(report['status_counts'], sort_keys=True) + '\n'
-              + 'semantic_check_pass_rate: ' + str(report['semantic_check_pass_rate']) + '\n'
+          raw = json.loads(Path('drilling-domain-qualification-v0.4-report.json').read_text())
+          normalized = json.loads(Path('drilling-domain-qualification-v0.4.1-report.json').read_text())
+          print('Drilling Contractor Domain Qualification')
+          print('raw v0.4:', raw['status_counts'], raw['semantic_check_pass_rate'])
+          print('normalized v0.4.1:', normalized['status_counts'], normalized['semantic_check_pass_rate'])
+          Path('drilling-domain-qualification-summary.txt').write_text(
+              'raw_v0.4_status_counts: ' + json.dumps(raw['status_counts'], sort_keys=True) + '\n'
+              + 'raw_v0.4_semantic_check_pass_rate: ' + str(raw['semantic_check_pass_rate']) + '\n'
+              + 'normalized_v0.4.1_status_counts: ' + json.dumps(normalized['status_counts'], sort_keys=True) + '\n'
+              + 'normalized_v0.4.1_semantic_check_pass_rate: ' + str(normalized['semantic_check_pass_rate']) + '\n'
           )
           PY
       - uses: actions/upload-artifact@v4
@@ -66,4 +83,5 @@ jobs:
           name: drilling-domain-qualification-v0.4
           path: |
             drilling-domain-qualification-v0.4-report.json
-            drilling-domain-qualification-v0.4-summary.txt
+            drilling-domain-qualification-v0.4.1-report.json
+            drilling-domain-qualification-summary.txt
