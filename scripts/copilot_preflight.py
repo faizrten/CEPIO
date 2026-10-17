@@ -9,13 +9,15 @@ from copilot import CopilotClient
 
 async def main() -> int:
     configured = os.environ.get("COPILOT_MODEL", "gpt-5.4")
-    token = os.environ.get("GITHUB_TOKEN")
+    if not os.environ.get("COPILOT_GITHUB_TOKEN"):
+        raise SystemExit(
+            "COPILOT_GITHUB_TOKEN is required for the live challenge in this personal repository. "
+            "Store a fine-grained user PAT with Account > Copilot Requests: write as the Actions repository secret COPILOT_GITHUB_TOKEN."
+        )
     with tempfile.TemporaryDirectory(prefix="cepio-copilot-preflight-") as base_directory:
-        async with CopilotClient(
-            mode="empty",
-            base_directory=base_directory,
-            github_token=token,
-        ) as client:
+        # Do not pass github_token explicitly: the Copilot SDK intentionally resolves
+        # COPILOT_GITHUB_TOKEN before GH_TOKEN/GITHUB_TOKEN for user-authenticated automation.
+        async with CopilotClient(mode="empty", base_directory=base_directory) as client:
             models = await asyncio.wait_for(client.list_models(), timeout=20.0)
             ids = [str(getattr(model, "id", "")) for model in models]
             print("CEPIO_COPILOT_PREFLIGHT models=" + ",".join(ids))
