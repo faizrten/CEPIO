@@ -49,7 +49,7 @@ def test_integrity_operating_window_specializes_existing_process_envelope():
     assert (PROCESS.iowExcursionAgainstWindow, RDF.type, OWL.ObjectProperty) not in graph
 
 
-def test_production_capacity_is_common_measurement_not_kpi_class_proliferation():
+def test_production_capacity_is_common_measurement_and_availability_is_mapped_kpi():
     graph = _graph("performance.ttl")
 
     assert (PERF.ProductionCapacity, RDF.type, OWL.Class) in graph
@@ -60,6 +60,15 @@ def test_production_capacity_is_common_measurement_not_kpi_class_proliferation()
     # belongs in metric mappings rather than a class-per-KPI ontology taxonomy.
     assert (CEPIO.KPI, RDF.type, OWL.Class) in _graph("core.ttl")
     assert (PERF.AvailabilityKPI, RDF.type, OWL.Class) not in graph
+
+    mapping = yaml.safe_load((ROOT / "mappings" / "performance_kpis.yaml").read_text())
+    packaged_mapping = yaml.safe_load((ROOT / "src" / "cepio" / "resources" / "mappings" / "performance_kpis.yaml").read_text())
+    availability = mapping["metric_mappings"][0]
+    assert availability["id"] == "availability"
+    assert availability["canonical_type"] == "https://cepio.org/ontology/core#KPI"
+    assert availability["observation_type"] == "https://cepio.org/ontology/performance#KPIObservation"
+    assert availability["semantics"]["formula_is_external"] is True
+    assert packaged_mapping == mapping
 
 
 def test_assurance_slice_is_additively_versioned_without_cross_tier_coupling():
