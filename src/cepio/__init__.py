@@ -49,7 +49,7 @@ from .kinetic_resilience import (
 )
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship
 from .query import ObjectQuery, ObjectQueryResult, PropertyPredicate, QueryOperator, RelationshipPredicate, SortField
-from .runtime import CEPIORuntime
+from .runtime import CEPIORuntime, DecisionDefinition
 
 __all__ = [
     "__version__",
@@ -60,6 +60,7 @@ __all__ = [
     "build_external_kinetic_runtime",
     "build_external_resilient_kinetic_runtime",
     "CEPIORuntime",
+    "DecisionDefinition",
     "KineticRuntime",
     "ResilientKineticRuntime",
     "ExternalKineticRuntime",

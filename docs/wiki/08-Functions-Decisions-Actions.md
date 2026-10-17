@@ -45,6 +45,14 @@ A decision record can capture:
 - confidence or rationale;
 - approval state.
 
+### Named decision capability contracts
+
+CEPIO can register a `DecisionDefinition` separately from persisted `Decision` records. A definition gives a stable runtime capability name plus allowed subject types and allowed governed actions. A typed Decision that violates that contract fails closed before persistence.
+
+This does **not** make Decision types ontology classes and does not grant action authority. Existing Decisions without `decision_type` remain backward-compatible. The first registered capability is `maintenance-intervention-recommendation`, constrained to `Equipment` subjects and the governed `CreateWorkOrder`, `CreateInspection` and `EscalateRisk` action vocabulary.
+
+See [Skill-facing runtime capability contracts](../skill-runtime-capabilities.md) for the first end-to-end binding slice.
+
 ## Action
 
 An action changes CEPIO state or invokes an external effect.

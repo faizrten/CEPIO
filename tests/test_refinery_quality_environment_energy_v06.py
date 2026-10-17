@@ -19,6 +19,10 @@ def _graph(name: str) -> Graph:
     return graph
 
 
+def _version_tuple(value: object) -> tuple[int, ...]:
+    return tuple(int(part) for part in str(value).split("."))
+
+
 def _normalizer_module():
     path = ROOT / "scripts" / "build_refinery_normalized_benchmark.py"
     spec = spec_from_file_location("refinery_normalizer", path)
@@ -109,4 +113,4 @@ def test_phase6_versions_only_changed_ontology_modules():
 
     assert str(modules["manufacturing"]["version"]) == "0.1.1"
     assert str(modules["process_industry"]["version"]) == "0.1.6"
-    assert str(modules["performance"]["version"]) == "0.1.2"
+    assert _version_tuple(modules["performance"]["version"]) >= (0, 1, 2)

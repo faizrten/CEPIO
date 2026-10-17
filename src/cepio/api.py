@@ -182,12 +182,18 @@ def add_relationship(
 def neighbors(
     object_id: str,
     relationship_type: str | None = None,
+    direction: str = Query(default="out", pattern="^(out|in)$"),
     actor: ActorContext = Depends(get_actor_context),
 ) -> list[OntologyObject]:
     try:
         runtime.read_object_for_actor(object_id, actor.roles)
+        related = (
+            runtime.reverse_neighbors(object_id, relationship_type)
+            if direction == "in"
+            else runtime.neighbors(object_id, relationship_type)
+        )
         visible: list[OntologyObject] = []
-        for obj in runtime.neighbors(object_id, relationship_type):
+        for obj in related:
             filtered = _visible_object(obj, actor)
             if filtered is not None:
                 visible.append(filtered)
@@ -358,6 +364,16 @@ def save_decision(
     decision: Decision,
     actor: ActorContext = Depends(get_actor_context),
 ) -> Decision:
+    if decision.decision_type and not runtime.policy_engine.can_propose_decision(
+        actor.roles, decision.decision_type
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "forbidden",
+                "message": f"Not authorized to propose decision {decision.decision_type}",
+            },
+        )
     try:
         runtime.read_object_for_actor(decision.subject.id, actor.roles)
         stored = decision.model_copy(update={"created_by": actor.actor_id})
@@ -366,6 +382,11 @@ def save_decision(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except AuthorizationError as exc:
         raise HTTPException(status_code=403, detail={"code": "forbidden", "message": str(exc)}) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "decision_validation", "message": str(exc)},
+        ) from exc
 
 
 @app.get("/decisions/{decision_id}", response_model=Decision)
