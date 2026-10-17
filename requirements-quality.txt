@@ -1,9 +1,9 @@
 pip==26.2.1
 setuptools==84.0.0
 wheel==0.48.0
-ruff==0.14.0
+ruff==0.17.0
 mypy==1.18.2
-bandit==1.8.6
-pip-audit==2.9.0
-pytest-cov==7.0.0
+bandit==1.9.4
+pip-audit==2.10.1
+pytest-cov==7.1.0
 types-PyYAML==6.0.12.20260906
