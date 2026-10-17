@@ -8,7 +8,13 @@ rel:FailureMode a owl:Class ; rdfs:subClassOf cepio:Entity .
 rel:FailureEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 rel:DowntimeEvent a owl:Class ; rdfs:subClassOf cepio:Event .
 rel:ComponentLife a owl:Class ; rdfs:subClassOf cepio:Measurement .
-rel:ConditionSignal a owl:Class ; rdfs:subClassOf cepio:Measurement .
+
+# Reusable reliability observation abstraction. A ConditionObservation is governed
+# evidence about equipment condition; ConditionSignal is a signal-oriented subtype.
+# This keeps procedural skills grounded in canonical CEPIO evidence rather than
+# coupling them to a particular historian, sensor or analytical source.
+rel:ConditionObservation a owl:Class ; rdfs:subClassOf cepio:Measurement .
+rel:ConditionSignal a owl:Class ; rdfs:subClassOf rel:ConditionObservation .
 rel:RemainingUsefulLifeEstimate a owl:Class ; rdfs:subClassOf cepio:Measurement .
 
 # Reusable mechanical-integrity semantics accepted by the refinery v0.2
@@ -23,7 +29,8 @@ rel:hasFailureMode a owl:ObjectProperty ; rdfs:domain rel:FailureEvent ; rdfs:ra
 rel:repairedByWorkOrder a owl:ObjectProperty ; rdfs:domain rel:FailureEvent ; rdfs:range ind:WorkOrder .
 rel:hasComponentLife a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range rel:ComponentLife .
 rel:causesDowntime a owl:ObjectProperty ; rdfs:domain cepio:Event ; rdfs:range rel:DowntimeEvent .
-rel:observedOnEquipment a owl:ObjectProperty ; rdfs:domain rel:ConditionSignal ; rdfs:range ind:Equipment .
+rel:hasConditionObservation a owl:ObjectProperty ; rdfs:domain ind:Equipment ; rdfs:range rel:ConditionObservation .
+rel:observedOnEquipment a owl:ObjectProperty ; rdfs:domain rel:ConditionObservation ; rdfs:range ind:Equipment .
 rel:estimatesLifeOf a owl:ObjectProperty ; rdfs:domain rel:RemainingUsefulLifeEstimate ; rdfs:range ind:Equipment .
 rel:damageMechanismForEquipment a owl:ObjectProperty ; rdfs:domain rel:DamageMechanism ; rdfs:range ind:Equipment .
 rel:assessmentForEquipment a owl:ObjectProperty ; rdfs:domain rel:RiskBasedInspectionAssessment ; rdfs:range ind:Equipment .
