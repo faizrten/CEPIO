@@ -1,4 +1,6 @@
-# Roadmap to v1.0
+# Roadmap to CEPIO v1.0
+
+See [version naming](../version-naming.md) for product, component, Lab and API version scopes, and [execution roadmap](../roadmap.md) for release gates.
 
 ## Completed — v0.1 Semantic Scaffold
 
@@ -48,34 +50,15 @@ Key results:
 - bitemporal object/relationship history;
 - deterministic event-state projection.
 
-## Current — v0.4 Microsoft Platform Extension
+## Completed — CEPIO v0.4 Developer Preview
 
-Completed foundations:
+Platform integration, secured API/client contracts, deployment profiles (#65), observability (#66) and Developer Preview qualification (#69) are on main. Umbrella #22 is completed. Qualification is distinct from publication of a GitHub Release.
 
-- typed operational query;
-- Microsoft platform extension architecture;
-- Fabric/Fabric IQ semantic binding;
-- Foundry + governed MCP;
-- ontology migration manifests and CI compatibility gates.
-
-### Current priority
-
-**App Service + AKS deployment profiles**.
-
-### Next priority
-
-**Runtime observability / OpenTelemetry**.
-
-### Deferred / non-blocking
-
-- Purview governance/lineage bridge;
-- GPU AKS cuGraph benchmarking.
-
-## Next — v0.5 Live Industrial Integration
+## Current — CEPIO v0.5 Live Industrial Integration
 
 Target outcome: prove CEPIO across live enterprise systems and close the governed writeback loop.
 
-Planned:
+Current work (#51):
 
 - production SAP S/4HANA/EAM adapter;
 - historian/PI streaming adapter;
@@ -90,7 +73,15 @@ Release gate:
 
 > One CEPIO application traverses at least three live enterprise sources and performs one governed, auditable and reconciled enterprise writeback.
 
-## v0.6 Reference Industrial Applications
+## Parallel — Kinetic runtime and Generalization Lab
+
+#67 has durable workflows, human approval, bounded resilience, external verification and Outcomes on main. Trigger subscriptions, public workflow surfaces, telemetry and production operation remain. Runtime component versions do not identify CEPIO releases.
+
+#112/#116/#119 track the open drilling qualification stack. Drilling domain v0.4/v0.4.1/v0.5 name benchmark contracts, independently of CEPIO product releases.
+
+#20 Purview and #25 GPU validation remain parked without a current release target.
+
+## Future — CEPIO v0.6 Reference Industrial Applications
 
 Target applications:
 
@@ -100,7 +91,7 @@ Target applications:
 
 Gate: measurable operating value with complete observe-to-action loop.
 
-## v0.7 Developer Platform
+## Future — CEPIO v0.7 Developer Platform
 
 Planned:
 
@@ -111,7 +102,7 @@ Planned:
 - ontology-as-code workflows;
 - developer documentation.
 
-## v0.8 Enterprise Runtime
+## Future — CEPIO v0.8 Enterprise Runtime
 
 Planned:
 
@@ -122,13 +113,13 @@ Planned:
 - production observability;
 - SLO/performance program.
 
-## v0.9 Enterprise Adoption
+## Future — CEPIO v0.9 Enterprise Adoption
 
 Gate:
 
 > A second Energy & Process enterprise can adopt CEPIO primarily through mapping, configuration and approved extensions rather than runtime redesign.
 
-## v1.0 Production Platform
+## Future — CEPIO v1.0 Production Platform
 
 Expected characteristics:
 
