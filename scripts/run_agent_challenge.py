@@ -15,6 +15,9 @@ from collections import deque
 from pathlib import Path
 from typing import Any
 
+from cepio.agent_retrieval import resolve as resolve_agent_identity
+from cepio.agent_retrieval import search as search_agent_objects
+
 ROOT = Path(__file__).resolve().parents[1]
 BENCHMARK = ROOT / "mvp/benchmarks/agent-challenge-v0.1"
 APPROVED_TOOLS = {
@@ -219,21 +222,8 @@ class CEPIOToolGateway:
         return call_id, result
 
     def _tool_search_objects(self, query: str, object_type: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
-        candidates = self.runtime.list_objects(object_type)
-        query_tokens = {token for token in _norm(query).replace("-", " ").split() if token}
-        scored: list[tuple[int, str, Any]] = []
-        for obj in candidates:
-            searchable_properties = {
-                key: value
-                for key, value in obj.properties.items()
-                if key not in {"source_uri", "geospatial_source_uri"}
-            }
-            haystack = _norm(" ".join([obj.id, obj.type, obj.name, *_flatten(searchable_properties)]))
-            score = sum(1 for token in query_tokens if token in haystack)
-            if not query_tokens or score:
-                scored.append((score, obj.id, obj))
-        scored.sort(key=lambda item: (-item[0], item[1]))
-        return [_object_view(obj) for _, _, obj in scored[: max(1, min(int(limit), 50))]]
+        return [_object_view(obj) for obj in search_agent_objects(
+            self.runtime.list_objects(), query, object_type, limit)]
 
     def _tool_get_object(self, object_id: str) -> dict[str, Any]:
         return _object_view(self.runtime.get_object(object_id))
@@ -275,18 +265,10 @@ class CEPIOToolGateway:
         ]
 
     def _tool_resolve_identity(self, alias: str) -> dict[str, Any] | None:
-        target = _norm(alias)
-        for obj in self.runtime.list_objects():
-            candidates = [obj.id, obj.properties.get("canonical_iri", ""), obj.properties.get("source_tag", "")]
-            aliases = obj.properties.get("aliases", {})
-            if isinstance(aliases, dict):
-                candidates.extend(aliases.values())
-            if target in {_norm(value) for value in candidates if value}:
-                return {
-                    "canonical_object": _object_view(obj),
-                    "canonical_iri": obj.properties.get("canonical_iri"),
-                }
-        return None
+        obj = resolve_agent_identity(self.runtime.list_objects(), alias)
+        if obj is None:
+            return None
+        return {"canonical_object": _object_view(obj), "canonical_iri": obj.properties.get("canonical_iri")}
 
     def _tool_get_evidence(
         self,

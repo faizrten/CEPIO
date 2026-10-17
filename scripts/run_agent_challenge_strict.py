@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib.util
-import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -16,44 +15,6 @@ base = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = base
 spec.loader.exec_module(base)
 
-
-def _tokens(value: Any) -> set[str]:
-    result: set[str] = set()
-    for token in re.findall(r"[a-z0-9]+", str(value).lower()):
-        if token.isdigit():
-            result.add(str(int(token)))
-        else:
-            result.add(token)
-    return result
-
-
-def _strict_search_objects(self, query: str, object_type: str | None = None, limit: int = 20):
-    candidates = self.runtime.list_objects(object_type)
-    query_tokens = _tokens(query)
-    scored = []
-    complete = []
-    for obj in candidates:
-        searchable_properties = {
-            key: value
-            for key, value in obj.properties.items()
-            if key not in {"source_uri", "geospatial_source_uri"}
-        }
-        identity_tokens = _tokens(f"{obj.id} {obj.name}")
-        haystack_tokens = _tokens(" ".join([obj.id, obj.type, obj.name, *base._flatten(searchable_properties)]))
-        overlap = query_tokens.intersection(haystack_tokens)
-        identity_overlap = query_tokens.intersection(identity_tokens)
-        score = len(overlap) + (2 * len(identity_overlap))
-        entry = (score, len(identity_overlap), obj.id, obj)
-        if query_tokens and query_tokens.issubset(haystack_tokens):
-            complete.append(entry)
-        elif not query_tokens or score:
-            scored.append(entry)
-    selected = complete if complete else scored
-    selected.sort(key=lambda item: (-item[0], -item[1], item[2]))
-    return [base._object_view(obj) for _, _, _, obj in selected[: max(1, min(int(limit), 50))]]
-
-
-base.CEPIOToolGateway._tool_search_objects = _strict_search_objects
 
 
 class StrictReferenceToolAgent(base.ReferenceToolAgent):

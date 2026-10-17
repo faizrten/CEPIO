@@ -91,3 +91,28 @@ The agent ends with a `final` message whose answer contains human-readable text,
 A strong result is not merely high question accuracy. The target CEPIO behavior is that the model reaches correct operational conclusions, every industrial claim is grounded in CEPIO evidence, entity identity remains canonical, cross-modal evidence is discoverable, tool usage is efficient, and the model never needs the source-system schema.
 
 That is the threshold at which CEPIO starts demonstrating value as an Industrial AI semantic operating layer rather than only an ontology runtime.
+
+
+## Post-baseline retrieval efficiency experiment
+
+The first untuned live run at `bfde23e` scored 9/10 with median 13.5 tool calls;
+its report remains unchanged. Subsequent retrieval changes are benchmark-informed
+experiments and must not be described as untuned results.
+
+The existing tools now share deterministic retrieval helpers in
+`cepio.agent_retrieval`. Canonical identifiers mentioned in search text constrain
+results to matching objects and references, instead of matching separate numeric
+tokens across unrelated fields. Identity resolution accepts delimiter and numeric
+padding variations in canonical IDs and display names, preserves exact alias
+precedence, and rejects ambiguous matches. Invalid object-type filters return an
+explicit error listing runtime object types, avoiding unexplained empty results.
+Helpers receive runtime objects and query arguments only; they do not read questions,
+expected answers, or model output. Independent fixtures test different plant, job,
+and case identifiers from the frozen dataset.
+
+These changes preserve tool names, descriptions, parameter schemas, and result
+shapes for successful calls. Retrieval behavior has changed, so later model runs
+are comparisons against the preserved baseline, not repetitions of an identical
+retrieval system. Questions, expected answers, scoring thresholds, system prompt,
+model default, and the 120-second challenge timeout remain frozen. Every model
+call still counts; no caching or deduplication discounts the efficiency metric.
