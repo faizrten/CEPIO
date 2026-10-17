@@ -341,6 +341,7 @@ def evaluate_skill_preflight(
                 )
 
     action_policy_evaluator = getattr(runtime.policy_engine, "evaluate_action_capability", None)
+    action_definitions = getattr(runtime, "_actions", {})
     for logical_id, runtime_id in sorted(spec.actions.items()):
         if not runtime.has_action(runtime_id):
             blocked("action", "ACTION_UNAVAILABLE", "Governed action is unavailable.", logical_id, runtime_id)
@@ -355,7 +356,16 @@ def evaluate_skill_preflight(
             )
             continue
 
-        definition = runtime.get_action_definition(runtime_id)
+        definition = action_definitions.get(runtime_id)
+        if definition is None:
+            blocked(
+                "action",
+                "ACTION_DEFINITION_UNAVAILABLE",
+                "Runtime reports the action but does not expose its definition to the preflight engine.",
+                logical_id,
+                runtime_id,
+            )
+            continue
         policy = action_policy_evaluator(actor_roles, runtime_id, definition)
         wants_execute = logical_id in spec.authority.execute_actions
         requires_handoff = logical_id in spec.authority.approval_required_for or not wants_execute
