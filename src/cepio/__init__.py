@@ -13,6 +13,18 @@ from .kinetic import (
     WorkflowStepStatus,
     WorkflowStepType,
 )
+from .kinetic_resilience import (
+    CompensationStatus,
+    InMemoryResilienceRepository,
+    ResilientKineticRuntime,
+    SQLiteResilienceRepository,
+    StepExecutionPolicy,
+    StepResilienceState,
+    WorkflowControlPolicy,
+    WorkflowResilienceState,
+    WorkflowStepTimeout,
+    build_resilient_kinetic_runtime,
+)
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship
 from .query import ObjectQuery, ObjectQueryResult, PropertyPredicate, QueryOperator, RelationshipPredicate, SortField
 from .runtime import CEPIORuntime
@@ -21,8 +33,10 @@ __all__ = [
     "__version__",
     "build_runtime",
     "build_kinetic_runtime",
+    "build_resilient_kinetic_runtime",
     "CEPIORuntime",
     "KineticRuntime",
+    "ResilientKineticRuntime",
     "WorkflowDefinition",
     "WorkflowInstance",
     "WorkflowStatus",
@@ -30,6 +44,14 @@ __all__ = [
     "WorkflowStepStatus",
     "WorkflowStepType",
     "ApprovalTask",
+    "StepExecutionPolicy",
+    "WorkflowControlPolicy",
+    "StepResilienceState",
+    "WorkflowResilienceState",
+    "CompensationStatus",
+    "WorkflowStepTimeout",
+    "InMemoryResilienceRepository",
+    "SQLiteResilienceRepository",
     "GraphAnalyticsEngine",
     "OntologyObject",
     "Relationship",
