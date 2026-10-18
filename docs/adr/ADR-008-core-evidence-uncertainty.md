@@ -159,3 +159,7 @@ This decision does not introduce:
 - automatic causal inference.
 
 Those are subsequent domain/runtime concerns built on this Core contract.
+
+## Validation refresh
+
+Before merge, this contract is revalidated against the current `main` branch so that the Core 0.3.0 additive semantics must pass the repository's current CI, governance, quality, security and compatibility gates rather than relying only on the original qualification run.
