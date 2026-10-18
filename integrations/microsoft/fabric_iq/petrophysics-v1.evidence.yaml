@@ -1,0 +1,35 @@
+schema_version: "0.1"
+provider_id: microsoft.fabric.petrophysics-v1
+provider: Microsoft Fabric
+source_type: lakehouse
+status: experimental
+scope:
+  journeys: [PET-02, PET-05, PET-06]
+  mode: normalized_evidence_tables
+  note: >-
+    v1.1 defines the provider/table contract and deterministic parity harness.
+    A live Fabric SQL/Lakehouse transport is injected through FabricTableReader;
+    credentials and workspace-specific endpoints are not encoded in this public profile.
+tables:
+  contexts: cepio_petrophysics_contexts
+  formation_evaluation_cases: cepio_formation_evaluation_cases
+  external_evidence: cepio_petrophysics_evidence
+  uncertainty_assessments: cepio_petrophysics_uncertainty
+  confidence_assessments: cepio_petrophysics_confidence
+  downstream_dependencies: cepio_petrophysics_dependencies
+  well_interpretations: cepio_petrophysics_well_interpretations
+  pet05_profile: cepio_petrophysics_consistency_profile
+  pet05_impacts: cepio_petrophysics_consistency_impacts
+  pet06_handover: cepio_petrophysics_model_handover
+  pet06_transformations: cepio_petrophysics_model_transformations
+  pet06_stale_dependencies: cepio_petrophysics_stale_dependencies
+invariants:
+  - preserve_original_source_system_record_id_and_version
+  - do_not_materialize_bulk_log_curves_in_cepio
+  - do_not_treat_fabric_replication_as_new_source_authority
+  - reasoning_contract_must_match_synthetic_provider
+  - policy_and_skill_preflight_remain_provider_independent
+future_transport_bindings:
+  workspace_id_env: FABRIC_WORKSPACE_ID
+  lakehouse_id_env: FABRIC_LAKEHOUSE_ID
+  sql_endpoint_env: FABRIC_SQL_ENDPOINT

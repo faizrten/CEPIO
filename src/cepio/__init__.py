@@ -86,6 +86,12 @@ from .kinetic_resilience import (
     build_resilient_kinetic_runtime,
 )
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship
+from .petrophysics_evidence import (
+    EvidenceProviderCapabilityError,
+    PetrophysicsEvidenceProvider,
+    PetrophysicsOperationalRuntime,
+    SyntheticPetrophysicsEvidenceProvider,
+)
 from .query import (
     ObjectQuery,
     ObjectQueryResult,
@@ -162,6 +168,10 @@ __all__ = [
     "Pet02DependencyImpact",
     "Pet02RecommendedAction",
     "run_pet02_formation_evaluation",
+    "EvidenceProviderCapabilityError",
+    "PetrophysicsEvidenceProvider",
+    "PetrophysicsOperationalRuntime",
+    "SyntheticPetrophysicsEvidenceProvider",
     "KineticRuntime",
     "ResilientKineticRuntime",
     "ExternalKineticRuntime",
