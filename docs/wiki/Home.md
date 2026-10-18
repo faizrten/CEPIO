@@ -76,26 +76,13 @@ CEPIO defines the **industrial semantic and operating contract**. Platforms impl
 
 ## Current status
 
-**Released Python package:** `0.3.0` — Temporal + Provenance Kernel.
+**Published release designation:** v0.4.0 — Developer Preview. The [release manifest](../../RELEASE.md) defines the supported boundary, including the public `/api/v1` interface, canonical semantics, temporal/provenance capabilities, governed Functions/Decisions/Actions, Microsoft bindings, reference hosting and observability.
 
-**Current `main`:** ahead of the packaged release and already contains major v0.4 Microsoft Platform Extension foundations, including:
+Current repository implementation also includes incremental Skill binding/preflight, durable workflow, resilience, external-verification and constrained Operator work. Component versions and repository implementation do not expand the published release guarantees automatically. See [Functions, Decisions and Actions](08-Functions-Decisions-Actions.md) and the [technical documentation index](../README.md) for scoped contracts.
 
-- modular canonical ontology;
-- IRI-first semantic identity;
-- canonical property contracts;
-- property-level provenance;
-- bitemporal object and relationship history;
-- deterministic event-to-state projection;
-- typed operational query contract;
-- NetworkX graph intelligence with optional NVIDIA cuGraph acceleration;
-- Digital Twin Consortium ISA-95 manufacturing federation;
-- Microsoft Fabric / Fabric IQ semantic binding;
-- Microsoft Foundry + governed MCP integration;
-- Entra identity to CEPIO actor context;
-- explicit function/action authorization;
-- ontology migration manifests and CI compatibility gates.
+[Target Users / Personas](19-Target-Users-Personas.md) describes the industrial users and platform builders CEPIO is intended to serve. The checked-in catalogs model 24 drilling and 26 refinery persona entries; they do not establish delivered applications for every role.
 
-The current priority is **App Service + AKS reference deployment profiles**, followed by **OpenTelemetry observability**.
+[Competency & Assurance](20-Competency-Assurance.md) is a first-class acceptance discipline. Drilling persona pack v0.3 has a checked-in 14/14 semantic PASS expectation; the operational fixture separately expects five assurance gates to pass. Those scopes do not establish complete runtime coverage or production readiness.
 
 ## Operating loop
 
@@ -136,6 +123,11 @@ CEPIO's purpose is not merely to describe the enterprise. It is to create a gove
 16. [Reference Scenarios](16-Reference-Scenarios.md)
 17. [Roadmap to v1.0](17-Roadmap.md)
 18. [Glossary](18-Glossary.md)
+
+### Users and acceptance
+
+19. [Target Users / Personas](19-Target-Users-Personas.md)
+20. [Competency & Assurance](20-Competency-Assurance.md)
 
 ## Documentation governance
 

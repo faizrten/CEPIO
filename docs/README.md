@@ -20,6 +20,13 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[Generalization & Competency Harness](generalization-harness.md)** — agentic validation architecture and the deterministic drilling-contractor v0.1 benchmark.
 - **[Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)** — first evidence-driven remediation cycle against the frozen drilling benchmark.
 
+## Users, competency and assurance
+
+- [Target Users / Personas](wiki/19-Target-Users-Personas.md) — industrial users, platform builders, lighthouse focus and catalog boundaries.
+- [Competency & Assurance](wiki/20-Competency-Assurance.md) — semantic benchmarks, operational gates, Operator evidence discipline and maturity direction.
+- [Operational assurance](../generalization/OPERATIONAL_ASSURANCE.md) — deterministic runtime evidence contract.
+- [Operator v0.6](../generalization/OPERATOR_V06.md) — executable REST/MCP agent boundary.
+
 ## v0.4 public API and operations
 
 - [API v1 client guide](api-client-guide.md)
