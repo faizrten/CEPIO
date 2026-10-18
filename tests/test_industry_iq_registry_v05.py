@@ -36,12 +36,8 @@ def test_version_constraints_are_deterministic():
 
 def test_registry_resolves_highest_compatible_transitive_dependency():
     registry = IndustryIQPackRegistry(core_version="0.4.0")
-    registry.register(
-        DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.0.0"))
-    )
-    registry.register(
-        DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.2.0"))
-    )
+    registry.register(DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.0.0")))
+    registry.register(DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.2.0")))
     registry.register(
         DummyPack(
             IndustryIQPackManifest(
@@ -64,9 +60,7 @@ def test_registry_resolves_highest_compatible_transitive_dependency():
 
 def test_registry_composes_multiple_packs_on_one_shared_dependency():
     registry = IndustryIQPackRegistry(core_version="0.4.0")
-    registry.register(
-        DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.5.0"))
-    )
+    registry.register(DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.5.0")))
     registry.register(
         DummyPack(
             IndustryIQPackManifest(
@@ -94,12 +88,8 @@ def test_registry_composes_multiple_packs_on_one_shared_dependency():
 
 def test_incompatible_dependency_constraints_fail_closed():
     registry = IndustryIQPackRegistry(core_version="0.4.0")
-    registry.register(
-        DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.5.0"))
-    )
-    registry.register(
-        DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="2.1.0"))
-    )
+    registry.register(DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.5.0")))
+    registry.register(DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="2.1.0")))
     registry.register(
         DummyPack(
             IndustryIQPackManifest(
