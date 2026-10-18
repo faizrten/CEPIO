@@ -76,9 +76,7 @@ def calculate_asset_risk(*, runtime: CEPIORuntime, asset_id: str) -> float:
     recent_trips = sum(1 for e in runtime.events_for(asset_id) if e.type == "TripEvent")
     score = min(
         1.0,
-        criticality_weight * 0.6
-        + min(open_work_orders, 5) * 0.05
-        + min(recent_trips, 5) * 0.05,
+        criticality_weight * 0.6 + min(open_work_orders, 5) * 0.05 + min(recent_trips, 5) * 0.05,
     )
     return round(score, 3)
 
