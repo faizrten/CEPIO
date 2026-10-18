@@ -46,6 +46,10 @@ properties:
   rel:healthIndex: {iri: 'https://cepio.org/ontology/reliability#healthIndex', datatype: double, authority: derived}
   rel:remainingUsefulLife: {iri: 'https://cepio.org/ontology/reliability#remainingUsefulLife', datatype: double, authority: derived}
   rel:riskPriorityNumber: {iri: 'https://cepio.org/ontology/reliability#riskPriorityNumber', datatype: integer, authority: derived}
+  rel:currentRiskScore: {iri: 'https://cepio.org/ontology/reliability#currentRiskScore', datatype: double, authority: derived}
+  rel:deferralRiskScore: {iri: 'https://cepio.org/ontology/reliability#deferralRiskScore', datatype: double, authority: derived}
+  rel:maxSupportedDeferralHours: {iri: 'https://cepio.org/ontology/reliability#maxSupportedDeferralHours', datatype: double, authority: derived}
+  rel:hardConstraint: {iri: 'https://cepio.org/ontology/reliability#hardConstraint', datatype: boolean, authority: domain}
   hse:permitType: {iri: 'https://cepio.org/ontology/hse#permitType', datatype: string, authority: domain}
   hse:riskLevel: {iri: 'https://cepio.org/ontology/hse#riskLevel', datatype: string, authority: derived}
   hse:issuedOn: {iri: 'https://cepio.org/ontology/hse#issuedOn', datatype: dateTime, authority: domain}

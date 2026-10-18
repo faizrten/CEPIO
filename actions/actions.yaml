@@ -20,3 +20,9 @@ actions:
     risk: high
     requires_human_approval: true
     side_effect: "Approve a governed maintenance deferral"
+  DeferWorkOrder:
+    target_types: [WorkOrder]
+    allowed_roles: [maintenance_manager, operations_manager]
+    risk: high
+    requires_human_approval: true
+    side_effect: "Apply a governed maintenance deferral to the work order after approval"

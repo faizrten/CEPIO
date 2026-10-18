@@ -86,11 +86,15 @@ process:pressure a owl:DatatypeProperty ; rdfs:range xsd:double .
 process:purity a owl:DatatypeProperty ; rdfs:range xsd:double .
 process:qualityProperty a owl:DatatypeProperty ; rdfs:range xsd:string .
 rel:cause a owl:DatatypeProperty ; rdfs:range xsd:string .
+rel:currentRiskScore a owl:DatatypeProperty ; rdfs:range xsd:double .
+rel:deferralRiskScore a owl:DatatypeProperty ; rdfs:range xsd:double .
 rel:detection a owl:DatatypeProperty ; rdfs:range xsd:string .
 rel:downtimeHours a owl:DatatypeProperty ; rdfs:range xsd:double .
 rel:effect a owl:DatatypeProperty ; rdfs:range xsd:string .
 rel:failureModeCode a owl:DatatypeProperty ; rdfs:range xsd:string .
+rel:hardConstraint a owl:DatatypeProperty ; rdfs:range xsd:boolean .
 rel:healthIndex a owl:DatatypeProperty ; rdfs:range xsd:double .
+rel:maxSupportedDeferralHours a owl:DatatypeProperty ; rdfs:range xsd:double .
 rel:remainingUsefulLife a owl:DatatypeProperty ; rdfs:range xsd:double .
 rel:riskPriorityNumber a owl:DatatypeProperty ; rdfs:range xsd:integer .
 supply:leadTimeDays a owl:DatatypeProperty ; rdfs:range xsd:double .
