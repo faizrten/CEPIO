@@ -95,6 +95,18 @@ Rig
 
 The drilling domain module allows rig/operator workflows to reuse shared asset, work, reliability, supply and commercial semantics.
 
+### Drilling MVP conformance testbed
+
+The synthetic drilling fixture provides deterministic ground truth for exercising that chain without customer data.
+
+**v0.1** establishes structured/tabular records, low-frequency telemetry, events, maintenance history, source aliases and twenty golden semantic questions across four engineered scenarios.
+
+**v0.2** preserves the same scenarios and adds documents, inspection images, engineering diagrams, geospatial context and high-frequency waveforms. These source-native artifacts are referenced rather than serialized into the ontology. CEPIO owns the canonical identity, relationship, temporal and provenance binding that makes the evidence usable consistently by REST, SDK and MCP consumers.
+
+The v0.2 deterministic acceptance gate contains thirty golden questions: the original twenty plus ten multimodal questions covering evidence corroboration, diagram grounding, geospatial relationships, waveform evidence, cross-modal fusion and artifact provenance.
+
+A separate public Agent Challenge question set exercises higher-order tool use, but the qualification answer key is intentionally not distributed in the public repository. See [CEPIO Agent Challenge v0.1](CEPIO-Agent-Challenge-v0.1.md) and ADR-0011.
+
 ## 7. EPCIC / commissioning
 
 ```text
