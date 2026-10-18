@@ -76,8 +76,14 @@ class PetrophysicsV1CoverageResult(BaseModel):
     @property
     def complete(self) -> bool:
         return self.blocked == 0 and set(self.results) == {
-            "PET-01", "PET-02", "PET-03", "PET-04",
-            "PET-05", "PET-06", "PET-07", "PET-08",
+            "PET-01",
+            "PET-02",
+            "PET-03",
+            "PET-04",
+            "PET-05",
+            "PET-06",
+            "PET-07",
+            "PET-08",
         }
 
 
@@ -132,7 +138,12 @@ class PetrophysicsV1Runtime:
         "PET-08": "cepio.skill.subsurface.petrophysics.new-well-learning",
     }
 
-    def __init__(self, data: Mapping[str, Any], *, resource_root: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        data: Mapping[str, Any],
+        *,
+        resource_root: str | Path | None = None,
+    ) -> None:
         self.data: dict[str, Any] = deepcopy(dict(data))
         self.resource_root = Path(resource_root).resolve() if resource_root else None
 
@@ -150,50 +161,186 @@ class PetrophysicsV1Runtime:
         binding = "subsurface-petrophysics-v1-persona-coverage"
         return {
             "PET-01": SkillPreflightSpec(
-                skill_id=cls.SKILL_IDS["PET-01"], binding_id=binding,
-                object_types={"case": f"{SUB}FormationEvaluationCase", "evidence": f"{CORE}Evidence"},
-                relationships={"has_evidence": f"{CORE}hasEvidence"}, evidence_types={"evidence"},
-                graph_paths=[SkillGraphPathRequirement(id="readiness-case-evidence", start_type="case", steps=[SkillGraphPathStep(relationship="has_evidence", target_type="evidence")])],
+                skill_id=cls.SKILL_IDS["PET-01"],
+                binding_id=binding,
+                object_types={
+                    "case": f"{SUB}FormationEvaluationCase",
+                    "evidence": f"{CORE}Evidence",
+                },
+                relationships={"has_evidence": f"{CORE}hasEvidence"},
+                evidence_types={"evidence"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="readiness-case-evidence",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_evidence", target_type="evidence"
+                            )
+                        ],
+                    )
+                ],
             ),
             "PET-03": SkillPreflightSpec(
-                skill_id=cls.SKILL_IDS["PET-03"], binding_id=binding,
-                object_types={"case": f"{SUB}FormationEvaluationCase", "characteristic": f"{SUB}PetrophysicalCharacteristic", "assumption": f"{CORE}Assumption", "uncertainty": f"{CORE}UncertaintyAssessment"},
-                relationships={"has_assumption": f"{CORE}hasAssumption", "has_characteristic": f"{SUB}hasCharacteristic", "has_uncertainty": f"{CORE}hasUncertaintyAssessment"},
+                skill_id=cls.SKILL_IDS["PET-03"],
+                binding_id=binding,
+                object_types={
+                    "case": f"{SUB}FormationEvaluationCase",
+                    "characteristic": f"{SUB}PetrophysicalCharacteristic",
+                    "assumption": f"{CORE}Assumption",
+                    "uncertainty": f"{CORE}UncertaintyAssessment",
+                },
+                relationships={
+                    "has_assumption": f"{CORE}hasAssumption",
+                    "has_characteristic": f"{SUB}hasCharacteristic",
+                    "has_uncertainty": f"{CORE}hasUncertaintyAssessment",
+                },
                 graph_paths=[
-                    SkillGraphPathRequirement(id="saturation-assumptions", start_type="case", steps=[SkillGraphPathStep(relationship="has_assumption", target_type="assumption")]),
-                    SkillGraphPathRequirement(id="saturation-characteristic-uncertainty", start_type="case", steps=[SkillGraphPathStep(relationship="has_characteristic", target_type="characteristic"), SkillGraphPathStep(relationship="has_uncertainty", target_type="uncertainty")]),
+                    SkillGraphPathRequirement(
+                        id="saturation-assumptions",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_assumption", target_type="assumption"
+                            )
+                        ],
+                    ),
+                    SkillGraphPathRequirement(
+                        id="saturation-characteristic-uncertainty",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_characteristic",
+                                target_type="characteristic",
+                            ),
+                            SkillGraphPathStep(
+                                relationship="has_uncertainty",
+                                target_type="uncertainty",
+                            ),
+                        ],
+                    ),
                 ],
             ),
             "PET-04": SkillPreflightSpec(
-                skill_id=cls.SKILL_IDS["PET-04"], binding_id=binding,
-                object_types={"case": f"{SUB}FormationEvaluationCase", "evidence": f"{CORE}Evidence", "confidence": f"{CORE}ConfidenceAssessment"},
-                relationships={"has_evidence": f"{CORE}hasEvidence", "has_confidence": f"{CORE}hasConfidenceAssessment"}, evidence_types={"evidence"},
+                skill_id=cls.SKILL_IDS["PET-04"],
+                binding_id=binding,
+                object_types={
+                    "case": f"{SUB}FormationEvaluationCase",
+                    "evidence": f"{CORE}Evidence",
+                    "confidence": f"{CORE}ConfidenceAssessment",
+                },
+                relationships={
+                    "has_evidence": f"{CORE}hasEvidence",
+                    "has_confidence": f"{CORE}hasConfidenceAssessment",
+                },
+                evidence_types={"evidence"},
                 graph_paths=[
-                    SkillGraphPathRequirement(id="core-log-evidence", start_type="case", steps=[SkillGraphPathStep(relationship="has_evidence", target_type="evidence")]),
-                    SkillGraphPathRequirement(id="core-log-confidence", start_type="case", steps=[SkillGraphPathStep(relationship="has_confidence", target_type="confidence")]),
+                    SkillGraphPathRequirement(
+                        id="core-log-evidence",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_evidence", target_type="evidence"
+                            )
+                        ],
+                    ),
+                    SkillGraphPathRequirement(
+                        id="core-log-confidence",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_confidence", target_type="confidence"
+                            )
+                        ],
+                    ),
                 ],
             ),
             "PET-05": SkillPreflightSpec(
-                skill_id=cls.SKILL_IDS["PET-05"], binding_id=binding,
-                object_types={"case": f"{SUB}FormationEvaluationCase"}, relationships={"supersedes": f"{CORE}supersedes"},
-                graph_paths=[SkillGraphPathRequirement(id="interpretation-lineage", start_type="case", steps=[SkillGraphPathStep(relationship="supersedes", target_type="case")])],
+                skill_id=cls.SKILL_IDS["PET-05"],
+                binding_id=binding,
+                object_types={"case": f"{SUB}FormationEvaluationCase"},
+                relationships={"supersedes": f"{CORE}supersedes"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="interpretation-lineage",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="supersedes", target_type="case"
+                            )
+                        ],
+                    )
+                ],
             ),
             "PET-06": SkillPreflightSpec(
-                skill_id=cls.SKILL_IDS["PET-06"], binding_id=binding,
-                object_types={"dependency": f"{CORE}Dependency", "case": f"{SUB}FormationEvaluationCase"}, relationships={"dependency_source": f"{CORE}dependencySource"},
-                graph_paths=[SkillGraphPathRequirement(id="handover-dependency-source", start_type="dependency", steps=[SkillGraphPathStep(relationship="dependency_source", target_type="case")])],
+                skill_id=cls.SKILL_IDS["PET-06"],
+                binding_id=binding,
+                object_types={
+                    "dependency": f"{CORE}Dependency",
+                    "case": f"{SUB}FormationEvaluationCase",
+                },
+                relationships={"dependency_source": f"{CORE}dependencySource"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="handover-dependency-source",
+                        start_type="dependency",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="dependency_source", target_type="case"
+                            )
+                        ],
+                    )
+                ],
             ),
             "PET-07": SkillPreflightSpec(
-                skill_id=cls.SKILL_IDS["PET-07"], binding_id=binding,
-                object_types={"case": f"{SUB}FormationEvaluationCase", "evidence": f"{CORE}Evidence", "uncertainty": f"{CORE}UncertaintyAssessment"},
-                relationships={"has_evidence": f"{CORE}hasEvidence", "has_uncertainty": f"{CORE}hasUncertaintyAssessment"}, evidence_types={"evidence"},
-                graph_paths=[SkillGraphPathRequirement(id="opportunity-evidence-basis", start_type="case", steps=[SkillGraphPathStep(relationship="has_evidence", target_type="evidence")])],
+                skill_id=cls.SKILL_IDS["PET-07"],
+                binding_id=binding,
+                object_types={
+                    "case": f"{SUB}FormationEvaluationCase",
+                    "evidence": f"{CORE}Evidence",
+                    "uncertainty": f"{CORE}UncertaintyAssessment",
+                },
+                relationships={
+                    "has_evidence": f"{CORE}hasEvidence",
+                    "has_uncertainty": f"{CORE}hasUncertaintyAssessment",
+                },
+                evidence_types={"evidence"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="opportunity-evidence-basis",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_evidence", target_type="evidence"
+                            )
+                        ],
+                    )
+                ],
             ),
             "PET-08": SkillPreflightSpec(
-                skill_id=cls.SKILL_IDS["PET-08"], binding_id=binding,
-                object_types={"case": f"{SUB}FormationEvaluationCase", "evidence": f"{CORE}Evidence", "confidence": f"{CORE}ConfidenceAssessment"},
-                relationships={"has_evidence": f"{CORE}hasEvidence", "has_confidence": f"{CORE}hasConfidenceAssessment"}, evidence_types={"evidence"},
-                graph_paths=[SkillGraphPathRequirement(id="learning-evidence", start_type="case", steps=[SkillGraphPathStep(relationship="has_evidence", target_type="evidence")])],
+                skill_id=cls.SKILL_IDS["PET-08"],
+                binding_id=binding,
+                object_types={
+                    "case": f"{SUB}FormationEvaluationCase",
+                    "evidence": f"{CORE}Evidence",
+                    "confidence": f"{CORE}ConfidenceAssessment",
+                },
+                relationships={
+                    "has_evidence": f"{CORE}hasEvidence",
+                    "has_confidence": f"{CORE}hasConfidenceAssessment",
+                },
+                evidence_types={"evidence"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="learning-evidence",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_evidence", target_type="evidence"
+                            )
+                        ],
+                    )
+                ],
             ),
         }
 
@@ -205,13 +352,33 @@ class PetrophysicsV1Runtime:
             kwargs["resource_root"] = self.resource_root
         return build_runtime(**kwargs)
 
-    def _preflight(self, journey_id: str, runtime: CEPIORuntime, *, actor_id: str, actor_roles: set[str]) -> list[SkillPreflightResult]:
+    def _preflight(
+        self,
+        journey_id: str,
+        runtime: CEPIORuntime,
+        *,
+        actor_id: str,
+        actor_roles: set[str],
+    ) -> list[SkillPreflightResult]:
         spec = self.skill_specs()[journey_id]
         registry = SkillRegistry(runtime)
         registry.register(spec)
-        return [registry.preflight(spec.skill_id, actor_id=actor_id, actor_roles=actor_roles)]
+        return [
+            registry.preflight(
+                spec.skill_id,
+                actor_id=actor_id,
+                actor_roles=actor_roles,
+            )
+        ]
 
-    def execute(self, journey_id: str, *, runtime: CEPIORuntime | None = None, actor_id: str = "petrophysicist", actor_roles: set[str] | None = None) -> PetrophysicsJourneyResult:
+    def execute(
+        self,
+        journey_id: str,
+        *,
+        runtime: CEPIORuntime | None = None,
+        actor_id: str = "petrophysicist",
+        actor_roles: set[str] | None = None,
+    ) -> PetrophysicsJourneyResult:
         journey_id = journey_id.upper()
         if journey_id not in self.JOURNEY_QUESTIONS:
             raise ValueError(f"Unknown Petrophysics journey: {journey_id}")
@@ -221,104 +388,448 @@ class PetrophysicsV1Runtime:
 
         if journey_id == "PET-02":
             root = self.resource_root or Path.cwd()
-            benchmark = root / "generalization" / "benchmarks" / "subsurface-petrophysics-pet02-a17-zone-b.yaml"
-            result = FormationEvaluationAssuranceRuntime.from_yaml(benchmark).execute(well="A-17", interval="Zone-B", cepio_runtime=cepio_runtime, actor_id=actor_id, actor_roles=roles)
+            benchmark = (
+                root
+                / "generalization"
+                / "benchmarks"
+                / "subsurface-petrophysics-pet02-a17-zone-b.yaml"
+            )
+            result = FormationEvaluationAssuranceRuntime.from_yaml(benchmark).execute(
+                well="A-17",
+                interval="Zone-B",
+                cepio_runtime=cepio_runtime,
+                actor_id=actor_id,
+                actor_roles=roles,
+            )
             if result.status != "ANSWERED" or result.answer is None:
-                return PetrophysicsJourneyResult(journey_id=journey_id, status="BLOCKED", question=question, preflights=result.preflights, trace=[PetrophysicsV1Trace(stage=t.skill_id, message=t.message) for t in result.trace], blockers=[PetrophysicsV1Blocker(code=b.code, message=b.message) for b in result.blockers])
-            return PetrophysicsJourneyResult(journey_id=journey_id, status="ANSWERED", question=question, answer=result.answer.model_dump(mode="json"), preflights=result.preflights, trace=[PetrophysicsV1Trace(stage=t.skill_id, message=t.message) for t in result.trace])
+                return PetrophysicsJourneyResult(
+                    journey_id=journey_id,
+                    status="BLOCKED",
+                    question=question,
+                    preflights=result.preflights,
+                    trace=[
+                        PetrophysicsV1Trace(stage=t.skill_id, message=t.message)
+                        for t in result.trace
+                    ],
+                    blockers=[
+                        PetrophysicsV1Blocker(code=b.code, message=b.message)
+                        for b in result.blockers
+                    ],
+                )
+            return PetrophysicsJourneyResult(
+                journey_id=journey_id,
+                status="ANSWERED",
+                question=question,
+                answer=result.answer.model_dump(mode="json"),
+                preflights=result.preflights,
+                trace=[
+                    PetrophysicsV1Trace(stage=t.skill_id, message=t.message)
+                    for t in result.trace
+                ],
+            )
 
-        preflights = self._preflight(journey_id, cepio_runtime, actor_id=actor_id, actor_roles=roles)
-        blockers = [PetrophysicsV1Blocker(code="SKILL_PREFLIGHT_BLOCKED", message=f"{p.skill_id}: {', '.join(sorted({b.code for b in p.blockers}))}") for p in preflights if p.status == "BLOCKED"]
+        preflights = self._preflight(
+            journey_id,
+            cepio_runtime,
+            actor_id=actor_id,
+            actor_roles=roles,
+        )
+        blockers = [
+            PetrophysicsV1Blocker(
+                code="SKILL_PREFLIGHT_BLOCKED",
+                message=(
+                    f"{preflight.skill_id}: "
+                    f"{', '.join(sorted({blocker.code for blocker in preflight.blockers}))}"
+                ),
+            )
+            for preflight in preflights
+            if preflight.status == "BLOCKED"
+        ]
         if blockers:
-            return PetrophysicsJourneyResult(journey_id=journey_id, status="BLOCKED", question=question, preflights=preflights, blockers=blockers)
+            return PetrophysicsJourneyResult(
+                journey_id=journey_id,
+                status="BLOCKED",
+                question=question,
+                preflights=preflights,
+                blockers=blockers,
+            )
         handler = getattr(self, f"_execute_{journey_id.replace('-', '').lower()}")
         answer, trace = handler()
-        return PetrophysicsJourneyResult(journey_id=journey_id, status="ANSWERED", question=question, answer=answer, preflights=preflights, trace=trace)
+        return PetrophysicsJourneyResult(
+            journey_id=journey_id,
+            status="ANSWERED",
+            question=question,
+            answer=answer,
+            preflights=preflights,
+            trace=trace,
+        )
 
-    def execute_all(self, *, runtime: CEPIORuntime | None = None, actor_id: str = "petrophysicist", actor_roles: set[str] | None = None) -> PetrophysicsV1CoverageResult:
+    def execute_all(
+        self,
+        *,
+        runtime: CEPIORuntime | None = None,
+        actor_id: str = "petrophysicist",
+        actor_roles: set[str] | None = None,
+    ) -> PetrophysicsV1CoverageResult:
         cepio_runtime = self._runtime(runtime)
-        results = {journey: self.execute(journey, runtime=cepio_runtime, actor_id=actor_id, actor_roles=actor_roles) for journey in self.JOURNEY_QUESTIONS}
-        passed = sum(r.status == "ANSWERED" for r in results.values())
-        return PetrophysicsV1CoverageResult(benchmark_id=str(self.data.get("id", "")), synthetic=bool(self.data.get("synthetic", False)), results=results, passed=passed, blocked=len(results) - passed)
+        results = {
+            journey: self.execute(
+                journey,
+                runtime=cepio_runtime,
+                actor_id=actor_id,
+                actor_roles=actor_roles,
+            )
+            for journey in self.JOURNEY_QUESTIONS
+        }
+        passed = sum(result.status == "ANSWERED" for result in results.values())
+        return PetrophysicsV1CoverageResult(
+            benchmark_id=str(self.data.get("id", "")),
+            synthetic=bool(self.data.get("synthetic", False)),
+            results=results,
+            passed=passed,
+            blocked=len(results) - passed,
+        )
 
     def _execute_pet01(self) -> tuple[dict[str, Any], list[PetrophysicsV1Trace]]:
-        readiness = {}
-        gaps = []
+        readiness: dict[str, dict[str, Any]] = {}
+        gaps: list[dict[str, Any]] = []
         for well, state in self.data["PET-01"]["readiness"].items():
             missing = list(state.get("missing") or [])
             available = list(state.get("available") or [])
-            readiness[well] = {"available": available, "missing": missing, "ready_for_full_v1": not missing, "readiness_fraction": round(len(available) / max(1, len(available) + len(missing)), 3)}
+            readiness[well] = {
+                "available": available,
+                "missing": missing,
+                "ready_for_full_v1": not missing,
+                "readiness_fraction": round(
+                    len(available) / max(1, len(available) + len(missing)), 3
+                ),
+            }
             if missing:
                 gaps.append({"well": well, "missing": missing})
-        return {"readiness_by_well": readiness, "blocking_gaps": gaps, "best_ready_context": max(readiness, key=lambda w: readiness[w]["readiness_fraction"]), "rule": "Missing evidence is exposed; CEPIO does not infer source evidence that is absent."}, [PetrophysicsV1Trace(stage="evidence-readiness", message=f"Assessed {len(readiness)} wells for v1 evidence fitness.")]
+        best_ready_context = max(
+            readiness,
+            key=lambda well: float(readiness[well]["readiness_fraction"]),
+        )
+        return (
+            {
+                "readiness_by_well": readiness,
+                "blocking_gaps": gaps,
+                "best_ready_context": best_ready_context,
+                "rule": (
+                    "Missing evidence is exposed; CEPIO does not infer source evidence "
+                    "that is absent."
+                ),
+            },
+            [
+                PetrophysicsV1Trace(
+                    stage="evidence-readiness",
+                    message=f"Assessed {len(readiness)} wells for v1 evidence fitness.",
+                )
+            ],
+        )
 
     def _execute_pet03(self) -> tuple[dict[str, Any], list[PetrophysicsV1Trace]]:
         spec, wells = self.data["PET-03"], self.data["wells"]
         consensus = float(spec["reservoir_contact_consensus_tvdss_m"])
         contact_threshold = float(spec["outlier_rules"]["contact_difference_m"])
-        sw_values = sorted(float(w["sw_fraction"]) for w in wells.values())
+        sw_values = sorted(float(well["sw_fraction"]) for well in wells.values())
         sw_median = sw_values[len(sw_values) // 2]
         sw_threshold = float(spec["outlier_rules"]["sw_difference_fraction"])
-        outliers = []
+        outliers: list[dict[str, Any]] = []
         for well, values in wells.items():
-            reasons = []
-            if abs(float(values["contact_tvdss_m"]) - consensus) > contact_threshold: reasons.append("fluid_contact")
-            if abs(float(values["sw_fraction"]) - sw_median) > sw_threshold: reasons.append("water_saturation")
-            if values["method"] != "Archie": reasons.append("methodology")
-            if reasons: outliers.append({"well": well, "reasons": reasons, "contact_tvdss_m": values["contact_tvdss_m"], "sw_fraction": values["sw_fraction"], "method": values["method"]})
-        return {"consensus_contact_tvdss_m": consensus, "uncertainty_range_tvdss_m": spec["uncertainty_range_tvdss_m"], "well_views": {w: {"sw_fraction": v["sw_fraction"], "contact_tvdss_m": v["contact_tvdss_m"], "method": v["method"], "rw_ohm_m": v["rw_ohm_m"]} for w, v in wells.items()}, "outlier_wells": outliers, "material_assumptions": spec["primary_assumptions"], "downstream_sensitivity": spec["sensitive_downstream"], "recommendation": "Resolve A-22 methodology/contact divergence before using a single reservoir-wide contact or saturation basis."}, [PetrophysicsV1Trace(stage="saturation-contact", message=f"Compared {len(wells)} well interpretations against the reservoir consensus.")]
+            reasons: list[str] = []
+            if (
+                abs(float(values["contact_tvdss_m"]) - consensus)
+                > contact_threshold
+            ):
+                reasons.append("fluid_contact")
+            if abs(float(values["sw_fraction"]) - sw_median) > sw_threshold:
+                reasons.append("water_saturation")
+            if values["method"] != "Archie":
+                reasons.append("methodology")
+            if reasons:
+                outliers.append(
+                    {
+                        "well": well,
+                        "reasons": reasons,
+                        "contact_tvdss_m": values["contact_tvdss_m"],
+                        "sw_fraction": values["sw_fraction"],
+                        "method": values["method"],
+                    }
+                )
+        return (
+            {
+                "consensus_contact_tvdss_m": consensus,
+                "uncertainty_range_tvdss_m": spec["uncertainty_range_tvdss_m"],
+                "well_views": {
+                    well: {
+                        "sw_fraction": values["sw_fraction"],
+                        "contact_tvdss_m": values["contact_tvdss_m"],
+                        "method": values["method"],
+                        "rw_ohm_m": values["rw_ohm_m"],
+                    }
+                    for well, values in wells.items()
+                },
+                "outlier_wells": outliers,
+                "material_assumptions": spec["primary_assumptions"],
+                "downstream_sensitivity": spec["sensitive_downstream"],
+                "recommendation": (
+                    "Resolve A-22 methodology/contact divergence before using a single "
+                    "reservoir-wide contact or saturation basis."
+                ),
+            },
+            [
+                PetrophysicsV1Trace(
+                    stage="saturation-contact",
+                    message=(
+                        f"Compared {len(wells)} well interpretations against the reservoir "
+                        "consensus."
+                    ),
+                )
+            ],
+        )
 
     def _execute_pet04(self) -> tuple[dict[str, Any], list[PetrophysicsV1Trace]]:
         spec = self.data["PET-04"]
         threshold = float(spec["contradiction_threshold_fraction"])
-        reconciled, contradictory, challenged = [], [], []
+        reconciled: list[dict[str, Any]] = []
+        contradictory: list[dict[str, Any]] = []
+        challenged: list[str] = []
         for rock_type, values in spec["rock_types"].items():
-            core_k, log_k = float(values["core_permeability_md"]), float(values["log_permeability_md"])
+            core_k = float(values["core_permeability_md"])
+            log_k = float(values["log_permeability_md"])
             delta = abs(log_k - core_k) / max(abs(core_k), 1e-9)
-            summary = {"rock_type": rock_type, "wells": values["wells"], "core_permeability_md": core_k, "log_permeability_md": log_k, "relative_difference": round(delta, 3), "transform": values["transform"]}
-            if delta > threshold or values["status"] == "contradiction": contradictory.append(summary); challenged.append(values["transform"])
-            else: reconciled.append(summary)
-        return {"reconciled_rock_types": reconciled, "contradictory_rock_types": contradictory, "challenged_transforms": sorted(set(challenged)), "downstream_impact": spec["downstream_if_transform_invalid"] if challenged else [], "recommendation": "Technically review K_TRANSFORM_V5 for RT-3; preserve the core/log conflict until resolved."}, [PetrophysicsV1Trace(stage="core-log-reconciliation", message=f"Evaluated {len(spec['rock_types'])} rock types against the contradiction threshold.")]
+            summary = {
+                "rock_type": rock_type,
+                "wells": values["wells"],
+                "core_permeability_md": core_k,
+                "log_permeability_md": log_k,
+                "relative_difference": round(delta, 3),
+                "transform": values["transform"],
+            }
+            if delta > threshold or values["status"] == "contradiction":
+                contradictory.append(summary)
+                challenged.append(values["transform"])
+            else:
+                reconciled.append(summary)
+        return (
+            {
+                "reconciled_rock_types": reconciled,
+                "contradictory_rock_types": contradictory,
+                "challenged_transforms": sorted(set(challenged)),
+                "downstream_impact": (
+                    spec["downstream_if_transform_invalid"] if challenged else []
+                ),
+                "recommendation": (
+                    "Technically review K_TRANSFORM_V5 for RT-3; preserve the core/log "
+                    "conflict until resolved."
+                ),
+            },
+            [
+                PetrophysicsV1Trace(
+                    stage="core-log-reconciliation",
+                    message=(
+                        f"Evaluated {len(spec['rock_types'])} rock types against the "
+                        "contradiction threshold."
+                    ),
+                )
+            ],
+        )
 
     def _execute_pet05(self) -> tuple[dict[str, Any], list[PetrophysicsV1Trace]]:
-        profile, wells = self.data["PET-05"]["canonical_profile"], self.data["wells"]
-        inconsistencies = []
+        profile = self.data["PET-05"]["canonical_profile"]
+        wells = self.data["wells"]
+        inconsistencies: list[dict[str, Any]] = []
         for well, values in wells.items():
-            deviations = []
-            if values["method"] != profile["method"]: deviations.append({"field": "method", "value": values["method"], "expected": profile["method"]})
+            deviations: list[dict[str, Any]] = []
+            if values["method"] != profile["method"]:
+                deviations.append(
+                    {
+                        "field": "method",
+                        "value": values["method"],
+                        "expected": profile["method"],
+                    }
+                )
             lo, hi = profile["rw_range_ohm_m"]
-            if not (lo <= values["rw_ohm_m"] <= hi): deviations.append({"field": "rw_ohm_m", "value": values["rw_ohm_m"], "expected_range": [lo, hi]})
+            if not (lo <= values["rw_ohm_m"] <= hi):
+                deviations.append(
+                    {
+                        "field": "rw_ohm_m",
+                        "value": values["rw_ohm_m"],
+                        "expected_range": [lo, hi],
+                    }
+                )
             lo, hi = profile["porosity_cutoff_range_fraction"]
-            if not (lo <= values["porosity_cutoff_fraction"] <= hi): deviations.append({"field": "porosity_cutoff_fraction", "value": values["porosity_cutoff_fraction"], "expected_range": [lo, hi]})
+            if not (lo <= values["porosity_cutoff_fraction"] <= hi):
+                deviations.append(
+                    {
+                        "field": "porosity_cutoff_fraction",
+                        "value": values["porosity_cutoff_fraction"],
+                        "expected_range": [lo, hi],
+                    }
+                )
             lo, hi = profile["sw_cutoff_range_fraction"]
-            if not (lo <= values["sw_cutoff_fraction"] <= hi): deviations.append({"field": "sw_cutoff_fraction", "value": values["sw_cutoff_fraction"], "expected_range": [lo, hi]})
-            if values["permeability_transform"] not in profile["accepted_transforms"]: deviations.append({"field": "permeability_transform", "value": values["permeability_transform"], "accepted": profile["accepted_transforms"]})
-            if deviations: inconsistencies.append({"well": well, "deviations": deviations, "impact_targets": self.data["PET-05"]["impact_targets"].get(well, [])})
-        return {"canonical_profile": profile, "inconsistent_wells": inconsistencies, "consistent_wells": sorted(set(wells) - {i["well"] for i in inconsistencies}), "recommendation": "Prioritize technical review by downstream impact; do not normalize divergent methods automatically."}, [PetrophysicsV1Trace(stage="cross-well-consistency", message=f"Compared {len(wells)} equivalent-interval interpretations against the canonical profile.")]
+            if not (lo <= values["sw_cutoff_fraction"] <= hi):
+                deviations.append(
+                    {
+                        "field": "sw_cutoff_fraction",
+                        "value": values["sw_cutoff_fraction"],
+                        "expected_range": [lo, hi],
+                    }
+                )
+            if values["permeability_transform"] not in profile["accepted_transforms"]:
+                deviations.append(
+                    {
+                        "field": "permeability_transform",
+                        "value": values["permeability_transform"],
+                        "accepted": profile["accepted_transforms"],
+                    }
+                )
+            if deviations:
+                inconsistencies.append(
+                    {
+                        "well": well,
+                        "deviations": deviations,
+                        "impact_targets": self.data["PET-05"]["impact_targets"].get(
+                            well, []
+                        ),
+                    }
+                )
+        inconsistent_wells = {item["well"] for item in inconsistencies}
+        return (
+            {
+                "canonical_profile": profile,
+                "inconsistent_wells": inconsistencies,
+                "consistent_wells": sorted(set(wells) - inconsistent_wells),
+                "recommendation": (
+                    "Prioritize technical review by downstream impact; do not normalize "
+                    "divergent methods automatically."
+                ),
+            },
+            [
+                PetrophysicsV1Trace(
+                    stage="cross-well-consistency",
+                    message=(
+                        f"Compared {len(wells)} equivalent-interval interpretations "
+                        "against the canonical profile."
+                    ),
+                )
+            ],
+        )
 
     def _execute_pet06(self) -> tuple[dict[str, Any], list[PetrophysicsV1Trace]]:
         spec = self.data["PET-06"]
         handover = spec["authoritative_handover"]
-        transformations = []
+        transformations: list[dict[str, Any]] = []
         for item in handover["transformations"]:
-            row = dict(item); row["changed"] = row.get("from") != row.get("to"); transformations.append(row)
-        stale = [dict(dep) for dep in spec.get("stale_dependencies") or [] if dep["current_transform"] != dep["consumed_transform"]]
-        return {"source_case": handover["source_case"], "source_properties": handover["source_properties"], "transformations": transformations, "downstream_chain": handover["downstream_chain"], "stale_dependencies": stale, "recommendation": "Reconcile A-14 transform lineage in SM18 before treating the model as fully aligned with current Petrophysics authority."}, [PetrophysicsV1Trace(stage="model-handover", message=f"Traced {len(transformations)} transformations and {len(stale)} stale dependencies.")]
+            row = dict(item)
+            row["changed"] = row.get("from") != row.get("to")
+            transformations.append(row)
+        stale = [
+            dict(dependency)
+            for dependency in spec.get("stale_dependencies") or []
+            if dependency["current_transform"] != dependency["consumed_transform"]
+        ]
+        return (
+            {
+                "source_case": handover["source_case"],
+                "source_properties": handover["source_properties"],
+                "transformations": transformations,
+                "downstream_chain": handover["downstream_chain"],
+                "stale_dependencies": stale,
+                "recommendation": (
+                    "Reconcile A-14 transform lineage in SM18 before treating the model "
+                    "as fully aligned with current Petrophysics authority."
+                ),
+            },
+            [
+                PetrophysicsV1Trace(
+                    stage="model-handover",
+                    message=(
+                        f"Traced {len(transformations)} transformations and {len(stale)} "
+                        "stale dependencies."
+                    ),
+                )
+            ],
+        )
 
     def _execute_pet07(self) -> tuple[dict[str, Any], list[PetrophysicsV1Trace]]:
         spec = self.data["PET-07"]
         opportunity = deepcopy(spec["opportunity"])
-        opportunity["petrophysical_signal_fraction"] = round(float(spec["evidence"]["expected_depleted_sw_fraction"]) - float(spec["evidence"]["current_sw_fraction"]), 3)
-        return {"zone": spec["zone"], "evidence": spec["evidence"], "remaining_hydrocarbon_assessment": dict(spec["assessment"]), "opportunity": opportunity, "recommendation": {"option": opportunity["petrophysics_recommendation"], "reason": opportunity["recommendation_reason"], "authority": "recommend_only"}}, [PetrophysicsV1Trace(stage="opportunity-support", message=f"Linked Petrophysics evidence to {opportunity['id']} with {len(opportunity['options'])} governed options.")]
+        opportunity["petrophysical_signal_fraction"] = round(
+            float(spec["evidence"]["expected_depleted_sw_fraction"])
+            - float(spec["evidence"]["current_sw_fraction"]),
+            3,
+        )
+        return (
+            {
+                "zone": spec["zone"],
+                "evidence": spec["evidence"],
+                "remaining_hydrocarbon_assessment": dict(spec["assessment"]),
+                "opportunity": opportunity,
+                "recommendation": {
+                    "option": opportunity["petrophysics_recommendation"],
+                    "reason": opportunity["recommendation_reason"],
+                    "authority": "recommend_only",
+                },
+            },
+            [
+                PetrophysicsV1Trace(
+                    stage="opportunity-support",
+                    message=(
+                        f"Linked Petrophysics evidence to {opportunity['id']} with "
+                        f"{len(opportunity['options'])} governed options."
+                    ),
+                )
+            ],
+        )
 
     def _execute_pet08(self) -> tuple[dict[str, Any], list[PetrophysicsV1Trace]]:
         spec = self.data["PET-08"]
-        delta = {}
+        delta: dict[str, dict[str, Any]] = {}
         for name in sorted(set(spec["prior"]) | set(spec["posterior"])):
-            before, after = spec["prior"].get(name), spec["posterior"].get(name)
-            delta[name] = {"prior": before, "posterior": after, "delta": round(after - before, 6)} if isinstance(before, (int, float)) and isinstance(after, (int, float)) else {"prior": before, "posterior": after}
-        return {"well": spec["well"], "belief_delta": delta, "hypothesis_updates": spec["hypotheses"], "information_gain": spec["information_gain"], "downstream_updates": spec["downstream_updates"], "recommendation": "Propagate the A-17 posterior basis through affected model/reserves/opportunity contexts while preserving the pre-drill belief state for decision provenance."}, [PetrophysicsV1Trace(stage="new-well-learning", message=f"Compared {len(delta)} prior/posterior beliefs and {len(spec['hypotheses'])} hypothesis updates.")]
+            before = spec["prior"].get(name)
+            after = spec["posterior"].get(name)
+            if isinstance(before, (int, float)) and isinstance(after, (int, float)):
+                delta[name] = {
+                    "prior": before,
+                    "posterior": after,
+                    "delta": round(after - before, 6),
+                }
+            else:
+                delta[name] = {"prior": before, "posterior": after}
+        return (
+            {
+                "well": spec["well"],
+                "belief_delta": delta,
+                "hypothesis_updates": spec["hypotheses"],
+                "information_gain": spec["information_gain"],
+                "downstream_updates": spec["downstream_updates"],
+                "recommendation": (
+                    "Propagate the A-17 posterior basis through affected model/reserves/"
+                    "opportunity contexts while preserving the pre-drill belief state "
+                    "for decision provenance."
+                ),
+            },
+            [
+                PetrophysicsV1Trace(
+                    stage="new-well-learning",
+                    message=(
+                        f"Compared {len(delta)} prior/posterior beliefs and "
+                        f"{len(spec['hypotheses'])} hypothesis updates."
+                    ),
+                )
+            ],
+        )
 
 
-def run_petrophysics_v1(benchmark_path: str | Path, *, actor_id: str = "petrophysicist", actor_roles: set[str] | None = None) -> PetrophysicsV1CoverageResult:
-    return PetrophysicsV1Runtime.from_yaml(benchmark_path).execute_all(actor_id=actor_id, actor_roles=actor_roles)
+def run_petrophysics_v1(
+    benchmark_path: str | Path,
+    *,
+    actor_id: str = "petrophysicist",
+    actor_roles: set[str] | None = None,
+) -> PetrophysicsV1CoverageResult:
+    return PetrophysicsV1Runtime.from_yaml(benchmark_path).execute_all(
+        actor_id=actor_id,
+        actor_roles=actor_roles,
+    )
