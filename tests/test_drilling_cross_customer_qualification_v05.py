@@ -30,12 +30,15 @@ def test_four_customer_cross_customer_qualification_is_60_of_60_without_semantic
     customers = {customer["customer_id"]: customer for customer in report["customers"]}
     assert set(customers) == {"aro", "sanad", "nabors", "arabian-drilling"}
     assert all(customer["status"] == "PASS" for customer in customers.values())
-    assert all(customer["status_counts"] == {"PASS": 15, "FAIL": 0, "ERROR": 0} for customer in customers.values())
+    assert all(
+        customer["status_counts"] == {"PASS": 15, "FAIL": 0, "ERROR": 0}
+        for customer in customers.values()
+    )
     assert all(customer["no_semantic_extension"] for customer in customers.values())
     assert all(customer["operator_evidence_gate_pass"] for customer in customers.values())
-    assert {
-        customer["semantic_signature_hash"] for customer in customers.values()
-    } == {report["canonical_semantic_signature_hash"]}
+    assert {customer["semantic_signature_hash"] for customer in customers.values()} == {
+        report["canonical_semantic_signature_hash"]
+    }
 
 
 def test_cross_customer_pack_materially_varies_required_operating_model_dimensions():
