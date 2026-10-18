@@ -110,7 +110,10 @@ def test_decision_and_action_use_same_contract_service_with_host_injected_identi
 def test_application_service_preserves_runtime_decision_authorization():
     runtime = seed_work_order_runtime()
     service = CEPIOApplicationService(runtime)
-    auditor = ExecutionContext(actor_id="audit-1", actor_roles=frozenset({"auditor"}))
+    outsider = ExecutionContext(
+        actor_id="outsider-1",
+        actor_roles=frozenset({"contract_test_no_access"}),
+    )
 
     with pytest.raises(AuthorizationError, match="not authorized to propose"):
         service.propose_decision(
@@ -120,7 +123,7 @@ def test_application_service_preserves_runtime_decision_authorization():
                 problem="Unauthorized decision",
                 recommendation="Do not persist",
             ),
-            auditor,
+            outsider,
         )
 
 
@@ -131,13 +134,16 @@ def test_application_service_delegates_object_visibility_to_runtime():
         actor_id="manager-1",
         actor_roles=frozenset({"maintenance_manager"}),
     )
-    auditor = ExecutionContext(actor_id="audit-1", actor_roles=frozenset({"auditor"}))
+    outsider = ExecutionContext(
+        actor_id="outsider-1",
+        actor_roles=frozenset({"contract_test_no_access"}),
+    )
 
     visible = service.read_object("WO-101", manager)
     assert visible.id == "WO-101"
 
     with pytest.raises(AuthorizationError, match="not authorized to read object type WorkOrder"):
-        service.read_object("WO-101", auditor)
+        service.read_object("WO-101", outsider)
 
 
 def test_skill_preflight_fails_closed_without_registry():
