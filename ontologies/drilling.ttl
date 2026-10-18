@@ -24,6 +24,7 @@ drill:DrillingReport a owl:Class ; rdfs:subClassOf cepio:Document .
 drill:DailyDrillingReport a owl:Class ; rdfs:subClassOf drill:DrillingReport .
 drill:ActivityInterval a owl:Class ; rdfs:subClassOf cepio:Activity .
 drill:DrillingActivityClassification a owl:Class ; rdfs:subClassOf cepio:Entity .
+drill:NPTInvestigation a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 
 # Drilling-fluid and cementing execution semantics. Measurements use cepio:measuredBy
 # from the observed activity; service-delivery evidence remains a common enterprise concern.
@@ -56,6 +57,7 @@ drill:reportIncludesActivity a owl:ObjectProperty ; rdfs:domain drill:DrillingRe
 drill:activityOnRig a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range drill:OperatingRig .
 drill:activityForWell a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range energy:Well .
 drill:classifiedBy a owl:ObjectProperty ; rdfs:domain drill:ActivityInterval ; rdfs:range drill:DrillingActivityClassification .
+drill:investigatesActivity a owl:ObjectProperty ; rdfs:domain drill:NPTInvestigation ; rdfs:range drill:ActivityInterval .
 drill:executesProgram a owl:ObjectProperty ; rdfs:domain drill:CementingJob ; rdfs:range drill:CementProgram .
 
 # Well-control equipment and assurance relationships.

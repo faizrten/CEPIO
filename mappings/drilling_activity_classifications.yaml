@@ -4,12 +4,14 @@ canonical:
   activity_type: https://cepio.org/ontology/drilling#ActivityInterval
   classification_type: https://cepio.org/ontology/drilling#DrillingActivityClassification
   classification_relationship: https://cepio.org/ontology/drilling#classifiedBy
+  productivity_property: https://cepio.org/ontology/drilling#isProductive
   report_type: https://cepio.org/ontology/drilling#DrillingReport
   report_activity_relationship: https://cepio.org/ontology/drilling#reportIncludesActivity
 principles:
   - Preserve source code, code-system identity, source timestamps and provenance.
   - Do not copy external activity-code taxonomies into the CEPIO canonical class hierarchy.
   - Multiple external classifications may map to the same canonical activity interval without losing source identity.
+  - Normalize only the cross-source productive/non-productive meaning needed by governed reasoning; retain the source classification code separately.
   - NPT is derived from activity/productivity classification and causal downtime/failure context; it is not modeled as a canonical event type solely for reporting convenience.
 external_systems:
   - id: iadc-ddr-plus-v2
@@ -24,6 +26,7 @@ external_systems:
     target_semantics:
       activity: https://cepio.org/ontology/drilling#ActivityInterval
       classification: https://cepio.org/ontology/drilling#DrillingActivityClassification
+      productivity: https://cepio.org/ontology/drilling#isProductive
     notes: Retain the original IADC code hierarchy as source/federated identifiers. No IADC code values are vendored in CEPIO.
   - id: energistics-witsml-2.1
     body: Energistics
@@ -38,4 +41,5 @@ external_systems:
       report: https://cepio.org/ontology/drilling#DrillingReport
       activity: https://cepio.org/ontology/drilling#ActivityInterval
       classification: https://cepio.org/ontology/drilling#DrillingActivityClassification
-    notes: Preserve WITSML well/wellbore/report identity and activity classification as source provenance while materializing CEPIO canonical activity semantics.
+      productivity: https://cepio.org/ontology/drilling#isProductive
+    notes: Preserve WITSML well/wellbore/report identity and activity classification as source provenance while materializing only the source-neutral productivity meaning needed by CEPIO reasoning.

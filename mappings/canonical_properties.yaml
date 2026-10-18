@@ -98,6 +98,7 @@ properties:
   drill:ratedDepthM: {iri: 'https://cepio.org/ontology/drilling#ratedDepthM', datatype: integer, authority: source-system}
   drill:waterDepthM: {iri: 'https://cepio.org/ontology/drilling#waterDepthM', datatype: integer, authority: source-system}
   drill:commissionedYear: {iri: 'https://cepio.org/ontology/drilling#commissionedYear', datatype: integer, authority: source-system}
+  drill:isProductive: {iri: 'https://cepio.org/ontology/drilling#isProductive', datatype: boolean, authority: derived}
   agentic:agentId: {iri: 'https://cepio.org/ontology/agentic#agentId', datatype: string, authority: system}
   agentic:modelVersion: {iri: 'https://cepio.org/ontology/agentic#modelVersion', datatype: string, authority: system}
   agentic:decisionBy: {iri: 'https://cepio.org/ontology/agentic#decisionBy', datatype: string, authority: governed-action}

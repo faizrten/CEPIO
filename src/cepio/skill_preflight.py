@@ -45,11 +45,13 @@ class SkillPreflightSpec(BaseModel):
 
     Semantic bindings use logical identifiers as keys and canonical CEPIO runtime
     identifiers as values. Graph paths remain logical so a package cannot bypass its
-    declared binding map when describing evidence traversal.
+    declared binding map when describing evidence traversal. Industry IQ pack IDs are
+    deployment capabilities and must be present explicitly when declared by a Skill.
     """
 
     skill_id: str
     binding_id: str | None = None
+    industry_iq_packs: set[str] = Field(default_factory=set)
     object_types: dict[str, str] = Field(default_factory=dict)
     relationships: dict[str, str] = Field(default_factory=dict)
     functions: dict[str, str] = Field(default_factory=dict)
@@ -126,16 +128,23 @@ def evaluate_skill_preflight(
 ) -> SkillPreflightResult:
     """Fail-closed runtime admission for one Skill and actor.
 
-    This is deliberately side-effect free. It verifies runtime identity, semantic path
-    validity, evidence visibility, function/decision authorization, procedure-aligned
-    action authority and Decision -> Action auditability. It does not claim that a
-    particular target instance currently contains sufficient evidence; that remains an
-    invocation-time evidence question handled by the Operator.
+    This is deliberately side-effect free. It verifies deployment capability, runtime
+    identity, semantic path validity, evidence visibility, function/decision
+    authorization, procedure-aligned action authority and Decision -> Action
+    auditability. It does not claim that a particular target instance currently contains
+    sufficient evidence; that remains an invocation-time evidence question handled by
+    the Operator.
     """
 
     checks: list[SkillPreflightCheck] = []
 
-    def passed(category: str, code: str, message: str, logical_id: str | None = None, runtime_id: str | None = None) -> None:
+    def passed(
+        category: str,
+        code: str,
+        message: str,
+        logical_id: str | None = None,
+        runtime_id: str | None = None,
+    ) -> None:
         checks.append(
             SkillPreflightCheck(
                 category=category,
@@ -147,7 +156,13 @@ def evaluate_skill_preflight(
             )
         )
 
-    def blocked(category: str, code: str, message: str, logical_id: str | None = None, runtime_id: str | None = None) -> None:
+    def blocked(
+        category: str,
+        code: str,
+        message: str,
+        logical_id: str | None = None,
+        runtime_id: str | None = None,
+    ) -> None:
         checks.append(
             SkillPreflightCheck(
                 category=category,
@@ -158,6 +173,25 @@ def evaluate_skill_preflight(
                 message=message,
             )
         )
+
+    installed_packs = runtime.industry_iq_packs
+    for pack_id in sorted(spec.industry_iq_packs):
+        if pack_id not in installed_packs:
+            blocked(
+                "industry_iq_pack",
+                "INDUSTRY_IQ_PACK_UNAVAILABLE",
+                "Required Industry IQ pack is not installed in the current runtime.",
+                pack_id,
+                pack_id,
+            )
+        else:
+            passed(
+                "industry_iq_pack",
+                "INDUSTRY_IQ_PACK_AVAILABLE",
+                f"Required Industry IQ pack is installed at version {installed_packs[pack_id]}.",
+                pack_id,
+                pack_id,
+            )
 
     registry = runtime.type_registry
     if registry is None:
@@ -187,7 +221,13 @@ def evaluate_skill_preflight(
                         runtime_id,
                     )
             except (UnknownTypeError, AmbiguousTypeError) as exc:
-                blocked("object_type", "OBJECT_TYPE_UNAVAILABLE", str(exc), logical_id, runtime_id)
+                blocked(
+                    "object_type",
+                    "OBJECT_TYPE_UNAVAILABLE",
+                    str(exc),
+                    logical_id,
+                    runtime_id,
+                )
 
         for logical_id, runtime_id in sorted(spec.relationships.items()):
             try:
@@ -209,11 +249,23 @@ def evaluate_skill_preflight(
                         runtime_id,
                     )
             except (UnknownTypeError, AmbiguousTypeError) as exc:
-                blocked("relationship", "RELATIONSHIP_UNAVAILABLE", str(exc), logical_id, runtime_id)
+                blocked(
+                    "relationship",
+                    "RELATIONSHIP_UNAVAILABLE",
+                    str(exc),
+                    logical_id,
+                    runtime_id,
+                )
 
     for logical_id, runtime_id in sorted(spec.functions.items()):
         if not runtime.has_function(runtime_id):
-            blocked("function", "FUNCTION_UNAVAILABLE", "Registered function is unavailable.", logical_id, runtime_id)
+            blocked(
+                "function",
+                "FUNCTION_UNAVAILABLE",
+                "Registered function is unavailable.",
+                logical_id,
+                runtime_id,
+            )
         elif not runtime.policy_engine.can_call_function(actor_roles, runtime_id):
             blocked(
                 "function",
@@ -223,11 +275,23 @@ def evaluate_skill_preflight(
                 runtime_id,
             )
         else:
-            passed("function", "FUNCTION_AUTHORIZED", "Required function is registered and authorized.", logical_id, runtime_id)
+            passed(
+                "function",
+                "FUNCTION_AUTHORIZED",
+                "Required function is registered and authorized.",
+                logical_id,
+                runtime_id,
+            )
 
     for logical_id, runtime_id in sorted(spec.decisions.items()):
         if not runtime.has_decision(runtime_id):
-            blocked("decision", "DECISION_UNAVAILABLE", "Named Decision capability is unavailable.", logical_id, runtime_id)
+            blocked(
+                "decision",
+                "DECISION_UNAVAILABLE",
+                "Named Decision capability is unavailable.",
+                logical_id,
+                runtime_id,
+            )
         elif not spec.authority.propose_decision:
             blocked(
                 "decision",
@@ -245,7 +309,13 @@ def evaluate_skill_preflight(
                 runtime_id,
             )
         else:
-            passed("decision", "DECISION_AUTHORIZED", "Named Decision is registered and proposal-authorized.", logical_id, runtime_id)
+            passed(
+                "decision",
+                "DECISION_AUTHORIZED",
+                "Named Decision is registered and proposal-authorized.",
+                logical_id,
+                runtime_id,
+            )
 
     if registry is not None:
         for logical_id in sorted(spec.evidence_types):
@@ -292,7 +362,9 @@ def evaluate_skill_preflight(
                 relationship_runtime = spec.relationships.get(step.relationship)
                 target_runtime = spec.object_types.get(step.target_type)
                 if relationship_runtime is None or target_runtime is None:
-                    missing = step.relationship if relationship_runtime is None else step.target_type
+                    missing = (
+                        step.relationship if relationship_runtime is None else step.target_type
+                    )
                     blocked(
                         "graph_path",
                         "PATH_DEPENDENCY_NOT_BOUND",
@@ -344,7 +416,13 @@ def evaluate_skill_preflight(
     action_definitions = getattr(runtime, "_actions", {})
     for logical_id, runtime_id in sorted(spec.actions.items()):
         if not runtime.has_action(runtime_id):
-            blocked("action", "ACTION_UNAVAILABLE", "Governed action is unavailable.", logical_id, runtime_id)
+            blocked(
+                "action",
+                "ACTION_UNAVAILABLE",
+                "Governed action is unavailable.",
+                logical_id,
+                runtime_id,
+            )
             continue
         if action_policy_evaluator is None:
             blocked(
@@ -441,7 +519,9 @@ def evaluate_skill_preflight(
                 "Runtime cannot prove Decision -> Action causal auditability.",
             )
 
-    status: PreflightStatus = "BLOCKED" if any(check.status == "BLOCKED" for check in checks) else "READY"
+    status: PreflightStatus = (
+        "BLOCKED" if any(check.status == "BLOCKED" for check in checks) else "READY"
+    )
     return SkillPreflightResult(
         skill_id=spec.skill_id,
         binding_id=spec.binding_id,

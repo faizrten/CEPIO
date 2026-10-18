@@ -26,3 +26,9 @@ actions:
     risk: high
     requires_human_approval: true
     side_effect: "Apply a governed maintenance deferral to the work order after approval"
+  CreateNPTInvestigation:
+    target_types: [ActivityInterval]
+    allowed_roles: [drilling_engineer, drilling_superintendent, rig_manager]
+    risk: medium
+    requires_human_approval: true
+    side_effect: "Open a governed drilling NPT investigation work item"

@@ -79,6 +79,31 @@ policies:
     can_recommend: [CreateWorkOrder, CreateInspection, EscalateRisk, DeferWorkOrder]
     functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, evaluateMaintenanceDeferralRisk, calculateMarginImpact]
     decisions: [maintenance-intervention-recommendation, maintenance-deferral-decision]
+  drilling_npt_recommender:
+    read_types: [OperatingRig, Well, ActivityInterval, DrillingActivityClassification, RigOperationalEvent, Equipment, WorkOrder, FailureEvent, FailureMode, NPTInvestigation]
+    read_scopes: [internal]
+    actions: []
+    can_recommend: [CreateNPTInvestigation, CreateWorkOrder]
+    functions: [calculateNPTDuration]
+    decisions: [npt-follow-up-recommendation]
+  drilling_engineer:
+    read_types: [OperatingRig, Well, ActivityInterval, DrillingActivityClassification, RigOperationalEvent, Equipment, WorkOrder, FailureEvent, FailureMode, NPTInvestigation]
+    read_scopes: [internal]
+    actions: [CreateNPTInvestigation]
+    functions: [calculateNPTDuration]
+    decisions: [npt-follow-up-recommendation]
+  drilling_superintendent:
+    read_types: [OperatingRig, Well, ActivityInterval, DrillingActivityClassification, RigOperationalEvent, Equipment, WorkOrder, FailureEvent, FailureMode, NPTInvestigation]
+    read_scopes: [internal]
+    actions: [CreateNPTInvestigation]
+    functions: [calculateNPTDuration]
+    decisions: [npt-follow-up-recommendation]
+  rig_manager:
+    read_types: [OperatingRig, Well, ActivityInterval, DrillingActivityClassification, RigOperationalEvent, Equipment, WorkOrder, FailureEvent, FailureMode, NPTInvestigation]
+    read_scopes: [internal]
+    actions: [CreateNPTInvestigation]
+    functions: [calculateNPTDuration]
+    decisions: [npt-follow-up-recommendation]
   autonomous_control_agent:
     read_types: [Equipment, Event, State, KPI]
     read_scopes: [internal]
