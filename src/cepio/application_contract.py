@@ -167,17 +167,7 @@ class CEPIOApplicationService:
         return set(context.actor_roles)
 
     def read_object(self, object_id: str, context: ExecutionContext) -> OntologyObject:
-        reader = getattr(self.runtime, "read_object_for_actor", None)
-        if reader is not None:
-            return reader(object_id, self._roles(context))
-
-        obj = self.runtime.get_object(object_id)
-        roles = self._roles(context)
-        if not self.runtime.policy_engine.can_read_object(roles, obj):
-            raise AuthorizationError(
-                f"Actor roles are not authorized to read object {object_id} of type {obj.type}"
-            )
-        return self.runtime.policy_engine.filter_properties(roles, obj)
+        return self.runtime.read_object_for_actor(object_id, self._roles(context))
 
     def preflight_skill(
         self,
