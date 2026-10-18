@@ -83,9 +83,7 @@ def create_work_order(
 def create_inspection(
     request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime
 ) -> dict:
-    inspection_id = request.parameters.get(
-        "inspection_id", f"INSP-{uuid4().hex[:8].upper()}"
-    )
+    inspection_id = request.parameters.get("inspection_id", f"INSP-{uuid4().hex[:8].upper()}")
     inspection = OntologyObject(
         id=inspection_id,
         type="Inspection",
@@ -108,9 +106,7 @@ def create_inspection(
     return {"inspection_id": inspection_id, "external_side_effect": "not_configured"}
 
 
-def escalate_risk(
-    request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime
-) -> dict:
+def escalate_risk(request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime) -> dict:
     prior = target.properties.get("riskStatus")
     expected = target.version
     target.properties["riskStatus"] = request.parameters.get("risk_status", "escalated")
@@ -123,9 +119,7 @@ def escalate_risk(
     }
 
 
-def defer_work_order(
-    request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime
-) -> dict:
+def defer_work_order(request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime) -> dict:
     """Apply an approved maintenance deferral to a WorkOrder.
 
     Authorization and human-approval requirements are enforced by the runtime/policy
