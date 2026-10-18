@@ -1,96 +1,139 @@
 # CEPIO Wiki
 
-[Code Quality & Governance v2](../governance/code-quality-governance-v2.md) defines
-automated merge evidence, security scanning, compatibility and release qualification.
-
 **CEPIO — Common Energy & Process Industry Ontology**
 
-> **An industry operating ontology for Energy & Process Industries — connecting enterprise data, operational state, industrial semantics, AI reasoning, decisions and governed action.**
+> **CEPIO is the portable industrial operating intelligence layer for Energy & Process Industries: thin in infrastructure, thick in industrial intelligence.**
 
 ## North Star
 
-CEPIO aims to provide the same **class of enterprise operating abstraction** that Palantir Ontology provides, specialized for Energy & Process Industries and natively realized across the Microsoft ecosystem.
+> **Thin infrastructure. Thick industrial intelligence.**
 
-The governing principle is simple:
+Frontier models supply general intelligence. Data and industrial platforms supply storage, compute and enterprise context. CEPIO supplies reusable industrial operating competence: semantics, evidence requirements, Skills, failure/risk patterns, decision patterns, authority, Actions, workflows and competency/evaluation contracts.
 
-> **Applications and AI agents interact with CEPIO concepts, not directly with source-system schemas.**
+Palantir Ontology remains a useful architectural benchmark, but it is no longer CEPIO's product identity. CEPIO's identity is a portable **Industrial Operating Intelligence / Industry IQ** layer specialized for Energy & Process Industries.
 
-CEPIO therefore sits between enterprise reality and the applications, agents and workflows that operate on it.
+For Microsoft deployments, CEPIO can be understood as the layer that turns general Microsoft/Fabric/Foundry capability into **Industrial IQ**. Microsoft-native does not mean Microsoft-dependent.
+
+## Product shape
 
 ```text
-Enterprise reality
-      |
-      v
-SAP · AVEVA PI · OSDU · P6 · MES · SQL · Fabric · other systems
-      |
-      v
-+-------------------------------------------------------+
-|                         CEPIO                          |
-| Objects · Relationships · Properties · Events · State |
-| Time · Provenance · Functions · Decisions · Actions   |
-| Policy · Audit · Versioning · Migration contracts     |
-+-----------------------------+-------------------------+
-                              |
-                  +-----------+-----------+
-                  |                       |
-                  v                       v
-             Applications             AI Agents
-                  |                       |
-                  +-----------+-----------+
-                              v
-                     Governed operations
+Authoritative enterprise context
+SAP · PI · OSDU · Fabric · Cognite · P6 · MES · engineering systems
+                         |
+                         v
+               Replaceable bindings
+                         |
+                         v
+              Thin CEPIO operating core
+ semantics · state · evidence · time · provenance · uncertainty
+ policy · authority · Functions · Decisions · Actions
+                         |
+                         v
+                 Thick Industry IQ
+ Skills · competencies · decision/risk/failure patterns
+ constraints · KPI/economic logic · workflows · evaluations
+                         |
+                         v
+          Headless, persona-adaptive experiences
+ apps · copilots · agents · analytics · workflows
+                         |
+                         v
+                 Governed outcomes
 ```
+
+The governing architecture rule is:
+
+> **Keep infrastructure thin and replaceable; concentrate CEPIO IP in reusable industrial intelligence.**
 
 ## What CEPIO is
 
-CEPIO is an **industrial operating abstraction**. It defines the meaning and operating contract for industrial objects, relationships, state, time, logic, decisions and actions while allowing underlying technology platforms and source systems to evolve independently.
+CEPIO is a governed industrial operating intelligence layer that lets humans, applications and AI agents understand, reason over, decide against and safely act upon industrial enterprise context through a stable contract.
 
-CEPIO is designed to answer questions such as:
+CEPIO should answer questions such as:
 
-- What industrial object does this data represent?
-- How is it related to the rest of the enterprise?
-- What is its current state?
-- What was its state at a specific valid time?
-- What did CEPIO know at a specific transaction time?
-- Where did each value come from?
-- Which events produced a derived state?
-- Which functions or calculations are applicable?
-- Which decision follows from the available evidence?
-- Which action is recommended?
-- Who or what is authorized to execute that action?
-- How can ontology evolution occur without silently breaking consumers?
+- What industrial object does this evidence refer to?
+- What is its current and historical state?
+- What evidence supports that state?
+- What uncertainty remains?
+- What failure, risk, constraint or economic pattern applies?
+- Which Skill, Function or decision pattern is relevant?
+- What options exist and what are their consequences?
+- Who is authorized to decide or act?
+- What happened after execution?
+- Did the intervention work?
 
 ## What CEPIO is not
 
 CEPIO is not:
 
-- another data lake;
-- a replacement for SAP, PI, OSDU, Fabric, P6 or MES;
+- another data lake or warehouse;
+- a replacement for SAP, PI, OSDU, Fabric, Cognite, P6 or MES;
 - a generic graph database product;
-- a generic RDF/OWL standards project;
-- an agent framework;
+- a frontier-model or model-hosting platform;
+- a generic agent framework;
 - a plant-control or safety-instrumented system;
-- a UI product by itself.
+- a monolithic UI product.
 
-CEPIO defines the **industrial semantic and operating contract**. Platforms implement it; applications consume it.
+CEPIO binds these layers and concentrates reusable industrial operating intelligence above them.
 
 ## Current status
 
-**Published release designation:** v0.4.0 — Developer Preview. The [release manifest](../../RELEASE.md) defines the supported boundary, including the public `/api/v1` interface, canonical semantics, temporal/provenance capabilities, governed Functions/Decisions/Actions, Microsoft bindings, reference hosting and observability.
+**Published release designation:** v0.4.0 — Developer Preview.
 
-Current repository implementation also includes incremental Skill binding/preflight, durable workflow, resilience, external-verification and constrained Operator work. Component versions and repository implementation do not expand the published release guarantees automatically. See [Functions, Decisions and Actions](08-Functions-Decisions-Actions.md) and the [technical documentation index](../README.md) for scoped contracts.
+The published boundary includes canonical semantics, temporal/provenance capabilities, governed Functions/Decisions/Actions, `/api/v1`, Microsoft bindings, reference hosting and observability. Repository `main` also contains capabilities pulled forward from later stages; implementation on `main` does not automatically expand the published release guarantee.
 
-[Target Users / Personas](19-Target-Users-Personas.md) describes the industrial users and platform builders CEPIO is intended to serve. The checked-in catalogs model 24 drilling and 26 refinery persona entries; they do not establish delivered applications for every role.
+## Target users
 
-[Competency & Assurance](20-Competency-Assurance.md) is a first-class acceptance discipline. Drilling persona pack v0.3 has a checked-in 14/14 semantic PASS expectation; the operational fixture separately expects five assurance gates to pass. Those scopes do not establish complete runtime coverage or production readiness.
+CEPIO serves four human user classes plus machine consumers:
+
+1. industrial decision-makers — engineers, planners and operational leaders;
+2. industrial application and AI builders;
+3. industrial platform/data/integration teams;
+4. governance and assurance users;
+5. AI agents operating under authenticated, policy-bounded authority.
+
+The primary near-term product center of gravity is cross-system industrial decision work: reliability, maintenance, operations, process engineering, safety/integrity and planning.
+
+See [Target Users / Personas](19-Target-Users-Personas.md).
+
+## Competency & Assurance
+
+Competency is a first-class product-quality mechanism, not a side experiment.
+
+```text
+Persona
+  -> Responsibility
+  -> Decision
+  -> Competency Question
+  -> Required CEPIO capabilities
+  -> Evidence / Skill / Function / Decision / Action
+  -> PASS / PARTIAL / FAIL / NOT_RUN
+```
+
+CEPIO assurance progresses through semantic, runtime, procedural/Skill, agent and operational competency. Generalization measures reuse; assurance measures whether a claim or action is justified.
+
+See [Competency & Assurance](20-Competency-Assurance.md).
 
 ## Operating loop
 
 ```text
-Observe -> Understand -> Reason -> Decide -> Recommend -> Authorize -> Act -> Observe outcome
+Understand -> Reason -> Decide -> Act -> Learn
 ```
 
-CEPIO's purpose is not merely to describe the enterprise. It is to create a governed operational layer through which people, applications and AI systems can understand and act on the enterprise consistently.
+Expanded governed loop:
+
+```text
+Observe -> Understand -> Reason -> Decide -> Recommend
+        -> Authorize -> Act -> Verify -> Learn
+```
+
+## Experience principle
+
+CEPIO is **headless at its core and adaptive at its surface**.
+
+> **Same industrial reality. Different experience for every decision-maker.**
+
+The UI is therefore not the architecture. Apps, copilots and agents consume the same governed operating contract and adapt the experience to the persona and decision.
 
 ## Wiki map
 
@@ -131,29 +174,19 @@ CEPIO's purpose is not merely to describe the enterprise. It is to create a gove
 
 ## Documentation governance
 
-Documentation is part of CEPIO's engineering definition of done.
-
-Material changes to ontology semantics, public interfaces, runtime behavior, integrations, deployment, security/governance, examples, release status or roadmap state must update the relevant focused technical documentation and/or wiki page in the **same pull request**.
-
-If a change genuinely has no documentation impact, the PR must explicitly select **No documentation impact** and explain why. The repository pull-request template requires this declaration.
-
-See the [Developer Guide](15-Developer-Guide.md) for the detailed documentation checklist.
+Documentation is part of CEPIO's engineering definition of done. Material changes to semantics, public interfaces, runtime behavior, integrations, security/governance, product positioning, release status or roadmap state must update the relevant documentation in the same pull request.
 
 ## Canonical source of truth
 
-The GitHub repository remains authoritative for executable contracts and implementation details. This wiki is the **narrative and navigational layer** over those contracts.
+The GitHub repository remains authoritative for executable contracts and implementation details. The wiki is the narrative and navigational layer over those contracts.
 
-Key repository references:
+Key references:
 
 - `README.md`
+- `RELEASE.md`
 - `ontology-modules.yaml`
 - `ontologies/`
-- `mappings/`
-- `shapes/`
+- `generalization/`
 - `docs/architecture.md`
-- `docs/query-contract.md`
-- `docs/temporal-state-projection.md`
-- `docs/foundry-mcp.md`
-- `docs/microsoft-platform-extension.md`
-- `docs/integrations/`
+- `docs/generalization-harness.md`
 - `docs/roadmap.md`
