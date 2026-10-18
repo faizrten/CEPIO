@@ -1,0 +1,77 @@
+id: drilling-contractor-cross-customer-v0.5
+version: "0.5"
+archetype_id: drilling-contractor-v0.1
+competency_pack: generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml
+runtime_suite: generalization/runtime/drilling-contractor-domain-qualification-runtime-v0.4.1.yaml
+description: >
+  Cross-customer stress pack for the frozen Drilling Contractor Domain Qualification.
+  Every customer executes the exact same 15 competency questions and the exact same
+  canonical runtime graph signatures. Customer-specific variation is limited to instance
+  context, fixture labels and synthetic scenario metadata. Profiles are not allowed to
+  override CEPIO classes, relationships, capabilities, probes or ontology terms.
+required_stress_dimensions:
+  - fleet_scope
+  - ownership_model
+  - market_scope
+  - technology_posture
+  - customer_model
+customers:
+  - id: aro
+    name: ARO Drilling
+    context:
+      fleet_scope: offshore-jack-up
+      ownership_model: joint-venture
+      market_scope: saudi-arabia
+      technology_posture: high-spec-localized-newbuild
+      customer_model: anchor-customer-concentrated
+    scenario_theme: Offshore jack-up fleet, local newbuild program, reactivation and long-cycle capital allocation.
+    source_evidence:
+      - title: ARO Drilling 2026 capital investment and market strategy
+        url: https://www.arodrilling.com/media/thought-leadership/capital-investment-and-market-strategy-the-energy-year-2026
+      - title: ARO fleet and newbuild program
+        url: https://www.arodrilling.com/fleet
+
+  - id: sanad
+    name: SANAD
+    context:
+      fleet_scope: onshore-land
+      ownership_model: joint-venture
+      market_scope: saudi-arabia
+      technology_posture: newbuild-automation-enabled
+      customer_model: anchor-customer-concentrated
+    scenario_theme: Saudi onshore fleet expansion, newbuild ramp-up, utilization and technology-enabled execution.
+    source_evidence:
+      - title: SANAD company overview
+        url: https://www.p.sanad.com/en/home
+      - title: Nabors Q2 2026 SANAD operating update
+        url: https://investor.nabors.com/2026-07-28-Momentum-Accelerates-Cash-Flow-Improves-Nabors-2Q-2026-Results
+
+  - id: nabors
+    name: Nabors Industries
+    context:
+      fleet_scope: global-land-and-drilling-solutions
+      ownership_model: listed-parent-with-jv-participation
+      market_scope: multi-country
+      technology_posture: automation-platform-led
+      customer_model: multi-customer
+    scenario_theme: Global land drilling and drilling-solutions portfolio with automation-intensive operating models.
+    source_evidence:
+      - title: Nabors drilling automation portfolio
+        url: https://www.nabors.com/drilling-automation/
+      - title: Nabors Q2 2026 results
+        url: https://investor.nabors.com/2026-07-28-Momentum-Accelerates-Cash-Flow-Improves-Nabors-2Q-2026-Results
+
+  - id: arabian-drilling
+    name: Arabian Drilling
+    context:
+      fleet_scope: mixed-land-offshore
+      ownership_model: listed-operating-company
+      market_scope: saudi-and-regional-expansion
+      technology_posture: high-spec-fleet-and-integrated-services
+      customer_model: multi-customer
+    scenario_theme: Mixed land and offshore portfolio, fleet utilization, regional expansion and diversified contract backlog.
+    source_evidence:
+      - title: Arabian Drilling fleet overview
+        url: https://www.arabdrill.com/drilling-overview
+      - title: Arabian Drilling 2026 company announcements
+        url: https://www.arabdrill.com/pdf-company-announcements
