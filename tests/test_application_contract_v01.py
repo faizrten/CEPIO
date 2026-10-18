@@ -20,6 +20,7 @@ from cepio.application_contract import (
 from cepio.bootstrap import build_runtime
 from cepio.model import ObjectRef, OntologyObject
 from cepio.runtime import AuthorizationError
+from cepio.skill_preflight import SkillPreflightSpec, SkillRegistry
 
 
 @dataclass(frozen=True)
@@ -158,6 +159,24 @@ def test_skill_preflight_fails_closed_without_registry():
             "cepio.skill.maintenance.assess-maintenance-deferral",
             manager,
         )
+
+
+def test_skill_preflight_delegates_to_configured_registry():
+    runtime = seed_work_order_runtime()
+    registry = SkillRegistry(runtime)
+    registry.register(SkillPreflightSpec(skill_id="cepio.skill.contract.reference"))
+    service = CEPIOApplicationService(runtime, skill_registry=registry)
+    manager = ExecutionContext(
+        actor_id="manager-1",
+        actor_roles=frozenset({"maintenance_manager"}),
+    )
+
+    result = service.preflight_skill("cepio.skill.contract.reference", manager)
+
+    assert result.status == "READY"
+    assert result.actor_id == "manager-1"
+    assert result.actor_roles == {"maintenance_manager"}
+    assert result.blockers == []
 
 
 def test_context_and_skill_envelopes_reference_governed_objects_without_transport_semantics():
