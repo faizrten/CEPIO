@@ -1,0 +1,58 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix energy: <https://cepio.org/ontology/energy#> .
+@prefix sub: <https://cepio.org/ontology/subsurface#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# CEPIO Subsurface owns decision and assurance context, not OSDU technical payloads.
+# OSDU/ADME remains authoritative for well, log, sample, interpretation and reservoir-model data.
+
+sub:FormationEvaluationCase a owl:Class ;
+    rdfs:subClassOf cepio:Entity .
+
+# A first-class subject for Core Assessment objects. Domains define what is uncertain;
+# Core defines how uncertainty/confidence assessments behave.
+sub:PetrophysicalCharacteristic a owl:Class ;
+    rdfs:subClassOf cepio:Entity .
+
+sub:EffectivePorosityCharacteristic a owl:Class ;
+    rdfs:subClassOf sub:PetrophysicalCharacteristic .
+
+sub:WaterSaturationCharacteristic a owl:Class ;
+    rdfs:subClassOf sub:PetrophysicalCharacteristic .
+
+sub:PermeabilityCharacteristic a owl:Class ;
+    rdfs:subClassOf sub:PetrophysicalCharacteristic .
+
+sub:NetReservoirCharacteristic a owl:Class ;
+    rdfs:subClassOf sub:PetrophysicalCharacteristic .
+
+sub:NetPayCharacteristic a owl:Class ;
+    rdfs:subClassOf sub:PetrophysicalCharacteristic .
+
+sub:FluidContactCharacteristic a owl:Class ;
+    rdfs:subClassOf sub:PetrophysicalCharacteristic .
+
+# Authority is represented as operational state of the CEPIO assurance case rather
+# than by overwriting the externally authoritative interpretation record.
+sub:FormationEvaluationState a owl:Class ;
+    rdfs:subClassOf cepio:State .
+
+sub:Draft a sub:FormationEvaluationState .
+sub:UnderReview a sub:FormationEvaluationState .
+sub:Approved a sub:FormationEvaluationState .
+sub:Authoritative a sub:FormationEvaluationState .
+sub:Superseded a sub:FormationEvaluationState .
+sub:Rejected a sub:FormationEvaluationState .
+
+sub:caseForWell a owl:ObjectProperty ;
+    rdfs:domain sub:FormationEvaluationCase ;
+    rdfs:range energy:Well .
+
+sub:hasCharacteristic a owl:ObjectProperty ;
+    rdfs:domain sub:FormationEvaluationCase ;
+    rdfs:range sub:PetrophysicalCharacteristic .
+
+sub:hasFormationEvaluationState a owl:ObjectProperty ;
+    rdfs:domain sub:FormationEvaluationCase ;
+    rdfs:range sub:FormationEvaluationState .
