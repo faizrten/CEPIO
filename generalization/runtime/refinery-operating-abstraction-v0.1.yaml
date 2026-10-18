@@ -1,0 +1,132 @@
+id: refinery-operating-abstraction-runtime-v0.1
+version: "0.1"
+archetype_id: refinery-process-manufacturing-v0.1
+competency_pack: generalization/competency/refinery-operating-abstraction-v0.1.yaml
+description: >
+  Deterministic synthetic qualification of the refinery operating abstraction. The suite
+  proves that CEPIO can materialize and retrieve cross-domain operating context and that
+  every answer is constrained to runtime evidence. It does not claim live SAP, PI or
+  customer-system qualification.
+questions:
+  - question_id: ROA-001
+    claim: Resolve abnormal operating context for K-201 to envelope, procedure, permit and scoped authority.
+    capabilities: [abnormal-operation-response-context]
+    objects:
+      - {id: HCU-01, type: "https://cepio.org/ontology/industrial#ProcessUnit", name: Hydrocracking Unit}
+      - {id: K-201, type: "https://cepio.org/ontology/industrial#Compressor", name: Recycle Gas Compressor K-201, properties: {cepio:status: DEGRADED}}
+      - {id: DEV-001, type: "https://cepio.org/ontology/process#ProcessDeviation", name: K-201 discharge temperature deviation, properties: {cepio:severity: HIGH}}
+      - {id: ENV-001, type: "https://cepio.org/ontology/process#OperatingEnvelope", name: HCU operating envelope}
+      - {id: PROC-001, type: "https://cepio.org/ontology/process#OperatingProcedure", name: K-201 abnormal response procedure}
+      - {id: EXEC-001, type: "https://cepio.org/ontology/process#ProcedureExecution", name: Execute K-201 abnormal response}
+      - {id: PERMIT-001, type: "https://cepio.org/ontology/hse#WorkPermit", name: K-201 inspection permit, properties: {cepio:status: ACTIVE}}
+      - {id: AUTH-001, type: "https://cepio.org/ontology/workforce#AuthorityAssignment", name: K-201 shift authority}
+      - {id: SUP-001, type: "https://cepio.org/ontology/workforce#CrewMember", name: Shift Supervisor}
+    relationships:
+      - {id: envelope-unit, type: "https://cepio.org/ontology/process#envelopeForUnit", source: ENV-001, target: HCU-01}
+      - {id: deviation-envelope, type: "https://cepio.org/ontology/process#deviationAgainstEnvelope", source: DEV-001, target: ENV-001}
+      - {id: execution-procedure, type: "https://cepio.org/ontology/process#executesProcedure", source: EXEC-001, target: PROC-001}
+      - {id: execution-permit, type: "https://cepio.org/ontology/core#dependsOn", source: EXEC-001, target: PERMIT-001}
+      - {id: authority-asset, type: "https://cepio.org/ontology/workforce#authorityForAsset", source: AUTH-001, target: K-201}
+      - {id: authority-holder, type: "https://cepio.org/ontology/workforce#authorityHolder", source: AUTH-001, target: SUP-001}
+    probes:
+      - {id: deviation-envelope, kind: relationship, start_id: DEV-001, relationship_type: "https://cepio.org/ontology/process#deviationAgainstEnvelope", expected_ids: [ENV-001]}
+      - {id: envelope-unit, kind: relationship, start_id: ENV-001, relationship_type: "https://cepio.org/ontology/process#envelopeForUnit", expected_ids: [HCU-01]}
+      - {id: procedure, kind: relationship, start_id: EXEC-001, relationship_type: "https://cepio.org/ontology/process#executesProcedure", expected_ids: [PROC-001]}
+      - {id: permit, kind: relationship, start_id: EXEC-001, relationship_type: "https://cepio.org/ontology/core#dependsOn", expected_ids: [PERMIT-001]}
+      - {id: authority, kind: relationship, start_id: K-201, relationship_type: "https://cepio.org/ontology/workforce#authorityForAsset", direction: in, expected_ids: [AUTH-001]}
+      - {id: authority-holder, kind: relationship, start_id: AUTH-001, relationship_type: "https://cepio.org/ontology/workforce#authorityHolder", expected_ids: [SUP-001]}
+
+  - question_id: ROA-002
+    claim: Trace K-201 condition evidence to production consequence, work and spare readiness.
+    capabilities: [reliability-to-work-context]
+    objects:
+      - {id: K-201, type: "https://cepio.org/ontology/industrial#Compressor", name: Recycle Gas Compressor K-201, properties: {criticality: safety_critical, risk_score: 0.82}}
+      - {id: SIG-002, type: "https://cepio.org/ontology/reliability#ConditionSignal", name: K-201 bearing vibration high, properties: {value: 12.4, unit: mm/s, ceph:source: PI}}
+      - {id: LOSS-002, type: "https://cepio.org/ontology/performance#ProductionLoss", name: Hydrocracker production loss exposure, properties: {value: 197400.0, unit: USD}}
+      - {id: WO-002, type: "https://cepio.org/ontology/industrial#WorkOrder", name: Inspect K-201 bearings, properties: {cepio:status: OPEN}}
+      - {id: SPARE-002, type: "https://cepio.org/ontology/industrial#SparePart", name: K-201 Bearing Cartridge, properties: {stockOnHand: 0}}
+    relationships:
+      - {id: signal-equipment, type: "https://cepio.org/ontology/reliability#observedOnEquipment", source: SIG-002, target: K-201}
+      - {id: signal-loss, type: "https://cepio.org/ontology/core#impacts", source: SIG-002, target: LOSS-002}
+      - {id: equipment-work, type: "https://cepio.org/ontology/industrial#hasWorkOrder", source: K-201, target: WO-002}
+      - {id: work-spare, type: "https://cepio.org/ontology/industrial#requiresSpare", source: WO-002, target: SPARE-002}
+    probes:
+      - {id: condition, kind: relationship, start_id: SIG-002, relationship_type: "https://cepio.org/ontology/reliability#observedOnEquipment", expected_ids: [K-201]}
+      - {id: consequence, kind: relationship, start_id: SIG-002, relationship_type: "https://cepio.org/ontology/core#impacts", expected_ids: [LOSS-002]}
+      - {id: work, kind: relationship, start_id: K-201, relationship_type: "https://cepio.org/ontology/industrial#hasWorkOrder", expected_ids: [WO-002]}
+      - {id: spare, kind: relationship, start_id: WO-002, relationship_type: "https://cepio.org/ontology/industrial#requiresSpare", expected_ids: [SPARE-002]}
+      - {id: risk-score, kind: property, object_id: K-201, property_name: risk_score, expected_value: 0.82}
+      - {id: spare-stock, kind: property, object_id: SPARE-002, property_name: stockOnHand, expected_value: 0}
+
+  - question_id: ROA-003
+    claim: Reconstruct crude-to-blend-to-movement execution context from one common graph.
+    capabilities: [plan-to-material-flow-context]
+    objects:
+      - {id: ASSAY-003, type: "https://cepio.org/ontology/process#CrudeAssay", name: Arab Light reference assay}
+      - {id: STREAM-003, type: "https://cepio.org/ontology/process#MaterialStream", name: Crude feed stream}
+      - {id: SCHED-003, type: "https://cepio.org/ontology/manufacturing#OperationsSchedule", name: Day 003 refinery schedule}
+      - {id: BLEND-003, type: "https://cepio.org/ontology/process#BlendPlan", name: Gasoline blend plan}
+      - {id: LOT-003, type: "https://cepio.org/ontology/manufacturing#MaterialLot", name: Blend component lot 003}
+      - {id: TK-A-003, type: "https://cepio.org/ontology/manufacturing#StorageUnit", name: Component Tank A}
+      - {id: TK-B-003, type: "https://cepio.org/ontology/manufacturing#StorageUnit", name: Product Tank B}
+      - {id: MOVE-003, type: "https://cepio.org/ontology/process#MaterialMovement", name: Component transfer 003}
+      - {id: ROUTE-003, type: "https://cepio.org/ontology/process#TransferRoute", name: Tank A to Tank B route}
+    relationships:
+      - {id: assay-stream, type: "https://cepio.org/ontology/process#characterizesStream", source: ASSAY-003, target: STREAM-003}
+      - {id: blend-schedule, type: "https://cepio.org/ontology/process#blendPlanForSchedule", source: BLEND-003, target: SCHED-003}
+      - {id: blend-lot, type: "https://cepio.org/ontology/process#blendPlanUsesLot", source: BLEND-003, target: LOT-003}
+      - {id: movement-lot, type: "https://cepio.org/ontology/process#movementCarriesLot", source: MOVE-003, target: LOT-003}
+      - {id: movement-from, type: "https://cepio.org/ontology/process#movementFromStorage", source: MOVE-003, target: TK-A-003}
+      - {id: movement-to, type: "https://cepio.org/ontology/process#movementToStorage", source: MOVE-003, target: TK-B-003}
+      - {id: movement-route, type: "https://cepio.org/ontology/process#usesTransferRoute", source: MOVE-003, target: ROUTE-003}
+    probes:
+      - {id: feed-characterization, kind: relationship, start_id: ASSAY-003, relationship_type: "https://cepio.org/ontology/process#characterizesStream", expected_ids: [STREAM-003]}
+      - {id: schedule, kind: relationship, start_id: BLEND-003, relationship_type: "https://cepio.org/ontology/process#blendPlanForSchedule", expected_ids: [SCHED-003]}
+      - {id: blend-input, kind: relationship, start_id: BLEND-003, relationship_type: "https://cepio.org/ontology/process#blendPlanUsesLot", expected_ids: [LOT-003]}
+      - {id: move-lot, kind: relationship, start_id: MOVE-003, relationship_type: "https://cepio.org/ontology/process#movementCarriesLot", expected_ids: [LOT-003]}
+      - {id: route, kind: relationship, start_id: MOVE-003, relationship_type: "https://cepio.org/ontology/process#usesTransferRoute", expected_ids: [ROUTE-003]}
+      - {id: source-tank, kind: relationship, start_id: MOVE-003, relationship_type: "https://cepio.org/ontology/process#movementFromStorage", expected_ids: [TK-A-003]}
+      - {id: destination-tank, kind: relationship, start_id: MOVE-003, relationship_type: "https://cepio.org/ontology/process#movementToStorage", expected_ids: [TK-B-003]}
+
+  - question_id: ROA-004
+    claim: Explain an off-spec lot through specification evidence, disposition and affected movement.
+    capabilities: [quality-disposition-context]
+    objects:
+      - {id: LOT-004, type: "https://cepio.org/ontology/manufacturing#MaterialLot", name: Gasoline lot 004, properties: {cepio:status: OFF_SPEC}}
+      - {id: SPEC-004, type: "https://cepio.org/ontology/manufacturing#MaterialSpecification", name: Gasoline product specification}
+      - {id: DISP-004, type: "https://cepio.org/ontology/manufacturing#QualityDisposition", name: Reblend disposition, properties: {decision: REBLEND}}
+      - {id: MOVE-004, type: "https://cepio.org/ontology/process#MaterialMovement", name: Divert lot 004 to reblend tank}
+      - {id: TK-004, type: "https://cepio.org/ontology/manufacturing#StorageUnit", name: Reblend Tank}
+    relationships:
+      - {id: lot-spec, type: "https://cepio.org/ontology/manufacturing#lotEvaluatedAgainstSpecification", source: LOT-004, target: SPEC-004}
+      - {id: disposition-lot, type: "https://cepio.org/ontology/manufacturing#dispositionForLot", source: DISP-004, target: LOT-004}
+      - {id: movement-lot, type: "https://cepio.org/ontology/process#movementCarriesLot", source: MOVE-004, target: LOT-004}
+      - {id: movement-destination, type: "https://cepio.org/ontology/process#movementToStorage", source: MOVE-004, target: TK-004}
+    probes:
+      - {id: spec, kind: relationship, start_id: LOT-004, relationship_type: "https://cepio.org/ontology/manufacturing#lotEvaluatedAgainstSpecification", expected_ids: [SPEC-004]}
+      - {id: disposition, kind: relationship, start_id: DISP-004, relationship_type: "https://cepio.org/ontology/manufacturing#dispositionForLot", expected_ids: [LOT-004]}
+      - {id: affected-movement, kind: relationship, start_id: MOVE-004, relationship_type: "https://cepio.org/ontology/process#movementCarriesLot", expected_ids: [LOT-004]}
+      - {id: destination, kind: relationship, start_id: MOVE-004, relationship_type: "https://cepio.org/ontology/process#movementToStorage", expected_ids: [TK-004]}
+      - {id: lot-state, kind: property, object_id: LOT-004, property_name: cepio:status, expected_value: OFF_SPEC}
+      - {id: disposition-decision, kind: property, object_id: DISP-004, property_name: decision, expected_value: REBLEND}
+
+  - question_id: ROA-005
+    claim: Resolve emissions compliance and energy intensity evidence for a common process unit.
+    capabilities: [environmental-performance-context]
+    objects:
+      - {id: HCU-05, type: "https://cepio.org/ontology/industrial#ProcessUnit", name: Hydrocracking Unit}
+      - {id: EM-005, type: "https://cepio.org/ontology/process#EmissionObservation", name: HCU NOx observation, properties: {value: 118.0, unit: mg/Nm3, observed_at: "2026-10-18T18:00:00Z"}}
+      - {id: LIMIT-005, type: "https://cepio.org/ontology/process#EmissionLimit", name: HCU NOx operating limit, properties: {value: 120.0, unit: mg/Nm3}}
+      - {id: KPI-005, type: "https://cepio.org/ontology/core#KPI", name: HCU Energy Intensity, properties: {metric_id: energy-intensity, value: 2.31, unit: GJ/t}}
+      - {id: CA-005, type: "https://cepio.org/ontology/hse#CorrectiveAction", name: Optimize furnace excess oxygen, properties: {cepio:status: PROPOSED}}
+    relationships:
+      - {id: emission-unit, type: "https://cepio.org/ontology/process#emissionFromUnit", source: EM-005, target: HCU-05}
+      - {id: emission-limit, type: "https://cepio.org/ontology/process#evaluatedAgainstEmissionLimit", source: EM-005, target: LIMIT-005}
+      - {id: corrective-action-unit, type: "https://cepio.org/ontology/core#impacts", source: CA-005, target: HCU-05}
+    probes:
+      - {id: unit, kind: relationship, start_id: EM-005, relationship_type: "https://cepio.org/ontology/process#emissionFromUnit", expected_ids: [HCU-05]}
+      - {id: limit, kind: relationship, start_id: EM-005, relationship_type: "https://cepio.org/ontology/process#evaluatedAgainstEmissionLimit", expected_ids: [LIMIT-005]}
+      - {id: corrective-action, kind: relationship, start_id: CA-005, relationship_type: "https://cepio.org/ontology/core#impacts", expected_ids: [HCU-05]}
+      - {id: energy-metric, kind: property, object_id: KPI-005, property_name: metric_id, expected_value: energy-intensity}
+      - {id: energy-intensity, kind: property, object_id: KPI-005, property_name: value, expected_value: 2.31}
+      - {id: emission-value, kind: property, object_id: EM-005, property_name: value, expected_value: 118.0}
