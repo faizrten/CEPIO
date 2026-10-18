@@ -12,7 +12,9 @@ DEFAULT_PACK = ROOT / "generalization/customers/drilling-contractor-cross-custom
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run CEPIO deterministic cross-customer qualification")
+    parser = argparse.ArgumentParser(
+        description="Run CEPIO deterministic cross-customer qualification"
+    )
     parser.add_argument("--pack", type=Path, default=DEFAULT_PACK)
     parser.add_argument("--json-out", type=Path)
     parser.add_argument("--fail-on-gap", action="store_true")
