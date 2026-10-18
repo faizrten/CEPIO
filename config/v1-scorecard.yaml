@@ -74,7 +74,7 @@ stages:
       - id: P1
         title: Provider-neutral evidence and action binding contract
         points: 3
-        earned: 1
+        earned: 2
         status: in_progress
         evidence:
           - "Existing ExternalRecordReference and governed Action adapter contracts on main"
@@ -103,7 +103,7 @@ stages:
       - id: P5
         title: Source-authoritative governed action with write, verify and reconcile
         points: 3
-        earned: 3
+        earned: 2
         status: in_progress
         evidence:
           - "Governed write -> verify -> reconcile runtime is implemented and qualified with fake adapters"
