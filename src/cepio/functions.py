@@ -102,7 +102,7 @@ def evaluate_maintenance_deferral_risk(
 
     runtime.get_object(equipment_id)
     runtime.get_object(work_order_id)
-    risk = runtime.get_object(risk_id)
+    runtime.get_object(risk_id)
 
     linked_work_orders = {obj.id for obj in runtime.neighbors(equipment_id, "hasWorkOrder")}
     if work_order_id not in linked_work_orders:
@@ -114,8 +114,18 @@ def evaluate_maintenance_deferral_risk(
     if risk_id not in linked_risks:
         raise ValueError(f"Risk {risk_id} is not linked to equipment {equipment_id} by hasRisk")
 
+    get_property = getattr(runtime, "get_property", None)
+
+    def property_value(name: str):
+        if get_property is not None:
+            try:
+                return get_property(risk_id, name)
+            except KeyError:
+                return None
+        return runtime.get_object(risk_id).properties.get(name)
+
     def required_number(name: str) -> float:
-        value = risk.properties.get(name)
+        value = property_value(name)
         if value is None:
             raise ValueError(f"Risk {risk_id} is missing required governed property {name}")
         try:
@@ -134,7 +144,7 @@ def evaluate_maintenance_deferral_risk(
     if max_hours < 0:
         raise ValueError("maxSupportedDeferralHours must be non-negative")
 
-    hard_constraint = bool(risk.properties.get("hardConstraint", False))
+    hard_constraint = bool(property_value("hardConstraint") or False)
     within_window = (not hard_constraint) and proposed_deferral_hours <= max_hours
     return MaintenanceDeferralRiskAssessment(
         risk_id=risk_id,
