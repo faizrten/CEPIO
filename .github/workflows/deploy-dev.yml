@@ -1,0 +1,142 @@
+name: CEPIO Deploy DEV
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'ontologies/**'
+      - 'mappings/**'
+      - 'shapes/**'
+      - 'actions/**'
+      - 'policies/**'
+      - 'profiles/**'
+      - 'ontology-modules.yaml'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - 'deploy/environment-a/**'
+      - '.github/workflows/deploy-dev.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  RESOURCE_GROUP: rg-cepio-dev
+  IMAGE_NAME: cepio-runtime
+
+jobs:
+  validate:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.AZURE_DEV_ENABLED == 'true' }}
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    if: ${{ needs.validate.result == 'success' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Provision/update Environment A infrastructure
+        id: infra
+        shell: bash
+        run: |
+          set -euo pipefail
+          az group create \
+            --name "$RESOURCE_GROUP" \
+            --location "${{ vars.AZURE_LOCATION }}" \
+            --tags workload=cepio environment=dev dataClassification=synthetic-only managedBy=bicep
+
+          outputs=$(az deployment group create \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "cepio-env-a-${GITHUB_RUN_ID}" \
+            --template-file deploy/environment-a/main.bicep \
+            --parameters \
+              suffix="${{ vars.AZURE_RESOURCE_SUFFIX }}" \
+              tenantId="${{ secrets.CEPIO_ENTRA_TENANT_ID }}" \
+              apiAudience="${{ secrets.CEPIO_ENTRA_AUDIENCE }}" \
+              profiles="${{ vars.CEPIO_PROFILES }}" \
+            --query properties.outputs \
+            --output json)
+
+          echo "acr_name=$(jq -r '.acrName.value' <<< "$outputs")" >> "$GITHUB_OUTPUT"
+          echo "acr_login_server=$(jq -r '.acrLoginServer.value' <<< "$outputs")" >> "$GITHUB_OUTPUT"
+          echo "app_name=$(jq -r '.appName.value' <<< "$outputs")" >> "$GITHUB_OUTPUT"
+          echo "app_url=$(jq -r '.appUrl.value' <<< "$outputs")" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push immutable image
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACR_NAME='${{ steps.infra.outputs.acr_name }}'
+          ACR_SERVER='${{ steps.infra.outputs.acr_login_server }}'
+          IMAGE_TAG="$GITHUB_SHA"
+
+          az acr login --name "$ACR_NAME"
+          docker build \
+            --label org.opencontainers.image.revision="$GITHUB_SHA" \
+            --label org.opencontainers.image.source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            -t "$ACR_SERVER/$IMAGE_NAME:$IMAGE_TAG" \
+            -t "$ACR_SERVER/$IMAGE_NAME:dev" \
+            .
+          docker push "$ACR_SERVER/$IMAGE_NAME:$IMAGE_TAG"
+          docker push "$ACR_SERVER/$IMAGE_NAME:dev"
+
+      - name: Point App Service to immutable CEPIO image
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_NAME='${{ steps.infra.outputs.app_name }}'
+          ACR_SERVER='${{ steps.infra.outputs.acr_login_server }}'
+          IMAGE="$ACR_SERVER/$IMAGE_NAME:$GITHUB_SHA"
+
+          az webapp config container set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_NAME" \
+            --container-image-name "$IMAGE" \
+            --container-registry-url "https://$ACR_SERVER"
+
+          az webapp config set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_NAME" \
+            --generic-configurations '{"acrUseManagedIdentityCreds":true}'
+
+          az webapp restart --resource-group "$RESOURCE_GROUP" --name "$APP_NAME"
+
+      - name: Smoke test DEV
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_URL='${{ steps.infra.outputs.app_url }}'
+          healthy=0
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent --show-error "$APP_URL/api/v1/health" > /tmp/cepio-health.json; then
+              healthy=1
+              break
+            fi
+            sleep 5
+          done
+          cat /tmp/cepio-health.json 2>/dev/null || true
+          test "$healthy" -eq 1
+
+      - name: Publish deployment summary
+        shell: bash
+        run: |
+          {
+            echo '## CEPIO Environment A — Azure DEV'
+            echo
+            echo "- App: \`${{ steps.infra.outputs.app_name }}\`"
+            echo "- URL: ${{ steps.infra.outputs.app_url }}"
+            echo "- Image: \`${{ steps.infra.outputs.acr_login_server }}/$IMAGE_NAME:$GITHUB_SHA\`"
+            echo "- Commit: \`$GITHUB_SHA\`"
+          } >> "$GITHUB_STEP_SUMMARY"
