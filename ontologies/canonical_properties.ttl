@@ -55,6 +55,7 @@ comm:dayRate a owl:DatatypeProperty ; rdfs:range xsd:decimal .
 comm:documentNumber a owl:DatatypeProperty ; rdfs:range xsd:string .
 comm:revenueAtRisk a owl:DatatypeProperty ; rdfs:range xsd:decimal .
 drill:commissionedYear a owl:DatatypeProperty ; rdfs:range xsd:integer .
+drill:isProductive a owl:DatatypeProperty ; rdfs:range xsd:boolean .
 drill:ratedDepthM a owl:DatatypeProperty ; rdfs:range xsd:integer .
 drill:rigClass a owl:DatatypeProperty ; rdfs:range xsd:string .
 drill:waterDepthM a owl:DatatypeProperty ; rdfs:range xsd:integer .

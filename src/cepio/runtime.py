@@ -94,6 +94,7 @@ class CEPIORuntime:
         self.decision_repository = decision_repository or shared
         self.policy_engine = policy_engine or RolePolicyEngine()
         self.type_registry = type_registry
+        self.industry_iq_packs: dict[str, str] = {}
         self._actions: dict[str, ActionDefinition] = {}
         self._functions: dict[str, FunctionDefinition] = {}
         self._decisions: dict[str, DecisionDefinition] = {}

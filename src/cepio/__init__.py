@@ -27,6 +27,12 @@ from .domain_bindings import (
     ExternalRecordReference,
     RuntimeCapabilityBinding,
 )
+from .drilling_npt_iq import (
+    DRILLING_NPT_IQ_PACK,
+    DrillingNPTIndustryIQPack,
+    NPTDurationAssessment,
+    NPTDurationInput,
+)
 from .external_actions import (
     ExternalActionBinding,
     ExternalActionExecution,
@@ -40,6 +46,7 @@ from .external_actions import (
     build_external_action_runtime,
 )
 from .graph_analytics import GraphAnalyticsEngine
+from .industry_iq import IndustryIQPack, install_industry_iq_packs
 from .kinetic import (
     ApprovalTask,
     KineticRuntime,
@@ -111,6 +118,12 @@ __all__ = [
     "DomainObjectBinding",
     "RuntimeCapabilityBinding",
     "ExternalRecordReference",
+    "IndustryIQPack",
+    "install_industry_iq_packs",
+    "DRILLING_NPT_IQ_PACK",
+    "DrillingNPTIndustryIQPack",
+    "NPTDurationInput",
+    "NPTDurationAssessment",
     "ContextualPolicyEngine",
     "PolicyDefinition",
     "PolicyReference",

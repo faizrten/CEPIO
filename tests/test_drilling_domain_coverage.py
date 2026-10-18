@@ -39,7 +39,7 @@ def test_marine_support_asset_reuses_dependency_semantics():
     assert (DRILL.supportedByMarineAsset, RDF.type, OWL.ObjectProperty) not in graph
 
 
-def test_drilling_module_version_is_0_1_2():
+def test_drilling_module_version_is_0_1_3():
     catalogue = yaml.safe_load((ROOT / "ontology-modules.yaml").read_text())
     versions = {module["id"]: str(module["version"]) for module in catalogue["modules"]}
-    assert versions["drilling"] == "0.1.2"
+    assert versions["drilling"] == "0.1.3"
