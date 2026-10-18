@@ -20,9 +20,9 @@ kin:Opportunity a owl:Class ;
 kin:Option a owl:Class ;
   rdfs:subClassOf cepio:Entity ;
   rdfs:comment "A possible course of action evaluated in an opportunity or decision context." .
-kin:Recommendation a owl:Class ;
+kin:OptionRecommendation a owl:Class ;
   rdfs:subClassOf cepio:Entity ;
-  rdfs:comment "A reasoned proposal favoring one or more options without constituting the authoritative decision." .
+  rdfs:comment "An authority-neutral proposal favoring one or more options without constituting the authoritative decision." .
 
 kin:permitsAction a owl:ObjectProperty .
 kin:requiresApproval a owl:ObjectProperty .
@@ -38,9 +38,9 @@ kin:hasOption a owl:ObjectProperty ;
   rdfs:range kin:Option .
 kin:hasRecommendation a owl:ObjectProperty ;
   rdfs:domain kin:Opportunity ;
-  rdfs:range kin:Recommendation .
+  rdfs:range kin:OptionRecommendation .
 kin:recommendsOption a owl:ObjectProperty ;
-  rdfs:domain kin:Recommendation ;
+  rdfs:domain kin:OptionRecommendation ;
   rdfs:range kin:Option .
 kin:addressesOpportunity a owl:ObjectProperty ;
   rdfs:domain kin:Decision ;
@@ -50,4 +50,4 @@ kin:selectedOption a owl:ObjectProperty ;
   rdfs:range kin:Option .
 kin:basedOnRecommendation a owl:ObjectProperty ;
   rdfs:domain kin:Decision ;
-  rdfs:range kin:Recommendation .
+  rdfs:range kin:OptionRecommendation .
