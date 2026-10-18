@@ -122,11 +122,19 @@ def test_recommendation_without_enterprise_evidence_is_withheld():
 def test_plan_revision_requires_current_scoped_authority():
     runtime = _runtime()
     at = datetime(2026, 10, 17, 12, 0, tzinfo=timezone.utc)
-    plan = _put(runtime, "PLAN-1", "https://cepio.org/ontology/kinetic#OperationalPlan", "Original plan")
-    revision = _put(runtime, "REV-1", "https://cepio.org/ontology/kinetic#PlanRevision", "Plan revision")
-    decision = _put(runtime, "DEC-1", "https://cepio.org/ontology/kinetic#Decision", "Authorization decision")
+    plan = _put(
+        runtime, "PLAN-1", "https://cepio.org/ontology/kinetic#OperationalPlan", "Original plan"
+    )
+    revision = _put(
+        runtime, "REV-1", "https://cepio.org/ontology/kinetic#PlanRevision", "Plan revision"
+    )
+    decision = _put(
+        runtime, "DEC-1", "https://cepio.org/ontology/kinetic#Decision", "Authorization decision"
+    )
     rig = _put(runtime, "RIG-1", "https://cepio.org/ontology/drilling#OperatingRig", "Scoped rig")
-    holder = _put(runtime, "AUTH-HOLDER-1", "https://cepio.org/ontology/workforce#CrewMember", "Company Man")
+    holder = _put(
+        runtime, "AUTH-HOLDER-1", "https://cepio.org/ontology/workforce#CrewMember", "Company Man"
+    )
     authority = _put(
         runtime,
         "AUTH-1",
@@ -145,7 +153,9 @@ def test_plan_revision_requires_current_scoped_authority():
     _rel(runtime, "https://cepio.org/ontology/workforce#authorityHolder", authority, holder)
 
     accepted = evaluate_plan_revision_authority(runtime, revision.id, actor_id=holder.id, at=at)
-    wrong_actor = evaluate_plan_revision_authority(runtime, revision.id, actor_id="UNAUTHORIZED-ACTOR", at=at)
+    wrong_actor = evaluate_plan_revision_authority(
+        runtime, revision.id, actor_id="UNAUTHORIZED-ACTOR", at=at
+    )
     expired = evaluate_plan_revision_authority(
         runtime,
         revision.id,
@@ -167,10 +177,16 @@ def test_value_realization_requires_kpi_risk_and_provenance_chain():
         "https://cepio.org/ontology/performance#OutcomeAssessment",
         "Outcome assessment",
     )
-    decision = _put(runtime, "DEC-VAL-1", "https://cepio.org/ontology/kinetic#Decision", "Intervention decision")
-    kpi = _put(runtime, "KPI-VAL-1", "https://cepio.org/ontology/performance#KPIObservation", "NPT outcome")
+    decision = _put(
+        runtime, "DEC-VAL-1", "https://cepio.org/ontology/kinetic#Decision", "Intervention decision"
+    )
+    kpi = _put(
+        runtime, "KPI-VAL-1", "https://cepio.org/ontology/performance#KPIObservation", "NPT outcome"
+    )
     risk = _put(runtime, "RISK-VAL-1", "https://cepio.org/ontology/core#Risk", "Safety risk")
-    _rel(runtime, "https://cepio.org/ontology/performance#assessmentOfDecision", assessment, decision)
+    _rel(
+        runtime, "https://cepio.org/ontology/performance#assessmentOfDecision", assessment, decision
+    )
     _rel(runtime, "https://cepio.org/ontology/performance#observedOutcome", assessment, kpi)
     _rel(runtime, "https://cepio.org/ontology/performance#considersRisk", assessment, risk)
 
@@ -178,7 +194,9 @@ def test_value_realization_requires_kpi_risk_and_provenance_chain():
         question_id="DC-DQ-015",
         scenario_id="negative",
         answer_facts={},
-        records=[EvidenceRecord(id="snapshot", kind="object_snapshot", payload={"object_id": kpi.id})],
+        records=[
+            EvidenceRecord(id="snapshot", kind="object_snapshot", payload={"object_id": kpi.id})
+        ],
         bundle_hash="negative",
     )
     rejected = evaluate_outcome_assessment(runtime, assessment.id, evidence=insufficient)
@@ -203,7 +221,11 @@ def test_value_realization_requires_kpi_risk_and_provenance_chain():
             EvidenceRecord(
                 id="transform",
                 kind="transformation",
-                payload={"mapping_id": "npt-kpi-v1", "output_object_id": kpi.id, "risk_context": risk.id},
+                payload={
+                    "mapping_id": "npt-kpi-v1",
+                    "output_object_id": kpi.id,
+                    "risk_context": risk.id,
+                },
             ),
         ],
         bundle_hash="positive",
