@@ -1,166 +1,242 @@
 # Architecture
 
-## Five-plane architecture
+## Architecture North Star
+
+> **Thin infrastructure. Thick industrial intelligence.**
+
+CEPIO should remain thin in storage, hosting, model runtime and source-system duplication, while becoming thick in reusable industrial operating competence.
+
+The architectural center of gravity is therefore not a proprietary data platform. It is a portable operating contract plus reusable Industry IQ.
+
+```text
+Authoritative enterprise context
+SAP · PI · OSDU · Fabric · Cognite · P6 · MES · engineering systems
+                         |
+                         v
+               REPLACEABLE BINDINGS
+                         |
+                         v
+                THIN OPERATING CORE
+ semantics · identity · state · time · evidence · provenance
+ uncertainty · policy · authority · Functions · Decisions · Actions
+                         |
+                         v
+                  THICK INDUSTRY IQ
+ Skills · competency contracts · risk/failure patterns
+ decision patterns · constraints · KPI/economic logic
+ workflows · evaluations · domain competence
+                         |
+                         v
+          HEADLESS / PERSONA-ADAPTIVE EXPERIENCE
+ apps · copilots · agents · analytics · workflows
+```
+
+## Five-plane view
+
+The existing five-plane model remains useful, but the new North Star changes where CEPIO should accumulate differentiated IP.
 
 ```text
 Applications · Workspaces · Copilots · Agents
                        |
                EXPERIENCE PLANE
                        |
-Functions · Decisions · Actions · Workflows
+Skills · Functions · Decisions · Actions · Workflows
                        |
                   KINETIC PLANE
                        |
-Objects · Relationships · Events · State · KPI
+Objects · Relationships · Events · State · Evidence
                        |
                  SEMANTIC PLANE
                        |
-Policy · Time · Provenance · Audit · Versioning
+Policy · Time · Provenance · Authority · Audit · Compatibility
                        |
                 GOVERNANCE PLANE
                        |
-SAP · PI · OSDU · P6 · Fabric · MES · other systems
+SAP · PI · OSDU · Fabric · Cognite · P6 · MES
                        |
                INTEGRATION PLANE
 ```
 
-### Experience plane
+The planes are runtime concerns. The product packaging should be understood as:
 
-The experience plane contains the interfaces people and software interact with:
+- **thin stable Core** across semantic, governance and kinetic primitives;
+- **thick Industry IQ Packs** containing reusable industrial competence;
+- **replaceable bindings** into data and operational platforms;
+- **headless persona-adaptive experiences** above the contract.
 
-- web applications;
+## Thin operating core
+
+Core should contain abstractions that remain stable across domains and platform choices:
+
+- canonical identity;
+- objects and relationships;
+- events and operational state;
+- valid time and transaction time;
+- evidence and provenance;
+- uncertainty/confidence;
+- Functions;
+- Decisions;
+- governed Actions;
+- policy and authority;
+- audit;
+- compatibility and migration contracts.
+
+Core should not absorb every domain term, customer workflow or platform feature.
+
+## Thick Industry IQ
+
+CEPIO's differentiated intelligence should accumulate in reusable packs above Core:
+
+- industrial Skills and procedures;
+- competency questions and acceptance contracts;
+- evidence requirements;
+- failure and degradation patterns;
+- risk/barrier patterns;
+- decision and intervention patterns;
+- operating constraints;
+- KPI and economic logic;
+- reusable workflow patterns;
+- evaluation and assurance benchmarks;
+- domain-specific semantic compositions.
+
+The design objective is **more industrial competence with less Core churn**.
+
+## Replaceable platform bindings
+
+Bindings connect CEPIO to systems of record, systems of observation and data platforms.
+
+Examples include:
+
+- SAP S/4HANA / EAM;
+- AVEVA PI or other historians;
+- OSDU / Azure Data Manager for Energy;
+- Microsoft Fabric / Fabric IQ;
+- Cognite Data Fusion;
+- Primavera P6;
+- MES and engineering systems.
+
+Bindings should preserve three invariants:
+
+1. CEPIO canonical identity remains stable even when source identifiers change.
+2. Source systems remain authoritative for the facts or transactions they own.
+3. CEPIO records evidence, authorization, execution and reconciliation without unnecessary source duplication.
+
+Use the rule:
+
+> **Reuse -> Bind -> Extend -> Own only where CEPIO adds reusable operating intelligence.**
+
+## Experience plane: headless first
+
+The experience plane contains:
+
+- industrial applications;
 - engineering workspaces;
 - copilots;
 - AI agents;
-- analytics experiences;
-- domain applications;
-- visualization layers.
+- analytics;
+- domain-specific visualization.
 
-The experience plane should consume CEPIO contracts instead of embedding direct source-system logic.
+CEPIO is **headless at its core and adaptive at its surface**.
 
-### Kinetic plane
+> **Same industrial reality. Different experience for every decision-maker.**
 
-The kinetic plane defines what the enterprise **can do**:
+The UI must not become a second source of business logic. Persona adaptation happens above the governed CEPIO contract.
 
-- functions;
-- decisions;
+## Kinetic plane
+
+The kinetic plane defines what the enterprise can reason about and do:
+
+- Skills;
+- Functions;
+- Decisions;
 - recommendations;
-- governed actions;
+- Actions;
 - workflows;
-- constraints and preconditions.
+- constraints;
+- preconditions;
+- approvals;
+- verification and Outcomes.
 
-### Semantic plane
+The new North Star makes Skills and decision patterns especially important because they are reusable industrial competence rather than infrastructure.
 
-The semantic plane defines what the enterprise **is**:
+## Semantic plane
+
+The semantic plane provides the canonical meaning required for cross-system reasoning:
 
 - objects;
 - relationships;
 - properties;
 - events;
 - state;
+- observations;
+- evidence;
 - KPIs and risks.
 
-### Governance plane
+The semantic model should support competency and reasoning contracts, not grow as a catalog of every industry noun.
 
-The governance plane makes the operating abstraction trustworthy:
+## Governance plane
 
-- identity and actor context;
+The governance plane makes industrial intelligence trustworthy:
+
+- authenticated actor identity;
 - policy;
-- valid time and transaction time;
-- property provenance;
-- immutable audit;
-- semantic versioning;
-- migration contracts.
+- decision and execution authority;
+- valid and transaction time;
+- provenance;
+- audit;
+- compatibility;
+- migration;
+- evidence lineage.
 
-### Integration plane
-
-The integration plane connects CEPIO to systems of record and systems of execution while preserving canonical CEPIO identity and semantics.
+Knowledge is distinct from authority, and recommendation is distinct from permission to execute.
 
 ## Runtime architecture
 
 ```text
-                        CEPIO Runtime
-                             |
-        +--------------------+---------------------+
-        |                    |                     |
- Object Repository      Event Repository      Audit Repository
-        |                    |                     |
-        +--------------------+---------------------+
-                             |
-                      Ontology Registry
-                    types · inheritance
-                  relationship constraints
-                             |
-                        Policy Engine
-                             |
-                 +-----------+-----------+
-                 |                       |
-           Function Runtime        Action Runtime
-                 |                       |
-              typed IO             authorization
-              traversal             preconditions
-                                    idempotency
-                                    audit
-                                    versioning
-                                    compensation metadata
-                             |
-                        Adapter Boundary
-             SAP · PI · OSDU · P6 · Fabric · others
+                         CEPIO Runtime
+                              |
+      +-----------------------+------------------------+
+      |                       |                        |
+Object/Event State      Evidence/Provenance      Audit/Outcome
+      |                       |                        |
+      +-----------------------+------------------------+
+                              |
+                     Ontology / Type Registry
+                              |
+                        Policy / Authority
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+       Skills             Functions          Decisions
+          |                   |                   |
+          +-------------------+-------------------+
+                              |
+                     Workflow / Action Runtime
+                              |
+                       Adapter Boundary
+        SAP · PI · OSDU · Fabric · Cognite · P6 · others
 ```
 
-## Persistence boundary
+## Microsoft-native, not Microsoft-dependent
 
-Domain-facing repository interfaces isolate CEPIO semantics from persistence technology.
+Microsoft remains the primary reference ecosystem for deployment and realization:
 
-Current reference implementations include:
+- Fabric / OneLake / RTI for data and operational context;
+- Fabric IQ for semantic materialization;
+- Foundry for model and agent execution;
+- Entra for authenticated identity;
+- App Service / AKS for hosting.
 
-- in-memory repositories;
-- SQLite.
+These services implement CEPIO capabilities; they do not define CEPIO industrial meaning. The same CEPIO competency, Skill and Decision contracts should be portable to alternative data environments.
 
-These are intentionally reference implementations, not the final enterprise-scale persistence architecture.
+## Architecture success criteria
 
-Future Fabric, graph or distributed storage implementations should satisfy the same domain contracts.
+The architecture is moving in the right direction when:
 
-## Semantic integrity
-
-RDF/OWL modules are parsed into a type registry. Runtime validation can reject undeclared types and enforce domain/range constraints through subclass reasoning.
-
-Example:
-
-```text
-Compressor is-a RotatingEquipment
-RotatingEquipment is-a Equipment
-
-hasWorkOrder domain Equipment
-hasWorkOrder range WorkOrder
-
-Compressor --hasWorkOrder--> WorkOrder  OK
-Hydrocracker --hasWorkOrder--> WorkOrder  INVALID
-```
-
-## Adapter boundary
-
-Adapters isolate CEPIO from external-system implementation details.
-
-Three durable invariants are important:
-
-1. CEPIO IDs remain stable even when source-system IDs change.
-2. External writeback occurs only after CEPIO authorization and validation.
-3. Source-system acknowledgement and reconciliation return into CEPIO provenance/audit.
-
-## Canonical vs platform-specific architecture
-
-```text
-CEPIO semantic contract
-        |
-        +-------------------+
-        |                   |
-        v                   v
-Microsoft binding       Other bindings
-Fabric / Foundry        graph / cloud / local
-        |
-        v
-Customer deployment/profile
-```
-
-This prevents CEPIO from becoming equivalent to a specific Microsoft service while still allowing Microsoft-native implementation.
+- new industrial domains require fewer changes to Core;
+- more functionality is delivered through Industry IQ Packs rather than infrastructure growth;
+- the same competency/Skill/Decision contract works over different platform bindings;
+- source-system facts remain authoritative and traceable;
+- customer-specific operating knowledge stays isolated in profiles/extensions;
+- experiences remain headless and persona-adaptive;
+- agent autonomy increases only with equivalent evidence, authority and assurance controls.
