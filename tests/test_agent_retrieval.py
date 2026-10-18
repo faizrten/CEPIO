@@ -63,3 +63,12 @@ def test_type_validation_and_typed_search(objects):
 def test_limits_and_order_are_deterministic(objects):
     assert [o.id for o in search(objects, '', None, 2)] == ['DOC-902', 'JOB-801']
     assert [o.id for o in search(reversed(objects), '', None, 2)] == ['DOC-902', 'JOB-801']
+
+
+def test_nested_sequence_properties_are_searchable_without_benchmark_coupling(objects):
+    objects.append(obj('VALVE-301', 'Isolation Valve', tags=['critical', 'isolation']))
+    assert [o.id for o in search(objects, 'critical', None, 20)] == ['VALVE-301']
+
+
+def test_non_matching_query_returns_no_objects(objects):
+    assert search(objects, 'unrepresented-token', None, 20) == []
