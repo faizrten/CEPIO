@@ -1,6 +1,6 @@
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 import yaml
 
@@ -9,11 +9,21 @@ from cepio.generalization import load_gap_triage, run_harness
 ROOT = Path(__file__).resolve().parents[1]
 GAPS = (
     ROOT
-    / "generalization/gaps/drilling-contractor-domain-qualification-v0.4.1.yaml"
+    / "generalization"
+    / "gaps"
+    / "drilling-contractor-domain-qualification-v0.4.1.yaml"
 )
 RESOLUTIONS = (
     ROOT
-    / "generalization/gaps/drilling-contractor-domain-qualification-v0.4.1-resolutions.yaml"
+    / "generalization"
+    / "gaps"
+    / "drilling-contractor-domain-qualification-v0.4.1-resolutions.yaml"
+)
+COMPETENCY = (
+    ROOT
+    / "generalization"
+    / "competency"
+    / "drilling-contractor-domain-qualification-v0.4.yaml"
 )
 
 EXPECTED = {
@@ -22,6 +32,7 @@ EXPECTED = {
     "DC-DQ-014": "GAP-DQ-014-OPERATIONAL-PLAN-REVISION",
     "DC-DQ-015": "GAP-DQ-015-OUTCOME-VALUE-ATTRIBUTION",
 }
+EXPECTED_STATUS = {"PASS": 15, "PARTIAL": 0, "FAIL": 0, "ERROR": 0}
 
 
 def _active_triage():
@@ -36,15 +47,13 @@ def _resolutions():
 
 def _normalized_report(tmp_path):
     normalized = tmp_path / "qualification-v0.4.1.yaml"
+    normalizer = ROOT / "scripts" / "build_drilling_domain_qualification_v041.py"
     subprocess.run(
         [
             sys.executable,
-            str(ROOT / "scripts/build_drilling_domain_qualification_v041.py"),
+            str(normalizer),
             "--source",
-            str(
-                ROOT
-                / "generalization/competency/drilling-contractor-domain-qualification-v0.4.yaml"
-            ),
+            str(COMPETENCY),
             "--out",
             str(normalized),
         ],
@@ -69,12 +78,7 @@ def test_active_gap_triage_matches_current_normalized_v041_failures(tmp_path):
         if result["status"] in {"PARTIAL", "FAIL"}
     }
 
-    assert report["status_counts"] == {
-        "PASS": 15,
-        "PARTIAL": 0,
-        "FAIL": 0,
-        "ERROR": 0,
-    }
+    assert report["status_counts"] == EXPECTED_STATUS
     assert failures == set()
     assert active.status == "accepted"
     assert active.decisions == []
@@ -82,20 +86,19 @@ def test_active_gap_triage_matches_current_normalized_v041_failures(tmp_path):
 
 def test_resolution_ledger_preserves_the_four_accepted_core_decisions():
     ledger = _resolutions()
-    assert ledger["status"] == "implemented"
-    assert ledger["source_triage"] == str(GAPS.relative_to(ROOT)).replace("\\", "/")
-
+    source_triage = str(GAPS.relative_to(ROOT)).replace("\\", "/")
     resolutions = {item["question_id"]: item for item in ledger["resolutions"]}
-    assert {
+    resolved_gap_ids = {
         question: item["gap_id"] for question, item in resolutions.items()
-    } == EXPECTED
+    }
+    modules = {item["module"] for item in resolutions.values()}
+
+    assert ledger["status"] == "implemented"
+    assert ledger["source_triage"] == source_triage
+    assert resolved_gap_ids == EXPECTED
     assert {item["disposition"] for item in resolutions.values()} == {"CORE"}
     assert {item["status"] for item in resolutions.values()} == {"implemented"}
-    assert {item["module"] for item in resolutions.values()} == {
-        "agentic_operations",
-        "kinetic",
-        "performance",
-    }
+    assert modules == {"agentic_operations", "kinetic", "performance"}
 
 
 def test_resolution_ledger_records_reusable_semantics_not_drilling_shortcuts():
@@ -105,8 +108,7 @@ def test_resolution_ledger_records_reusable_semantics_not_drilling_shortcuts():
         for item in ledger["resolutions"]
         for semantic in item.get("implemented_semantics", [])
     }
-
-    assert {
+    expected_semantics = {
         "agentic:Prediction",
         "agentic:predictionFor",
         "agentic:predictsRisk",
@@ -119,5 +121,7 @@ def test_resolution_ledger_records_reusable_semantics_not_drilling_shortcuts():
         "performance:assessmentOfDecision",
         "performance:observedOutcome",
         "performance:considersRisk",
-    } <= semantics
+    }
+
+    assert expected_semantics <= semantics
     assert not any(value.startswith("drilling:") for value in semantics)
