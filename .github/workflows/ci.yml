@@ -3,20 +3,43 @@ on:
   push:
   pull_request:
   workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
-  test:
+  unit:
+    name: ci-unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q
+
+  contracts:
+    name: ci-contracts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - run: python -m pip install -e '.[dev]'
       - name: READY-only Skill dispatch contract
         run: pytest -q tests/test_skill_dispatch.py tests/test_skill_preflight.py
-      - run: pytest -q
       - name: Query pushdown load baseline
         run: PYTHONPATH=src python scripts/query_load_baseline.py --objects 5000 --max-ms 5000
       - name: Validate deployment profiles
@@ -27,6 +50,28 @@ jobs:
         run: PYTHONPATH=src python scripts/check_client_contract.py
       - name: Validate ontology compatibility
         run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
+      - run: make validate
+      - run: PYTHONPATH=src python examples/demo.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-contract-evidence-${{ github.run_id }}
+          path: compatibility-report.json
+          if-no-files-found: warn
+
+  drilling:
+    name: ci-drilling
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install -e '.[dev]'
       - name: Run drilling generalization harness v0.1
         run: PYTHONPATH=src python scripts/run_generalization_harness.py --json-out generalization-report.json
       - name: Run drilling persona expansion harness v0.2 with gap triage
@@ -69,6 +114,26 @@ jobs:
           PYTHONPATH=src python scripts/run_cross_customer_qualification.py
           --fail-on-gap
           --json-out drilling-cross-customer-qualification-v0.5-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-drilling-evidence-${{ github.run_id }}
+          path: '*report.json'
+          if-no-files-found: warn
+
+  refinery:
+    name: ci-refinery
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install -e '.[dev]'
       - name: Run refinery/process-manufacturing frozen baseline v0.1
         run: >-
           PYTHONPATH=src python scripts/run_generalization_harness.py
@@ -101,8 +166,26 @@ jobs:
           --standards generalization/standards/refinery-process-references-v0.2.yaml
           --skip-gap-triage
           --json-out refinery-generalization-v0.2-report.json
-      - run: make validate
-      - run: PYTHONPATH=src python examples/demo.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-refinery-evidence-${{ github.run_id }}
+          path: 'refinery-*report.json'
+          if-no-files-found: warn
+
+  package:
+    name: ci-package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install -e '.[dev]'
       - name: Build wheel
         run: python -m build --wheel
       - name: Smoke test installed wheel outside repository
@@ -130,6 +213,20 @@ jobs:
           print(root)
           print(runtime.profile_versions)
           PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-wheel-${{ github.run_id }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  container:
+    name: ci-container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Build Developer Preview container
         run: docker build -t cepio:ci .
       - name: Smoke test container outside Python checkout
@@ -152,10 +249,19 @@ jobs:
           done
           cat /tmp/cepio-health.json 2>/dev/null || true
           test "$healthy" -eq 1
-      - name: Retain compatibility and domain qualification evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cepio-existing-ci-evidence-${{ github.run_id }}
-          path: '*report.json'
-          if-no-files-found: warn
+
+  test:
+    name: test
+    if: always()
+    needs: [unit, contracts, drilling, refinery, package, container]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every CEPIO CI lane must succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python - <<'PY'
+          import json, os
+          results = json.loads(os.environ["RESULTS"])
+          assert all(job["result"] == "success" for job in results.values()), results
+          PY

@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: quality-${{ github.workflow }}-${{ github.ref }}
+  group: quality-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   static:
@@ -21,11 +21,16 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-quality.txt
       - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
       - name: Lint, format touched Python, and type ratchet
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || 'origin/main' }}
         run: python scripts/check_quality.py --base "$BASE_REF"
+
   architecture:
     name: quality-architecture
     runs-on: ubuntu-latest
@@ -36,8 +41,11 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - run: python -m pip install -e '.[dev]'
       - run: pytest -q tests/test_architecture_invariants.py tests/test_quality_governance.py tests/test_external_actions.py tests/test_operator_agent_v06.py tests/test_profiles.py tests/test_contextual_policy_v05.py tests/test_rest_security.py
+
   compatibility:
     name: quality-compatibility
     runs-on: ubuntu-latest
@@ -49,6 +57,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - run: python -m pip install -e '.[dev]'
       - run: python scripts/check_api_contract.py
       - run: python scripts/check_client_contract.py
@@ -63,6 +73,7 @@ jobs:
         with:
           name: cepio-compatibility-${{ github.run_id }}
           path: evidence/
+
   security:
     name: quality-security
     runs-on: ubuntu-latest
@@ -73,6 +84,10 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-quality.txt
       - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
       - run: mkdir -p evidence
       - name: Static security scan (reviewed SQL false positives only)
@@ -84,8 +99,9 @@ jobs:
         with:
           name: cepio-security-${{ github.run_id }}
           path: evidence/
-  tests:
-    name: quality-tests
+
+  coverage-head:
+    name: quality-tests-head
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -95,21 +111,72 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-quality.txt
       - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
       - run: mkdir -p evidence
-      - run: pytest -q --cov=cepio --cov-report=json:evidence/coverage.json --cov-report=xml:evidence/coverage.xml
-      - name: Coverage debt cannot increase; changed code must be covered
-        if: github.event_name == 'pull_request'
+      - name: Collect head coverage
+        run: pytest -q --cov=cepio --cov-report=json:evidence/head-coverage.json --cov-report=xml:evidence/coverage.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-coverage-head-${{ github.run_id }}
+          path: evidence/
+
+  coverage-base:
+    name: quality-tests-base
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-quality.txt
+      - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
+      - run: mkdir -p evidence
+      - name: Collect immutable-base coverage
+        run: PYTHONPATH=src python -m pytest -q --cov=cepio --cov-report=json:evidence/base-coverage.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-coverage-base-${{ github.run_id }}
+          path: evidence/base-coverage.json
+
+  coverage-compare:
+    name: quality-coverage-compare
+    if: github.event_name == 'pull_request'
+    needs: [coverage-head, coverage-base]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v5
+        with:
+          name: cepio-coverage-head-${{ github.run_id }}
+          path: evidence/head
+      - uses: actions/download-artifact@v5
+        with:
+          name: cepio-coverage-base-${{ github.run_id }}
+          path: evidence/base
+      - name: Compare coverage debt and changed-line coverage
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          git worktree add --detach /tmp/cepio-base "$BASE_SHA"
-          cd /tmp/cepio-base
-          PYTHONPATH=src python -m pytest -q --cov=cepio --cov-report=json:base-coverage.json
-          cd "$GITHUB_WORKSPACE"
           python scripts/check_coverage.py \
-            /tmp/cepio-base/base-coverage.json \
-            evidence/coverage.json \
+            evidence/base/base-coverage.json \
+            evidence/head/head-coverage.json \
             --base-ref "$BASE_SHA" \
             --diff-threshold 90 \
             --report evidence/coverage-diff.json
@@ -117,19 +184,35 @@ jobs:
         if: always()
         with:
           name: cepio-coverage-${{ github.run_id }}
-          path: evidence/
+          path: |
+            evidence/head/
+            evidence/base/
+            evidence/coverage-diff.json
+
   gate:
     name: quality-gate
     if: always()
-    needs: [static, architecture, compatibility, security, tests]
+    needs: [static, architecture, compatibility, security, coverage-head, coverage-base, coverage-compare]
     runs-on: ubuntu-latest
     steps:
-      - name: Every quality job must succeed
+      - name: Every required quality lane must succeed
         env:
           RESULTS: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           python - <<'PY'
-          import json, os
-          results = json.loads(os.environ['RESULTS'])
-          assert all(job['result'] == 'success' for job in results.values()), results
+          import json
+          import os
+
+          results = json.loads(os.environ["RESULTS"])
+          event_name = os.environ["EVENT_NAME"]
+          required = {"static", "architecture", "compatibility", "security", "coverage-head"}
+          if event_name == "pull_request":
+              required.update({"coverage-base", "coverage-compare"})
+          failures = {
+              name: results[name]["result"]
+              for name in sorted(required)
+              if results[name]["result"] != "success"
+          }
+          assert not failures, failures
           PY
