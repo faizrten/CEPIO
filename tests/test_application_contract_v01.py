@@ -19,8 +19,7 @@ from cepio.application_contract import (
 )
 from cepio.bootstrap import build_runtime
 from cepio.model import ObjectRef, OntologyObject
-from cepio.policy import RolePolicyEngine
-from cepio.runtime import AuthorizationError, CEPIORuntime
+from cepio.runtime import AuthorizationError
 
 
 @dataclass(frozen=True)
@@ -37,28 +36,6 @@ def seed_work_order_runtime():
             id="WO-101",
             type="WorkOrder",
             name="Seal replacement",
-            properties={"status": "planned", "priority": "high"},
-        )
-    )
-    return runtime
-
-
-def seed_bare_policy_runtime() -> CEPIORuntime:
-    policy = RolePolicyEngine(
-        {
-            "reader": {
-                "read_types": ["WorkOrder"],
-                "read_properties": {"WorkOrder": ["status"]},
-            },
-            "blocked": {"read_types": []},
-        }
-    )
-    runtime = CEPIORuntime(policy_engine=policy)
-    runtime.upsert_object(
-        OntologyObject(
-            id="WO-FALLBACK",
-            type="WorkOrder",
-            name="Fallback work order",
             properties={"status": "planned", "priority": "high"},
         )
     )
@@ -147,24 +124,20 @@ def test_application_service_preserves_runtime_decision_authorization():
         )
 
 
-def test_application_service_fallback_read_applies_policy_filtering():
-    runtime = seed_bare_policy_runtime()
+def test_application_service_delegates_object_visibility_to_runtime():
+    runtime = seed_work_order_runtime()
     service = CEPIOApplicationService(runtime)
-    reader = ExecutionContext(actor_id="reader-1", actor_roles=frozenset({"reader"}))
+    manager = ExecutionContext(
+        actor_id="manager-1",
+        actor_roles=frozenset({"maintenance_manager"}),
+    )
+    auditor = ExecutionContext(actor_id="audit-1", actor_roles=frozenset({"auditor"}))
 
-    visible = service.read_object("WO-FALLBACK", reader)
+    visible = service.read_object("WO-101", manager)
+    assert visible.id == "WO-101"
 
-    assert visible.id == "WO-FALLBACK"
-    assert visible.properties == {"status": "planned"}
-
-
-def test_application_service_fallback_read_denies_unauthorized_actor():
-    runtime = seed_bare_policy_runtime()
-    service = CEPIOApplicationService(runtime)
-    blocked = ExecutionContext(actor_id="blocked-1", actor_roles=frozenset({"blocked"}))
-
-    with pytest.raises(AuthorizationError, match="not authorized to read object WO-FALLBACK"):
-        service.read_object("WO-FALLBACK", blocked)
+    with pytest.raises(AuthorizationError, match="not authorized to read object type WorkOrder"):
+        service.read_object("WO-101", auditor)
 
 
 def test_skill_preflight_fails_closed_without_registry():
