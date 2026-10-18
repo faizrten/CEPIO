@@ -103,13 +103,9 @@ The synthetic drilling fixture provides deterministic ground truth for exercisin
 
 **v0.2** preserves the same scenarios and adds documents, inspection images, engineering diagrams, geospatial context and high-frequency waveforms. These source-native artifacts are referenced rather than serialized into the ontology. CEPIO owns the canonical identity, relationship, temporal and provenance binding that makes the evidence usable consistently by REST, SDK and MCP consumers.
 
-<<<<<<< HEAD
 The v0.2 deterministic acceptance gate contains thirty golden questions: the original twenty plus ten multimodal questions covering evidence corroboration, diagram grounding, geospatial relationships, waveform evidence, cross-modal fusion and artifact provenance.
 
 A separate public Agent Challenge question set exercises higher-order tool use, but the qualification answer key is intentionally not distributed in the public repository. See [CEPIO Agent Challenge v0.1](CEPIO-Agent-Challenge-v0.1.md) and ADR-0011.
-=======
-The v0.2 acceptance gate contains thirty golden questions: the original twenty plus ten multimodal questions covering evidence corroboration, diagram grounding, geospatial relationships, waveform evidence, cross-modal fusion and artifact provenance.
->>>>>>> origin/main
 
 ## 7. EPCIC / commissioning
 

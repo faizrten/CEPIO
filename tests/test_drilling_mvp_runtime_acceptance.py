@@ -18,13 +18,9 @@ SPEC.loader.exec_module(MODULE)
 def _build(tmp_path: Path):
     generator = MODULE._load_v02_generator()
     dataset = tmp_path / "drilling-v0.2"
-<<<<<<< HEAD
     generator.generate_multimodal_dataset(
         dataset, telemetry_points=6000, waveform_samples=2048, seed=1701
     )
-=======
-    generator.generate_multimodal_dataset(dataset, telemetry_points=6000, waveform_samples=2048, seed=1701)
->>>>>>> origin/main
     runtime = MODULE.build_acceptance_runtime(dataset)
     return dataset, runtime
 
@@ -61,15 +57,11 @@ def test_synthetic_drilling_v02_is_queryable_through_public_api(tmp_path: Path, 
     query = client.post(
         "/api/v1/query/objects",
         headers=headers,
-<<<<<<< HEAD
         json={
             "object_type": "DrillingEquipment",
             "predicates": [{"property": "equipment_type", "operator": "eq", "value": "MudPump"}],
             "limit": 20,
         },
-=======
-        json={"object_type": "DrillingEquipment", "predicates": [{"property": "equipment_type", "operator": "eq", "value": "MudPump"}], "limit": 20},
->>>>>>> origin/main
     )
     assert query.status_code == 200
     ids = {item["id"] for item in query.json()["items"]}

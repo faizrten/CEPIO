@@ -113,11 +113,7 @@ def _write_ppm(path: Path, scenario_id: str, width: int = 96, height: int = 64) 
 def _write_svg(path: Path, scenario_id: str, component: str, canonical_iri: str) -> None:
     rig_id = "/".join(canonical_iri.split("/")[3:4])
     asset_id = canonical_iri.split("/")[-1]
-<<<<<<< HEAD
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
-=======
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
->>>>>>> origin/main
   <title>CEPIO synthetic engineering context {scenario_id}</title>
   <desc>Source-neutral schematic linking rig, equipment, component, signal, event and work order.</desc>
   <rect x="20" y="130" width="125" height="70" rx="8" fill="none" stroke="black"/>
@@ -137,7 +133,6 @@ def _write_svg(path: Path, scenario_id: str, component: str, canonical_iri: str)
   <text x="680" y="270" text-anchor="middle">Work order</text>
   <path d="M145 165 H195 M345 165 H395 M555 165 H605 M555 150 C585 130 585 85 605 85 M555 180 C585 210 585 265 605 265" fill="none" stroke="black" marker-end="url(#a)"/>
   <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z"/></marker></defs>
-<<<<<<< HEAD
 </svg>"""
     _write_text(path, svg + "\n")
 
@@ -151,13 +146,6 @@ def _artifact(
     event_time: datetime,
     claims: list[str],
 ) -> dict[str, object]:
-=======
-</svg>'''
-    _write_text(path, svg + "\n")
-
-
-def _artifact(scenario_id: str, modality: str, relpath: Path, mime_type: str, spec: dict, event_time: datetime, claims: list[str]) -> dict[str, object]:
->>>>>>> origin/main
     return {
         "artifact_id": f"ART-{scenario_id}-{modality}-{relpath.stem}",
         "scenario_id": scenario_id,
@@ -176,7 +164,6 @@ def _write_documents(output: Path) -> list[dict[str, object]]:
     artifacts: list[dict[str, object]] = []
     for scenario_id, spec in SCENARIOS.items():
         event_time = START + timedelta(days=float(spec["event_day"]))
-<<<<<<< HEAD
         inspection_path = (
             Path("documents/inspection-reports") / f"{scenario_id.lower()}-inspection.md"
         )
@@ -207,18 +194,6 @@ def _write_documents(output: Path) -> list[dict[str, object]]:
                 ),
             ]
         )
-=======
-        inspection_path = Path("documents/inspection-reports") / f"{scenario_id.lower()}-inspection.md"
-        ddr_path = Path("documents/daily-drilling-reports") / f"{scenario_id.lower()}-ddr.md"
-        inspection = f"""# Synthetic Inspection Report — {scenario_id}\n\nAsset: `{spec['canonical_iri']}`\nInspection time: {_iso(event_time - timedelta(hours=2))}\n\n## Observation\n{spec['document_claim']}\n\n## Disposition\nCorrelate this observation with telemetry, work history and event records before making an operational decision.\n\nSynthetic fixture only; no customer or OEM data.\n"""
-        ddr = f"""# Synthetic Daily Drilling Report — {scenario_id}\n\nEquipment: `{spec['equipment_id']}`\nEvent time: {_iso(event_time)}\n\nOperations note: {spec['document_claim']}\n\nSource-system naming is intentionally distinct from the CEPIO canonical identifier.\n"""
-        _write_text(output / inspection_path, inspection)
-        _write_text(output / ddr_path, ddr)
-        artifacts.extend([
-            _artifact(scenario_id, "document", inspection_path, "text/markdown", spec, event_time - timedelta(hours=2), ["inspection_observation", "asset_identity"]),
-            _artifact(scenario_id, "document", ddr_path, "text/markdown", spec, event_time, ["operations_context", "event_time"]),
-        ])
->>>>>>> origin/main
     return artifacts
 
 
@@ -226,7 +201,6 @@ def _write_geojson(output: Path) -> list[dict[str, object]]:
     rig_coords = {"rig-07": (50.10, 26.55), "rig-12": (50.34, 26.72), "rig-21": (50.58, 26.43)}
     features: list[dict[str, object]] = []
     for rig_id, (lon, lat) in rig_coords.items():
-<<<<<<< HEAD
         features.append(
             {
                 "type": "Feature",
@@ -238,14 +212,10 @@ def _write_geojson(output: Path) -> list[dict[str, object]]:
                 },
             }
         )
-=======
-        features.append({"type": "Feature", "id": rig_id, "geometry": {"type": "Point", "coordinates": [lon, lat]}, "properties": {"entity_type": "OperatingRig", "canonical_iri": f"cepio://asset/{rig_id}"}})
->>>>>>> origin/main
     for idx in range(10):
         rig_id = ["rig-07", "rig-12", "rig-21"][idx % 3]
         lon, lat = rig_coords[rig_id]
         well_id = f"well-{idx + 1:02d}"
-<<<<<<< HEAD
         features.append(
             {
                 "type": "Feature",
@@ -294,15 +264,6 @@ def _write_geojson(output: Path) -> list[dict[str, object]]:
             ["rig_location", "well_location", "rig_move_path"],
         )
     ]
-=======
-        features.append({"type": "Feature", "id": well_id, "geometry": {"type": "Point", "coordinates": [round(lon + 0.008 * (idx + 1), 5), round(lat + 0.004 * ((idx % 4) - 1), 5)]}, "properties": {"entity_type": "Well", "rig_id": rig_id, "canonical_iri": f"cepio://well/{well_id}"}})
-    features.append({"type": "Feature", "id": "move-rig-07", "geometry": {"type": "LineString", "coordinates": [[50.04, 26.50], [50.07, 26.53], [50.10, 26.55]]}, "properties": {"entity_type": "JackUpMove", "rig_id": "rig-07", "synthetic": True}})
-    payload = {"type": "FeatureCollection", "name": "cepio-drilling-v0.2-geospatial", "features": features}
-    path = Path("geospatial/rig-well-context.geojson")
-    _write_text(output / path, json.dumps(payload, indent=2) + "\n")
-    spec = SCENARIOS["SCN-001"]
-    return [_artifact("SCN-001", "geospatial", path, "application/geo+json", spec, START, ["rig_location", "well_location", "rig_move_path"])]
->>>>>>> origin/main
 
 
 def _write_waveforms(output: Path, samples: int, seed: int) -> list[dict[str, object]]:
@@ -327,7 +288,6 @@ def _write_waveforms(output: Path, samples: int, seed: int) -> list[dict[str, ob
                 value = 420.0 + 22.0 * base + 13.0 * fault + noise * 8
             else:
                 value = 3.2 + 2.4 * base + 1.6 * fault + modulation + noise
-<<<<<<< HEAD
             rows.append(
                 {
                     "sample_index": index,
@@ -349,12 +309,6 @@ def _write_waveforms(output: Path, samples: int, seed: int) -> list[dict[str, ob
                 ["waveform_signature", "fault_frequency_component"],
             )
         )
-=======
-            rows.append({"sample_index": index, "elapsed_ms": round(t * 1000, 6), "value": round(value, 6), "unit": spec["unit"]})
-        path = Path("signals/high-frequency") / f"{scenario_id.lower()}-{spec['signal']}.csv"
-        _write_csv(output / path, rows)
-        artifacts.append(_artifact(scenario_id, "high_frequency_signal", path, "text/csv", spec, START + timedelta(days=float(spec["event_day"])), ["waveform_signature", "fault_frequency_component"]))
->>>>>>> origin/main
     return artifacts
 
 
@@ -362,7 +316,6 @@ def _write_visuals(output: Path) -> list[dict[str, object]]:
     artifacts: list[dict[str, object]] = []
     for scenario_id, spec in SCENARIOS.items():
         event_time = START + timedelta(days=float(spec["event_day"]))
-<<<<<<< HEAD
         image_path = (
             Path("images/inspection") / f"{scenario_id.lower()}-{spec['image_feature']}.ppm"
         )
@@ -405,18 +358,6 @@ def generate_multimodal_dataset(
     waveform_samples: int = 4096,
     seed: int = DEFAULT_SEED,
 ) -> dict[str, object]:
-=======
-        image_path = Path("images/inspection") / f"{scenario_id.lower()}-{spec['image_feature']}.ppm"
-        diagram_path = Path("engineering/diagrams") / f"{scenario_id.lower()}-context.svg"
-        _write_ppm(output / image_path, scenario_id)
-        _write_svg(output / diagram_path, scenario_id, str(spec["diagram_component"]), str(spec["canonical_iri"]))
-        artifacts.append(_artifact(scenario_id, "inspection_image", image_path, "image/x-portable-pixmap", spec, event_time - timedelta(hours=1), [str(spec["image_feature"]), "asset_identity"]))
-        artifacts.append(_artifact(scenario_id, "engineering_diagram", diagram_path, "image/svg+xml", spec, event_time, ["asset_component_relationship", str(spec["diagram_component"])]))
-    return artifacts
-
-
-def generate_multimodal_dataset(output: Path, telemetry_points: int = 12000, waveform_samples: int = 4096, seed: int = DEFAULT_SEED) -> dict[str, object]:
->>>>>>> origin/main
     output = Path(output)
     v01 = _load_v01()
     base_manifest = v01.generate_dataset(output, telemetry_points=telemetry_points, seed=seed)
@@ -432,7 +373,6 @@ def generate_multimodal_dataset(output: Path, telemetry_points: int = 12000, wav
         modality = str(artifact["modality"])
         modality_counts[modality] = modality_counts.get(modality, 0) + 1
 
-<<<<<<< HEAD
     artifact_index = {
         "dataset": "cepio-synthetic-drilling",
         "version": DATASET_VERSION,
@@ -441,10 +381,6 @@ def generate_multimodal_dataset(output: Path, telemetry_points: int = 12000, wav
     _write_text(
         output / "multimodal/artifact-index.json", json.dumps(artifact_index, indent=2) + "\n"
     )
-=======
-    artifact_index = {"dataset": "cepio-synthetic-drilling", "version": DATASET_VERSION, "artifacts": artifacts}
-    _write_text(output / "multimodal/artifact-index.json", json.dumps(artifact_index, indent=2) + "\n")
->>>>>>> origin/main
 
     manifest: dict[str, object] = dict(base_manifest)
     manifest["version"] = DATASET_VERSION
@@ -460,19 +396,14 @@ def generate_multimodal_dataset(output: Path, telemetry_points: int = 12000, wav
 
 
 def main() -> None:
-<<<<<<< HEAD
     parser = argparse.ArgumentParser(
         description="Generate CEPIO Synthetic Industrial Dataset — Drilling v0.2 multimodal"
     )
-=======
-    parser = argparse.ArgumentParser(description="Generate CEPIO Synthetic Industrial Dataset — Drilling v0.2 multimodal")
->>>>>>> origin/main
     parser.add_argument("--output", type=Path, default=Path(".generated/drilling-v0.2"))
     parser.add_argument("--telemetry-points", type=int, default=12000)
     parser.add_argument("--waveform-samples", type=int, default=4096)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     args = parser.parse_args()
-<<<<<<< HEAD
     print(
         json.dumps(
             generate_multimodal_dataset(
@@ -481,9 +412,6 @@ def main() -> None:
             indent=2,
         )
     )
-=======
-    print(json.dumps(generate_multimodal_dataset(args.output, args.telemetry_points, args.waveform_samples, args.seed), indent=2))
->>>>>>> origin/main
 
 
 if __name__ == "__main__":
