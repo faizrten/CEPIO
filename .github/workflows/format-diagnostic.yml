@@ -1,0 +1,21 @@
+name: Temporary Format Diagnostic
+
+on:
+  push:
+    branches:
+      - promote/drilling-domain-qualification-remediation-v041
+
+permissions:
+  contents: read
+
+jobs:
+  ruff-format-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install ruff==0.14.0
+      - name: Show exact formatter diff
+        run: ruff format --diff tests/test_drilling_domain_qualification_gap_triage_v041.py
