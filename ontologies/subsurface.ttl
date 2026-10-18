@@ -12,8 +12,10 @@ sub:PetrophysicsAssuranceCase a owl:Class ;
     rdfs:subClassOf cepio:Entity ;
     rdfs:comment "A governed Petrophysics reasoning/assurance context that binds evidence, assumptions, uncertainty, authority and downstream consequences without copying technical source payloads." .
 
+# Preserve the direct Core Entity superclass for the accepted PET-02 contract while
+# adding the PetrophysicsAssuranceCase specialization used by v1 persona depth.
 sub:FormationEvaluationCase a owl:Class ;
-    rdfs:subClassOf sub:PetrophysicsAssuranceCase .
+    rdfs:subClassOf cepio:Entity, sub:PetrophysicsAssuranceCase .
 
 # Domain assessment specializations remain thin. Core defines Assessment,
 # Evidence, Claim, Hypothesis, Assumption, Uncertainty and Confidence semantics.
