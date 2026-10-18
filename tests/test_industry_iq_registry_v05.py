@@ -49,6 +49,7 @@ class DictManifestPack:
 
 def test_version_constraints_are_deterministic():
     assert version_satisfies("1.2.3", ">=1.0.0,<2.0.0")
+    assert version_satisfies("1.2.3", ">=1.0.0,,<2.0.0")
     assert version_satisfies("1.2.3", "^1.1.0")
     assert version_satisfies("0.2.5", "^0.2.1")
     assert version_satisfies("0.0.5", "^0.0.5")
@@ -188,6 +189,42 @@ def test_missing_dependency_fails_closed():
     assert exc.value.code == "PACK_RESOLUTION_FAILED"
 
 
+def test_selected_pack_constraint_conflict_fails_closed():
+    registry = IndustryIQPackRegistry(core_version="0.4.0")
+    pack = DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.0.0"))
+
+    solved = registry._solve(
+        {"cepio.iq.shared": pack},
+        {"cepio.iq.shared": [">=2.0.0"]},
+    )
+
+    assert solved is None
+
+
+def test_selected_dependency_conflict_backtracks_before_runtime_mutation():
+    registry = IndustryIQPackRegistry(core_version="0.4.0")
+    shared = DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.0shared", version="1.0.0"))
+    app = DummyPack(
+        IndustryIQPackManifest(
+            pack_id="cepio.iq.app",
+            version="1.0.0",
+            requires_packs={"cepio.iq.0shared": ">=2.0.0"},
+        )
+    )
+    registry.register(shared)
+    registry.register(app)
+
+    with pytest.raises(IndustryIQResolutionError) as exc:
+        registry.resolve(
+            {
+                "cepio.iq.0shared": "==1.0.0",
+                "cepio.iq.app": "==1.0.0",
+            }
+        )
+
+    assert exc.value.code == "PACK_RESOLUTION_FAILED"
+
+
 def test_incompatible_dependency_constraints_fail_closed():
     registry = IndustryIQPackRegistry(core_version="0.4.0")
     registry.register(DummyPack(IndustryIQPackManifest(pack_id="cepio.iq.shared", version="1.5.0")))
@@ -260,6 +297,22 @@ def test_dependency_cycle_is_rejected_before_install():
         registry.resolve(["cepio.iq.a"])
 
     assert exc.value.code == "PACK_DEPENDENCY_CYCLE"
+
+
+def test_install_order_rejects_malformed_resolved_graph():
+    registry = IndustryIQPackRegistry(core_version="0.4.0")
+    app = DummyPack(
+        IndustryIQPackManifest(
+            pack_id="cepio.iq.app",
+            version="1.0.0",
+            requires_packs={"cepio.iq.missing": "*"},
+        )
+    )
+
+    with pytest.raises(IndustryIQResolutionError) as exc:
+        registry._install_order({"cepio.iq.app": app})
+
+    assert exc.value.code == "PACK_DEPENDENCY_UNRESOLVED"
 
 
 def test_pack_cannot_replace_existing_core_capability():
