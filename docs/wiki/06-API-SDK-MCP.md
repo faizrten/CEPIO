@@ -2,28 +2,58 @@
 
 ## Why CEPIO needs multiple interfaces
 
-The CEPIO **API** is the product contract. SDKs and MCP tools are convenient access layers over that contract.
+CEPIO now distinguishes its **application contract** from the protocols used to access it.
+
+The application contract is the stable semantic and behavioral promise. REST, SDKs, MCP tools, events and future interfaces are protocol projections over that contract.
 
 ```text
-                      CEPIO API / Runtime Contract
-                                |
-            +-------------------+-------------------+
-            |                   |                   |
-          REST              Python SDK         MCP Gateway
-            |                   |                   |
-     Web / services       Python apps          AI agents
-                         notebooks/data        Foundry/Copilot
+                    CEPIO Application Contract
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+        REST              Python SDK         MCP Gateway
+          |                   |                   |
+   Web / services       Python apps          AI agents
+                       notebooks/data        Foundry/Copilot
 ```
 
-## API vs SDK
+See [`docs/application-contract-v0.1.md`](../application-contract-v0.1.md).
 
-An API defines *what operations are available and how they behave*.
+## Contract vs API
 
-An SDK packages those operations into language-native developer ergonomics. An SDK must not invent new CEPIO semantics; it is a client-side wrapper over the same product contract.
+A CEPIO **contract** defines what a capability means, what it requires, what it returns, and the invariants CEPIO guarantees when it is used.
 
-## Public API v1 — implemented contract boundary
+An **API** defines one transport surface for calling those capabilities. OpenAPI therefore remains an important public compatibility contract for REST clients, but REST is not the definition of CEPIO itself.
 
-CEPIO now exposes a versioned public REST contract under `/api/v1` through `cepio.public_api:app`. Existing unversioned routes remain temporarily callable for compatibility, but they are deliberately excluded from the public OpenAPI document.
+The layering is:
+
+```text
+semantic/runtime contracts
+          |
+application contract
+          |
+ REST / MCP / SDK / Events
+```
+
+An SDK or MCP tool must not invent new CEPIO semantics. The same rule now applies to REST endpoints.
+
+## Application Contract v0.1
+
+The first protocol-neutral application contract introduces stable envelopes for:
+
+- industrial context and evidence references;
+- Skill invocation and evaluation;
+- Decision proposals;
+- Action intents;
+- trusted execution context.
+
+`CEPIOApplicationService` is the thin facade that maps those requests onto existing runtime semantics. It injects trusted actor identity and delegates policy, persistence, Decision validation, Action execution and audit to the existing CEPIO runtime.
+
+Existing REST/MCP surfaces are not migrated in this increment; v0.1 is additive. Subsequent increments will converge those interfaces onto the same service with cross-protocol conformance tests.
+
+## Public API v1 — implemented REST boundary
+
+CEPIO exposes a versioned public REST contract under `/api/v1` through `cepio.public_api:app`. Existing unversioned routes remain temporarily callable for compatibility, but they are deliberately excluded from the public OpenAPI document.
 
 The initial v1 surface includes:
 
@@ -44,7 +74,7 @@ The initial v1 surface includes:
 /api/v1/graph/*
 ```
 
-`state`, `provenance`, and `schema` are intentionally not declared as independent v1 resources yet. They should join the public contract only when their runtime semantics are stable enough for independent clients.
+`state`, `provenance`, and `schema` are intentionally not declared as independent v1 resources yet. They should join the public REST surface only when their runtime semantics are stable enough for independent clients.
 
 `openapi/cepio-v1.yaml` is the accepted route/method/operation-ID baseline, and CI checks the generated public OpenAPI document against it. See `docs/api-versioning.md`.
 
@@ -58,6 +88,8 @@ API v1 reuses the same secured CEPIO endpoint functions as the compatibility rou
 - function authorization;
 - governed action execution;
 - audit controls.
+
+The application-contract direction strengthens this boundary: caller-visible `SkillInvocation`, `DecisionProposal` and `ActionIntent` payloads do not contain caller-selected identity or roles. Protocol adapters inject trusted execution context separately.
 
 ## Object API
 
@@ -81,11 +113,13 @@ CEPIO already supports temporal state and provenance in the runtime/MCP surfaces
 
 Functions and actions are separate API surfaces because they carry different risk semantics. A caller may have permission to invoke a calculation while lacking permission to execute the corresponding action.
 
+The application contract adds `ActionIntent` as the caller-visible protocol-neutral request. Runtime `ActionRequest` remains the internal governed execution form carrying host-injected identity and roles.
+
 ## Python and TypeScript SDKs
 
 The Python SDK is the natural access path for data engineering, AI/ML workflows, notebooks, backend services, automation and ontology tooling.
 
-A TypeScript SDK is strategically important for CEPIO web applications, visualization clients and React-based industrial applications. Both SDKs should remain synchronized with the public OpenAPI contract rather than becoming separate semantic layers.
+A TypeScript SDK is strategically important for CEPIO web applications, visualization clients and React-based industrial applications. Both SDKs should converge on the CEPIO application contract and remain synchronized with supported protocol surfaces rather than becoming separate semantic layers.
 
 ## MCP
 
@@ -102,6 +136,8 @@ cepio_execute_action
 ```
 
 Identity and roles are injected from the authenticated hosting context. They are **not model-callable arguments**.
+
+Future Skill-oriented MCP tools should map onto the same `SkillInvocation` / `SkillEvaluation` application contract used by REST and SDK clients.
 
 ## Recommendation vs execution
 
@@ -120,11 +156,12 @@ An agent can therefore be broad in reasoning context while remaining constrained
 
 ## Remaining API production hardening
 
-The versioned public contract is now established, but API v1 is not yet production-GA. Remaining P0 hardening includes:
+The versioned REST contract is established, but API v1 is not yet production-GA. Remaining P0 hardening includes:
 
 - standard public error envelope;
 - ETag / `If-Match` concurrency semantics;
 - HTTP idempotency conventions;
 - repository query pushdown;
 - cursor pagination;
-- deeper schema-level OpenAPI compatibility checks.
+- deeper schema-level OpenAPI compatibility checks;
+- gradual routing of REST operations through the protocol-neutral application service without changing accepted v1 behavior.
