@@ -14,7 +14,7 @@ CEPIO deliberately separates deterministic public conformance from live-agent qu
 
 ### Public conformance
 
-The public repository contains synthetic drilling datasets, public challenge questions, deterministic retrieval/runtime helpers and fixture acceptance tests. These assets are reproducible and suitable for CI, SDK/API/MCP validation and benchmark-harness development.
+The public repository contains synthetic drilling datasets, public challenge questions, deterministic fixture generation and runtime acceptance tests. These assets are reproducible and suitable for CI, SDK/API/MCP validation and benchmark-protocol development.
 
 Public fixture answers are not evidence of model generalization because repository readers can inspect them.
 
@@ -22,7 +22,7 @@ Public fixture answers are not evidence of model generalization because reposito
 
 A live Agent Challenge is qualification-grade only when its expected answers remain outside the public repository and outside the answering process. The evaluator must be supplied at execution time from an approved private source.
 
-The public repository therefore does **not** contain a qualification answer key for the public challenge questions and this release does not enable a live qualification workflow.
+The public repository therefore does **not** contain a qualification answer key for the public challenge questions and this release does not enable a live qualification workflow or live-agent runner.
 
 See `docs/adr/ADR-0011-agent-challenge-evaluator-isolation.md`.
 
@@ -47,11 +47,11 @@ The questions are additional to the deterministic thirty-question drilling v0.2 
 
 ## CEPIO tool boundary
 
-The intended live challenge exposes semantic operations such as object search, object retrieval, relationship traversal, event retrieval, identity resolution, evidence retrieval, measurement queries and provenance retrieval.
+A future live challenge should expose semantic operations such as object search, object retrieval, relationship traversal, event retrieval, identity resolution, evidence retrieval, measurement queries and provenance retrieval through the normal governed CEPIO interfaces.
 
 Large/raw multimodal payloads remain source-native. The agent should receive CEPIO semantic bindings, summaries, provenance and source references rather than direct file/database access.
 
-`cepio.agent_retrieval` provides deterministic challenge-independent lexical search and identity-resolution helpers. These helpers operate only on runtime objects and query arguments; they do not contain expected benchmark answers or evaluator logic.
+The live-agent retrieval/transport implementation is intentionally **not** part of this public promotion. It should be introduced together with the private-evaluator execution boundary so the benchmark protocol and its isolation guarantees evolve as one governed capability.
 
 ## Qualification metrics
 
@@ -75,10 +75,10 @@ The checked-in assets can prove that:
 - the synthetic industrial evidence is deterministic;
 - CEPIO can bind structured and multimodal source-native artifacts to canonical industrial context;
 - the runtime can answer deterministic fixture questions with provenance;
-- retrieval and identity resolution operate without embedding benchmark answers;
-- the public challenge protocol is inspectable and reproducible.
+- the public challenge surface and evaluation boundary are inspectable;
+- no qualification answer key is required for the deterministic fixture tests.
 
-They cannot, by themselves, prove live-model benchmark performance because the qualification evaluator is intentionally absent.
+They cannot, by themselves, prove live-model benchmark performance because the qualification evaluator and live-agent runner are intentionally absent.
 
 ## Next implementation gate
 
