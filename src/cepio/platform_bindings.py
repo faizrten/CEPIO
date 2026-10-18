@@ -13,14 +13,9 @@ from typing import Any, Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .adapters import (
-    GovernedVerificationRequest,
-    GovernedVerificationResult,
-    GovernedWriteAdapter,
-    GovernedWriteReceipt,
-    GovernedWriteRequest,
-)
+from .adapters import GovernedWriteAdapter
 from .domain_bindings import ExternalRecordReference
+from .external_actions import ExternalActionRuntime, ExternalActionStatus
 
 
 class BindingMode(str, Enum):
@@ -58,7 +53,11 @@ class PlatformBindingManifest(BaseModel):
 
     @model_validator(mode="after")
     def validate_mode_capabilities(self) -> "PlatformBindingManifest":
-        if not self.binding_id.strip() or not self.provider_id.strip() or not self.source_system.strip():
+        if (
+            not self.binding_id.strip()
+            or not self.provider_id.strip()
+            or not self.source_system.strip()
+        ):
             raise ValueError("binding_id, provider_id and source_system must be non-empty")
 
         if self.mode == BindingMode.evidence:
@@ -79,12 +78,16 @@ class PlatformBindingManifest(BaseModel):
         missing = required.difference(self.capabilities)
         if missing:
             names = ", ".join(sorted(item.value for item in missing))
-            raise ValueError(f"{self.mode.value} binding is missing required capabilities: {names}")
+            raise ValueError(
+                f"{self.mode.value} binding is missing required capabilities: {names}"
+            )
 
         invalid = forbidden.intersection(self.capabilities)
         if invalid:
             names = ", ".join(sorted(item.value for item in invalid))
-            raise ValueError(f"{self.mode.value} binding declares forbidden capabilities: {names}")
+            raise ValueError(
+                f"{self.mode.value} binding declares forbidden capabilities: {names}"
+            )
         return self
 
     def require(self, capability: BindingCapability) -> None:
@@ -120,9 +123,11 @@ class EvidenceConformanceResult(BaseModel):
 
 class GovernedActionConformanceResult(BaseModel):
     binding_id: str
-    receipt: GovernedWriteReceipt
-    verification: GovernedVerificationResult
-    reconciliation: GovernedVerificationResult
+    execution_id: str
+    verification_path: Literal["verify", "reconcile"]
+    status: ExternalActionStatus
+    dispatch_attempts: int
+    verification_attempts: int
 
 
 def qualify_evidence_binding(
@@ -167,14 +172,11 @@ def qualify_evidence_binding(
     )
 
 
-def qualify_governed_action_binding(
+def qualify_governed_action_adapter(
     adapter: GovernedWriteAdapter,
     manifest: PlatformBindingManifest,
-    *,
-    write_request: GovernedWriteRequest,
-    verification_request: GovernedVerificationRequest,
-) -> GovernedActionConformanceResult:
-    """Exercise the existing write/verify/reconcile contract without creating a new runtime."""
+) -> None:
+    """Validate adapter shape without dispatching an external write."""
 
     if manifest.mode != BindingMode.governed_action:
         raise BindingConformanceError(
@@ -192,27 +194,66 @@ def qualify_governed_action_binding(
             "Adapter system_name does not match the binding manifest: "
             f"{adapter.system_name!r} != {manifest.source_system!r}"
         )
-    if write_request.system != adapter.system_name:
-        raise BindingConformanceError("Write request system does not match the adapter")
-    if verification_request.idempotency_key != write_request.idempotency_key:
-        raise BindingConformanceError("Verification must preserve the write idempotency key")
+    for method_name in ("write_governed", "verify_write", "reconcile_write"):
+        if not callable(getattr(adapter, method_name, None)):
+            raise BindingConformanceError(
+                f"Governed-action adapter does not implement {method_name}()"
+            )
 
-    first = adapter.write_governed(write_request)
-    second = adapter.write_governed(write_request)
-    if first != second:
+
+def qualify_governed_action_execution(
+    external_runtime: ExternalActionRuntime,
+    manifest: PlatformBindingManifest,
+    *,
+    execution_id: str,
+    verification_path: Literal["verify", "reconcile"] = "verify",
+) -> GovernedActionConformanceResult:
+    """Qualify one external execution strictly through the governed Action Runtime."""
+
+    if manifest.mode != BindingMode.governed_action:
         raise BindingConformanceError(
-            "Repeated governed write with the same idempotency key changed its receipt"
+            "Governed-action execution requires a governed-action binding manifest"
+        )
+    for capability in (
+        BindingCapability.governed_write,
+        BindingCapability.verify,
+        BindingCapability.reconcile,
+    ):
+        manifest.require(capability)
+
+    queued = external_runtime.get_execution(execution_id)
+    if queued.system != manifest.source_system:
+        raise BindingConformanceError(
+            "External execution system does not match the binding manifest"
+        )
+    if queued.status != ExternalActionStatus.pending_execution:
+        raise BindingConformanceError(
+            "Conformance execution must start in pending_execution state"
         )
 
-    effective_verification = verification_request.model_copy(
-        update={"source_request_id": first.source_request_id}
-    )
-    verification = adapter.verify_write(effective_verification)
-    reconciliation = adapter.reconcile_write(effective_verification)
+    dispatched = external_runtime.dispatch(execution_id)
+    replay = external_runtime.dispatch(execution_id)
+    if replay.dispatch_attempts != dispatched.dispatch_attempts:
+        raise BindingConformanceError(
+            "Repeated dispatch advanced the external execution attempt count"
+        )
+    if dispatched.dispatch_attempts != 1:
+        raise BindingConformanceError("Conformance execution must dispatch exactly once")
+
+    if verification_path == "verify":
+        terminal = external_runtime.verify(execution_id)
+    else:
+        terminal = external_runtime.reconcile(execution_id)
+    if terminal.status != ExternalActionStatus.verified:
+        raise BindingConformanceError(
+            f"{verification_path} did not produce a verified external outcome"
+        )
 
     return GovernedActionConformanceResult(
         binding_id=manifest.binding_id,
-        receipt=first,
-        verification=verification,
-        reconciliation=reconciliation,
+        execution_id=terminal.id,
+        verification_path=verification_path,
+        status=terminal.status,
+        dispatch_attempts=terminal.dispatch_attempts,
+        verification_attempts=terminal.verification_attempts,
     )
