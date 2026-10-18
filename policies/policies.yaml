@@ -48,8 +48,9 @@ policies:
     read_properties:
       Equipment: "*"
     actions: [CreateInspection, EscalateRisk]
-    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
-    decisions: [maintenance-intervention-recommendation]
+    can_recommend: [DeferWorkOrder]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, evaluateMaintenanceDeferralRisk, calculateMarginImpact]
+    decisions: [maintenance-intervention-recommendation, maintenance-deferral-decision]
   operations_supervisor:
     read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
     read_scopes: [internal]
@@ -59,15 +60,15 @@ policies:
   maintenance_manager:
     read_types: [Equipment, ConditionObservation, FailureMode, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
-    actions: [ApproveMaintenanceDeferral]
-    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
-    decisions: [maintenance-intervention-recommendation]
+    actions: [ApproveMaintenanceDeferral, DeferWorkOrder]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, evaluateMaintenanceDeferralRisk, calculateMarginImpact]
+    decisions: [maintenance-intervention-recommendation, maintenance-deferral-decision]
   operations_manager:
     read_types: [Equipment, ProcessUnit, WorkOrder, Event, KPI, Risk]
     read_scopes: [internal]
-    actions: [ApproveMaintenanceDeferral]
-    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
-    decisions: []
+    actions: [ApproveMaintenanceDeferral, DeferWorkOrder]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, evaluateMaintenanceDeferralRisk, calculateMarginImpact]
+    decisions: [maintenance-deferral-decision]
   ai_agent_recommender:
     read_types: [Equipment, ConditionObservation, FailureMode, WorkOrder, Inspection, Event, KPI, Risk]
     read_scopes: [internal]
@@ -75,9 +76,9 @@ policies:
       Equipment: [criticality, operatingState, riskStatus]
       WorkOrder: [status, priority]
     actions: []
-    can_recommend: [CreateWorkOrder, CreateInspection, EscalateRisk]
-    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, calculateMarginImpact]
-    decisions: [maintenance-intervention-recommendation]
+    can_recommend: [CreateWorkOrder, CreateInspection, EscalateRisk, DeferWorkOrder]
+    functions: [calculateProductionLoss, calculateProductionExposure, calculateAssetRisk, evaluateMaintenanceDeferralRisk, calculateMarginImpact]
+    decisions: [maintenance-intervention-recommendation, maintenance-deferral-decision]
   autonomous_control_agent:
     read_types: [Equipment, Event, State, KPI]
     read_scopes: [internal]
