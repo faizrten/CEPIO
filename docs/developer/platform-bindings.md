@@ -55,10 +55,13 @@ The scaffold creates `binding.yaml`, `binding.py` and a boundary checklist. Gene
 
 ## Conformance
 
-`cepio.platform_bindings` provides two small qualification helpers:
+`cepio.platform_bindings` keeps write qualification behind the existing governed runtime:
 
 - `qualify_evidence_binding` checks declared capability, source identity, record identity, optional version provenance and absence of a write surface;
-- `qualify_governed_action_binding` checks the existing write/verify/reconcile contract and repeated-idempotency receipt behavior.
+- `qualify_governed_action_adapter` checks the adapter declaration/shape without dispatching anything;
+- `qualify_governed_action_execution` exercises idempotent dispatch plus either verification or reconciliation **through `ExternalActionRuntime` only**.
+
+No conformance helper calls an adapter write method directly. The architecture invariant that external dispatch is confined to `external_actions.py` remains unchanged.
 
 These checks complement provider/domain tests; they do not replace them. Domain-specific evidence APIs such as Petrophysics remain domain-owned until multiple independent use cases justify a reusable Core abstraction.
 
