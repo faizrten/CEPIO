@@ -61,7 +61,12 @@ def escalate_risk(request: ActionRequest, target: OntologyObject, runtime: CEPIO
     return {"previous_risk_status": prior, "risk_status": stored.properties["riskStatus"], "object_version": stored.version}
 
 
-def approve_maintenance_deferral(request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime) -> dict:
+def defer_work_order(request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime) -> dict:
+    """Apply an approved maintenance deferral to a WorkOrder.
+
+    Authorization and human-approval requirements are enforced by the runtime/policy
+    definition. The handler only applies the governed state transition.
+    """
     expected = target.version
     prior = target.properties.get("status")
     target.properties["status"] = "deferred"
@@ -70,6 +75,16 @@ def approve_maintenance_deferral(request: ActionRequest, target: OntologyObject,
     target.properties["approvedBy"] = request.actor_id
     stored = runtime.upsert_object(target, expected_version=expected)
     return {"previous_status": prior, "status": stored.properties["status"], "deferred_until": stored.properties["deferredUntil"], "object_version": stored.version}
+
+
+def approve_maintenance_deferral(request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime) -> dict:
+    """Backward-compatible combined approval/application action.
+
+    New Skill bindings use ``DeferWorkOrder`` so approval policy and the state-changing
+    execution primitive are named separately. This legacy action remains behaviorally
+    unchanged for existing callers.
+    """
+    return defer_work_order(request, target, runtime)
 
 
 def restore_risk_status(request: ActionRequest, target: OntologyObject, effects: dict, runtime: CEPIORuntime) -> dict:
