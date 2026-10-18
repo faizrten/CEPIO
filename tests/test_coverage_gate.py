@@ -2,7 +2,9 @@ from pathlib import Path
 from runpy import run_path
 
 
-coverage_module = run_path(str(Path(__file__).resolve().parents[1] / "scripts" / "check_coverage.py"))
+coverage_module = run_path(
+    str(Path(__file__).resolve().parents[1] / "scripts" / "check_coverage.py")
+)
 FileCoverage = coverage_module["FileCoverage"]
 Hunk = coverage_module["Hunk"]
 evaluate = coverage_module["evaluate"]
