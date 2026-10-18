@@ -6,47 +6,46 @@ on:
       - promote/drilling-multimodal-v02
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  format:
+  format-and-clean:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: promote/drilling-multimodal-v02
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: python -m pip install ruff==0.14.0
-      - name: Format touched Python exactly as quality gate expects
+      - name: Format deterministic testbed slice
         run: |
           ruff format \
-            scripts/copilot_sdk_agent.py \
             scripts/extend_drilling_mvp_multimodal_v02.py \
             scripts/generate_drilling_mvp_dataset.py \
-            scripts/github_models_agent.py \
             scripts/run_drilling_mvp_acceptance.py \
-            scripts/run_drilling_mvp_blind_ask.py \
-            src/cepio/agent_retrieval.py \
-            tests/test_agent_retrieval.py \
             tests/test_drilling_mvp_dataset.py \
             tests/test_drilling_mvp_multimodal_v02.py \
             tests/test_drilling_mvp_runtime_acceptance.py
-          mkdir -p formatted-source
-          cp --parents \
+      - name: Remove deferred live-agent challenge implementation
+        run: |
+          git rm -f \
+            scripts/copilot_preflight.py \
             scripts/copilot_sdk_agent.py \
-            scripts/extend_drilling_mvp_multimodal_v02.py \
-            scripts/generate_drilling_mvp_dataset.py \
+            scripts/copilot_sdk_agent_user_token.py \
             scripts/github_models_agent.py \
-            scripts/run_drilling_mvp_acceptance.py \
+            scripts/report_drilling_mvp_blind_ask.py \
             scripts/run_drilling_mvp_blind_ask.py \
             src/cepio/agent_retrieval.py \
             tests/test_agent_retrieval.py \
-            tests/test_drilling_mvp_dataset.py \
-            tests/test_drilling_mvp_multimodal_v02.py \
-            tests/test_drilling_mvp_runtime_acceptance.py \
-            formatted-source/
-      - uses: actions/upload-artifact@v4
-        with:
-          name: formatted-drilling-testbed-source
-          path: formatted-source/
-          if-no-files-found: error
+            tests/test_drilling_mvp_blind_ask.py
+          git rm -f .github/workflows/tmp-format-drilling-testbed.yml
+      - name: Commit sanitized formatted promotion branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(testbed): format and isolate public conformance slice"
+          git push origin HEAD:promote/drilling-multimodal-v02
