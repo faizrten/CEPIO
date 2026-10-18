@@ -98,7 +98,7 @@ jobs:
       - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
       - run: mkdir -p evidence
       - run: pytest -q --cov=cepio --cov-report=json:evidence/coverage.json --cov-report=xml:evidence/coverage.xml
-      - name: Coverage cannot decrease against PR base
+      - name: Coverage debt cannot increase; changed code must be covered
         if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -107,7 +107,12 @@ jobs:
           cd /tmp/cepio-base
           PYTHONPATH=src python -m pytest -q --cov=cepio --cov-report=json:base-coverage.json
           cd "$GITHUB_WORKSPACE"
-          python scripts/check_coverage.py /tmp/cepio-base/base-coverage.json evidence/coverage.json
+          python scripts/check_coverage.py \
+            /tmp/cepio-base/base-coverage.json \
+            evidence/coverage.json \
+            --base-ref "$BASE_SHA" \
+            --diff-threshold 90 \
+            --report evidence/coverage-diff.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
