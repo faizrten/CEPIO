@@ -22,12 +22,25 @@ from typing import Any, Literal, Mapping
 import yaml
 from pydantic import BaseModel, Field
 
+from .runtime import CEPIORuntime
+from .skill_preflight import (
+    SkillGraphPathRequirement,
+    SkillGraphPathStep,
+    SkillPreflightResult,
+    SkillPreflightSpec,
+    SkillRegistry,
+)
+
 
 PET02Status = Literal[
     "ANSWERED",
     "INSUFFICIENT_CEPIO_EVIDENCE",
     "AUTHORITY_CONFLICT",
 ]
+
+CORE = "https://cepio.org/ontology/core#"
+SUB = "https://cepio.org/ontology/subsurface#"
+ENERGY = "https://cepio.org/ontology/energy#"
 
 
 class Pet02Blocker(BaseModel):
@@ -127,6 +140,7 @@ class Pet02ExecutionResult(BaseModel):
     status: PET02Status
     question: str
     answer: Pet02FormationEvaluationAnswer | None = None
+    preflights: list[SkillPreflightResult] = Field(default_factory=list)
     trace: list[Pet02SkillTrace] = Field(default_factory=list)
     blockers: list[Pet02Blocker] = Field(default_factory=list)
 
@@ -156,7 +170,170 @@ class FormationEvaluationAssuranceRuntime:
             raise ValueError("PET-02 input must be a YAML mapping")
         return cls(payload)
 
-    def execute(self, *, well: str, interval: str) -> Pet02ExecutionResult:
+    @classmethod
+    def skill_specs(cls) -> list[SkillPreflightSpec]:
+        """Return the five runtime-resolved PET-02 Skill contracts."""
+
+        binding = "subsurface-petrophysics-pet02-runtime-v0.2"
+        return [
+            SkillPreflightSpec(
+                skill_id=cls.CONTEXT_SKILL,
+                binding_id=binding,
+                object_types={
+                    "case": f"{SUB}FormationEvaluationCase",
+                    "well": f"{ENERGY}Well",
+                    "evidence": f"{CORE}Evidence",
+                    "state": f"{SUB}FormationEvaluationState",
+                },
+                relationships={
+                    "case_for_well": f"{SUB}caseForWell",
+                    "has_evidence": f"{CORE}hasEvidence",
+                    "has_state": f"{SUB}hasFormationEvaluationState",
+                },
+                evidence_types={"evidence"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="case-to-well",
+                        start_type="case",
+                        steps=[SkillGraphPathStep(relationship="case_for_well", target_type="well")],
+                    ),
+                    SkillGraphPathRequirement(
+                        id="case-to-evidence",
+                        start_type="case",
+                        steps=[SkillGraphPathStep(relationship="has_evidence", target_type="evidence")],
+                    ),
+                    SkillGraphPathRequirement(
+                        id="case-to-state",
+                        start_type="case",
+                        steps=[SkillGraphPathStep(relationship="has_state", target_type="state")],
+                    ),
+                ],
+            ),
+            SkillPreflightSpec(
+                skill_id=cls.DELTA_SKILL,
+                binding_id=binding,
+                object_types={"case": f"{SUB}FormationEvaluationCase"},
+                relationships={"supersedes": f"{CORE}supersedes"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="case-supersession",
+                        start_type="case",
+                        steps=[SkillGraphPathStep(relationship="supersedes", target_type="case")],
+                    )
+                ],
+            ),
+            SkillPreflightSpec(
+                skill_id=cls.ASSUMPTION_SKILL,
+                binding_id=binding,
+                object_types={
+                    "case": f"{SUB}FormationEvaluationCase",
+                    "assumption": f"{CORE}Assumption",
+                    "characteristic": f"{SUB}PetrophysicalCharacteristic",
+                    "uncertainty": f"{CORE}UncertaintyAssessment",
+                },
+                relationships={
+                    "has_assumption": f"{CORE}hasAssumption",
+                    "has_characteristic": f"{SUB}hasCharacteristic",
+                    "has_uncertainty": f"{CORE}hasUncertaintyAssessment",
+                },
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="case-to-assumption",
+                        start_type="case",
+                        steps=[SkillGraphPathStep(relationship="has_assumption", target_type="assumption")],
+                    ),
+                    SkillGraphPathRequirement(
+                        id="case-characteristic-uncertainty",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_characteristic", target_type="characteristic"
+                            ),
+                            SkillGraphPathStep(
+                                relationship="has_uncertainty", target_type="uncertainty"
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            SkillPreflightSpec(
+                skill_id=cls.RECONCILIATION_SKILL,
+                binding_id=binding,
+                object_types={
+                    "case": f"{SUB}FormationEvaluationCase",
+                    "evidence": f"{CORE}Evidence",
+                    "confidence": f"{CORE}ConfidenceAssessment",
+                },
+                relationships={
+                    "has_evidence": f"{CORE}hasEvidence",
+                    "has_confidence": f"{CORE}hasConfidenceAssessment",
+                },
+                evidence_types={"evidence"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="case-evidence-reconciliation",
+                        start_type="case",
+                        steps=[SkillGraphPathStep(relationship="has_evidence", target_type="evidence")],
+                    ),
+                    SkillGraphPathRequirement(
+                        id="case-confidence",
+                        start_type="case",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="has_confidence", target_type="confidence"
+                            )
+                        ],
+                    ),
+                ],
+            ),
+            SkillPreflightSpec(
+                skill_id=cls.IMPACT_SKILL,
+                binding_id=binding,
+                object_types={
+                    "dependency": f"{CORE}Dependency",
+                    "case": f"{SUB}FormationEvaluationCase",
+                },
+                relationships={"dependency_source": f"{CORE}dependencySource"},
+                graph_paths=[
+                    SkillGraphPathRequirement(
+                        id="dependency-to-formation-evaluation",
+                        start_type="dependency",
+                        steps=[
+                            SkillGraphPathStep(
+                                relationship="dependency_source", target_type="case"
+                            )
+                        ],
+                    )
+                ],
+            ),
+        ]
+
+    @classmethod
+    def preflight(
+        cls,
+        runtime: CEPIORuntime,
+        *,
+        actor_id: str,
+        actor_roles: set[str],
+    ) -> list[SkillPreflightResult]:
+        registry = SkillRegistry(runtime)
+        specs = cls.skill_specs()
+        for spec in specs:
+            registry.register(spec)
+        return [
+            registry.preflight(spec.skill_id, actor_id=actor_id, actor_roles=actor_roles)
+            for spec in specs
+        ]
+
+    def execute(
+        self,
+        *,
+        well: str,
+        interval: str,
+        cepio_runtime: CEPIORuntime | None = None,
+        actor_id: str = "petrophysicist",
+        actor_roles: set[str] | None = None,
+    ) -> Pet02ExecutionResult:
         question = (
             f"Show me the authoritative formation evaluation for Well {well}, {interval}. "
             "Explain why it changed, what evidence supports or contradicts it, what "
@@ -165,6 +342,44 @@ class FormationEvaluationAssuranceRuntime:
         )
         trace: list[Pet02SkillTrace] = []
         blockers: list[Pet02Blocker] = []
+
+        if cepio_runtime is None:
+            from .bootstrap import build_runtime
+
+            cepio_runtime = build_runtime()
+        roles = set(actor_roles or {"petrophysicist"})
+        preflights = self.preflight(
+            cepio_runtime,
+            actor_id=actor_id,
+            actor_roles=roles,
+        )
+        blocked_preflights = [item for item in preflights if item.status == "BLOCKED"]
+        if blocked_preflights:
+            for result in blocked_preflights:
+                codes = sorted({check.code for check in result.blockers})
+                blockers.append(
+                    Pet02Blocker(
+                        code="SKILL_PREFLIGHT_BLOCKED",
+                        message=(
+                            f"Skill {result.skill_id} is not runtime-ready for actor {actor_id}: "
+                            + ", ".join(codes)
+                        ),
+                    )
+                )
+                trace.append(
+                    Pet02SkillTrace(
+                        skill_id=result.skill_id,
+                        status="BLOCKED",
+                        message="Runtime semantic/policy preflight failed closed.",
+                    )
+                )
+            return Pet02ExecutionResult(
+                status="INSUFFICIENT_CEPIO_EVIDENCE",
+                question=question,
+                preflights=preflights,
+                trace=trace,
+                blockers=blockers,
+            )
 
         if self.data.get("well") != well or self.data.get("interval") != interval:
             blockers.append(
@@ -183,6 +398,7 @@ class FormationEvaluationAssuranceRuntime:
             return Pet02ExecutionResult(
                 status="INSUFFICIENT_CEPIO_EVIDENCE",
                 question=question,
+                preflights=preflights,
                 trace=trace,
                 blockers=blockers,
             )
@@ -210,6 +426,7 @@ class FormationEvaluationAssuranceRuntime:
             return Pet02ExecutionResult(
                 status="INSUFFICIENT_CEPIO_EVIDENCE",
                 question=question,
+                preflights=preflights,
                 trace=trace,
                 blockers=blockers,
             )
@@ -230,6 +447,7 @@ class FormationEvaluationAssuranceRuntime:
             return Pet02ExecutionResult(
                 status="AUTHORITY_CONFLICT",
                 question=question,
+                preflights=preflights,
                 trace=trace,
                 blockers=blockers,
             )
@@ -255,6 +473,7 @@ class FormationEvaluationAssuranceRuntime:
             return Pet02ExecutionResult(
                 status="INSUFFICIENT_CEPIO_EVIDENCE",
                 question=question,
+                preflights=preflights,
                 trace=trace,
                 blockers=blockers,
             )
@@ -272,6 +491,7 @@ class FormationEvaluationAssuranceRuntime:
             return Pet02ExecutionResult(
                 status="INSUFFICIENT_CEPIO_EVIDENCE",
                 question=question,
+                preflights=preflights,
                 trace=trace,
                 blockers=blockers,
             )
@@ -366,6 +586,7 @@ class FormationEvaluationAssuranceRuntime:
             status="ANSWERED",
             question=question,
             answer=answer,
+            preflights=preflights,
             trace=trace,
             blockers=[],
         )
@@ -493,7 +714,6 @@ class FormationEvaluationAssuranceRuntime:
             if isinstance(node, dict) and node.get("id")
         ]
         remaining = {str(node["id"]): node for node in raw_nodes}
-        discovered: set[str] = {root_id}
         ordered: list[Pet02DependencyImpact] = []
         queue: deque[str] = deque([root_id])
 
@@ -515,7 +735,6 @@ class FormationEvaluationAssuranceRuntime:
                         depends_on=depends_on,
                     )
                 )
-                discovered.add(node_id)
                 queue.append(node_id)
                 del remaining[node_id]
         return ordered
@@ -557,12 +776,21 @@ def run_pet02_formation_evaluation(
     *,
     well: str,
     interval: str,
+    cepio_runtime: CEPIORuntime | None = None,
+    actor_id: str = "petrophysicist",
+    actor_roles: set[str] | None = None,
 ) -> Pet02ExecutionResult:
-    """Convenience entry point for deterministic PET-02 execution."""
+    """Convenience entry point for deterministic, preflighted PET-02 execution."""
 
     runtime = (
         FormationEvaluationAssuranceRuntime.from_yaml(benchmark)
         if isinstance(benchmark, (str, Path))
         else FormationEvaluationAssuranceRuntime(benchmark)
     )
-    return runtime.execute(well=well, interval=interval)
+    return runtime.execute(
+        well=well,
+        interval=interval,
+        cepio_runtime=cepio_runtime,
+        actor_id=actor_id,
+        actor_roles=actor_roles,
+    )
