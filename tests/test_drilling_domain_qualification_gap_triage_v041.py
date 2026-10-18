@@ -17,7 +17,7 @@ def _data():
     return load_gap_triage(GAPS)
 
 
-def test_gap_triage_matches_normalized_v041_failures(tmp_path):
+def test_historical_gap_triage_is_preserved_after_v041_remediation(tmp_path):
     import subprocess
     import sys
 
@@ -48,27 +48,24 @@ def test_gap_triage_matches_normalized_v041_failures(tmp_path):
     )
     data = _data()
     decisions = {item.question_id: item for item in data.decisions}
-    failures = {
+    active_failures = {
         result["id"]: result
         for result in report["results"]
         if result["status"] in {"PARTIAL", "FAIL"}
     }
-    assert report["status_counts"]["ERROR"] == 0
-    assert set(decisions) == set(EXPECTED) == set(failures)
+
+    # The triage ledger is historical evidence of the four gaps exposed before
+    # remediation. The current ontology should resolve those gaps without
+    # rewriting or deleting that evidence.
+    assert set(decisions) == set(EXPECTED)
     assert {question: decisions[question].id for question in decisions} == EXPECTED
-    for question_id, result in failures.items():
-        missing = set()
-        for capability in result["capability_details"]:
-            if not capability["ok"]:
-                best = next(
-                    pattern
-                    for pattern in capability["alternatives"]
-                    if pattern["id"] == capability["best_pattern"]
-                )
-                missing.update(best["missing"])
-        assert missing == set(decisions[question_id].missing_semantics)
     assert data.status == "draft"
     assert {item.benchmark_action for item in data.decisions} == {"revise-in-next-frozen-pack"}
+
+    # After the reusable CORE remediation is present, the unchanged normalized
+    # v0.4.1 contract must be fully answerable and have no active gaps.
+    assert report["status_counts"] == {"PASS": 15, "PARTIAL": 0, "FAIL": 0, "ERROR": 0}
+    assert active_failures == {}
 
 
 def test_all_v041_gaps_are_reusable_core_semantics():
