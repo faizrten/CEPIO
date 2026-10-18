@@ -18,7 +18,8 @@ def class_name(binding_id: str) -> str:
     parts = [part for part in re.split(r"[^A-Za-z0-9]+", binding_id) if part]
     if not parts:
         raise ValueError("binding_id must contain at least one alphanumeric character")
-    return "".join(part[:1].upper() + part[1:] for part in parts)
+    result = "".join(part[:1].upper() + part[1:] for part in parts)
+    return f"Binding{result}" if result[0].isdigit() else result
 
 
 def default_capabilities(mode: BindingMode) -> frozenset[BindingCapability]:
@@ -66,23 +67,27 @@ def render_manifest(manifest: PlatformBindingManifest) -> str:
     return yaml.safe_dump(payload, sort_keys=False)
 
 
-def render_python(manifest: PlatformBindingManifest) -> str:
-    name = class_name(manifest.binding_id)
-    capabilities = ",\n        ".join(
-        f"BindingCapability.{capability.name}"
+def render_manifest_python(manifest: PlatformBindingManifest) -> str:
+    capability_lines = "\n".join(
+        f"            BindingCapability.{capability.name},"
         for capability in sorted(manifest.capabilities, key=lambda item: item.value)
     )
-    manifest_block = f'''PlatformBindingManifest(
+    return f"""PlatformBindingManifest(
     binding_id={manifest.binding_id!r},
     provider_id={manifest.provider_id!r},
     source_system={manifest.source_system!r},
     mode=BindingMode.{manifest.mode.name},
     capabilities=frozenset(
         {{
-        {capabilities}
+{capability_lines}
         }}
     ),
-)'''
+)"""
+
+
+def render_python(manifest: PlatformBindingManifest) -> str:
+    name = class_name(manifest.binding_id)
+    manifest_block = render_manifest_python(manifest)
 
     if manifest.mode == BindingMode.evidence:
         return f'''"""Generated CEPIO evidence binding skeleton.
@@ -177,7 +182,8 @@ def scaffold_binding(output: Path, manifest: PlatformBindingManifest) -> None:
     output = output.resolve()
     existing = [name for name in FILES if (output / name).exists()]
     if existing:
-        raise FileExistsError(f"Refusing to overwrite existing binding files: {', '.join(existing)}")
+        names = ", ".join(existing)
+        raise FileExistsError(f"Refusing to overwrite existing binding files: {names}")
 
     output.mkdir(parents=True, exist_ok=True)
     (output / "binding.yaml").write_text(render_manifest(manifest), encoding="utf-8")
