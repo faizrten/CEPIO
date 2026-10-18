@@ -25,7 +25,9 @@ class _NoRegistryRuntime:
     type_registry = None
 
 
-def _rel(runtime, rel_type: str, source_id: str, source_type: str, target_id: str, target_type: str):
+def _rel(
+    runtime, rel_type: str, source_id: str, source_type: str, target_id: str, target_type: str
+):
     runtime.add_relationship(
         Relationship(
             type=rel_type,
@@ -154,7 +156,14 @@ def test_workforce_not_ready_and_missing_competency_requirement_are_explicit():
             properties={"status": "BLOCKED"},
         )
     )
-    _rel(runtime, "assignmentForActivity", "ASG-BLOCKED", "CrewAssignment", "ACT-1", "ActivityInterval")
+    _rel(
+        runtime,
+        "assignmentForActivity",
+        "ASG-BLOCKED",
+        "CrewAssignment",
+        "ACT-1",
+        "ActivityInterval",
+    )
     _rel(runtime, "assignmentOf", "ASG-BLOCKED", "CrewAssignment", "PERSON-1", "CrewMember")
 
     _, blockers = _assess_workforce(runtime, ["ASG-BLOCKED"], planned_activity_id="ACT-1")
