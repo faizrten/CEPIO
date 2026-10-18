@@ -16,27 +16,36 @@ A file named `hidden-evaluator.json` is not meaningfully hidden when it is commi
 
 ## Decision
 
-CEPIO separates the **public challenge surface** from the **private qualification evaluator**.
+CEPIO separates the **public conformance surface** from the **private qualification system**.
 
 The public repository may contain:
 
 - synthetic industrial datasets;
-- public challenge questions;
+- deterministic public golden questions used to validate fixture plumbing;
 - CEPIO tool schemas and gateway contracts;
-- deterministic retrieval/runtime helpers;
-- reference conformance and acceptance tests;
-- public deterministic golden questions used to validate fixture plumbing;
-- reporting schemas and benchmark protocol documentation.
+- deterministic runtime/acceptance helpers;
+- public API/SDK/MCP conformance tests;
+- reporting schemas and benchmark-method summaries.
 
-The public repository must not contain the qualification answer key used to claim live-agent benchmark performance.
+The public repository must not contain qualification answer keys, unseen benchmark corpora, benchmark-specific model transport/tuning code or scoring material used to claim live-agent performance.
 
-A live Agent Challenge evaluator must be supplied at execution time from a controlled source outside the public repository, for example a protected CI secret-backed artifact, a private benchmark repository or another governed evaluation service.
+Live Agent Challenge experimentation is maintained in the protected `faizrten/CEPIO-Labs` boundary. A qualification evaluator must be supplied at execution time from a controlled source outside the public repository and outside the answering process.
+
+## v0.1 disclosure and migration
+
+Agent Challenge v0.1 was committed publicly through CEPIO PR #123, including its evaluator and live-runner implementation. That disclosure cannot be reversed by later deletion from the current tree.
+
+Therefore:
+
+- v0.1 is **retired as a hidden qualification benchmark**;
+- its historical experiment/provenance record is maintained in CEPIO Labs;
+- public CEPIO removes the active v0.1 evaluator/live-agent implementation from the current product tree;
+- any historical v0.1 result must be described as a disclosed experiment, not unseen model qualification;
+- Agent Challenge v0.2 must use a fresh unseen corpus/evaluator that has never been committed to public CEPIO.
 
 ## Public reference evaluation versus qualification
 
-A public reference evaluator may exist for harness self-tests, but its result is explicitly **not** a live-agent qualification result because any public answer key is inspectable and gameable.
-
-The terminology is:
+A public reference evaluator may exist for deterministic harness self-tests, but its result is explicitly **not** a live-agent qualification result because any public answer key is inspectable and gameable.
 
 ```text
 Public conformance evaluation
@@ -47,6 +56,7 @@ Public conformance evaluation
 
 Private qualification evaluation
   -> answer key unavailable to the answering process and public repository
+  -> unseen corpus/evaluator under controlled access
   -> suitable for controlled external-agent benchmark claims
 ```
 
@@ -61,7 +71,6 @@ For a qualification run, the answering process receives only:
 
 It must not receive:
 
-- benchmark question identifiers when those reveal evaluator structure;
 - expected references or scalar values;
 - ground-truth scenario hints;
 - evaluator state;
@@ -73,13 +82,11 @@ The evaluator scores the answer only after the answering process completes.
 
 ## Workflow consequence
 
-The public CEPIO repository does not enable a live Agent Challenge workflow merely by adding the synthetic testbed. A live workflow may be introduced only when it retrieves the qualification evaluator from an approved private source and demonstrates that the answering process cannot access it.
-
-Feature-branch-specific workflow triggers must not be promoted to `main` as permanent benchmark infrastructure.
+The public CEPIO repository does not host or automatically run live Agent Challenge qualification workflows. Model-specific benchmark execution belongs in CEPIO Labs or another governed private evaluation service.
 
 ## Publication consequence
 
-Synthetic datasets and public questions can be intentionally published when they improve interoperability, adoption or deterministic validation. Qualification answer keys, protected benchmark corpora and differentiated industrial reasoning remain outside the public repository unless publication is explicitly chosen and the benchmark is no longer represented as hidden or qualification-grade.
+Synthetic datasets and deterministic conformance assets can be intentionally published when they improve interoperability, adoption or runtime validation. Qualification answer keys, unseen benchmark corpora, scoring logic and differentiated benchmark-specific reasoning remain outside the public repository unless publication is explicitly chosen and the benchmark is no longer represented as hidden or qualification-grade.
 
 ## Consequences
 
@@ -94,7 +101,7 @@ Synthetic datasets and public questions can be intentionally published when they
 
 - live qualification requires separate evaluator distribution and CI plumbing;
 - public CI cannot independently reproduce a private qualification score without authorized evaluator access;
-- benchmark versioning must track both public challenge-surface version and private evaluator version.
+- benchmark versioning must track both public tool/fixture dependencies and private evaluator/corpus versions.
 
 ## Non-goals
 

@@ -37,7 +37,7 @@ The v0.2 deterministic conformance gate preserves all twenty v0.1 golden questio
 
 The immediate runtime objective is to make REST, Python SDK and MCP answer the same 30 fixture questions from the same CEPIO semantic contract without application code needing to understand the source formats.
 
-This public conformance gate must not be confused with the live Agent Challenge qualification evaluator. Public fixture questions and deterministic answers are intentionally reproducible; a real model benchmark requires an evaluator that is not distributed in the public repository.
+This public conformance gate is intentionally reproducible and must not be confused with live-model qualification. Agent Challenge experimentation, unseen evaluator corpora, scoring logic and model-specific execution belong in the protected CEPIO Labs boundary. Agent Challenge v0.1 was previously disclosed and is retired as a hidden qualification benchmark; v0.2 and later must use fresh private evaluator material under ADR-0011.
 
 ## Future modalities
 
