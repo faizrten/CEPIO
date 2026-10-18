@@ -501,3 +501,5 @@ for automated quality evidence, release qualification, and exact ruleset setup.
 ## Workflow policy v0.5.1
 
 [Workflow policy integration](docs/workflow-policy-v0.5.1.md) binds exact policy versions to durable workflow instances, derives trusted canonical context, pauses governed actions for human approval, and persists policy evidence through Action, external execution and Outcome.
+
+Host Skill dispatch gates BOUND → READY → trigger matching; see [the dispatch contract](docs/skill-runtime-preflight.md#v023-ready-only-dispatch).

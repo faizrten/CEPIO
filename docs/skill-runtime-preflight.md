@@ -81,3 +81,22 @@ Every check returns a stable reason code and message. `BLOCKED` is fail-closed: 
 ## Scope
 
 v0.2.2 is a capability-and-policy preflight. It does not yet perform target-instance freshness checks, trigger classification, model selection, Skill conflict arbitration or dynamic tool-health probing. Those remain separate host/runtime concerns.
+
+
+## v0.2.3 READY-only dispatch
+
+The host uses `cepio.dispatch_skill` with candidates produced by the static binder.
+Every invocation filters static BOUND candidates, evaluates actor-aware preflight
+against the current runtime, then matches triggers only against READY identities.
+Only one match dispatches. Zero ready candidates returns `NO_READY_SKILL`; ready
+candidates with no trigger match return `NO_MATCH`; multiple matches return
+`CONFLICT` with sorted identities and no Operator invocation. Registration order
+is never a tie breaker. Duplicate identities and malformed BOUND contracts raise
+a configuration error before matching. Preflight errors propagate without dispatch.
+
+This is a synchronous host integration contract: trusted callbacks must preserve
+the same runtime and actor and must not mutate policy during matching. Do not
+cache READY results or dispatch from a previously returned selection. Preflight
+stays outside MCP/REST Operator tools. READY proves capability and authority, not
+case evidence: the Operator must still return `INSUFFICIENT_CEPIO_EVIDENCE` when
+required governed evidence is absent. Governed execution rechecks action policy.

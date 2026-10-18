@@ -14,6 +14,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install -e '.[dev]'
+      - name: READY-only Skill dispatch contract
+        run: pytest -q tests/test_skill_dispatch.py tests/test_skill_preflight.py
       - run: pytest -q
       - name: Query pushdown load baseline
         run: PYTHONPATH=src python scripts/query_load_baseline.py --objects 5000 --max-ms 5000

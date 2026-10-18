@@ -1,5 +1,6 @@
 """CEPIO - Common Energy & Process Industry Ontology runtime."""
 
+from .skill_dispatch import SkillCandidate, SkillDispatchResult, dispatch_skill
 from ._version import __version__
 from .bootstrap import build_kinetic_runtime, build_runtime
 from .contextual_policy import (
@@ -116,6 +117,9 @@ __all__ = [
     "PolicyConditionEvaluation",
     "evaluate_policy_definition",
     "evaluate_policy_set",
+    "SkillCandidate",
+    "SkillDispatchResult",
+    "dispatch_skill",
     "SkillRegistry",
     "SkillPreflightSpec",
     "SkillPreflightResult",

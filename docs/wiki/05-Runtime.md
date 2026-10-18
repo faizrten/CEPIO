@@ -139,3 +139,8 @@ NVIDIA acceleration is optional. CEPIO owns the graph semantics.
 ## Workflow policy v0.5.1
 
 [Workflow policy integration](../workflow-policy-v0.5.1.md) binds exact policy versions to durable workflow instances, derives trusted canonical context, pauses governed actions for human approval, and persists policy evidence through Action, external execution and Outcome.
+
+
+## Skill dispatch admission
+
+The host filters static BOUND candidates through actor-aware READY preflight before trigger matching. Only a unique match dispatches; conflicts fail closed. See [the contract](../skill-runtime-preflight.md#v023-ready-only-dispatch). Preflight stays outside Operator tools; evidence sufficiency is evaluated during invocation.
