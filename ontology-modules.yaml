@@ -9,7 +9,7 @@ contract_files:
   - ontologies/canonical_properties.ttl
 property_contract: mappings/canonical_properties.yaml
 modules:
-  - {id: core, namespace: 'https://cepio.org/ontology/core#', version: 0.2.0, file: ontologies/core.ttl, tier: foundation, stability: stable}
+  - {id: core, namespace: 'https://cepio.org/ontology/core#', version: 0.3.0, file: ontologies/core.ttl, tier: foundation, stability: stable}
   - id: lifecycle
     namespace: https://cepio.org/ontology/lifecycle#
     version: 0.2.0

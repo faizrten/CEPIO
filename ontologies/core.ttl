@@ -24,6 +24,20 @@ cepio:Document a owl:Class ; rdfs:subClassOf cepio:Entity .
 cepio:Contract a owl:Class ; rdfs:subClassOf cepio:Entity .
 cepio:WorkItem a owl:Class ; rdfs:subClassOf cepio:Entity .
 
+# Epistemic and decision-support primitives.
+# These classes describe what the enterprise knows, assumes, or assesses.
+# Domain-specific uncertainty variables and quantitative methods remain in domain
+# profiles, external analytical models, or runtime bindings.
+cepio:Evidence a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Claim a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:Hypothesis a owl:Class ; rdfs:subClassOf cepio:Claim .
+cepio:Assumption a owl:Class ; rdfs:subClassOf cepio:Claim .
+cepio:Assessment a owl:Class ; rdfs:subClassOf cepio:Entity .
+cepio:UncertaintyAssessment a owl:Class ; rdfs:subClassOf cepio:Assessment .
+cepio:ConfidenceAssessment a owl:Class ; rdfs:subClassOf cepio:Assessment .
+cepio:InformationGain a owl:Class ; rdfs:subClassOf cepio:Assessment .
+cepio:Dependency a owl:Class ; rdfs:subClassOf cepio:Entity .
+
 cepio:partOf a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
 cepio:locatedAt a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Location .
 cepio:ownedBy a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Party .
@@ -33,3 +47,18 @@ cepio:impacts a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio
 cepio:dependsOn a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
 cepio:causedBy a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
 cepio:contributesTo a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
+
+cepio:hasEvidence a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Evidence .
+cepio:supportedBy a owl:ObjectProperty ; rdfs:domain cepio:Claim ; rdfs:range cepio:Evidence .
+cepio:contradictedBy a owl:ObjectProperty ; rdfs:domain cepio:Claim ; rdfs:range cepio:Evidence .
+cepio:assesses a owl:ObjectProperty ; rdfs:domain cepio:Assessment ; rdfs:range cepio:Entity .
+cepio:hasUncertaintyAssessment a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:UncertaintyAssessment .
+cepio:hasConfidenceAssessment a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:ConfidenceAssessment .
+cepio:hasAssumption a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Assumption .
+cepio:hasHypothesis a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Hypothesis .
+cepio:reducesUncertainty a owl:ObjectProperty ; rdfs:domain cepio:Evidence ; rdfs:range cepio:UncertaintyAssessment .
+cepio:informationGainFor a owl:ObjectProperty ; rdfs:domain cepio:InformationGain ; rdfs:range cepio:UncertaintyAssessment .
+cepio:dependencySource a owl:ObjectProperty ; rdfs:domain cepio:Dependency ; rdfs:range cepio:Entity .
+cepio:dependencyTarget a owl:ObjectProperty ; rdfs:domain cepio:Dependency ; rdfs:range cepio:Entity .
+cepio:correlatedWith a owl:ObjectProperty, owl:SymmetricProperty ; rdfs:domain cepio:UncertaintyAssessment ; rdfs:range cepio:UncertaintyAssessment .
+cepio:supersedes a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .

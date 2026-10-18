@@ -1,5 +1,6 @@
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix cepio: <https://cepio.org/ontology/core#> .
 @prefix ind: <https://cepio.org/ontology/industrial#> .
 @prefix energy: <https://cepio.org/ontology/energy#> .
 @prefix ent: <https://cepio.org/ontology/enterprise#> .
@@ -23,4 +24,40 @@ ent:PerformanceIndicatorShape a sh:NodeShape ;
   sh:property [
     sh:path rdfs:label ;
     sh:minCount 1 ;
+  ] .
+
+cepio:UncertaintyAssessmentShape a sh:NodeShape ;
+  sh:targetClass cepio:UncertaintyAssessment ;
+  sh:property [
+    sh:path cepio:assesses ;
+    sh:minCount 1 ;
+  ] .
+
+cepio:ConfidenceAssessmentShape a sh:NodeShape ;
+  sh:targetClass cepio:ConfidenceAssessment ;
+  sh:property [
+    sh:path cepio:assesses ;
+    sh:minCount 1 ;
+  ] .
+
+cepio:InformationGainShape a sh:NodeShape ;
+  sh:targetClass cepio:InformationGain ;
+  sh:property [
+    sh:path cepio:informationGainFor ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cepio:UncertaintyAssessment ;
+  ] .
+
+cepio:DependencyShape a sh:NodeShape ;
+  sh:targetClass cepio:Dependency ;
+  sh:property [
+    sh:path cepio:dependencySource ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+  ] ;
+  sh:property [
+    sh:path cepio:dependencyTarget ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
   ] .
