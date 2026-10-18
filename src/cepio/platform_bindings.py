@@ -78,16 +78,12 @@ class PlatformBindingManifest(BaseModel):
         missing = required.difference(self.capabilities)
         if missing:
             names = ", ".join(sorted(item.value for item in missing))
-            raise ValueError(
-                f"{self.mode.value} binding is missing required capabilities: {names}"
-            )
+            raise ValueError(f"{self.mode.value} binding is missing required capabilities: {names}")
 
         invalid = forbidden.intersection(self.capabilities)
         if invalid:
             names = ", ".join(sorted(item.value for item in invalid))
-            raise ValueError(
-                f"{self.mode.value} binding declares forbidden capabilities: {names}"
-            )
+            raise ValueError(f"{self.mode.value} binding declares forbidden capabilities: {names}")
         return self
 
     def require(self, capability: BindingCapability) -> None:
@@ -227,9 +223,7 @@ def qualify_governed_action_execution(
             "External execution system does not match the binding manifest"
         )
     if queued.status != ExternalActionStatus.pending_execution:
-        raise BindingConformanceError(
-            "Conformance execution must start in pending_execution state"
-        )
+        raise BindingConformanceError("Conformance execution must start in pending_execution state")
 
     dispatched = external_runtime.dispatch(execution_id)
     replay = external_runtime.dispatch(execution_id)
