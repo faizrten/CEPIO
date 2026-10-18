@@ -1,0 +1,71 @@
+id: drilling-contractor-domain-qualification-v0.4.1-resolutions
+version: "0.4.1"
+status: implemented
+source_triage: generalization/gaps/drilling-contractor-domain-qualification-v0.4.1.yaml
+scope: reusable-core-semantic-remediation
+resolutions:
+  - gap_id: GAP-DQ-009-PREDICTION-INFERENCE
+    question_id: DC-DQ-009
+    disposition: CORE
+    status: implemented
+    module: agentic_operations
+    module_version: 0.1.1
+    implemented_semantics:
+      - agentic:Prediction
+      - agentic:predictionFor
+      - agentic:predictsRisk
+    guardrail: Prediction remains model-derived inference and is not promoted to observed enterprise fact.
+
+  - gap_id: GAP-DQ-011-RECOMMENDATION-EVIDENCE
+    question_id: DC-DQ-011
+    disposition: CORE
+    status: implemented
+    module: agentic_operations
+    module_version: 0.1.1
+    implemented_semantics:
+      - agentic:supportedByEvidence
+    reused_semantics:
+      - agentic:Recommendation
+      - cepio:Entity
+    guardrail: Recommendation evidence uses source-neutral CEPIO entities with runtime provenance retained separately.
+
+  - gap_id: GAP-DQ-014-OPERATIONAL-PLAN-REVISION
+    question_id: DC-DQ-014
+    disposition: CORE
+    status: implemented
+    module: kinetic
+    module_version: 0.2.1
+    implemented_semantics:
+      - kinetic:OperationalPlan
+      - kinetic:PlanRevision
+      - kinetic:revisesPlan
+      - kinetic:authorizesRevision
+    reused_semantics:
+      - kinetic:Decision
+      - workforce:AuthorityAssignment
+    guardrail: The original plan, revision and authorizing decision remain distinct governed records; no drilling-only ProgramDeviation shortcut is introduced.
+
+  - gap_id: GAP-DQ-015-OUTCOME-VALUE-ATTRIBUTION
+    question_id: DC-DQ-015
+    disposition: CORE
+    status: implemented
+    module: performance
+    module_version: 0.1.4
+    implemented_semantics:
+      - performance:OutcomeAssessment
+      - performance:assessmentOfDecision
+      - performance:observedOutcome
+      - performance:considersRisk
+    reused_semantics:
+      - performance:KPIObservation
+      - kinetic:Decision
+      - cepio:Risk
+    guardrail: Value realization is an evidence-backed assessment and not an unsupported scalar causal claim.
+
+guardrails:
+  - the frozen raw drilling domain qualification v0.4 benchmark is unchanged
+  - the normalized v0.4.1 contract is derived deterministically from the pinned source and normalizer
+  - resolved CORE semantics remain common and source/customer neutral
+  - no remediation term is added to the drilling ontology solely to satisfy the benchmark
+  - active triage contains only currently unresolved PARTIAL or FAIL questions
+  - semantic qualification does not imply runtime, customer or production qualification
