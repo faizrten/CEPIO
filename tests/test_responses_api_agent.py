@@ -165,9 +165,16 @@ def test_full_stateless_responses_loop_routes_parallel_tools(monkeypatch):
     assert client.responses.calls[0]["model"] == agent.MODEL
 
     second_inputs = client.responses.calls[1]["input"]
-    outputs = [item for item in second_inputs if isinstance(item, dict) and item.get("type") == "function_call_output"]
+    outputs = [
+        item
+        for item in second_inputs
+        if isinstance(item, dict) and item.get("type") == "function_call_output"
+    ]
     assert [item["call_id"] for item in outputs] == ["fc-1", "fc-2"]
-    assert [json.loads(item["output"])["cepio_tool_call_id"] for item in outputs] == ["tc-1", "tc-2"]
+    assert [json.loads(item["output"])["cepio_tool_call_id"] for item in outputs] == [
+        "tc-1",
+        "tc-2",
+    ]
     assert emitted[-1]["type"] == "final"
     assert emitted[-1]["answer"]["claims"][0]["supported_by"] == ["tc-1", "tc-2"]
     assert client.closed is True
