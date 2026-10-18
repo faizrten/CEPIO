@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 
 from cepio.generalization import (
@@ -15,7 +16,16 @@ ARCHETYPE = BASE / "archetypes/drilling-contractor-v0.1.yaml"
 PERSONAS_V02 = BASE / "personas/drilling-contractor-v0.2.yaml"
 PERSONAS_V03 = BASE / "personas/drilling-contractor-v0.3.yaml"
 COMPETENCY = BASE / "competency/drilling-contractor-domain-qualification-v0.4.yaml"
+NORMALIZER_V041 = ROOT / "scripts/build_drilling_domain_qualification_v041.py"
 STANDARDS = BASE / "standards/drilling-references.yaml"
+
+# Git-blob digests intentionally pin the complete frozen v0.4 payload and the
+# complete deterministic v0.4.1 normalizer. Because v0.4.1 is derived only
+# from these two pinned inputs, changing any question text, terms, edges,
+# alternatives, or normalization rule requires a new benchmark version and a
+# deliberate digest update.
+FROZEN_V04_BLOB_SHA = "a72144154a06ef3b2010e1a4db08b754f779e329"
+FROZEN_V041_NORMALIZER_BLOB_SHA = "2452cb46b81d98a82d79ac72edfe6dd1186286dc"
 
 ADDED_PERSONAS = {
     "chief-executive",
@@ -26,6 +36,17 @@ ADDED_PERSONAS = {
     "contract-manager",
     "digital-ai-leader",
 }
+
+
+def _git_blob_sha(path: Path) -> str:
+    payload = path.read_bytes()
+    header = f"blob {len(payload)}\0".encode()
+    return hashlib.sha1(header + payload).hexdigest()
+
+
+def test_frozen_domain_qualification_contract_inputs_are_content_pinned():
+    assert _git_blob_sha(COMPETENCY) == FROZEN_V04_BLOB_SHA
+    assert _git_blob_sha(NORMALIZER_V041) == FROZEN_V041_NORMALIZER_BLOB_SHA
 
 
 def test_v03_personas_are_additive_to_v02():
