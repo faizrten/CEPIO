@@ -1,6 +1,20 @@
 id: subsurface-petrophysics-pet02-a17-zone-b
-version: "0.1"
+version: "0.2"
 synthetic: true
+provenance:
+  origin: CEPIO-authored synthetic fixture
+  source_dataset: none
+  fictional_identifiers: true
+  construction_basis:
+    - common petrophysical formation-evaluation relationships between Rw, Archie parameters, saturation, porosity cutoffs, permeability transforms and net pay
+    - realistic evidence classes spanning logs, pressure observations and routine core analysis
+    - deliberate core-versus-log contradiction to test evidence reconciliation and confidence qualification
+    - deliberate downstream dependency chain to static model, reservoir model, reserves case, opportunity and decision
+  intended_use: deterministic CEPIO runtime, semantic and regression testing
+  limitations:
+    - not calibrated to any real field, reservoir or operator dataset
+    - not suitable for reserves estimation, petrophysical calibration or engineering design
+    - numerical values are test fixtures and are not presented as empirical industry benchmarks
 field: CEPIO-SYNTH
 reservoir: R3
 well: A-17
