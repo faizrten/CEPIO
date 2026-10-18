@@ -24,7 +24,9 @@ def _runtime_with_pack():
     return runtime
 
 
-def _rel(runtime, rel_type: str, source_id: str, source_type: str, target_id: str, target_type: str):
+def _rel(
+    runtime, rel_type: str, source_id: str, source_type: str, target_id: str, target_type: str
+):
     runtime.add_relationship(
         Relationship(
             type=rel_type,
@@ -111,12 +113,47 @@ def _seed_ready_runtime():
 
     _rel(runtime, "activityOnRig", "ACT-PLAN", "ActivityInterval", "RIG-1", "OperatingRig")
     _rel(runtime, "hasWorkOrder", "EQ-TD", "DrillingEquipment", "WO-CLOSED", "WorkOrder")
-    _rel(runtime, "testsWellControlEquipment", "TEST-BOP", "WellControlTest", "BOP-1", "BlowoutPreventer")
-    _rel(runtime, "assignmentForActivity", "ASG-DRILLER", "CrewAssignment", "ACT-PLAN", "ActivityInterval")
+    _rel(
+        runtime,
+        "testsWellControlEquipment",
+        "TEST-BOP",
+        "WellControlTest",
+        "BOP-1",
+        "BlowoutPreventer",
+    )
+    _rel(
+        runtime,
+        "assignmentForActivity",
+        "ASG-DRILLER",
+        "CrewAssignment",
+        "ACT-PLAN",
+        "ActivityInterval",
+    )
     _rel(runtime, "assignmentOf", "ASG-DRILLER", "CrewAssignment", "PERSON-1", "CrewMember")
-    _rel(runtime, "assignmentRequiresCompetency", "ASG-DRILLER", "CrewAssignment", "REQ-WC", "CompetencyRequirement")
-    _rel(runtime, "assessmentAgainstRequirement", "ASSESS-WC", "CompetencyAssessment", "REQ-WC", "CompetencyRequirement")
-    _rel(runtime, "assessmentOfPerson", "ASSESS-WC", "CompetencyAssessment", "PERSON-1", "CrewMember")
+    _rel(
+        runtime,
+        "assignmentRequiresCompetency",
+        "ASG-DRILLER",
+        "CrewAssignment",
+        "REQ-WC",
+        "CompetencyRequirement",
+    )
+    _rel(
+        runtime,
+        "assessmentAgainstRequirement",
+        "ASSESS-WC",
+        "CompetencyAssessment",
+        "REQ-WC",
+        "CompetencyRequirement",
+    )
+    _rel(
+        runtime,
+        "assessmentOfPerson",
+        "ASSESS-WC",
+        "CompetencyAssessment",
+        "PERSON-1",
+        "CrewMember",
+    )
     _rel(runtime, "stockedAtAsset", "INV-BARITE", "InventoryPosition", "RIG-1", "OperatingRig")
     return runtime
 
@@ -263,9 +300,7 @@ def test_unqualified_assigned_person_blocks_readiness():
     result = _assess(runtime)
 
     assert result.status == RigReadinessStatus.not_ready
-    assert "workforce.competency-not-demonstrated" in {
-        item.code for item in result.blockers
-    }
+    assert "workforce.competency-not-demonstrated" in {item.code for item in result.blockers}
 
 
 def test_material_shortfall_or_wrong_location_blocks_readiness():
@@ -365,9 +400,7 @@ def test_readiness_decision_recommends_before_human_action():
         runtime.execute_action(request)
 
     executed = runtime.execute_action(
-        request.model_copy(
-            update={"actor_id": "rig-manager-1", "actor_roles": {"rig_manager"}}
-        )
+        request.model_copy(update={"actor_id": "rig-manager-1", "actor_roles": {"rig_manager"}})
     )
     assert executed.status.value == "executed"
     exception_id = str(executed.effects["readiness_exception_id"])
