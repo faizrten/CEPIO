@@ -30,7 +30,7 @@ jobs:
           persist-credentials: false
       - name: Qualify integrated commits only
         run: git merge-base --is-ancestor HEAD origin/main
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - run: python -m pip install -e '.[dev]' -r requirements-quality.txt
