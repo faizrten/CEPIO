@@ -1,4 +1,11 @@
-from scripts.check_coverage import FileCoverage, Hunk, evaluate
+from pathlib import Path
+from runpy import run_path
+
+
+coverage_module = run_path(str(Path(__file__).resolve().parents[1] / "scripts" / "check_coverage.py"))
+FileCoverage = coverage_module["FileCoverage"]
+Hunk = coverage_module["Hunk"]
+evaluate = coverage_module["evaluate"]
 
 
 def totals(statements, covered, percent=None):
@@ -70,11 +77,11 @@ def test_removing_tests_that_uncover_unchanged_production_fails():
         {},
         90.0,
     )
-    assert result["unchanged_file_regressions"]["src/cepio/stable.py"]["new_uncovered_lines"] == 1
+    assert result["unchanged_line_regressions"]["src/cepio/stable.py"]["count"] == 1
     assert result["passed"] is False
 
 
-def test_changed_line_threshold_is_enforced_even_without_aggregate_debt_growth():
+def test_changed_line_threshold_is_enforced():
     base = FileCoverage(frozenset({1}), frozenset({2}))
     head = FileCoverage(frozenset({1, 3}), frozenset({2, 4}))
     result = evaluate(
@@ -85,6 +92,22 @@ def test_changed_line_threshold_is_enforced_even_without_aggregate_debt_growth()
         {"src/cepio/change.py": [Hunk(2, 0, 3, 2)]},
         90.0,
     )
-    assert result["uncovered_line_delta"] == 1
     assert result["changed_line_coverage"]["percent_covered"] == 50.0
+    assert result["passed"] is False
+
+
+def test_new_coverage_cannot_mask_loss_on_unchanged_lines_in_same_file():
+    base = FileCoverage(frozenset({1, 2}), frozenset({3}))
+    head = FileCoverage(frozenset({1, 3, 4}), frozenset({2}))
+    result = evaluate(
+        {"src/cepio/change.py": base},
+        {"src/cepio/change.py": head},
+        totals(3, 2),
+        totals(4, 3),
+        {"src/cepio/change.py": [Hunk(2, 0, 3, 1)]},
+        90.0,
+    )
+    assert result["uncovered_line_delta"] == 0
+    assert result["changed_line_coverage"]["percent_covered"] == 100.0
+    assert result["unchanged_line_regressions"]["src/cepio/change.py"]["count"] == 1
     assert result["passed"] is False
