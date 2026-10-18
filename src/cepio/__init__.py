@@ -20,6 +20,19 @@ from .external_actions import (
     UnsafeExternalRedispatchError,
     build_external_action_runtime,
 )
+from .formation_evaluation import (
+    FormationEvaluationAssuranceRuntime,
+    Pet02Blocker,
+    Pet02DependencyImpact,
+    Pet02EvidenceSummary,
+    Pet02ExecutionResult,
+    Pet02FormationEvaluationAnswer,
+    Pet02RecommendedAction,
+    Pet02SkillTrace,
+    Pet02UncertaintySummary,
+    Pet02ValueChange,
+    run_pet02_formation_evaluation,
+)
 from .graph_analytics import GraphAnalyticsEngine
 from .kinetic import (
     ApprovalTask,
@@ -89,6 +102,17 @@ __all__ = [
     "SkillGraphPathRequirement",
     "SkillGraphPathStep",
     "evaluate_skill_preflight",
+    "FormationEvaluationAssuranceRuntime",
+    "Pet02ExecutionResult",
+    "Pet02FormationEvaluationAnswer",
+    "Pet02SkillTrace",
+    "Pet02Blocker",
+    "Pet02ValueChange",
+    "Pet02EvidenceSummary",
+    "Pet02UncertaintySummary",
+    "Pet02DependencyImpact",
+    "Pet02RecommendedAction",
+    "run_pet02_formation_evaluation",
     "KineticRuntime",
     "ResilientKineticRuntime",
     "ExternalKineticRuntime",
