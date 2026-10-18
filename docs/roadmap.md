@@ -1,5 +1,7 @@
 # CEPIO Execution Roadmap
 
+See [Version naming and delivery status](version-naming.md) for product, component, Lab and API version scopes.
+
 ## North Star
 
 > **Aim for CEPIO to provide the same class of enterprise operating abstraction that Palantir Ontology provides — specialized for Energy & Process Industries and native to the Microsoft ecosystem.**
@@ -84,7 +86,7 @@ The governing product rule from v0.4 onward is:
 
 ---
 
-# Current — v0.4 Microsoft Platform Extension + Developer Preview
+# Completed — CEPIO v0.4 Microsoft Platform Extension + Developer Preview
 
 **Epic:** #22  
 **Release gate:** #50
@@ -109,7 +111,7 @@ The governing product rule from v0.4 onward is:
 - #43 repository query pushdown and cursor pagination — completed via PR #64.
 - #21 App Service and AKS reference deployment profiles — completed via PR #65.
 
-## Current critical path
+## Completed qualification
 
 ### #6 — Runtime observability / OpenTelemetry
 
@@ -119,11 +121,11 @@ The governing product rule from v0.4 onward is:
 - OpenTelemetry-compatible hook boundary;
 - no unauthorized industrial data in telemetry payloads.
 
-Implementation is in PR #66 and must pass CI before #6 is complete.
+Completed via merged PR #66. Developer Preview qualification completed via merged PR #69.
 
 ### #50 — Developer Preview release gate
 
-Required artifacts:
+Artifacts qualified by #69:
 - stable `/api/v1` and committed OpenAPI baseline;
 - Python and TypeScript client validation/generation;
 - authentication guide;
@@ -154,13 +156,15 @@ A Microsoft-native reference deployment should demonstrate:
 
 Sequence:
 
-`API hardening ✓ -> query scale ✓ -> deployment ✓ -> #6 observability -> #50 Developer Preview gate -> v0.4 tag`
+`API hardening ✓ -> query scale ✓ -> deployment ✓ -> observability ✓ -> Developer Preview qualification ✓`
+
+This records qualification evidence, not a claim that a GitHub Release has been published.
 
 Release designation: **CEPIO v0.4 — Developer Preview**.
 
 ---
 
-# v0.5 — Live Industrial Integration
+# Current — CEPIO v0.5 Live Industrial Integration
 
 **Epic:** #51
 
@@ -229,7 +233,7 @@ One industrial asset is represented using context from at least three source-sys
 
 ## #67 — Kinetic runtime and workflow orchestration
 
-CEPIO already has typed Functions, Decision records, governed Actions, preconditions, policy authorization, idempotency, audit and basic compensation. The missing layer is first-class orchestration across those capabilities.
+CEPIO already has typed Functions, Decision records, governed Actions, preconditions, policy authorization, idempotency, audit and basic compensation. First-class orchestration foundations are now implemented via #102/#103/#107/#114/#121, with contextual policy integration via #139/#149. Remaining work includes trigger subscriptions, public workflow control surfaces, workflow telemetry, distributed operation and the live adapter/application proof. Component slice versions are independent of CEPIO product release targets.
 
 ### Primary kinetic model
 
@@ -279,7 +283,7 @@ A reliability/maintenance workflow can be triggered by an operational event, cal
 
 Recommended sequence:
 
-`v0.5 live integrations -> #57 governed writeback/reconciliation -> #67 kinetic runtime -> #59 reference application`
+`parallel #67 runtime foundations + v0.5 live integrations -> #57 live writeback qualification -> #59 reference application`
 
 ## Lighthouse application — Asset Reliability / Maintenance Command Center
 
@@ -451,22 +455,23 @@ Required guarantees:
 
 ## Current execution order
 
-### NOW — finish v0.4
-- #6 Runtime observability / OpenTelemetry — implementation PR #66.
-- #50 Developer Preview release gate.
+### COMPLETED — CEPIO v0.4 Developer Preview
+- #6 observability via #66; #50 qualification via #69; umbrella #22 completed.
 
-### THEN — v0.5 live integration
-- #2 Property provenance and lineage kernel.
-- #52 adapter contract.
-- #53 SAP adapter.
-- #54 PI adapter.
-- #57 identity reconciliation/governed writeback.
-- #55 or #56 engineering/project context adapter.
-- #58 live compressor reference scenario.
+### NOW — CEPIO v0.5 live integration
+- #2 provenance integration/security qualification.
+- #52 complete adapter SDK; write/verify/reconcile subset already on main.
+- #53 SAP and #54 PI adapters.
+- #57 real source identity/writeback/read-back qualification.
+- #55 or #56 third-domain context.
+- #58 K-201 end-to-end live proof.
 
-### THEN — v0.6 kinetic + application
-- #67 Kinetic runtime and workflow orchestration.
-- #59 Asset Reliability / Maintenance Command Center.
+### PARALLEL — runtime and Generalization Lab
+- #67 durable runtime foundations already on main; remaining qualification continues.
+- #112/#116/#119 drilling domain benchmark stack remains open; its versions are Lab contracts.
+
+### NEXT — CEPIO v0.6 application
+- #59 Asset Reliability / Maintenance Command Center over qualified live integrations and runtime.
 
 ### DEFERRED / NON-BLOCKING
 - #20 Purview governance + lineage bridge.
