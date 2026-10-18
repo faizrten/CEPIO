@@ -95,9 +95,7 @@ def build_runtime(
         if sqlite_path is not None
         else InMemoryProvenanceRepository()
     )
-    policy = RolePolicyEngine.from_yaml(
-        root / "policies" / "policies.yaml", type_registry=registry
-    )
+    policy = RolePolicyEngine.from_yaml(root / "policies" / "policies.yaml", type_registry=registry)
     runtime = ContractAwareCEPIORuntime(
         object_repository=repo,
         event_repository=repo,
@@ -192,9 +190,9 @@ def build_runtime(
     runtime.resource_root = root  # type: ignore[attr-defined]
     runtime.module_catalogue = catalogue  # type: ignore[attr-defined]
     runtime.profiles = selected_profiles  # type: ignore[attr-defined]
-    runtime.profile_versions = {
+    runtime.profile_versions = {  # type: ignore[attr-defined]
         profile.profile_id: profile.version for profile in selected_profiles
-    }  # type: ignore[attr-defined]
+    }
     if telemetry_sink is not None:
         runtime = instrument_runtime(runtime, telemetry_sink)
     return runtime
