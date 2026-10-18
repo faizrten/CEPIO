@@ -46,7 +46,9 @@ def test_readiness_helpers_fail_closed_on_type_status_and_time_shape():
         _require_type(runtime, "WO-1", "Equipment")
 
     with pytest.raises(ValueError, match="missing required normalized status"):
-        _normalized_status(OntologyObject(id="EQ-NOSTATUS", type="Equipment"))
+        _normalized_status(
+            OntologyObject(id="EQ-NOSTATUS", type="Equipment", name="No-status equipment")
+        )
 
     assert _aware_datetime(AT, label="at") == AT
     with pytest.raises(ValueError, match="must be an ISO-8601 timestamp"):
