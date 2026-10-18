@@ -143,7 +143,9 @@ def test_application_service_delegates_object_visibility_to_runtime():
     visible = service.read_object("WO-101", manager)
     assert visible.id == "WO-101"
 
-    with pytest.raises(AuthorizationError, match="not authorized to read object WO-101 of type WorkOrder"):
+    with pytest.raises(
+        AuthorizationError, match="not authorized to read object WO-101 of type WorkOrder"
+    ):
         service.read_object("WO-101", outsider)
 
 
