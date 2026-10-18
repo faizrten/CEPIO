@@ -1,0 +1,67 @@
+id: drilling-contractor-domain-qualification-gap-triage-v0.4.1
+version: "0.4.1"
+archetype_id: drilling-contractor-v0.1
+competency_pack_id: drilling-contractor-domain-qualification-v0.4.1
+status: draft
+classification_policy:
+  CORE: Reusable canonical semantics expected to apply across multiple Energy & Process Industry archetypes; ownership may sit in a common module rather than core.ttl.
+  DOMAIN: Canonical drilling-domain specialization that should remain source-system and customer neutral.
+  PROFILE: Contractor, customer, fleet or deployment-specific semantics that should not enter canonical CEPIO modules.
+  MAPPING: External taxonomy, codeset or source-system vocabulary that should be federated or mapped rather than copied into canonical CEPIO semantics.
+  REJECT: The exact proposed term or relationship is redundant, misleading, too direct or over-specific; satisfy the competency through a better abstraction instead.
+decisions:
+  - id: GAP-DQ-009-PREDICTION-INFERENCE
+    question_id: DC-DQ-009
+    missing_semantics:
+      - https://cepio.org/ontology/agentic#Prediction
+      - https://cepio.org/ontology/agentic#Prediction --https://cepio.org/ontology/agentic#predictionFor--> https://cepio.org/ontology/drilling#ActivityInterval
+      - https://cepio.org/ontology/agentic#Prediction --https://cepio.org/ontology/agentic#predictsRisk--> https://cepio.org/ontology/core#Risk
+    disposition: CORE
+    replacement_layer: CORE
+    owner_module: agentic_operations
+    standards: [iadc-ddr-plus-v2, spe-dsats]
+    rationale: A model-derived prediction must be represented as an inference with explicit operating scope and predicted risk rather than being promoted to an enterprise fact. The abstraction applies to reliability, process, mining, power and other industrial domains.
+    proposed_resolution: Introduce a reusable prediction or inference object with explicit subject/scope, predicted risk or outcome, model/run provenance and validity horizon. Keep it distinct from observed state.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-DQ-011-RECOMMENDATION-EVIDENCE
+    question_id: DC-DQ-011
+    missing_semantics:
+      - https://cepio.org/ontology/agentic#Recommendation --https://cepio.org/ontology/agentic#supportedByEvidence--> https://cepio.org/ontology/drilling#WellControlTest
+    disposition: CORE
+    replacement_layer: CORE
+    owner_module: agentic_operations
+    standards: [api-standard-53, iadc-ksa]
+    rationale: CEPIO already models Recommendation and ControlPoint, but the ontology cannot yet state which enterprise evidence supports a recommendation. Evidence grounding is required for any trustworthy agentic workflow, not only drilling.
+    proposed_resolution: Add a reusable evidence-support relationship from recommendation/decision artifacts to source-neutral CEPIO entities, with provenance retained by the runtime evidence model.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-DQ-014-OPERATIONAL-PLAN-REVISION
+    question_id: DC-DQ-014
+    missing_semantics:
+      - https://cepio.org/ontology/kinetic#OperationalPlan
+      - https://cepio.org/ontology/kinetic#PlanRevision
+      - https://cepio.org/ontology/kinetic#PlanRevision --https://cepio.org/ontology/kinetic#revisesPlan--> https://cepio.org/ontology/kinetic#OperationalPlan
+      - https://cepio.org/ontology/kinetic#Decision --https://cepio.org/ontology/kinetic#authorizesRevision--> https://cepio.org/ontology/kinetic#PlanRevision
+    disposition: CORE
+    replacement_layer: CORE
+    owner_module: kinetic
+    standards: [iadc-ksa, energistics-witsml-2.1]
+    rationale: The earlier drilling persona triage already rejected a drilling-only ProgramDeviation and called for common operational-plan semantics. Plans and governed revisions occur across drilling, maintenance, commissioning, process operations and EPC execution.
+    proposed_resolution: Introduce source-neutral OperationalPlan and PlanRevision abstractions, preserve the original plan, relate revisions to authorizing decisions and resolve authorization through existing AuthorityAssignment semantics.
+    benchmark_action: revise-in-next-frozen-pack
+
+  - id: GAP-DQ-015-OUTCOME-VALUE-ATTRIBUTION
+    question_id: DC-DQ-015
+    missing_semantics:
+      - https://cepio.org/ontology/performance#OutcomeAssessment
+      - https://cepio.org/ontology/performance#OutcomeAssessment --https://cepio.org/ontology/performance#assessmentOfDecision--> https://cepio.org/ontology/kinetic#Decision
+      - https://cepio.org/ontology/performance#OutcomeAssessment --https://cepio.org/ontology/performance#observedOutcome--> https://cepio.org/ontology/performance#KPIObservation
+      - https://cepio.org/ontology/performance#OutcomeAssessment --https://cepio.org/ontology/performance#considersRisk--> https://cepio.org/ontology/core#Risk
+    disposition: CORE
+    replacement_layer: CORE
+    owner_module: performance
+    standards: [spe-dsats, api-rp54-4]
+    rationale: CEPIO can record decisions and KPI observations but cannot yet represent the governed assessment that an intervention changed an outcome while considering risk or safety context. This is needed for AI value realization and for non-AI operational improvement alike.
+    proposed_resolution: Introduce a reusable OutcomeAssessment linking intervention or decision, before/after or counterfactual KPI evidence, risk context, confidence and provenance. Do not encode causal improvement as a scalar claim without evidence.
+    benchmark_action: revise-in-next-frozen-pack
