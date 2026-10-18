@@ -154,20 +154,28 @@ def _create_client():
     try:
         from openai import AsyncOpenAI
     except ImportError as exc:
-        raise RuntimeError("openai package is required: python -m pip install 'openai>=2,<3'") from exc
+        raise RuntimeError(
+            "openai package is required: python -m pip install 'openai>=2,<3'"
+        ) from exc
     base_url, api_key = _client_config()
     return AsyncOpenAI(base_url=base_url, api_key=api_key)
 
 
 def _function_calls(response: Any) -> list[Any]:
-    return [item for item in (getattr(response, "output", None) or []) if getattr(item, "type", None) == "function_call"]
+    return [
+        item
+        for item in (getattr(response, "output", None) or [])
+        if getattr(item, "type", None) == "function_call"
+    ]
 
 
 async def _execute_function_calls(calls: list[Any], router: ProtocolRouter) -> list[dict[str, Any]]:
     async def execute(item: Any) -> dict[str, Any]:
         name = str(getattr(item, "name"))
         raw_arguments = getattr(item, "arguments", "{}") or "{}"
-        arguments = json.loads(raw_arguments) if isinstance(raw_arguments, str) else dict(raw_arguments)
+        arguments = (
+            json.loads(raw_arguments) if isinstance(raw_arguments, str) else dict(raw_arguments)
+        )
         response = await router.call(name, arguments)
         payload = {
             "cepio_tool_call_id": response.get("tool_call_id"),
@@ -250,5 +258,7 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except Exception as exc:
-        print(f"responses_api_agent error: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
+        print(
+            f"responses_api_agent error: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True
+        )
         raise
