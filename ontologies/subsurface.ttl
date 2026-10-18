@@ -4,14 +4,40 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
-# CEPIO Subsurface owns decision and assurance context, not OSDU technical payloads.
-# OSDU/ADME remains authoritative for well, log, sample, interpretation and reservoir-model data.
+# CEPIO Subsurface owns assurance, reasoning and decision context, not OSDU
+# technical payloads. OSDU/ADME remains authoritative for well, log, sample,
+# interpretation and reservoir-model data.
+
+sub:PetrophysicsAssuranceCase a owl:Class ;
+    rdfs:subClassOf cepio:Entity ;
+    rdfs:comment "A governed Petrophysics reasoning/assurance context that binds evidence, assumptions, uncertainty, authority and downstream consequences without copying technical source payloads." .
 
 sub:FormationEvaluationCase a owl:Class ;
-    rdfs:subClassOf cepio:Entity .
+    rdfs:subClassOf sub:PetrophysicsAssuranceCase .
 
-# A first-class subject for Core Assessment objects. Domains define what is uncertain;
-# Core defines how uncertainty/confidence assessments behave.
+# Domain assessment specializations remain thin. Core defines Assessment,
+# Evidence, Claim, Hypothesis, Assumption, Uncertainty and Confidence semantics.
+sub:DataReadinessAssessment a owl:Class ;
+    rdfs:subClassOf cepio:Assessment .
+
+sub:SaturationContactAssessment a owl:Class ;
+    rdfs:subClassOf cepio:Assessment .
+
+sub:InterpretationConsistencyAssessment a owl:Class ;
+    rdfs:subClassOf cepio:Assessment .
+
+sub:RemainingHydrocarbonAssessment a owl:Class ;
+    rdfs:subClassOf cepio:Assessment .
+
+sub:NewWellLearningAssessment a owl:Class ;
+    rdfs:subClassOf cepio:Assessment .
+
+sub:ModelHandoverTrace a owl:Class ;
+    rdfs:subClassOf cepio:Entity ;
+    rdfs:comment "A traceable handover context linking an authoritative petrophysical interpretation to downstream model transformations and consumers." .
+
+# A first-class subject for Core Assessment objects. Domains define what is
+# uncertain; Core defines how uncertainty/confidence assessments behave.
 sub:PetrophysicalCharacteristic a owl:Class ;
     rdfs:subClassOf cepio:Entity .
 
@@ -33,8 +59,8 @@ sub:NetPayCharacteristic a owl:Class ;
 sub:FluidContactCharacteristic a owl:Class ;
     rdfs:subClassOf sub:PetrophysicalCharacteristic .
 
-# Authority is represented as operational state of the CEPIO assurance case rather
-# than by overwriting the externally authoritative interpretation record.
+# Authority is represented as operational state of the CEPIO assurance case
+# rather than by overwriting the externally authoritative interpretation record.
 sub:FormationEvaluationState a owl:Class ;
     rdfs:subClassOf cepio:State .
 
@@ -56,3 +82,15 @@ sub:hasCharacteristic a owl:ObjectProperty ;
 sub:hasFormationEvaluationState a owl:ObjectProperty ;
     rdfs:domain sub:FormationEvaluationCase ;
     rdfs:range sub:FormationEvaluationState .
+
+sub:assuranceForWell a owl:ObjectProperty ;
+    rdfs:domain sub:PetrophysicsAssuranceCase ;
+    rdfs:range energy:Well .
+
+sub:tracesFromCase a owl:ObjectProperty ;
+    rdfs:domain sub:ModelHandoverTrace ;
+    rdfs:range sub:FormationEvaluationCase .
+
+sub:tracesTo a owl:ObjectProperty ;
+    rdfs:domain sub:ModelHandoverTrace ;
+    rdfs:range cepio:Entity .

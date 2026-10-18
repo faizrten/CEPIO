@@ -47,7 +47,7 @@ modules:
     depends_on: [{module: core, version: '>=0.2.0'}, {module: industrial, version: '>=0.2.0'}]
   - id: subsurface
     namespace: https://cepio.org/ontology/subsurface#
-    version: 0.1.0
+    version: 0.2.0
     file: ontologies/subsurface.ttl
     tier: domain
     stability: experimental
