@@ -72,9 +72,7 @@ class FabricDrillingNPTBinding:
         if not isinstance(record_id, str) or not record_id.strip():
             raise ValueError(f"{table_name} row is missing source_record_id")
         if record_version is None or str(record_version).strip() == "":
-            raise ValueError(
-                f"{table_name} row {record_id!r} is missing source_record_version"
-            )
+            raise ValueError(f"{table_name} row {record_id!r} is missing source_record_version")
         return ExternalRecordReference(
             source_system=self.manifest.source_system,
             record_kind=record_kind,
@@ -162,8 +160,7 @@ class FabricDrillingNPTBinding:
                     start_time=str(row.get("start_time") or ""),
                     end_time=str(row.get("end_time") or ""),
                     classification_id=str(
-                        classification.get("classification_id")
-                        or f"CLASS-{activity_id}"
+                        classification.get("classification_id") or f"CLASS-{activity_id}"
                     ),
                     classification_name=str(
                         classification.get("classification_name") or "Drilling classification"
