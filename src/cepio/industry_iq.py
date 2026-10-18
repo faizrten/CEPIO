@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
+from collections.abc import Mapping
 from typing import Protocol
 
 from pydantic import BaseModel, Field
@@ -139,9 +140,7 @@ def industry_iq_manifest(pack: IndustryIQPack) -> IndustryIQPackManifest:
         manifest = IndustryIQPackManifest.model_validate(raw)
 
     if manifest.pack_id != pack.pack_id or manifest.version != pack.version:
-        raise ValueError(
-            "Industry IQ pack manifest identity must match pack_id/version attributes"
-        )
+        raise ValueError("Industry IQ pack manifest identity must match pack_id/version attributes")
     _parse_semver(manifest.version)
     return manifest
 
@@ -177,9 +176,7 @@ class IndustryIQPackRegistry:
                 result.append(industry_iq_manifest(versions[version]))
         return result
 
-    def resolve(
-        self, requested: Iterable[str] | Mapping[str, str]
-    ) -> IndustryIQResolution:
+    def resolve(self, requested: Iterable[str] | Mapping[str, str]) -> IndustryIQResolution:
         request_map = self._normalize_requested(requested)
         constraints: dict[str, list[str]] = {
             pack_id: [constraint] for pack_id, constraint in request_map.items()
@@ -225,9 +222,7 @@ class IndustryIQPackRegistry:
                 f"Industry IQ pack already installed in runtime: {pack_id}",
             )
 
-        manifests = {
-            pack_id: industry_iq_manifest(pack) for pack_id, pack in selected.items()
-        }
+        manifests = {pack_id: industry_iq_manifest(pack) for pack_id, pack in selected.items()}
         self._validate_capability_collisions(runtime, manifests)
 
         for pack_id in resolution.install_order:
@@ -244,11 +239,11 @@ class IndustryIQPackRegistry:
         setattr(runtime, "industry_iq_deployment_manifest", deployment)
         return deployment
 
-    def _normalize_requested(
-        self, requested: Iterable[str] | Mapping[str, str]
-    ) -> dict[str, str]:
+    def _normalize_requested(self, requested: Iterable[str] | Mapping[str, str]) -> dict[str, str]:
         if isinstance(requested, Mapping):
-            normalized = {str(pack_id): str(constraint) for pack_id, constraint in requested.items()}
+            normalized = {
+                str(pack_id): str(constraint) for pack_id, constraint in requested.items()
+            }
         else:
             normalized = {str(pack_id): "*" for pack_id in requested}
         if not normalized:
@@ -257,7 +252,6 @@ class IndustryIQPackRegistry:
             if not pack_id:
                 raise ValueError("Industry IQ pack ID cannot be empty")
             if constraint not in {"", "*"}:
-                # Exercise the parser now so malformed requirements fail before resolution.
                 sample = next(iter(self._packs.get(pack_id, {"0.0.0": None})))
                 try:
                     version_satisfies(sample, constraint)
