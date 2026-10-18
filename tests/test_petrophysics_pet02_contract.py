@@ -24,7 +24,7 @@ def test_subsurface_module_is_registered_as_experimental_domain_module():
     catalogue = _yaml(MODULES)
     assert "subsurface" in catalogue["architecture"]["domain"]
     module = next(item for item in catalogue["modules"] if item["id"] == "subsurface")
-    assert module["version"] == "0.1.0"
+    assert module["version"] == "0.2.0"
     assert module["stability"] == "experimental"
     assert {dependency["module"] for dependency in module["depends_on"]} == {"core", "energy"}
 
