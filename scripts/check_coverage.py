@@ -114,6 +114,47 @@ def changed_executable_lines(head: FileCoverage, hunks: list[Hunk]) -> frozenset
     return frozenset(changed)
 
 
+def map_unchanged_line(old_line: int, hunks: list[Hunk]) -> int | None:
+    """Map a base line to head when its source line was not edited/deleted."""
+    shift = 0
+    for hunk in sorted(hunks, key=lambda item: (item.old_start, item.new_start)):
+        if hunk.old_count == 0:
+            if old_line <= hunk.old_start:
+                break
+            shift += hunk.new_count
+            continue
+        if old_line < hunk.old_start:
+            break
+        if old_line < hunk.old_start + hunk.old_count:
+            return None
+        shift += hunk.new_count - hunk.old_count
+    return old_line + shift
+
+
+def unchanged_line_regressions(
+    base_files: dict[str, FileCoverage],
+    head_files: dict[str, FileCoverage],
+    changes: dict[str, list[Hunk]],
+) -> dict[str, dict[str, Any]]:
+    regressions: dict[str, dict[str, Any]] = {}
+    for path in sorted(base_files.keys() & head_files.keys()):
+        head = head_files[path]
+        lost: list[tuple[int, int]] = []
+        for old_line in sorted(base_files[path].executed):
+            new_line = map_unchanged_line(old_line, changes.get(path, []))
+            if new_line is not None and new_line in head.missing:
+                lost.append((old_line, new_line))
+        if lost:
+            regressions[path] = {
+                "count": len(lost),
+                "examples": [
+                    {"base_line": old_line, "head_line": new_line}
+                    for old_line, new_line in lost[:20]
+                ],
+            }
+    return regressions
+
+
 def evaluate(
     base_files: dict[str, FileCoverage],
     head_files: dict[str, FileCoverage],
@@ -122,16 +163,7 @@ def evaluate(
     changes: dict[str, list[Hunk]],
     diff_threshold: float,
 ) -> dict[str, Any]:
-    unchanged_regressions: dict[str, dict[str, int]] = {}
-    for path in sorted(base_files.keys() & head_files.keys() - changes.keys()):
-        before = len(base_files[path].missing)
-        after = len(head_files[path].missing)
-        if after > before:
-            unchanged_regressions[path] = {
-                "base_uncovered_lines": before,
-                "head_uncovered_lines": after,
-                "new_uncovered_lines": after - before,
-            }
+    regressions = unchanged_line_regressions(base_files, head_files, changes)
 
     changed_total = 0
     changed_covered = 0
@@ -153,11 +185,7 @@ def evaluate(
 
     diff_percent = 100.0 if changed_total == 0 else 100.0 * changed_covered / changed_total
     uncovered_delta = int(head_totals["uncovered_lines"]) - int(base_totals["uncovered_lines"])
-    passed = (
-        uncovered_delta <= 0
-        and not unchanged_regressions
-        and diff_percent + 1e-9 >= diff_threshold
-    )
+    passed = uncovered_delta <= 0 and not regressions and diff_percent + 1e-9 >= diff_threshold
     return {
         "base": base_totals,
         "head": head_totals,
@@ -172,7 +200,7 @@ def evaluate(
             "minimum_percent": diff_threshold,
         },
         "changed_files": changed_files,
-        "unchanged_file_regressions": unchanged_regressions,
+        "unchanged_line_regressions": regressions,
         "passed": passed,
     }
 
@@ -214,12 +242,9 @@ def main() -> int:
         f"{changed['covered_lines']}/{changed['executable_lines']} "
         f"({changed['percent_covered']:.2f}%, minimum {changed['minimum_percent']:.2f}%)"
     )
-    regressions = result["unchanged_file_regressions"]
+    regressions = result["unchanged_line_regressions"]
     for path, details in regressions.items():
-        print(
-            f"Unchanged file coverage regression {path}: "
-            f"{details['base_uncovered_lines']} -> {details['head_uncovered_lines']} uncovered lines"
-        )
+        print(f"Unchanged-line coverage regression {path}: {details['count']} covered lines lost")
 
     return 0 if result["passed"] else 1
 
