@@ -4,481 +4,577 @@ See [Version naming and delivery status](version-naming.md) for product, compone
 
 ## North Star
 
-> **Aim for CEPIO to provide the same class of enterprise operating abstraction that Palantir Ontology provides — specialized for Energy & Process Industries and native to the Microsoft ecosystem.**
+> **CEPIO is the portable industrial operating intelligence layer for Energy & Process Industries: thin in infrastructure, thick in industrial intelligence.**
+>
+> Frontier models provide general intelligence. CEPIO provides reusable industrial operating competence — semantics, evidence requirements, Skills, decision patterns, authority, actions and evaluation — so that capable models can operate consistently against real enterprise context across platforms such as Microsoft Fabric, Cognite and OSDU.
 
-CEPIO owns the canonical industrial semantic and operational contract. Microsoft services provide the data, semantic materialization, AI, application hosting and infrastructure planes on which that contract is realized.
+The governing design rule is:
 
-`CEPIO semantic contract -> Microsoft platform bindings -> customer deployment`
+> **Thin infrastructure. Thick industrial intelligence.**
 
-The governing product rule from v0.4 onward is:
+CEPIO should not rebuild data platforms, knowledge-graph engines, generic agent frameworks, generic LLM reasoning, broad ingestion infrastructure or thick application shells when mature platforms already provide those capabilities well.
 
-> **Every CEPIO release must prove a stronger operating capability, not merely introduce more ontology vocabulary.**
+CEPIO should concentrate differentiated effort where industrial know-how compounds:
 
-## Current delivery posture — accelerated parallel execution
+- canonical industrial operating semantics;
+- identity across enterprise representations;
+- state, time, evidence and provenance contracts;
+- Skills and industrial procedures;
+- decision and authority semantics;
+- governed action contracts;
+- failure/risk/KPI/economic patterns;
+- domain competency and operating patterns;
+- cross-domain generalization;
+- model/platform evaluation and assurance.
 
-CEPIO product releases remain gate-based and sequential, but implementation is no longer artificially serial.
+The strategic architecture is:
 
-Several foundations originally expected primarily in later product releases are already on `main` because they reduce risk for the current v0.5 integration milestone:
+```text
+                   FRONTIER MODELS / AGENTS
+                            |
+                            v
+                 CEPIO INDUSTRY IQ
+        Skills · Competencies · Decision Patterns
+        Failure/Risk Models · Constraints · KPIs
+        Reference Workflows · Evaluation Benchmarks
+                            |
+                            v
+                     CEPIO CORE
+         Identity · Semantics · State · Time · Evidence
+          Provenance · Decision · Authority · Action
+                            |
+            +---------------+---------------+
+            |               |               |
+            v               v               v
+          Fabric          Cognite          OSDU
+            |               |               |
+            +------- Enterprise Reality ----+
+```
 
-- durable workflow orchestration, verification and `WorkflowOutcome`;
-- contextual policy, exact policy-version pinning and trusted evaluation lineage;
-- Skill registry preflight and READY-only host dispatch;
-- evidence, uncertainty, confidence and information-gain semantics in Core;
-- OSDU-first subsurface federation and source-neutral domain runtime bindings;
-- Kinetic `Opportunity`, `Option` and `OptionRecommendation` semantics;
-- deterministic drilling runtime assurance and cross-customer portability qualification;
-- CEPIO Governance v2, CodeQL/security ratchets, compatibility controls and release-evidence generation.
-
-This accelerates later roadmap stages but does **not** change the release rule: a CEPIO product version advances only when its own release gate is qualified.
-
-Current product position:
-
-`v0.4 qualified -> v0.5 current/live integration -> v0.6 compressed application proof -> v0.7 developer platform -> v0.8 enterprise runtime -> v0.9 real second-enterprise adoption -> v1.0 production guarantees`
-
-Execution principle:
-
-> **Pull reusable foundations forward when they reduce critical-path risk; never reinterpret component, runtime or Lab completion as product-release qualification.**
+CEPIO remains headless. Experience surfaces, agent hosts and data/runtime platforms are replaceable consumers or implementations of the CEPIO contract.
 
 ---
+
+# Product structure
+
+CEPIO is now developed as four complementary product layers.
+
+## 1. CEPIO Core — thin, stable, public
+
+Core defines the minimum portable industrial operating contract:
+
+- Object / identity;
+- Relationship;
+- Observation / Event / State;
+- valid time + transaction time;
+- Evidence + Provenance;
+- Function;
+- Decision;
+- Authority / Policy;
+- Action;
+- Outcome;
+- Skill capability contract.
+
+Core is not intended to become a comprehensive copy of every industrial standard or source schema.
+
+## 2. CEPIO Industry IQ — thick, differentiated, protected by default
+
+Industry IQ is where product differentiation accumulates:
+
+- industrial Skills;
+- persona competencies;
+- evidence requirements;
+- failure and risk patterns;
+- constraints and operating envelopes;
+- KPI/economic relationships;
+- decision patterns;
+- action-selection logic;
+- reference workflows;
+- domain packs;
+- benchmark and evaluation corpora.
+
+Detailed Industry IQ evolves primarily in `CEPIO-Labs`; deliberate contracts, abstractions and sanitized examples may be extracted to public CEPIO.
+
+## 3. CEPIO Platform Bindings — native, replaceable
+
+Bindings make the same CEPIO operating contract usable over existing platforms without making those platforms canonical CEPIO semantics.
+
+Priority bindings:
+
+- Microsoft Fabric / Fabric IQ / RTI / Foundry;
+- Cognite Data Fusion Data Modeling / CogniteCore / Process Industries / Atlas;
+- OSDU / Azure Data Manager for Energy;
+- source-authoritative action bindings such as SAP where required.
+
+Platform-native identifiers, storage models and query mechanics stay inside bindings.
+
+## 4. CEPIO Assurance + Generalization — protected capability factory
+
+Generalization Lab and assurance assets determine whether CEPIO capability is reusable and whether models/platforms conform to the operating contract.
+
+They cover:
+
+- competency questions;
+- scenario and benchmark corpora;
+- model evaluation;
+- Skill trigger/evidence/authority tests;
+- cross-domain reuse evidence;
+- semantic promotion evidence;
+- platform-conformance tests;
+- model/provider ablation;
+- portability scoring.
+
+---
+
+# What has already been built and remains valuable
+
+The v0.1–v0.4 work remains the durable foundation rather than being discarded.
 
 ## Completed — v0.1 Semantic Scaffold
 
-**Outcome:** establish the common ontology foundation.
-
-- modular CEPIO Core / Industrial / Energy / Lifecycle / Enterprise / Kinetic ontology;
-- object, relationship, event and function concepts;
-- in-memory graph traversal;
-- initial actions and policy roles;
-- FastAPI scaffold and refinery sample.
-
----
+- modular CEPIO ontology architecture;
+- industrial objects/relationships/events/functions;
+- initial policy/action semantics;
+- reference refinery scenario.
 
 ## Completed — v0.2 Operational Kernel
 
-**Outcome:** move from ontology vocabulary to an executable operational runtime.
-
-- persistent repository abstractions and SQLite backend;
-- optimistic object concurrency;
-- immutable action audit;
-- secure idempotency;
-- RDF-driven type registry and relationship validation;
-- policy-engine interface with object/property/action controls;
-- action preconditions and approval metadata;
-- Decision records;
-- typed function inputs;
-- inverse/multi-hop traversal;
-- Python SDK and MCP-ready facade;
-- dry-run SAP, AVEVA PI, OSDU, P6 and Fabric contracts;
-- SHACL validation path;
-- executable KPI -> asset -> event -> decision -> work-order -> spare demo.
-
----
+- persistent repository abstractions;
+- optimistic concurrency and idempotency;
+- policy engine;
+- typed Functions;
+- Decisions and governed Actions;
+- audit;
+- SDK/MCP foundations;
+- SHACL and ontology validation.
 
 ## Completed — v0.3 Temporal + Provenance Kernel
 
-**Outcome:** CEPIO can explain what an industrial object means, where its values came from, what was true at time T, what CEPIO knew at time T, and which immutable events produced derived operational state.
+- property-level provenance;
+- valid time + transaction time;
+- object and relationship history;
+- deterministic event -> state reconstruction;
+- explainable evidence lineage.
 
-### Canonical industrial model
-- common modules for Asset, Work Management, Reliability, HSE, Supply, Performance, Workforce, Commercial and Agentic Operations;
-- domain modules for Process Industry, EPCIC and Drilling;
-- SEO refinery/petrochemical + EPC ontology normalized into CEPIO;
-- AD asset-heavy/drilling ontology normalized into CEPIO;
-- source-property occurrences classified into canonical properties, relationship keys, observations, provenance or profile-specific semantics.
+## Completed — v0.4 Developer Preview / Microsoft binding
 
-### Semantic contract
-- IRI-first identity for classes, relationships and datatype properties;
-- fail-closed alias ambiguity;
-- semantic module namespaces, versions and dependencies;
-- canonical property registry with datatype and authority metadata.
+- stable `/api/v1` route contract;
+- Python + TypeScript client foundations;
+- Entra identity boundary;
+- Fabric/Fabric IQ binding;
+- Foundry/MCP binding;
+- App Service / AKS reference profiles;
+- observability;
+- compatibility and release qualification.
 
-### Provenance + time
-- SourceReference, TransformationRun and PropertyProvenance contracts;
-- property-level lineage explanations;
-- immutable object version history;
-- transaction-time reconstruction;
-- valid-time queries and bitemporal object views;
-- immutable relationship revision history;
-- bitemporal graph queries.
+## Foundations pulled forward after v0.4
 
-### Event -> state
-- deterministic ordering `(occurred_at, event_id)`;
-- replayable projection contract;
-- compressor operating-state reference projector;
-- independent projection checkpoints;
-- delete/rebuild derived state from immutable source events.
+Important capabilities already on `main` should be retained but reframed as supporting contracts rather than the primary moat:
 
-**Gate achieved:** CEPIO can answer `what is true -> where did it come from -> what was true/known at time T -> what events caused the state -> what governed action can follow?`
+- durable workflow orchestration and `WorkflowOutcome`;
+- contextual policy and exact policy-version lineage;
+- evidence / uncertainty / confidence / information-gain semantics;
+- Skill registry binding, actor-aware preflight and READY-only dispatch;
+- recommendation-before-act boundaries;
+- governed external execution, verification and reconciliation;
+- OSDU-first subsurface boundary;
+- drilling portability qualification;
+- two BOUND protected Skills: equipment degradation and maintenance deferral;
+- governance, compatibility and security qualification.
 
----
+CEPIO-Labs already contains the beginnings of the new strategic moat:
 
-# Completed — CEPIO v0.4 Microsoft Platform Extension + Developer Preview
-
-**Epic:** #22  
-**Release gate:** #50
-
-**Outcome:** make CEPIO natively consumable across the Microsoft Data + AI platform while preserving a portable, source-system-neutral canonical contract, then qualify the result as a Developer Preview.
-
-## Completed platform foundation
-
-- #5 Typed query and temporal filter contract — completed via PR #28.
-- #7 Microsoft platform extension architecture — completed via PR #17.
-- #18 Fabric and Fabric IQ semantic binding — completed via PR #29.
-- #19 Foundry agent and CEPIO MCP binding — completed via PR #30.
-- #4 Ontology migration manifests and compatibility gates — completed via PR #31.
-
-## Completed product hardening
-
-- #34 / #35 Entra REST identity, anti-spoofing and actor-scoped read authorization — completed via PR #38.
-- #36 production runtime configuration, package resources and version source — completed via PR #45.
-- #37 first-class customer profile architecture — completed via PR #46.
-- #41 versioned `/api/v1` and OpenAPI contract — completed via PR #48.
-- #42 standard API errors, ETag/If-Match and idempotency semantics — completed via PR #49.
-- #43 repository query pushdown and cursor pagination — completed via PR #64.
-- #21 App Service and AKS reference deployment profiles — completed via PR #65.
-
-## Completed qualification
-
-- #6 runtime observability / OpenTelemetry — completed via PR #66.
-- #50 Developer Preview release gate — qualified via PR #69.
-
-Release designation: **CEPIO v0.4 — Developer Preview**.
-
-Deferred/non-blocking from v0.4:
-- #20 Purview governance and lineage bridge;
-- #25 GPU AKS / cuGraph validation and benchmarking.
+- protected Skill library and runtime-binding experiments;
+- Generalization Lab benchmarks/evaluation;
+- industry workspaces for drilling, refinery, petrochemical, upstream and EPCIC;
+- protected Agent Challenge v0.2 frontier-model qualification;
+- protected decision/function/reasoning/optimization workspaces.
 
 ---
 
-# Current — CEPIO v0.5 Live Industrial Integration
+# What changes now
 
-**Epic:** #51
+The previous roadmap over-weighted CEPIO-owned infrastructure and source-by-source integration.
 
-**Outcome:** prove that CEPIO can operate over real industrial systems and close the governed writeback loop.
+The following work is no longer a strategic objective by itself:
 
-v0.5 is now the dominant product critical path. Most semantic, policy and kinetic foundations required to consume live integrations already exist; the remaining risk is industrial connectivity and end-to-end qualification rather than core architecture.
+- building a proprietary graph/database platform;
+- building a general-purpose agent framework;
+- building a proprietary frontier-model reasoning engine;
+- building direct read adapters for every enterprise source system;
+- making SAP + PI + P6 + OSDU connectors prerequisites for product progress;
+- building a thick CEPIO-only UI platform;
+- treating generic graph analytics as product differentiation;
+- expanding canonical ontology solely for vocabulary coverage;
+- enterprise HA/control-plane engineering before a real deployment requires it.
 
-## Current state
+These capabilities may remain useful as reference/conformance infrastructure, but they do not define CEPIO's product advantage.
 
-### Provenance — mostly implemented, final integration/security qualification open
+The new prioritization test is:
 
-#2 has the property-level kernel on `main`: source references, mapping/transformation versions, observed vs ingestion time, SQLite persistence and property explanation. Remaining work is adapter consumption, authorization qualification and broader lineage/derived-state coverage.
+> **Does this work increase CEPIO's portable industrial operating competence, or are we rebuilding infrastructure that Fabric, Cognite, OSDU or frontier models already provide better?**
 
-### Adapter SDK — partial
+If the latter, prefer a binding, reuse or conformance layer instead.
 
-#52 already has the governed `write() -> verify() -> reconcile()` subset and fake-adapter qualification. Complete the source-neutral lifecycle:
+---
 
-`discover() -> read() -> subscribe() -> map() -> reconcile() -> write() -> verify()`
+# Current — v0.5 Platform-Native Integration + Portability Proof
 
-Remaining SDK work includes sync/event-driven lifecycle consistency, stable adapter error semantics, telemetry and full connector contract qualification.
+**Objective:** prove that CEPIO can operate natively over existing enterprise/industrial data planes without duplicating them, while preserving one portable operating contract.
 
-### External identity + writeback — common runtime foundation implemented
+This replaces the old connector-first v0.5 emphasis.
 
-#57 has common identity resolution, fail-closed ambiguity handling, idempotent external execution, verification, reconciliation state, workflow lineage and immutable Outcomes through #107/#114/#121/#149.
+## P0 — Fabric-first observation plane
 
-The remaining gate is **real source qualification**, especially SAP read/write/read-back, failure handling and operational observability.
+Use Fabric as the default Microsoft enterprise data plane where the required data/freshness already exists.
 
-### SAP + PI — current product bottleneck
+Prove:
 
-- #53 SAP S/4HANA maintenance/enterprise adapter — current P0.
-- #54 AVEVA PI operational-state adapter — current P0.
+- Fabric / OneLake / RTI -> CEPIO canonical object/state/evidence;
+- original source identity and provenance survive the Fabric hop;
+- CEPIO does not require SAP/PI-specific read integration when Fabric already provides sufficient context;
+- the same CEPIO query/Skill can consume Fabric-backed enterprise context.
 
-These should be built around the K-201 proof rather than as disconnected generic connector projects.
+## P0 — Cognite-native binding proof
 
-### Third-domain context
+Build a bounded Cognite DMS/CogniteCore binding experiment around one compressor/reliability scenario.
 
-- #55 OSDU/subsurface: OSDU-first boundary, domain runtime bindings and uncertainty/Opportunity semantics are now on `main` via #158/#159; live connector qualification remains open.
-- #56 Primavera P6 remains a valid alternative third-domain path.
+Prove:
 
-### v0.5 lighthouse proof — K-201 compressor
+- CEPIO can operate over the native Cognite graph without copying that graph into a separate CEPIO store;
+- Cognite `space`, `externalId`, views/containers and query mechanics remain binding concerns;
+- CEPIO Core requires no Cognite-specific canonical concepts;
+- CDF evidence remains traceable through CEPIO Evidence/Provenance;
+- the same CEPIO Skill operates unchanged over Cognite-backed and Fabric-backed contexts.
 
-#58 is the convergence gate for the product:
+## P0 — Provider-neutral industrial data contract
 
-`PI anomaly -> CEPIO observation/state/provenance -> reliability reasoning/Skill -> evidence + uncertainty -> Decision -> contextual policy -> human approval -> Kinetic workflow -> SAP work order -> SAP read-back -> verification -> WorkflowOutcome -> audit`
+Define the minimal provider contract needed by CEPIO Industry IQ, conceptually covering:
+
+`resolve -> relationships -> observations -> events/history -> evidence -> changes`
+
+Provider implementations may use Fabric, Cognite, the CEPIO reference runtime or another compatible data plane.
+
+## P0 — Cross-platform identity
+
+Prove one industrial identity across representations, for example:
+
+```text
+CEPIO Asset/K-101
+  <-> Fabric asset key
+  <-> Cognite space/externalId
+  <-> authoritative source identity
+```
+
+Ambiguity must fail closed.
+
+## P1 — Source-authoritative action plane
+
+Direct source integration remains necessary where the system of record owns business action semantics.
+
+First proof: governed SAP maintenance action/writeback.
+
+Required properties:
+
+- CEPIO Decision -> Authority -> Action;
+- idempotent execution;
+- SAP-side business validation;
+- read-back verification;
+- reconciliation;
+- Outcome + audit lineage.
+
+PI/P6/other direct read connectors are optional unless the platform-native data plane cannot satisfy freshness/fidelity requirements.
 
 ## v0.5 release gate
 
-One industrial asset must be represented using context from at least three source-system domains, material values/state must be explainable through provenance, and one external writeback must be authorized, idempotent, verified and reconciled.
+One bounded industrial scenario must demonstrate all of the following:
 
-No product-version advancement until this gate is qualified.
+1. the same canonical CEPIO object identity resolves across Fabric and Cognite representations;
+2. one CEPIO Skill runs unchanged over both platform-backed contexts;
+3. CEPIO Core changes required solely for either platform = **0**;
+4. duplicated authoritative Cognite/Fabric graph persisted by CEPIO = **0** (temporary cache/reference runtime excluded);
+5. material recommendations remain evidence-traceable to platform/source records;
+6. at least one source-authoritative external Action is authorized, idempotent, verified and reconciled.
 
----
-
-# v0.6 — Kinetic Runtime + Reference Industrial Applications
-
-**Application epic:** #59  
-**Kinetic runtime:** #67
-
-**Outcome:** prove that CEPIO can power a serious industrial application over live integrations using governed orchestration rather than application-specific business logic.
-
-## Delivery status — substantially pulled forward
-
-A large part of the v0.6 runtime foundation is already on `main`:
-
-- durable `WorkflowDefinition` / `WorkflowInstance`;
-- Function, Decision, Approval and Action steps;
-- human pause/resume;
-- restart-safe workflow state;
-- replay-safe trigger-key deduplication;
-- bounded function retries/timeouts and cancellation;
-- governed compensation for supported completed Actions;
-- async external Action lifecycle;
-- identity revalidation and concurrent dispatch consistency;
-- external-verification waiting;
-- immutable `WorkflowOutcome`;
-- contextual policy, obligations and deny-dominant composition;
-- exact workflow policy-version pinning and trusted evaluation lineage;
-- Skill runtime admission/preflight and READY-only host dispatch.
-
-Primary kinetic model:
-
-`Event/State -> Trigger -> Workflow -> Function -> Decision -> Approval -> Action -> Verify -> Outcome`
-
-Remaining runtime work before #67 can close:
-
-- event/state/time trigger subscriptions;
-- authenticated public workflow-control surfaces;
-- REST/SDK/MCP workflow administration;
-- workflow-specific OpenTelemetry qualification;
-- production worker scheduling, queue/lease semantics and distributed recovery;
-- complete live adapter/writeback proof from v0.5.
-
-## Lighthouse application — Asset Reliability / Maintenance Command Center
-
-Primary personas:
-- Reliability Engineer;
-- Maintenance Planner;
-- Operations Engineer;
-- Maintenance Manager;
-- Plant Manager.
-
-Core workflow:
-1. detect degradation;
-2. explain affected asset/context;
-3. assess operational consequence and risk;
-4. inspect work, maintenance and materials context;
-5. generate intervention options;
-6. compare risk/cost/availability impact;
-7. recommend action;
-8. authorize;
-9. issue governed action/work order;
-10. observe and verify outcome.
-
-Prefer bounded agents such as Reliability, Maintenance Planning, Operations Risk, Materials and Cost agents, all operating through CEPIO policy, workflow, Skill and Action contracts.
-
-Because the runtime foundation is already substantially implemented, **v0.6 is now expected to be primarily a live application/integration qualification milestone rather than a large new runtime build.**
-
-**v0.6 gate:** one reference application demonstrates the complete `Observe -> Understand -> Reason -> Decide -> Authorize -> Act -> Observe outcome` loop over qualified v0.5 integrations using first-class CEPIO runtime contracts.
-
-Follow-on applications:
-- Refinery Margin / Constraint Optimization;
-- Turnaround Planning.
+**v0.5 product claim:** CEPIO is a portable industrial operating contract over existing data platforms, not another industrial data platform.
 
 ---
 
-# v0.7 — Developer Platform
+# v0.6 — Industry IQ v1
 
-**Epic:** #60
+**Objective:** prove that CEPIO's differentiated value is reusable industrial operating competence rather than infrastructure.
 
-**Outcome:** independent engineering teams can extend CEPIO without modifying CEPIO-Core.
+The first Industry IQ release should prioritize depth over domain count.
 
-## Delivery status — partial foundations already exist
+## Initial Industry IQ packs
 
-Already available or substantially advanced:
-- stable `/api/v1` route contract;
-- Python client;
-- TypeScript reference client;
-- package/module/profile conventions;
-- first-class customer profiles;
-- compatibility/migration gates;
-- source-neutral domain binding contracts;
-- Skill/runtime extension contracts;
-- deployment profiles and strong developer documentation.
+### Reliability / Maintenance
 
-Still required for the v0.7 gate:
-- full Python and TypeScript SDK coverage of supported public operations;
-- CLI;
-- profile/adapter/application scaffolding;
-- generated API/SDK documentation;
-- ontology/profile validation tooling exposed as supported developer flows;
-- reusable templates/examples;
-- clean-room developer qualification.
+Build around capabilities already proven by the Skill work:
 
-Target developer flows:
-- `cepio new-profile <name>`
-- `cepio new-adapter <system>`
-- `cepio new-app <name>`
-- `cepio validate`
-- `cepio query`
-- `cepio migrate`
-- `cepio deploy`
+- investigate equipment degradation;
+- assess maintenance deferral;
+- failure investigation;
+- bad-actor analysis;
+- maintenance prioritization;
+- production/economic exposure;
+- intervention recommendation;
+- work-order/action handoff.
 
-**Gate:** a clean-room developer can build a simple customer profile, adapter and application through supported tooling without editing canonical core modules.
+### Drilling
 
----
+Use the existing drilling semantic/runtime baseline as the second materially different domain:
 
-# v0.8 — Enterprise Runtime
+- investigate NPT;
+- invisible lost-time analysis;
+- rig performance assurance;
+- maintenance/availability exposure;
+- operational assurance;
+- governed escalation/recommendation.
 
-**Epic:** #61
+A third pack such as Refinery or Subsurface/Petrophysics may progress in parallel, but it is not required to prove the v0.6 product claim.
 
-**Outcome:** qualify CEPIO for sustained enterprise operation.
+## Industry IQ artifact model
 
-## Foundations already pulled forward
+Each mature capability should define where applicable:
 
-Governance v2, security/static-analysis ratchets, CodeQL, SBOM/provenance generation, workload/deployment patterns, restart/idempotency correctness and runtime observability all reduce the remaining v0.8 scope.
+- trigger/intention;
+- required CEPIO semantics;
+- required evidence;
+- industrial procedure / Skill;
+- Functions/tools;
+- relevant failure/risk/constraint patterns;
+- Decision schema;
+- authority boundary;
+- recommendable/executable Actions;
+- Outcome expectations;
+- benchmark scenarios;
+- failure/insufficient-evidence behavior.
 
-The product gate still requires enterprise-scale operational qualification:
-- horizontal scale and stateless service patterns;
-- HA persistence;
-- production queue/event processing and distributed workers;
-- retries/dead-letter handling across real dependencies;
-- adapter circuit breakers and backpressure;
-- workload identity/private networking/Key Vault;
-- backup/restore and disaster recovery;
-- security/penetration qualification;
-- operational dashboards and SLO/error-budget program.
+## Model-agnostic execution
 
-Tenancy position: prefer one enterprise deployment boundary initially while preserving explicit tenant/isolation primitives for future shared deployments.
+Industry IQ must not be tied to a single frontier model or agent host.
 
-**Gate:** CEPIO survives node/service restart, duplicate messages, stale writes and adapter/dependency outages without semantic or workflow corruption, with measured SLOs and operational runbooks.
+Prove at least two frontier-model/provider configurations can execute the same CEPIO Skill/tool/evidence contract without changing the industrial capability definition.
 
----
+## v0.6 release gate
 
-# v0.9 — Second Enterprise Adoption
+- at least **10 high-value Industry IQ capabilities** across Reliability/Maintenance and Drilling;
+- at least **5 capabilities** executable end-to-end through CEPIO Skills/Decisions/Authority contracts;
+- no domain-specific capability may self-authorize external execution;
+- every material recommendation has an evidence requirement and fail-closed path;
+- same capability definition runs over at least two model/provider configurations;
+- platform-specific implementation remains below the CEPIO operating contract.
 
-**Epic:** #62
-
-**Outcome:** prove that CEPIO is portable across materially different Energy & Process Industry enterprises in real deployment, not merely in synthetic qualification.
-
-## Generalization evidence already achieved
-
-The Generalization Lab has materially de-risked this milestone:
-- refinery/process-manufacturing normalized semantic benchmark reached 100% capability coverage;
-- drilling contractor semantic and runtime qualification is on `main`;
-- the same frozen drilling contract has been qualified across synthetic operating models for ARO Drilling, SANAD, Nabors Industries and Arabian Drilling without customer-specific semantic overrides;
-- subsurface now follows an explicit OSDU-first extension boundary.
-
-This is strong **semantic/runtime portability evidence**, but it is not the v0.9 gate.
-
-The remaining proof must use at least two materially different real enterprise deployments/profiles and measure:
-- canonical class reuse;
-- canonical relationship reuse;
-- profile-specific additions;
-- CEPIO-Core code modifications required;
-- adapter reuse;
-- application/workflow reuse;
-- migration impact on enterprise #1.
-
-**Gate:** enterprise #2 is implemented primarily through profiles, adapters and application configuration while enterprise #1 remains stable.
+**v0.6 product claim:** CEPIO packages reusable industrial operating competence that frontier models can execute safely against enterprise context.
 
 ---
 
-# v1.0 — Production Platform
+# v0.7 — Generalization + Industrial Assurance
 
-**Epic:** #63
+**Objective:** turn CEPIO from a library of good industrial capabilities into a measurable system for proving capability quality, reuse and portability.
 
-**Outcome:** establish explicit production guarantees rather than add another major feature wave.
+## Generalization Lab
+
+Formalize the promotion process:
+
+`PROFILE -> DOMAIN -> CORE`
+
+Promotion requires evidence across materially different operating contexts. Only reusable abstractions/capability patterns move upward; customer data, thresholds, procedures and proprietary operating logic do not.
+
+## CEPIO Assurance
+
+Build protected qualification around:
+
+- unseen industrial scenario corpora;
+- Skill trigger/no-trigger quality;
+- evidence completeness;
+- authority violations;
+- unsupported/fabricated evidence detection;
+- decision quality;
+- action safety;
+- model-provider comparison;
+- Fabric vs Cognite platform-ablation;
+- cross-domain reuse metrics.
+
+The existing protected Agent Challenge v0.2 becomes one seed for this capability.
+
+## v0.7 release gate
+
+- protected assurance corpus spans at least Reliability/Maintenance + Drilling;
+- same Industry IQ capabilities are evaluated across at least two frontier models;
+- same capability is evaluated over Fabric-backed and Cognite-backed contexts;
+- measured results distinguish model quality from platform-binding quality;
+- at least one reusable capability is promoted based on documented Generalization Lab evidence rather than author intuition.
+
+**v0.7 product claim:** CEPIO can measure whether a model/platform combination possesses the required industrial operating competence.
+
+---
+
+# v0.8 — Enterprise Profiles + Native Deployment
+
+**Objective:** prove that CEPIO Industry IQ can be specialized for a real enterprise without forking CEPIO Core or copying the enterprise's platform estate.
+
+Priority work:
+
+- PROFILE packaging;
+- customer-specific mappings;
+- authority/policy binding;
+- enterprise Skills/procedures;
+- platform-native deployment pattern;
+- private/customer-owned benchmark scenarios;
+- governed action integration;
+- operations/security requirements driven by the real deployment.
+
+Infrastructure hardening is demand-driven at this stage. Build HA, queues, workers, DR and control-plane components only where the selected enterprise deployment requires CEPIO-owned runtime state that cannot be delegated safely to the host platform.
+
+## v0.8 release gate
+
+One enterprise profile demonstrates:
+
+- no customer IP promoted into shared CEPIO Core;
+- most data context is consumed through native platform bindings;
+- customer-specific operating logic remains PROFILE/customer-boundary;
+- CEPIO Industry IQ can be specialized without forking shared capabilities;
+- governed external actions and audit work in the deployed environment;
+- operational/SLO/security evidence matches the actual deployment architecture.
+
+**v0.8 product claim:** CEPIO can become enterprise-specific while preserving a common portable industrial intelligence layer.
+
+---
+
+# v0.9 — Multi-Enterprise Portability
+
+**Objective:** prove portability in real enterprises rather than only synthetic/generalization tests.
+
+Use two materially different enterprise operating contexts and ideally different platform combinations.
+
+Measure:
+
+- CEPIO Core changes required;
+- Industry IQ capability reuse;
+- Skill reuse;
+- Decision/action contract reuse;
+- PROFILE-specific additions;
+- platform-binding reuse;
+- benchmark portability;
+- impact on enterprise #1 when enterprise #2 is added.
+
+## v0.9 release gate
+
+- enterprise #2 is implemented primarily through bindings, PROFILE specialization and Industry IQ composition;
+- enterprise #1 remains stable;
+- CEPIO Core changes required for enterprise #2 are zero or supported by independent Generalization Lab evidence;
+- at least one capability is reused across both enterprises and at least two materially different platform contexts.
+
+**v0.9 product claim:** CEPIO Industry IQ is portable across enterprises, platforms and frontier-model providers.
+
+---
+
+# v1.0 — Production Industry IQ
+
+**Objective:** establish explicit production guarantees for the CEPIO contract, Industry IQ packs, bindings and assurance model.
+
+v1.0 is not a promise that CEPIO has become a full-stack data/agent/application platform.
 
 Required guarantees:
 
-### Semantic compatibility
-- versioned ontology/module contracts;
-- explicit migrations for breaking semantic changes;
-- stable profile dependency/version rules.
+## Core contract
 
-### API compatibility
-- stable `/api/v1`;
-- documented deprecation policy;
-- SDK compatibility tests.
+- versioned semantic contracts;
+- explicit migrations/deprecation;
+- stable evidence/decision/authority/action semantics;
+- compatibility tests.
 
-### Security
-- authenticated identity and actor-scoped authorization;
-- no client-supplied privilege authority;
-- immutable/auditable governed action and workflow history;
-- security review/penetration testing.
+## Industry IQ
 
-### Runtime
-- repeatable deployment;
-- HA/scale qualification;
-- backup/restore and disaster recovery;
-- telemetry/runbooks;
-- defined and measured SLOs.
+- versioned capability/Skill contracts;
+- domain-pack release discipline;
+- documented evidence/authority requirements;
+- protected evaluation baselines;
+- reproducible quality/assurance evidence.
 
-### Integration
-- production-quality SAP and PI baseline;
-- OSDU/P6 according to reference deployments;
-- governed and reconciled external writeback.
+## Platform bindings
 
-### Kinetic execution
-- durable workflow execution;
-- replay/idempotency guarantees across workflow steps;
-- human approval and policy enforcement;
-- async/long-running action handling;
-- compensation and verified outcome tracking.
+- production-qualified Fabric binding;
+- production-qualified Cognite binding or equivalent second platform;
+- OSDU boundary where relevant;
+- source-authoritative action binding for at least one enterprise system;
+- no platform-specific semantics leaking into Core.
 
-### Adoption
+## Model independence
+
+- at least two frontier model/provider configurations qualified against the same CEPIO assurance corpus;
+- model substitution does not require rewriting Industry IQ capability definitions.
+
+## Enterprise adoption
+
 - at least two materially different enterprise profiles/deployments;
-- enterprise #2 does not destabilize enterprise #1;
-- published documentation supports teams other than original authors.
+- customer #2 does not destabilize customer #1;
+- clean-room implementation can consume CEPIO Core + one Industry IQ pack + one platform binding from published/provided contracts.
 
-**Gate:** v0.4-v0.9 product gates complete, compatibility/security/SLO/DR guarantees are qualified, two-enterprise portability evidence exists, and a clean-room deployment succeeds from published documentation.
+## Security / operations
+
+Operational guarantees apply to CEPIO-owned runtime components only. Where state/execution is delegated to Fabric, Cognite or another host platform, CEPIO documents and validates the boundary rather than rebuilding equivalent infrastructure.
+
+**v1.0 product claim:** CEPIO is a production-qualified portable Industrial Operating Intelligence layer for Energy & Process Industries.
 
 ---
 
 # Program view
 
-| Release | Product claim | Current delivery posture | GitHub epic |
-| --- | --- | --- | --- |
-| v0.4 | deployable Microsoft-native industrial semantic runtime | **Qualified** | #22 / gate #50 |
-| v0.5 | live operation over industrial source systems | **Current critical path** | #51 |
-| v0.6 | governed kinetic orchestration + reference industrial application | **Runtime foundations substantially pulled forward; live app proof pending** | #67 + #59 |
-| v0.7 | independent developers can extend CEPIO | **Partial foundations already available** | #60 |
-| v0.8 | enterprise-operable runtime | **Governance/security/observability foundations pulled forward** | #61 |
-| v0.9 | portable across enterprises | **Semantic/runtime generalization de-risked; real deployment proof future** | #62 |
-| v1.0 | production guarantees | **Future release gate** | #63 |
+| Release | Product claim | Primary proof |
+| --- | --- | --- |
+| v0.4 | Developer Preview foundation | Core/API/security/Microsoft binding qualified |
+| **v0.5** | Platform-independent operating contract | Same Skill over Fabric + Cognite; source-authoritative action proof |
+| **v0.6** | Industry IQ v1 | Reusable Reliability + Drilling capabilities |
+| **v0.7** | Industrial assurance | Model/platform benchmark + Generalization evidence |
+| **v0.8** | Enterprise specialization | Real PROFILE + native deployment |
+| **v0.9** | Multi-enterprise portability | Two materially different real enterprise contexts |
+| **v1.0** | Production Industry IQ | Stable contract, packs, bindings and assurance guarantees |
 
-## Current execution order
+---
 
-### COMPLETED — CEPIO v0.4 Developer Preview
-- Developer Preview qualified through #66/#69 and related platform/API gates.
+# Immediate execution order
 
-### NOW — finish CEPIO v0.5 live integration
-1. Close remaining #2 provenance integration/security qualification.
-2. Complete #52 Adapter SDK beyond the existing write/verify/reconcile subset.
-3. Implement #53 SAP and #54 PI around the K-201 scenario.
-4. Qualify #57 against real SAP identity/write/read-back/failure behavior.
-5. Use #55 OSDU or #56 P6 as the third source-system domain.
-6. Execute #58 end-to-end and qualify CEPIO v0.5.
+## NOW — strategy transition
 
-### ALREADY PULLED FORWARD — reduce post-v0.5 scope
-- #67 durable Kinetic foundations, verification, Outcomes and contextual policy are substantially implemented.
-- Skills runtime admission and READY-only dispatch are on `main`.
-- Core evidence/uncertainty and Kinetic Opportunity semantics are on `main`.
-- OSDU-first subsurface federation/runtime bindings are on `main`.
-- drilling runtime + cross-customer qualification is on `main`.
-- refinery/process normalized semantic benchmark is at 100% capability coverage.
-- Governance v2 and publication/IP boundaries are active.
+1. Treat v0.1-v0.4 and pulled-forward runtime work as completed foundation/reference infrastructure.
+2. Stop making source-by-source read adapters the v0.5 critical path.
+3. Preserve SAP writeback/reconciliation as the first authoritative-action proof.
+4. Make Fabric the default Microsoft observation/data plane.
+5. Start Cognite DMS native-binding hypothesis in CEPIO-Labs.
+6. Define provider-neutral identity/query/evidence contract from the Fabric + Cognite comparison.
+7. Continue protected Skills work as the seed of CEPIO Industry IQ.
+8. Continue protected Agent Challenge/evaluation work as the seed of CEPIO Assurance.
 
-### NEXT — CEPIO v0.6 becomes a compressed application qualification milestone
-- complete remaining #67 trigger/control/telemetry surfaces needed by the lighthouse;
-- build #59 Asset Reliability / Maintenance Command Center on qualified v0.5 integrations;
-- prove the complete live operating loop without source-specific business logic in the application.
+## NEXT — Industry IQ depth
 
-### THEN — v0.7 / v0.8 can proceed with reduced foundational scope
-- v0.7: CLI, scaffolding, complete SDK/tooling and clean-room developer proof;
-- v0.8: HA, distributed workers/queues, DR, SLOs and production security/operations qualification.
+9. Consolidate Reliability/Maintenance capabilities into the first coherent Industry IQ pack.
+10. Use Drilling as the second materially different pack and generalization pressure test.
+11. Keep Refinery/Petrochemical/Subsurface work focused on reusable operating capability rather than ontology breadth alone.
+12. Evaluate frontier models as replaceable reasoning engines through the same CEPIO capability/evidence contracts.
 
-### LATER — v0.9 / v1.0
-- v0.9: real second-enterprise deployment portability proof;
-- v1.0: freeze and qualify production guarantees rather than add major new feature families.
+## DEFER unless demanded by a proof/deployment
 
-### DEFERRED / NON-BLOCKING
-- #20 Purview governance + lineage bridge.
-- #25 GPU AKS cuGraph validation / benchmarking.
+- broad direct PI/P6 read-adapter work;
+- proprietary graph/database scaling;
+- general-purpose agent-framework work;
+- CEPIO-specific thick UI/platform shell;
+- generic graph-analytics expansion;
+- production HA/queue/control-plane work not required by a real enterprise deployment.
 
-## Near-term roadmap rule
+---
 
-Until v0.5 is qualified, prioritize work in this order:
+# Governing product tests
 
-`live adapter capability -> K-201 end-to-end proof -> remaining lighthouse runtime gap -> reference application -> developer/enterprise platformization`
+Every material roadmap item should now answer at least one of these questions:
 
-Avoid broad canonical-semantic expansion unless a frozen domain challenge or live integration demonstrates a reusable gap.
+1. **Industrial intelligence:** does this encode reusable industrial operating competence?
+2. **Portability:** does this make the competence independent of model/platform/vendor?
+3. **Grounding:** does this improve identity, state, evidence or provenance?
+4. **Governance:** does this strengthen Decision, Authority, Action or Outcome control?
+5. **Generalization:** does this prove what belongs in PROFILE, DOMAIN or CORE?
+6. **Assurance:** can we measure whether the capability works and fails safely?
+
+If the primary answer is instead "this recreates infrastructure already provided by a host platform," prefer reuse or a thin binding.
