@@ -7,12 +7,7 @@ import yaml
 from cepio.generalization import load_gap_triage, run_harness
 
 ROOT = Path(__file__).resolve().parents[1]
-GAPS = (
-    ROOT
-    / "generalization"
-    / "gaps"
-    / "drilling-contractor-domain-qualification-v0.4.1.yaml"
-)
+GAPS = ROOT / "generalization" / "gaps" / "drilling-contractor-domain-qualification-v0.4.1.yaml"
 RESOLUTIONS = (
     ROOT
     / "generalization"
@@ -20,10 +15,7 @@ RESOLUTIONS = (
     / "drilling-contractor-domain-qualification-v0.4.1-resolutions.yaml"
 )
 COMPETENCY = (
-    ROOT
-    / "generalization"
-    / "competency"
-    / "drilling-contractor-domain-qualification-v0.4.yaml"
+    ROOT / "generalization" / "competency" / "drilling-contractor-domain-qualification-v0.4.yaml"
 )
 
 EXPECTED = {
@@ -73,9 +65,7 @@ def test_active_gap_triage_matches_current_normalized_v041_failures(tmp_path):
     report = _normalized_report(tmp_path)
     active = _active_triage()
     failures = {
-        result["id"]
-        for result in report["results"]
-        if result["status"] in {"PARTIAL", "FAIL"}
+        result["id"] for result in report["results"] if result["status"] in {"PARTIAL", "FAIL"}
     }
 
     assert report["status_counts"] == EXPECTED_STATUS
@@ -88,9 +78,7 @@ def test_resolution_ledger_preserves_the_four_accepted_core_decisions():
     ledger = _resolutions()
     source_triage = str(GAPS.relative_to(ROOT)).replace("\\", "/")
     resolutions = {item["question_id"]: item for item in ledger["resolutions"]}
-    resolved_gap_ids = {
-        question: item["gap_id"] for question, item in resolutions.items()
-    }
+    resolved_gap_ids = {question: item["gap_id"] for question, item in resolutions.items()}
     modules = {item["module"] for item in resolutions.values()}
 
     assert ledger["status"] == "implemented"
