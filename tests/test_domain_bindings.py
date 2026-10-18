@@ -9,7 +9,6 @@ from cepio.domain_bindings import (
     ExternalRecordReference,
 )
 
-
 ROOT = Path(__file__).parents[1]
 CONTRACT = ROOT / "mappings" / "osdu_subsurface_bindings.yaml"
 
@@ -49,7 +48,9 @@ def test_external_record_reference_preserves_versioned_external_identity():
         partition="opendes",
     )
     assert ref.stable_key.endswith(":7")
-    assert ref.record_id == "tenant:work-product-component--ReservoirModelScenario:rm-21"
+    assert (
+        ref.record_id == "tenant:work-product-component--ReservoirModelScenario:rm-21"
+    )
 
     with pytest.raises(ValidationError):
         ref.record_version = 8
