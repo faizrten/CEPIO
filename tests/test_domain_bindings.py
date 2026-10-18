@@ -28,10 +28,7 @@ def test_object_binding_preserves_treatment_and_provider_service():
     fault = contract.object_binding("fault_interpretation")
     assert fault.treatment == "EXTEND"
     assert fault.provider_service == "reservoir_ddms"
-    assert (
-        "https://cepio.org/ontology/core#UncertaintyAssessment"
-        in fault.sidecar_semantics
-    )
+    assert "https://cepio.org/ontology/core#UncertaintyAssessment" in fault.sidecar_semantics
 
     well = contract.object_binding("well")
     assert well.treatment == "BIND"
@@ -48,9 +45,7 @@ def test_external_record_reference_preserves_versioned_external_identity():
         partition="opendes",
     )
     assert ref.stable_key.endswith(":7")
-    assert (
-        ref.record_id == "tenant:work-product-component--ReservoirModelScenario:rm-21"
-    )
+    assert ref.record_id == "tenant:work-product-component--ReservoirModelScenario:rm-21"
 
     with pytest.raises(ValidationError):
         ref.record_version = 8
