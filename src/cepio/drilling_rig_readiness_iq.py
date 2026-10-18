@@ -235,9 +235,7 @@ def _assess_well_control(
             )
         for target in targets:
             if not _is_a(runtime, target.type, "Equipment"):
-                raise ValueError(
-                    f"Well-control test {test.id} target {target.id} is not Equipment"
-                )
+                raise ValueError(f"Well-control test {test.id} target {target.id} is not Equipment")
             evidence.add(target.id)
 
         if status not in passed:
@@ -351,17 +349,14 @@ def _assess_workforce(
 
         for requirement in requirements:
             evidence.add(requirement.id)
-            assessments = runtime.reverse_neighbors(
-                requirement.id, "assessmentAgainstRequirement"
-            )
+            assessments = runtime.reverse_neighbors(requirement.id, "assessmentAgainstRequirement")
             matched = False
             for assessment in assessments:
                 if not _is_a(runtime, assessment.type, "CompetencyAssessment"):
                     continue
                 evidence.add(assessment.id)
                 assessed_people = {
-                    person.id
-                    for person in runtime.neighbors(assessment.id, "assessmentOfPerson")
+                    person.id for person in runtime.neighbors(assessment.id, "assessmentOfPerson")
                 }
                 evidence.update(assessed_people)
                 level = assessment.properties.get("competencyLevel")
@@ -502,23 +497,15 @@ def assess_rig_readiness(
     rig = _require_type(runtime, rig_id, "OperatingRig")
     planned_activity = _require_type(runtime, planned_activity_id, "ActivityInterval")
     assessed_at = _aware_datetime(assessment_time, label="assessment_time")
-    if rig.id not in {
-        item.id for item in runtime.neighbors(planned_activity.id, "activityOnRig")
-    }:
-        raise ValueError(
-            f"Planned activity {planned_activity_id} is not linked to rig {rig_id}"
-        )
+    if rig.id not in {item.id for item in runtime.neighbors(planned_activity.id, "activityOnRig")}:
+        raise ValueError(f"Planned activity {planned_activity_id} is not linked to rig {rig_id}")
 
     _require_evidence_ids(required_dimensions, ReadinessDimension.equipment, equipment_ids)
     _require_evidence_ids(
         required_dimensions, ReadinessDimension.well_control, well_control_test_ids
     )
-    _require_evidence_ids(
-        required_dimensions, ReadinessDimension.workforce, crew_assignment_ids
-    )
-    _require_evidence_ids(
-        required_dimensions, ReadinessDimension.supply, material_requirement_ids
-    )
+    _require_evidence_ids(required_dimensions, ReadinessDimension.workforce, crew_assignment_ids)
+    _require_evidence_ids(required_dimensions, ReadinessDimension.supply, material_requirement_ids)
     if ReadinessDimension.supply in required_dimensions and not inventory_position_ids:
         raise ValueError("supply inventory readiness evidence is required")
 
@@ -609,20 +596,14 @@ def create_readiness_exception(
     request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime
 ) -> dict[str, object]:
     exception_id = str(
-        request.parameters.get(
-            "exception_id", f"RIG-READY-EXC-{uuid4().hex[:8].upper()}"
-        )
+        request.parameters.get("exception_id", f"RIG-READY-EXC-{uuid4().hex[:8].upper()}")
     )
     planned_activity_id = str(request.parameters["planned_activity_id"])
     planned_activity = _require_type(runtime, planned_activity_id, "ActivityInterval")
     exception = OntologyObject(
         id=exception_id,
         type="WorkItem",
-        name=str(
-            request.parameters.get(
-                "title", f"Rig readiness exception for {target.name}"
-            )
-        ),
+        name=str(request.parameters.get("title", f"Rig readiness exception for {target.name}")),
         properties={
             "status": "OPEN",
             "workItemKind": "rig-readiness-exception",
