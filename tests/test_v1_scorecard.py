@@ -1,15 +1,23 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import importlib.util
 from pathlib import Path
 
 import pytest
 import yaml
 
-from scripts.v1_scorecard import ScorecardError, calculate, load_scorecard, validate_scorecard
-
 
 SCORECARD = Path("config/v1-scorecard.yaml")
+SCRIPT = Path("scripts/v1_scorecard.py")
+SPEC = importlib.util.spec_from_file_location("v1_scorecard", SCRIPT)
+assert SPEC is not None and SPEC.loader is not None
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
+ScorecardError = MODULE.ScorecardError
+calculate = MODULE.calculate
+load_scorecard = MODULE.load_scorecard
+validate_scorecard = MODULE.validate_scorecard
 
 
 def raw_scorecard() -> dict:
