@@ -166,6 +166,21 @@ jobs:
           --standards generalization/standards/refinery-process-references-v0.2.yaml
           --skip-gap-triage
           --json-out refinery-generalization-v0.2-report.json
+      - name: Run refinery operating abstraction semantic qualification v0.1
+        run: >-
+          PYTHONPATH=src python scripts/run_generalization_harness.py
+          --archetype generalization/archetypes/refinery-process-manufacturing-v0.1.yaml
+          --competency generalization/competency/refinery-operating-abstraction-v0.1.yaml
+          --personas generalization/personas/refinery-process-manufacturing-v0.2.yaml
+          --standards generalization/standards/refinery-process-references-v0.2.yaml
+          --skip-gap-triage
+          --fail-on-critical-gap
+          --json-out refinery-operating-abstraction-semantic-v0.1-report.json
+      - name: Run refinery operating abstraction runtime qualification v0.1
+        run: >-
+          PYTHONPATH=src python scripts/run_refinery_operating_qualification.py
+          --fail-on-gap
+          --json-out refinery-operating-abstraction-runtime-v0.1-report.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
