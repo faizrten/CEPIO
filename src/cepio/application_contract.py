@@ -10,7 +10,7 @@ from .runtime import AuthorizationError, CEPIORuntime
 from .skill_preflight import SkillPreflightResult, SkillRegistry
 
 
-APPLICATION_CONTRACT_VERSION = "0.1.0"
+APPLICATION_CONTRACT_VERSION: Literal["0.1.0"] = "0.1.0"
 
 
 class PrincipalLike(Protocol):
