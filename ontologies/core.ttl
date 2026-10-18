@@ -47,6 +47,7 @@ cepio:impacts a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio
 cepio:dependsOn a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
 cepio:causedBy a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
 cepio:contributesTo a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
+cepio:hasRisk a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Risk .
 
 cepio:hasEvidence a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Evidence .
 cepio:supportedBy a owl:ObjectProperty ; rdfs:domain cepio:Claim ; rdfs:range cepio:Evidence .
