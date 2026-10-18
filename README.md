@@ -2,31 +2,65 @@
 
 **Common Energy & Process Industry Ontology**
 
-> **An industry operating ontology for Energy & Process Industries — connecting enterprise data, operational state, industrial semantics, AI reasoning and governed action.**
+> **CEPIO is the portable industrial operating intelligence layer for Energy & Process Industries: thin in infrastructure, thick in industrial intelligence.**
+
+CEPIO gives humans, applications and AI agents a shared operating understanding of industrial assets, processes, work, risk, decisions and actions while preserving each enterprise's proprietary operating knowledge.
 
 ## North Star
 
-> **Aim for CEPIO to provide the same class of enterprise operating abstraction that Palantir Ontology provides — specialized for Energy & Process Industries and natively realized across the Microsoft ecosystem.**
+> **Thin infrastructure. Thick industrial intelligence.**
 
-CEPIO provides a canonical model of industrial **objects, relationships, state, time, provenance, functions, decisions and governed actions**.
+Frontier models provide general intelligence. Data and industrial platforms provide storage, compute and enterprise context. CEPIO provides reusable **industrial operating competence**:
 
-The intended operating loop is:
+- industrial semantics and operational state;
+- evidence requirements and provenance;
+- uncertainty and confidence;
+- Skills and procedural knowledge;
+- failure, risk and constraint patterns;
+- KPI and economic logic;
+- decision patterns and authority;
+- governed Actions and workflows;
+- competency and evaluation benchmarks.
+
+The product objective is not to recreate Fabric, Cognite, OSDU, SAP, PI, a graph database, an agent platform or a model runtime. CEPIO binds those systems behind a stable industrial operating contract.
 
 ```text
-Observe -> Understand -> Reason -> Decide -> Recommend -> Authorize -> Act -> Observe outcome
+Authoritative enterprise context
+SAP · PI · OSDU · Fabric · Cognite · P6 · MES · engineering systems
+                         |
+                         v
+               Replaceable bindings
+                         |
+                         v
+              Thin CEPIO operating core
+ semantics · state · evidence · time · provenance · policy · authority
+                         |
+                         v
+                 Thick Industry IQ
+ skills · competencies · decision patterns · risk/failure patterns
+ constraints · KPI/economic logic · workflows · evaluations
+                         |
+                         v
+       Humans · applications · copilots · AI agents
+                         |
+                         v
+                 Governed outcomes
 ```
 
-Applications and AI agents should be able to operate on the enterprise without embedding business logic directly into SAP, AVEVA PI, OSDU, Primavera P6, Fabric tables, SQL schemas or another source-system representation.
+**Palantir Ontology remains a useful capability benchmark, not CEPIO's product identity.** CEPIO's identity is an open, portable Industrial Operating Intelligence layer specialized for Energy & Process Industries.
+
+For Microsoft deployments, CEPIO can be understood as the layer that turns general Microsoft/Fabric/Foundry intelligence into **Industrial IQ**. Microsoft-native does not mean Microsoft-dependent: the CEPIO contract must remain portable across platform environments.
 
 ---
 
 ## Current release
 
-Current Python package version: **`0.4.0`**.
-
+Current Python package version: **`0.4.0`**.  
 Release designation: **CEPIO v0.4 — Developer Preview**.
 
-v0.4 qualifies CEPIO as a coherent Microsoft-native developer/runtime contract rather than only a repository-level ontology reference. The supported public HTTP surface is `/api/v1`.
+v0.4 qualifies the core developer/runtime contract: canonical semantics, temporal state and provenance, Functions, Decisions, governed Actions, public `/api/v1`, Entra-aware security boundaries, Microsoft bindings, reference deployment profiles and observability.
+
+Repository `main` may contain capabilities pulled forward from later roadmap stages. Component completion does not automatically change the published product-release guarantee.
 
 Start with:
 
@@ -34,257 +68,157 @@ Start with:
 - [Release manifest and support boundary](RELEASE.md)
 - [Execution roadmap](docs/roadmap.md)
 - [CEPIO Wiki](docs/wiki/Home.md)
-
-The Developer Preview is intentionally narrower than a production enterprise platform. SQLite remains a single-writer reference backend, live industrial-system writeback is v0.5 work, and production HA/SLO/DR qualification is later roadmap work.
+- [Target Users / Personas](docs/wiki/19-Target-Users-Personas.md)
+- [Competency & Assurance](docs/wiki/20-Competency-Assurance.md)
 
 ---
 
-## What CEPIO is
+## Product model
 
-CEPIO is an **industrial operating abstraction** between enterprise systems and the applications, agents and workflows that consume them.
+CEPIO separates four durable concerns:
 
 ```text
-Enterprise reality
-        |
-        v
-Source systems
-SAP · PI · OSDU · P6 · MES · Fabric · SQL
-        |
-        v
-      CEPIO
-+--------------------------------+
-| Objects                        |
-| Relationships                  |
-| Properties                     |
-| Events + State                 |
-| Valid time + Transaction time  |
-| Provenance                     |
-| Functions                      |
-| Decisions                      |
-| Actions                        |
-| Policies                       |
-| Migration contracts            |
-+---------------+----------------+
-                |
-       +--------+--------+
-       v                 v
-     Apps              Agents
-       |                 |
-       +--------+--------+
-                v
-       Governed operations
+1. Replaceable platform bindings
+   Where enterprise context comes from
+
+2. Thin operating core
+   Stable semantics, identity, state, time, evidence, provenance,
+   uncertainty, policy, authority, Functions, Decisions and Actions
+
+3. Thick Industry IQ Packs
+   Reusable domain competence: Skills, competency questions,
+   decision/risk/failure patterns, constraints, KPI/economic logic,
+   workflows and evaluation benchmarks
+
+4. Headless experiences
+   Persona-adaptive apps, copilots, agents, analytics and workflows
 ```
 
-CEPIO is **not** another data lake, graph database product, generic RDF/OWL standards project, agent framework or plant-control system. CEPIO defines industrial meaning and the governed operating contract; platform services implement and materialize that contract.
+The governing architecture rule is:
+
+> **Keep infrastructure thin and replaceable; concentrate CEPIO IP in reusable industrial intelligence.**
+
+### What CEPIO owns
+
+CEPIO should own the reusable industrial operating contract:
+
+- canonical industrial meaning;
+- cross-system identity;
+- operational state and time;
+- evidence and provenance requirements;
+- uncertainty/confidence abstractions;
+- industrial Functions and Skills;
+- decision and authority patterns;
+- governed Actions and workflow semantics;
+- competency and assurance contracts;
+- outcome/evaluation semantics.
+
+### What CEPIO normally binds rather than owns
+
+- raw historian measurements;
+- ERP transactions;
+- seismic files and reservoir grids;
+- engineering documents and 3D files;
+- data-lake or warehouse storage;
+- model hosting and frontier-model capability;
+- source-native process models;
+- customer-specific proprietary operating logic unless explicitly packaged as a customer profile.
 
 ---
 
-## Architecture principle
-
-CEPIO separates three concerns:
+## Operating loop
 
 ```text
-1. CEPIO Canonical Model
-   What an industrial enterprise means
-            |
-            v
-2. Platform Bindings
-   How CEPIO is realized on technology platforms
-            |
-            v
-3. Customer Profiles
-   How a particular enterprise operates
+Understand -> Reason -> Decide -> Act -> Learn
 ```
 
-> **Microsoft services may implement CEPIO capabilities, but they do not define CEPIO's industrial semantics.**
-
-SAP schemas, PI tags, Fabric tables, OSDU objects and customer-specific models may map into CEPIO without becoming canonical CEPIO semantics by default.
-
----
-
-## CEPIO operating model
-
-CEPIO combines semantics, operational state and kinetics:
+The detailed governed loop is:
 
 ```text
-                           CEPIO
-                             |
-          +------------------+------------------+
-          |                  |                  |
-      SEMANTICS            STATE             KINETICS
-          |                  |                  |
-      Objects              Events             Functions
-      Relationships        Time               Decisions
-      Properties           History            Actions
-      Interfaces           Provenance         Workflows*
-      Capabilities         Projection         Constraints
-          |                  |                  |
-          +------------------+------------------+
-                             |
-                      Policy + Audit
-                             |
-                       Apps + Agents
+Observe -> Understand -> Reason -> Decide -> Recommend
+        -> Authorize -> Act -> Verify -> Learn
 ```
 
-`*` Individual functions, decisions and actions are executable today. Durable first-class workflow orchestration is roadmap issue #67 rather than a v0.4 guarantee.
+CEPIO exists to make that loop reusable, evidence-backed and governed across industrial systems.
 
 ---
 
-## What v0.4 includes
+## Target users
 
-### Semantic + state foundation
+CEPIO serves both humans and machine consumers.
 
-- modular CEPIO Core / Industrial / Energy / Lifecycle / Enterprise / Kinetic ontology;
-- canonical Asset, Work Management, Reliability, HSE, Supply, Performance, Workforce, Commercial and Agentic Operations modules;
-- Process Industry, Manufacturing, EPCIC and Drilling domain modules;
-- IRI-first type/property identity and fail-closed alias ambiguity;
-- canonical property contract;
-- property-level provenance;
-- bitemporal object and relationship history;
-- deterministic event -> state projection.
+**Primary industrial users** are engineers, planners and operational leaders whose decisions require context across multiple systems, including reliability, maintenance, operations, process engineering, safety/integrity, planning and domain-specialist roles.
 
-### Kinetic runtime
+**Platform users** include industrial data architects, ontology/domain engineers, AI engineers, application developers, integration engineers and platform/security teams that build governed industrial applications and agents on CEPIO.
 
-- typed functions;
-- first-class Decision records;
-- governed Actions;
-- preconditions and approval metadata;
-- compensation-handler support;
-- action audit;
-- actor/action/target-scoped idempotency.
+**AI agents** are first-class software consumers, but they receive knowledge and execution authority separately. Persona context never grants permission to act.
 
-### Public API v1
-
-- versioned `/api/v1` namespace;
-- committed OpenAPI route baseline;
-- 18 route/method/operation-ID contracts enforced in CI;
-- structured error envelopes and request correlation;
-- ETag / If-Match optimistic concurrency;
-- Idempotency-Key action semantics;
-- typed object queries, deterministic cursors and query budgets;
-- graph analytics, events, functions, decisions and audit endpoints.
-
-The v0.4 OpenAPI guarantee is intentionally **route-contract based plus selected product-critical semantics**. It is not yet a claim of complete generated-schema compatibility for every request/response field.
-
-### Security
-
-- Microsoft Entra token validation for production mode;
-- actor identity and roles derived from validated claims rather than request authority;
-- explicit development-auth mode that fails closed in production;
-- object-type, sharing-scope, property, function and action controls;
-- query authorization before exposed totals, cursor positions and pages.
-
-### Microsoft platform extension
-
-- Fabric / Fabric IQ semantic binding;
-- Microsoft Foundry + governed CEPIO MCP integration;
-- App Service reference deployment profile;
-- AKS reference deployment profile;
-- managed/workload identity boundaries documented separately from CEPIO actor identity.
-
-### Observability
-
-- backend-neutral telemetry event/sink contract;
-- repository, policy, function and action latency/success/failure telemetry;
-- sanitized rejected-action telemetry;
-- optional OpenTelemetry adapter.
-
-### Graph intelligence
-
-- NetworkX CPU/reference graph analytics;
-- PageRank, degree, betweenness and eigenvector centrality;
-- Louvain communities;
-- dependency traversal and blast radius;
-- optional NVIDIA `nx-cugraph` acceleration path.
+See [Target Users / Personas](docs/wiki/19-Target-Users-Personas.md).
 
 ---
 
-## Time, provenance and state
+## Competency as a product quality metric
 
-CEPIO distinguishes:
-
-- **valid time** — when a fact is true in the industrial domain;
-- **transaction time** — when CEPIO recorded or learned that fact.
-
-This lets CEPIO distinguish:
+CEPIO maturity is not measured by ontology size.
 
 ```text
-What was actually true at time T?
-vs.
-What did CEPIO believe at time T?
+Persona
+  -> Job / responsibility
+  -> Decision
+  -> Competency question
+  -> Required CEPIO capabilities
+  -> Evidence / Skill / Function / Decision / Action
+  -> PASS / PARTIAL / FAIL / NOT_RUN
 ```
 
-Property provenance can retain source system, source entity/field/record, source-value hash, mapping version, transformation run, observed time and ingestion time.
+The assurance model progresses through:
 
-Operational state is rebuildable from immutable events with deterministic `(occurred_at, event_id)` ordering.
+1. semantic competency;
+2. runtime competency;
+3. procedural / Skill competency;
+4. agent competency;
+5. operational competency.
+
+The Generalization Lab and Competency Harness exist to prove reusable industrial competence without contaminating Core with customer-specific vocabulary.
+
+See [Competency & Assurance](docs/wiki/20-Competency-Assurance.md) and [Generalization Harness](docs/generalization-harness.md).
 
 ---
 
-## Microsoft-native architecture
+## Headless-first experience principle
 
-```text
-                    MICROSOFT DATA + AI
-                            |
-            +---------------+---------------+
-            |               |               |
-          DATA           AI / AGENTS     IDENTITY
-            |               |               |
-     Fabric / OneLake    Foundry           Entra
-     Warehouse           Agents
-     Lakehouse           MCP
-     Eventhouse
-            |               |
-            +-------+-------+
-                    |
-                    v
-                   CEPIO
-      +-----------------------------+
-      | Objects + Relationships     |
-      | State + Time + Provenance   |
-      | Functions + Decisions       |
-      | Governed Actions + Policy   |
-      +--------------+--------------+
-                     |
-             App Service / AKS
-```
+CEPIO is **headless at its core and adaptive at its surface**.
+
+> **Same industrial reality. Different experience for every decision-maker.**
+
+Applications, copilots and agents consume the same governed CEPIO contract while presenting context appropriate to the persona and decision at hand.
+
+---
+
+## Microsoft-native, not Microsoft-dependent
+
+Microsoft remains the primary reference implementation ecosystem:
 
 | Platform | CEPIO role |
 |---|---|
-| **Fabric / OneLake / RTI** | enterprise data foundation and operational/analytical source bindings |
-| **Fabric IQ / Ontology / Graph** | Microsoft-native materialization of CEPIO semantic objects and relationships |
-| **Microsoft Foundry** | model/agent execution grounded through governed CEPIO tools |
+| **Fabric / OneLake / RTI** | enterprise data and operational/analytical context |
+| **Fabric IQ / Ontology / Graph** | Microsoft-native semantic materialization |
+| **Microsoft Foundry** | model/agent execution grounded through CEPIO tools |
 | **Microsoft Entra** | authenticated human, application and agent identity |
-| **Azure App Service** | managed CEPIO REST/MCP reference hosting profile |
-| **AKS** | containerized CEPIO reference hosting profile |
-| **Purview** | deferred governance/catalog/lineage bridge |
+| **Azure App Service / AKS** | reference hosting profiles |
+| **Purview** | governance/catalog/lineage bridge direction |
+
+But Microsoft services implement CEPIO capabilities; they do not define CEPIO industrial semantics. The same operating contract should be able to bind to other industrial data environments such as Cognite Data Fusion and OSDU-based platforms.
 
 ---
 
-## Foundry + governed MCP
+## Standards federation
 
-CEPIO exposes governed MCP tools for Microsoft Foundry agents, including object/query access, temporal state, provenance explanation, function calls, recommendations and authorized action execution.
+CEPIO federates strong industry standards instead of recreating them. Current or targeted references include `OSDU`, `ISA-95 / IEC 62264`, `ISO 15926`, `CFIHOS`, `DEXPI`, `BIM / IFC`, selected `FIBO` concepts, IADC, WITSML and PPDM where appropriate.
 
-Identity is injected from the authenticated hosting context; actor ID and roles are not model-callable authority.
+Use the rule:
 
-```text
-Microsoft Foundry Agent
-          |
-          | authenticated identity
-          v
-     CEPIO MCP Gateway
-          |
-          +-- read policy
-          +-- property filtering
-          +-- function authorization
-          +-- action policy
-          +-- preconditions
-          +-- audit
-          |
-          v
-      CEPIO Runtime
-```
-
-Recommendation is intentionally separate from execution. An AI agent can be permitted to inspect evidence and recommend an action while remaining unable to execute it.
+> **Reuse -> Bind -> Extend -> Own only where CEPIO adds reusable operating intelligence.**
 
 ---
 
@@ -301,7 +235,7 @@ make validate
 PYTHONPATH=src python examples/demo.py
 ```
 
-Start the supported public API locally:
+Start the public API locally:
 
 ```bash
 CEPIO_ENVIRONMENT=test \
@@ -312,194 +246,62 @@ uvicorn cepio.public_api:app --reload
 
 Open `http://localhost:8000/docs` and use `/api/v1/...` routes.
 
-For a clean wheel/container install, follow [docs/developer-preview.md](docs/developer-preview.md).
-
-### Python client
-
-```python
-from cepio.sdk import CEPIOClient
-
-client = CEPIOClient(
-    "http://127.0.0.1:8000",
-    dev_actor="developer",
-    dev_roles={"cepio_admin"},
-)
-print(client.health())
-client.close()
-```
-
-### TypeScript client
-
-Reference source is under `clients/typescript/cepio.ts`. Both Python and TypeScript operation maps are checked against the same OpenAPI v1 route baseline in CI.
-
-### Container
-
-```bash
-docker build -t cepio:v0.4 .
-docker run --rm -p 8000:8000 \
-  -e CEPIO_ENVIRONMENT=test \
-  -e CEPIO_DB_URL=memory:// \
-  -e CEPIO_AUTH_MODE=dev \
-  cepio:v0.4
-```
-
-The final image is built from the CEPIO wheel and does not rely on an editable source checkout.
-
----
-
-## Developer Preview qualification
-
-The release CI validates:
-
-```text
-pytest
-query pushdown/load regression
-App Service + AKS deployment invariants
-public API v1 route contract
-Python + TypeScript client route contract
-ontology compatibility
-SHACL validation
-reference refinery demo
-clean wheel build/install outside checkout
-wheel-only container build/start/API health
-```
-
-Read [RELEASE.md](RELEASE.md) for supported vs experimental/deferred functionality.
-
----
-
-## Standards federation
-
-CEPIO federates strong external industry semantics rather than recreating them. Current or targeted references include:
-
-`OSDU`, `ISA-95 / IEC 62264`, `ISO 15926`, `CFIHOS`, `DEXPI`, `BIM / IFC`, and selective `FIBO` concepts where appropriate.
-
-The Digital Twin Consortium Manufacturing Ontologies corpus is federated as an external ISA-95 / IEC 62264 semantic source. See `docs/standards/dtc-isa95-manufacturing.md` and `THIRD_PARTY_NOTICES.md`.
-
-> **Reuse reference semantics where they are strong; retain CEPIO as the operating abstraction that connects those semantics across the enterprise.**
-
 ---
 
 ## Repository structure
 
 ```text
-ontologies/                     canonical CEPIO RDF/OWL modules
+ontologies/                     canonical CEPIO semantic modules
 ontology-modules.yaml           module catalogue, versions and dependencies
 mappings/                       source mappings + canonical property contract
 shapes/                         SHACL validation contracts
-src/cepio/                      runtime, query, temporal, provenance, policy, SDK
-src/cepio/integrations/microsoft/
-                                Fabric IQ + Foundry/MCP bindings
+generalization/                 archetypes, personas, competency and gap packs
+src/cepio/                      runtime, policy, query, Skills, workflow, SDK
+src/cepio/integrations/         platform/source bindings
 openapi/                        accepted public API v1 route baseline
-clients/typescript/             TypeScript reference client
-compatibility/                  accepted ontology baseline + migration manifests
-actions/                        declarative actions
+clients/                        reference clients
+compatibility/                  compatibility baselines + migrations
+actions/                        declarative Actions
 policies/                       authorization examples
-deploy/                         App Service, AKS and optional runtime profiles
-deployments/                    platform deployment artifacts
-examples/                       refinery reference data and demos
-tests/                          semantic/runtime/platform/API/compatibility tests
-docs/                           Developer Preview, architecture, standards, roadmap, wiki
+deploy/                         reference deployment profiles
+tests/                          semantic/runtime/platform/assurance tests
+docs/                           architecture, domains, roadmap, wiki
 ```
 
 ---
 
 ## Roadmap
 
-### Completed foundations
+The roadmap is organized around progressively stronger operating proof:
 
-- **v0.1 Semantic Scaffold** — modular ontology architecture.
-- **v0.2 Operational Kernel** — persistence, policy, decisions, actions, audit and SDK foundations.
-- **v0.3 Temporal + Provenance Kernel** — provenance, bitemporal history and deterministic event-state reconstruction.
-- **v0.4 Microsoft Platform Extension / Developer Preview** — stable public API route contract, Entra boundary, query scale/cursors, Microsoft hosting profiles, observability and release qualification.
-
-### v0.5 — Live Industrial Integration
-
-Focus: source-neutral onboarding/extractor runtime, adapter contract, SAP/PI and additional industrial integrations, identity reconciliation, governed writeback and a live compressor reference scenario.
-
-### v0.6 — Kinetic Runtime + Reference Industrial Applications
-
-Focus: first-class workflow orchestration (#67) followed by Asset Reliability / Maintenance Command Center (#59), then additional industrial operating applications.
-
-### Later platformization
-
-- v0.7 developer platform / CLI / scaffolding;
-- v0.8 enterprise runtime, HA, queues, SLOs and DR;
-- v0.9 second-enterprise portability proof;
-- v1.0 explicit production guarantees.
+- **v0.4 — Foundation is usable:** Developer Preview qualified.
+- **v0.5 — Connect:** live industrial integration and governed writeback.
+- **v0.6 — Execute:** Kinetic Runtime + reference industrial applications.
+- **v0.7 — Extend:** Industrial Developer Platform.
+- **v0.8 — Operate:** enterprise runtime, HA, resilience, SLOs and DR.
+- **v0.9 — Generalize:** real second-enterprise portability and domain reuse.
+- **v1.0 — Guarantee:** stable production contracts and explicit guarantees.
 
 See [docs/roadmap.md](docs/roadmap.md) for the authoritative execution plan.
 
 ---
 
-## Documentation
-
-- [Developer Preview](docs/developer-preview.md)
-- [API clients](docs/api-client-guide.md)
-- [API reliability semantics](docs/api-reliability.md)
-- [API examples](docs/api-examples.md)
-- [REST security](docs/rest-security.md)
-- [Query contract](docs/query-contract.md)
-- [Query load baseline](docs/query-load-baseline.md)
-- [Deployment profiles](docs/deployment-profiles.md)
-- [Observability](docs/observability.md)
-- [Architecture](docs/architecture.md)
-- [Roadmap](docs/roadmap.md)
-- [Wiki](docs/wiki/Home.md)
-
----
-
 ## Design philosophy
 
-CEPIO is not intended to become a large collection of disconnected ontology classes.
+Industrial enterprises already have data platforms, source systems and increasingly capable frontier models. CEPIO should not compete by rebuilding those layers.
 
-Its purpose is to create an **operational model of the enterprise**:
-
-```text
-enterprise evidence
-       |
-       v
-industrial meaning
-       |
-       v
-operational state
-       |
-       v
-reasoning
-       |
-       v
-decision
-       |
-       v
-authorized action
-```
-
-Industrial enterprises already have enormous amounts of data. The harder problem is connecting that data to **meaning, context, state, decisions and action**.
+Its differentiation is reusable industrial operating intelligence:
 
 ```text
-DATA
-  +
-SEMANTICS
-  +
-TIME
-  +
-PROVENANCE
-  +
-REASONING
-  +
-GOVERNED ACTION
-  =
-INDUSTRIAL OPERATING ABSTRACTION
+GENERAL INTELLIGENCE
+        +
+ENTERPRISE CONTEXT
+        +
+CEPIO INDUSTRY IQ
+        +
+GOVERNANCE
+        =
+SAFE INDUSTRIAL OPERATING INTELLIGENCE
 ```
 
 That is the direction of CEPIO.
-## Code quality and governance
-
-See [CEPIO Code Quality & Governance v2](docs/governance/code-quality-governance-v2.md)
-for automated quality evidence, release qualification, and exact ruleset setup.
-
-## Workflow policy v0.5.1
-
-[Workflow policy integration](docs/workflow-policy-v0.5.1.md) binds exact policy versions to durable workflow instances, derives trusted canonical context, pauses governed actions for human approval, and persists policy evidence through Action, external execution and Outcome.
-
-Host Skill dispatch gates BOUND → READY → trigger matching; see [the dispatch contract](docs/skill-runtime-preflight.md#v023-ready-only-dispatch).
