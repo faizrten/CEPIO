@@ -356,9 +356,8 @@ def test_malformed_temporal_and_supply_evidence_fails_closed():
     runtime = _seed_ready_runtime()
     test = runtime.get_object("TEST-BOP")
     test.properties["validTo"] = "not-a-date"
-    runtime.upsert_object(test, expected_version=test.version)
-    with pytest.raises(ValueError, match="validTo must be an ISO-8601 timestamp"):
-        _assess(runtime)
+    with pytest.raises(ValueError, match="Invalid isoformat string"):
+        runtime.upsert_object(test, expected_version=test.version)
 
     runtime = _seed_ready_runtime()
     inventory = runtime.get_object("INV-BARITE")
