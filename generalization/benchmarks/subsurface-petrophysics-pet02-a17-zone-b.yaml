@@ -1,0 +1,168 @@
+id: subsurface-petrophysics-pet02-a17-zone-b
+version: "0.1"
+synthetic: true
+field: CEPIO-SYNTH
+reservoir: R3
+well: A-17
+interval: Zone-B
+
+formation_evaluation_cases:
+  - id: FE-A17-ZB-v2
+    type: https://cepio.org/ontology/subsurface#FormationEvaluationCase
+    state: https://cepio.org/ontology/subsurface#Superseded
+    interpretation_ref:
+      source_system: petrophysics_workbench
+      source_service: interpretation_repository
+      record_kind: petrophysical-interpretation
+      record_id: A17-ZB-FE
+      record_version: "2"
+    findings:
+      effective_porosity_fraction: 0.171
+      water_saturation_fraction: 0.34
+      permeability_md: 88
+      net_reservoir_m: 18.4
+      net_pay_m: 11.2
+      fluid_contact_tvdss_m: -2418
+    assumptions:
+      rw_ohm_m: 0.071
+      saturation_model: Archie
+      archie_a: 1.0
+      archie_m: 2.0
+      archie_n: 2.0
+      porosity_cutoff_fraction: 0.10
+      water_saturation_cutoff_fraction: 0.55
+      permeability_transform: K_TRANSFORM_V4
+
+  - id: FE-A17-ZB-v3
+    type: https://cepio.org/ontology/subsurface#FormationEvaluationCase
+    state: https://cepio.org/ontology/subsurface#Authoritative
+    supersedes: FE-A17-ZB-v2
+    interpretation_ref:
+      source_system: petrophysics_workbench
+      source_service: interpretation_repository
+      record_kind: petrophysical-interpretation
+      record_id: A17-ZB-FE
+      record_version: "3"
+    findings:
+      effective_porosity_fraction: 0.178
+      water_saturation_fraction: 0.29
+      permeability_md: 112
+      net_reservoir_m: 19.1
+      net_pay_m: 13.8
+      fluid_contact_tvdss_m: -2423
+    assumptions:
+      rw_ohm_m: 0.064
+      saturation_model: Archie
+      archie_a: 1.0
+      archie_m: 2.15
+      archie_n: 2.0
+      porosity_cutoff_fraction: 0.09
+      water_saturation_cutoff_fraction: 0.55
+      permeability_transform: K_TRANSFORM_V5
+
+external_evidence:
+  - id: EV-GR-RHOB-NPHI
+    role: supporting
+    description: Gamma ray, density and neutron log set supporting lithology and porosity interpretation.
+    source_ref:
+      source_system: osdu
+      source_service: wellbore_ddms
+      record_kind: work-product-component--WellLog
+      record_id: opendes:work-product-component--WellLog:A17-PETRO-MAIN
+      record_version: "1759000000000001"
+      partition: opendes
+
+  - id: EV-RESISTIVITY
+    role: supporting
+    description: Deep resistivity response supporting hydrocarbon-bearing interpretation.
+    source_ref:
+      source_system: osdu
+      source_service: wellbore_ddms
+      record_kind: work-product-component--WellLog
+      record_id: opendes:work-product-component--WellLog:A17-RES-DEEP
+      record_version: "1759000000000002"
+      partition: opendes
+
+  - id: EV-CORE-RCA
+    role: contradictory
+    description: Routine core analysis permeability is materially below the current log-derived permeability transform result.
+    source_ref:
+      source_system: osdu
+      source_service: rock_fluid_samples_ddms
+      record_kind: rafs--Analysis
+      record_id: opendes:rafs--Analysis:A17-ZB-RCA
+      record_version: "1759000000000003"
+      partition: opendes
+    observed_permeability_md: 71
+    comparison_target: FE-A17-ZB-v3.findings.permeability_md
+
+  - id: EV-PRESSURE
+    role: supporting
+    description: Formation pressure evidence is consistent with the revised deeper fluid-contact interpretation.
+    source_ref:
+      source_system: customer_profile
+      source_service: formation_pressure_repository
+      record_kind: pressure-observation-set
+      record_id: A17-ZB-PRESSURE-2026
+      record_version: "4"
+
+uncertainty_assessments:
+  - id: UA-SW-A17-ZB-v3
+    assesses: water_saturation
+    uncertainty_type: epistemic
+    representation: range
+    lower_fraction: 0.25
+    central_fraction: 0.29
+    upper_fraction: 0.35
+    material_drivers: [rw_ohm_m, archie_m, saturation_model]
+
+  - id: UA-CONTACT-A17-ZB-v3
+    assesses: fluid_contact
+    uncertainty_type: epistemic
+    representation: range
+    lower_tvdss_m: -2428
+    central_tvdss_m: -2423
+    upper_tvdss_m: -2417
+    material_drivers: [pressure_interpretation, saturation_transition_zone]
+
+confidence_assessments:
+  - id: CA-FE-A17-ZB-v3
+    assesses: FE-A17-ZB-v3
+    rating: moderate_high
+    rationale: Revised logs and pressure evidence support the interpretation, but core-log permeability disagreement remains unresolved.
+
+downstream_dependencies:
+  - id: SM18
+    kind: static_model
+    depends_on: FE-A17-ZB-v3
+  - id: RM21
+    kind: reservoir_model_scenario
+    depends_on: SM18
+  - id: RC26
+    kind: reserves_case
+    depends_on: [FE-A17-ZB-v3, RM21]
+  - id: OP-118
+    kind: opportunity
+    depends_on: [FE-A17-ZB-v3, RM21]
+  - id: DEC-INFILL-R3-2026
+    kind: decision
+    depends_on: [OP-118, RM21]
+
+expected_interpretation_delta:
+  changed_assumptions:
+    - {name: rw_ohm_m, from: 0.071, to: 0.064}
+    - {name: archie_m, from: 2.0, to: 2.15}
+    - {name: porosity_cutoff_fraction, from: 0.10, to: 0.09}
+    - {name: permeability_transform, from: K_TRANSFORM_V4, to: K_TRANSFORM_V5}
+  changed_findings:
+    - {name: water_saturation_fraction, from: 0.34, to: 0.29}
+    - {name: net_pay_m, from: 11.2, to: 13.8}
+    - {name: fluid_contact_tvdss_m, from: -2418, to: -2423}
+
+expected_answer:
+  authoritative_case: FE-A17-ZB-v3
+  superseded_case: FE-A17-ZB-v2
+  contradictory_evidence: [EV-CORE-RCA]
+  material_uncertainties: [UA-SW-A17-ZB-v3, UA-CONTACT-A17-ZB-v3]
+  impacted_downstream: [SM18, RM21, RC26, OP-118, DEC-INFILL-R3-2026]
+  prohibited_ai_conclusion: declare_authoritative
