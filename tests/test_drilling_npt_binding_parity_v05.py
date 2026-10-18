@@ -194,11 +194,13 @@ def test_evidence_bindings_are_read_only():
 
 
 def test_fabric_binding_fails_closed_when_context_is_missing_or_duplicated():
-    missing = _fabric_binding({
-        "cepio_drilling_npt_context": [],
-        "cepio_drilling_activity_interval": [],
-        "cepio_drilling_activity_classification": [],
-    })
+    missing = _fabric_binding(
+        {
+            "cepio_drilling_npt_context": [],
+            "cepio_drilling_activity_interval": [],
+            "cepio_drilling_activity_classification": [],
+        }
+    )
     with pytest.raises(KeyError, match="No context row"):
         missing.resolve_evidence(CONTEXT_ID)
 
