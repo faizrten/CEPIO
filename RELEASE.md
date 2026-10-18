@@ -1,12 +1,12 @@
-# CEPIO v0.4 Developer Preview Release Manifest
+# CEPIO v0.4 FOUNDATION — Developer Preview Release Manifest
 
-Release: **0.4.0 — Developer Preview**
+Release: **0.4.0 — FOUNDATION / Developer Preview**
 
 ## Product claim
 
-CEPIO v0.4 is a Microsoft-native, source-system-neutral industrial semantic + kinetic runtime that can be consumed through a versioned public API, Entra-authenticated policy boundary, reference Microsoft hosting profiles, Fabric/Fabric IQ bindings and Foundry/MCP integration.
+CEPIO v0.4 **FOUNDATION** establishes a coherent developer/runtime contract for the CEPIO industrial operating intelligence layer. It is source-system-neutral and can be consumed through a versioned public API, Entra-authenticated policy boundary, reference Microsoft hosting profiles, Fabric/Fabric IQ bindings and Foundry/MCP integration.
 
-This release is a **Developer Preview**. It qualifies a coherent developer/runtime contract; it does not claim enterprise production HA, production-distributed persistence or live industrial-system writeback.
+This release is a **Developer Preview**. `FOUNDATION` is the roadmap capability label: it means developers can build against a coherent CEPIO operating contract. It does not claim enterprise production HA, production-distributed persistence or live industrial-system writeback.
 
 ## Supported Developer Preview surface
 
@@ -75,7 +75,7 @@ The TypeScript client is reference source in v0.4; it is not yet a published npm
 
 ## Release qualification
 
-The v0.4 gate requires successful CI for:
+The v0.4 FOUNDATION gate requires successful CI for:
 
 - full pytest suite;
 - SHACL validation;
@@ -109,7 +109,7 @@ The following are useful for development and evaluation but are not production g
 - customer-profile content beyond its declared profile/module version;
 - application-specific UI/workspaces.
 
-## Deferred beyond v0.4
+## Deferred beyond v0.4 FOUNDATION
 
 - live SAP S/4HANA, AVEVA PI, OSDU and Primavera P6 adapters;
 - governed external writeback, verification and reconciliation;
@@ -126,7 +126,7 @@ The following are useful for development and evaluation but are not production g
 1. SQLite is a single-writer reference backend and must not be horizontally scaled as a shared production data plane.
 2. The supplied AKS SQLite profile therefore uses one replica and `ReadWriteOnce` storage.
 3. App Service/AKS manifests are reproducible reference profiles; target landing-zone networking, secrets, private endpoints, monitoring and production repository services remain environment concerns.
-4. External industrial source adapters are dry-run/reference contracts until v0.5 live-integration work lands.
+4. External industrial source adapters are dry-run/reference contracts until **v0.5 CONNECT** live-integration work lands.
 5. Enterprise production security review, penetration testing, HA, DR and SLO qualification are not claimed by this Developer Preview.
 
 ## Documentation entry points
@@ -140,8 +140,9 @@ The following are useful for development and evaluation but are not production g
 - `docs/query-load-baseline.md` — measured reference regression;
 - `docs/deployment-profiles.md` — App Service and AKS reference deployment;
 - `docs/observability.md` — telemetry/OpenTelemetry integration;
-- `docs/roadmap.md` — v0.5+ execution roadmap.
+- `docs/version-naming.md` — roadmap capability labels and version axes;
+- `docs/roadmap.md` — detailed execution roadmap.
 
 ## Next release
 
-v0.5 moves from platform qualification to **Live Industrial Integration**: provenance-backed data onboarding, a source-neutral connector/extractor foundation, SAP/PI and additional industrial adapters, external identity reconciliation, governed writeback and a live compressor reference scenario.
+**CEPIO v0.5 CONNECT — Live Industrial Integration** moves from platform qualification to authoritative industrial context: provenance-backed onboarding, source-neutral connector/extractor foundations, SAP/PI and additional industrial bindings, external identity reconciliation, governed writeback and the K-201 compressor lighthouse proof.
