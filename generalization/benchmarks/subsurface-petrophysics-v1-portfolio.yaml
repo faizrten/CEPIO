@@ -1,0 +1,151 @@
+id: subsurface-petrophysics-v1-portfolio
+version: "1.0"
+synthetic: true
+provenance:
+  origin: CEPIO-authored synthetic Petrophysics portfolio fixture
+  source_dataset: none
+  fictional_identifiers: true
+  intended_use: deterministic CEPIO persona-depth, semantic, runtime and regression testing
+  construction_basis:
+    - common formation-evaluation relationships among Rw, Archie parameters, saturation, cutoffs, rock-property transforms and net pay
+    - multi-well consistency patterns intentionally containing method and cutoff drift
+    - core-versus-log contradictions to exercise evidence reconciliation
+    - model handover transformations to exercise cross-discipline lineage
+    - prior-versus-posterior appraisal values to exercise belief revision
+    - remaining-hydrocarbon evidence to exercise Opportunity support
+  limitations:
+    - not calibrated to any real field, operator, basin or commercial dataset
+    - numerical values are test fixtures, not empirical industry benchmarks
+    - not suitable for reserves booking, petrophysical calibration, engineering design or investment decisions
+asset: {field: CEPIO-SYNTH, reservoir: R3, equivalent_interval: Zone-B}
+source_capabilities:
+  well_master: subsurface.well.master
+  logs: subsurface.wellbore.log
+  markers: subsurface.wellbore.marker
+  sample_analysis: subsurface.sample.analysis
+  pressure: subsurface.pressure.evidence
+  interpretation: subsurface.interpretation.petrophysics
+wells:
+  A-11: {authority_case: FE-A11-ZB-v4, method: Archie, rw_ohm_m: 0.065, archie_m: 2.10, archie_n: 2.0, porosity_cutoff_fraction: 0.10, sw_cutoff_fraction: 0.55, phie_fraction: 0.166, sw_fraction: 0.32, net_pay_m: 10.9, contact_tvdss_m: -2421, permeability_transform: K_TRANSFORM_V5}
+  A-14: {authority_case: FE-A14-ZB-v5, method: Archie, rw_ohm_m: 0.064, archie_m: 2.10, archie_n: 2.0, porosity_cutoff_fraction: 0.10, sw_cutoff_fraction: 0.55, phie_fraction: 0.174, sw_fraction: 0.31, net_pay_m: 12.7, contact_tvdss_m: -2420, permeability_transform: K_TRANSFORM_V4}
+  A-17: {authority_case: FE-A17-ZB-v3, method: Archie, rw_ohm_m: 0.064, archie_m: 2.15, archie_n: 2.0, porosity_cutoff_fraction: 0.09, sw_cutoff_fraction: 0.55, phie_fraction: 0.178, sw_fraction: 0.29, net_pay_m: 13.8, contact_tvdss_m: -2423, permeability_transform: K_TRANSFORM_V5}
+  A-22: {authority_case: FE-A22-ZB-v2, method: Simandoux, rw_ohm_m: 0.068, archie_m: null, archie_n: null, porosity_cutoff_fraction: 0.12, sw_cutoff_fraction: 0.50, phie_fraction: 0.151, sw_fraction: 0.41, net_pay_m: 7.8, contact_tvdss_m: -2417, permeability_transform: K_TRANSFORM_V3}
+evidence_catalog:
+  - id: EV-A17-LOG-MAIN
+    well: A-17
+    kind: well_log
+    role: supporting
+    source_ref: {source_system: osdu, source_service: wellbore_ddms, record_kind: work-product-component--WellLog, record_id: "opendes:work-product-component--WellLog:A17-PETRO-MAIN", record_version: "1759000000000001", partition: opendes}
+  - id: EV-A17-RES
+    well: A-17
+    kind: resistivity_log
+    role: supporting
+    source_ref: {source_system: osdu, source_service: wellbore_ddms, record_kind: work-product-component--WellLog, record_id: "opendes:work-product-component--WellLog:A17-RES-DEEP", record_version: "1759000000000002", partition: opendes}
+  - id: EV-A17-RCA
+    well: A-17
+    kind: routine_core_analysis
+    role: contradictory
+    observed: {permeability_md: 71, porosity_fraction: 0.181}
+    comparison: {log_permeability_md: 112}
+    source_ref: {source_system: osdu, source_service: rock_fluid_samples_ddms, record_kind: rafs--Analysis, record_id: "opendes:rafs--Analysis:A17-ZB-RCA", record_version: "1759000000000003", partition: opendes}
+  - id: EV-A17-PRESSURE
+    well: A-17
+    kind: formation_pressure
+    role: supporting
+    observed: {contact_support_tvdss_m: -2423}
+    source_ref: {source_system: customer_profile, source_service: formation_pressure_repository, record_kind: pressure-observation-set, record_id: A17-ZB-PRESSURE-2026, record_version: "4"}
+  - id: EV-A11-PRESSURE
+    well: A-11
+    kind: formation_pressure
+    role: supporting
+    observed: {contact_support_tvdss_m: -2421}
+    source_ref: {source_system: customer_profile, source_service: formation_pressure_repository, record_kind: pressure-observation-set, record_id: A11-ZB-PRESSURE-2026, record_version: "3"}
+  - id: EV-A14-RCA
+    well: A-14
+    kind: routine_core_analysis
+    role: supporting
+    observed: {permeability_md: 96, porosity_fraction: 0.176}
+    comparison: {log_permeability_md: 101}
+    source_ref: {source_system: osdu, source_service: rock_fluid_samples_ddms, record_kind: rafs--Analysis, record_id: "opendes:rafs--Analysis:A14-ZB-RCA", record_version: "1759000000000014", partition: opendes}
+  - id: EV-A22-LOG
+    well: A-22
+    kind: well_log
+    role: supporting
+    source_ref: {source_system: osdu, source_service: wellbore_ddms, record_kind: work-product-component--WellLog, record_id: "opendes:work-product-component--WellLog:A22-PETRO-MAIN", record_version: "1759000000000022", partition: opendes}
+PET-01:
+  required_evidence:
+    formation_evaluation: [well_log, resistivity_log, authority_case]
+    saturation_contact: [well_log, pressure_or_fluid_evidence, authority_case]
+    core_log: [well_log, routine_core_analysis, authority_case]
+    model_handover: [authority_case, transform_identity, downstream_model_identity]
+  readiness:
+    A-11: {available: [well_log, resistivity_log, pressure_or_fluid_evidence, authority_case, transform_identity, downstream_model_identity], missing: [routine_core_analysis]}
+    A-14: {available: [well_log, routine_core_analysis, authority_case, transform_identity, downstream_model_identity], missing: [resistivity_log, pressure_or_fluid_evidence]}
+    A-17: {available: [well_log, resistivity_log, pressure_or_fluid_evidence, routine_core_analysis, authority_case, transform_identity, downstream_model_identity], missing: []}
+    A-22: {available: [well_log, authority_case, transform_identity], missing: [resistivity_log, pressure_or_fluid_evidence, routine_core_analysis, downstream_model_identity]}
+PET-03:
+  reservoir_contact_consensus_tvdss_m: -2422
+  uncertainty_range_tvdss_m: [-2428, -2417]
+  primary_assumptions: [rw_ohm_m, method, archie_m, archie_n, sw_cutoff_fraction]
+  outlier_rules: {contact_difference_m: 4, sw_difference_fraction: 0.08}
+  sensitive_downstream: [RC26, FDP26, OP-118, DEC-INFILL-R3-2026]
+PET-04:
+  rock_types:
+    RT-2: {wells: [A-14], core_porosity_fraction: 0.176, log_porosity_fraction: 0.174, core_permeability_md: 96, log_permeability_md: 101, transform: K_TRANSFORM_V5, status: reconciled}
+    RT-3: {wells: [A-17], core_porosity_fraction: 0.181, log_porosity_fraction: 0.178, core_permeability_md: 71, log_permeability_md: 112, transform: K_TRANSFORM_V5, status: contradiction}
+  contradiction_threshold_fraction: 0.25
+  downstream_if_transform_invalid: [SM18, RM21, RC26, OP-118]
+PET-05:
+  canonical_profile:
+    method: Archie
+    rw_range_ohm_m: [0.062, 0.067]
+    porosity_cutoff_range_fraction: [0.09, 0.10]
+    sw_cutoff_range_fraction: [0.53, 0.57]
+    accepted_transforms: [K_TRANSFORM_V5]
+  impact_targets:
+    A-17: [SM18, RM21, RC26]
+    A-22: [SM18, RM21, FDP26]
+PET-06:
+  authoritative_handover:
+    source_case: FE-A17-ZB-v3
+    source_properties: {phie_fraction: 0.178, permeability_md: 112, net_pay_m: 13.8}
+    transformations:
+      - {id: UPSCALE-PHIE-SM18, property: phie_fraction, from: 0.178, to: 0.163, method: arithmetic_cell_upscale}
+      - {id: ROCKTYPE-RT3-SM18, property: rock_type, from: RT-3, to: RT-3, method: facies_conditioned_assignment}
+      - {id: KMAP-V5-SM18, property: permeability, from: K_TRANSFORM_V5, to: K_TRANSFORM_V5, method: property_population}
+    downstream_chain: [SM18, RM21, FCST-RM21-2026]
+  stale_dependencies:
+    - {well: A-14, source_case: FE-A14-ZB-v5, current_transform: K_TRANSFORM_V5, consumed_transform: K_TRANSFORM_V4, consumer: SM18}
+PET-07:
+  zone: Zone-C
+  evidence: {current_sw_fraction: 0.38, expected_depleted_sw_fraction: 0.55, pressure_support: moderate, movable_hydrocarbon_indication: true}
+  assessment: {id: RHA-R3-ZC-2026, conclusion: remaining_movable_hydrocarbon_indicated, confidence: moderate, uncertainties: [cased_hole_saturation_calibration, vertical_connectivity, contact_position]}
+  opportunity:
+    id: OP-R3-ZC-REMAINING
+    objective: Recover bypassed or underdeveloped Zone-C hydrocarbons
+    options:
+      - {id: OPT-RECOMPLETE, name: Recompletion}
+      - {id: OPT-SIDETRACK, name: Sidetrack}
+      - {id: OPT-INFILL, name: New infill well}
+      - {id: OPT-DEFER, name: Defer / acquire more information}
+    petrophysics_recommendation: OPT-DEFER
+    recommendation_reason: Acquire calibrated cased-hole saturation evidence before committing capital.
+    dependencies: [RM21, FAC-CONSTRAINT-7, ECON-CASE-R3]
+PET-08:
+  well: A-17
+  prior: {phie_fraction: 0.160, sw_fraction: 0.36, net_pay_m: 10.5, contact_tvdss_m: -2418}
+  posterior: {phie_fraction: 0.178, sw_fraction: 0.29, net_pay_m: 13.8, contact_tvdss_m: -2423}
+  hypotheses:
+    - {id: H-R3-CONTACT, statement: "Fluid contact is near -2418 m TVDSS", prior_confidence: medium, posterior: revised_deeper}
+    - {id: H-R3-QUALITY, statement: "Zone-B reservoir quality is moderate", prior_confidence: medium, posterior: upgraded}
+    - {id: H-R3-PAY, statement: "Net pay exceeds 10 m", prior_confidence: medium, posterior: strongly_supported}
+  information_gain: {high_value_evidence: [EV-A17-PRESSURE, EV-A17-RCA, EV-A17-RES], uncertainty_reduced: [fluid_contact, water_saturation, net_pay]}
+  downstream_updates: [SM18, RM21, RC26, FDP26, OP-118]
+expected_coverage:
+  PET-01: [readiness_by_well, blocking_gaps]
+  PET-03: [consensus_contact, outlier_wells, material_assumptions, downstream_sensitivity]
+  PET-04: [reconciled_rock_types, contradictory_rock_types, challenged_transforms, downstream_impact]
+  PET-05: [inconsistent_wells, deviations, impact_targets]
+  PET-06: [handover_trace, transformations, stale_dependencies]
+  PET-07: [remaining_hydrocarbon_assessment, opportunity, options, recommendation]
+  PET-08: [belief_delta, hypothesis_updates, information_gain, downstream_updates]
