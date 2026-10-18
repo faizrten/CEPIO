@@ -1,0 +1,23 @@
+services:
+  cepio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      CEPIO_ENVIRONMENT: development
+      CEPIO_DB_URL: sqlite:////data/cepio.db
+      CEPIO_AUTH_MODE: dev
+      CEPIO_PROFILES: ${CEPIO_PROFILES:-}
+    volumes:
+      - cepio-local-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+volumes:
+  cepio-local-data:
