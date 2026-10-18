@@ -21,6 +21,12 @@ from .contextual_policy import (
     evaluate_policy_definition,
     evaluate_policy_set,
 )
+from .domain_bindings import (
+    DomainBindingContract,
+    DomainObjectBinding,
+    ExternalRecordReference,
+    RuntimeCapabilityBinding,
+)
 from .external_actions import (
     ExternalActionBinding,
     ExternalActionExecution,
@@ -101,6 +107,10 @@ __all__ = [
     "build_external_resilient_kinetic_runtime",
     "CEPIORuntime",
     "DecisionDefinition",
+    "DomainBindingContract",
+    "DomainObjectBinding",
+    "RuntimeCapabilityBinding",
+    "ExternalRecordReference",
     "ContextualPolicyEngine",
     "PolicyDefinition",
     "PolicyReference",
