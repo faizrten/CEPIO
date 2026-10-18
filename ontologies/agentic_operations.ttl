@@ -6,12 +6,16 @@
 
 agentic:Agent a owl:Class ; rdfs:subClassOf cepio:DigitalAsset .
 agentic:Recommendation a owl:Class ; rdfs:subClassOf kin:Decision .
+agentic:Prediction a owl:Class ; rdfs:subClassOf cepio:Entity .
 agentic:ActionCase a owl:Class ; rdfs:subClassOf cepio:WorkItem .
 agentic:ControlPoint a owl:Class ; rdfs:subClassOf cepio:Entity .
 agentic:AgentRun a owl:Class ; rdfs:subClassOf cepio:Activity .
 agentic:AuditEntry a owl:Class ; rdfs:subClassOf cepio:Document .
 
 agentic:recommendationFor a owl:ObjectProperty ; rdfs:domain agentic:Recommendation ; rdfs:range cepio:Entity .
+agentic:supportedByEvidence a owl:ObjectProperty ; rdfs:domain agentic:Recommendation ; rdfs:range cepio:Entity .
+agentic:predictionFor a owl:ObjectProperty ; rdfs:domain agentic:Prediction ; rdfs:range cepio:Entity .
+agentic:predictsRisk a owl:ObjectProperty ; rdfs:domain agentic:Prediction ; rdfs:range cepio:Risk .
 agentic:producedByAgent a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range agentic:Agent .
 agentic:governedAtControlPoint a owl:ObjectProperty ; rdfs:domain agentic:Recommendation ; rdfs:range agentic:ControlPoint .
 agentic:caseFromRecommendation a owl:ObjectProperty ; rdfs:domain agentic:ActionCase ; rdfs:range agentic:Recommendation .
