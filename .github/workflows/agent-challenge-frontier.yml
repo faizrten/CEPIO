@@ -1,0 +1,124 @@
+name: CEPIO Frontier Model Agent Challenge
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Azure OpenAI/Foundry deployment name (for example gpt-6-astra)
+        required: true
+        default: gpt-6-astra
+        type: string
+      provider_label:
+        description: Provider label recorded in the benchmark artifact
+        required: true
+        default: azure-foundry-responses
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  frontier-agent-challenge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install CEPIO and Responses API client
+        run: |
+          python -m pip install -e '.[dev]'
+          python -m pip install 'openai>=2,<3'
+
+      - name: Verify frontier provider configuration
+        env:
+          AZURE_OPENAI_BASE_URL: ${{ secrets.AZURE_OPENAI_BASE_URL }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          CEPIO_MODEL: ${{ inputs.model }}
+        run: |
+          python - <<'PY'
+          import os
+          base = os.environ.get('AZURE_OPENAI_BASE_URL', '').strip()
+          key = os.environ.get('AZURE_OPENAI_API_KEY', '').strip()
+          model = os.environ.get('CEPIO_MODEL', '').strip()
+          if not base:
+              raise SystemExit('AZURE_OPENAI_BASE_URL secret is required')
+          if not key:
+              raise SystemExit('AZURE_OPENAI_API_KEY secret is required')
+          if not model:
+              raise SystemExit('CEPIO_MODEL is required')
+          if '/openai/v1' not in base:
+              raise SystemExit('AZURE_OPENAI_BASE_URL must target the Azure OpenAI v1 base URL ending in /openai/v1/')
+          print(f'CEPIO_FRONTIER_PREFLIGHT model={model} endpoint_configured=True')
+          PY
+
+      - name: Run frozen frontier Agent Challenge
+        env:
+          AZURE_OPENAI_BASE_URL: ${{ secrets.AZURE_OPENAI_BASE_URL }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          CEPIO_MODEL: ${{ inputs.model }}
+          CEPIO_MODEL_PROVIDER: ${{ inputs.provider_label }}
+        run: |
+          PYTHONPATH=src python scripts/run_agent_challenge_strict.py \
+            --agent external \
+            --agent-command "python scripts/responses_api_agent.py" \
+            --telemetry-points 600 \
+            --waveform-samples 512 \
+            --json-out agent-challenge-frontier-report.json
+
+      - name: Attach provider metadata
+        if: always()
+        env:
+          CEPIO_MODEL: ${{ inputs.model }}
+          CEPIO_MODEL_PROVIDER: ${{ inputs.provider_label }}
+        run: |
+          if [ -f agent-challenge-frontier-report.json ]; then
+            python - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path('agent-challenge-frontier-report.json')
+          report = json.loads(path.read_text())
+          report['provider'] = os.environ['CEPIO_MODEL_PROVIDER']
+          report['model'] = os.environ['CEPIO_MODEL']
+          report['transport'] = 'responses-api-stateless'
+          report['benchmark'] = 'agent-challenge-v0.1'
+          report['benchmark_frozen'] = True
+          path.write_text(json.dumps(report, indent=2, sort_keys=True) + '\n')
+          PY
+          fi
+
+      - name: Publish compact result
+        if: always()
+        run: |
+          if [ -f agent-challenge-frontier-report.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          report = json.loads(Path('agent-challenge-frontier-report.json').read_text())
+          print(f"## CEPIO Agent Challenge v0.1 — {report.get('model', 'frontier model')}")
+          print()
+          print(f"- Provider: **{report.get('provider')}**")
+          print(f"- Accuracy: **{report['passed']}/{report['total']} ({report['accuracy']:.0%})**")
+          print(f"- Evidence coverage: **{report['evidence_coverage']:.0%}**")
+          print(f"- Unsupported claims: **{report['unsupported_claims']}**")
+          print(f"- Identity accuracy: **{report.get('identity_accuracy')}**")
+          print(f"- Median CEPIO tool calls: **{report['median_tool_calls']:.1f}**")
+          print(f"- Median latency: **{report['median_latency_ms']:.0f} ms**")
+          print(f"- Semantic abstraction leakage: **{report['semantic_abstraction_leakage']}**")
+          print(f"- Gate passed: **{report['gate_passed']}**")
+          failed = [item['id'] for item in report['details'] if not item['passed']]
+          print(f"- Failed questions: **{', '.join(failed) if failed else 'none'}**")
+          PY
+          else
+            echo '## CEPIO Agent Challenge v0.1 — no frontier report produced' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload frontier challenge trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cepio-agent-challenge-${{ inputs.model }}
+          path: agent-challenge-frontier-report.json
+          if-no-files-found: ignore
