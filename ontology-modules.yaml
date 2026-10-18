@@ -19,11 +19,11 @@ modules:
     depends_on: [{module: core, version: '>=0.2.0'}]
   - id: kinetic
     namespace: https://cepio.org/ontology/kinetic#
-    version: 0.2.1
+    version: 0.3.0
     file: ontologies/kinetic.ttl
     tier: foundation
     stability: stable
-    depends_on: [{module: core, version: '>=0.2.0'}]
+    depends_on: [{module: core, version: '>=0.3.0'}]
   - id: industrial
     namespace: https://cepio.org/ontology/industrial#
     version: 0.2.2
