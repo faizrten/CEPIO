@@ -105,7 +105,7 @@ The synthetic drilling fixture provides deterministic ground truth for exercisin
 
 The v0.2 deterministic acceptance gate contains thirty golden questions: the original twenty plus ten multimodal questions covering evidence corroboration, diagram grounding, geospatial relationships, waveform evidence, cross-modal fusion and artifact provenance.
 
-A separate public Agent Challenge question set exercises higher-order tool use, but the qualification answer key is intentionally not distributed in the public repository. See [CEPIO Agent Challenge v0.1](CEPIO-Agent-Challenge-v0.1.md) and ADR-0011.
+Live-model Agent Challenge experimentation is not part of the public CEPIO conformance surface. Agent Challenge v0.1 was previously disclosed and is retired as a hidden qualification benchmark; its historical record and all future private qualification work are maintained in CEPIO Labs. ADR-0011 defines the public/private evaluator isolation contract.
 
 ## 7. EPCIC / commissioning
 
