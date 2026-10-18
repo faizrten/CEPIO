@@ -20,8 +20,11 @@ The v0.1 fixture proves the data-to-semantics boundary. It does not yet claim pr
 
 The twenty golden questions in `mvp/datasets/drilling-v0.1/tests/golden-questions.json` form the initial semantic acceptance gate. MVP progression should require at least 90% correct answers, with 100% provenance for returned facts and zero need for the consumer to know the originating source-system schema.
 
+<<<<<<< HEAD
 These deterministic fixture answers are intentionally public because they validate the conformance harness itself. They are not the private evaluator for a live Agent Challenge.
 
+=======
+>>>>>>> origin/main
 ## Next step
 
 After this fixture is wired into CEPIO runtime ingestion/query paths, create an equivalent refinery fixture and measure the percentage of CEPIO Core, API and test machinery reused unchanged. That is the first quantitative Generalization Lab test of the platform abstraction.
