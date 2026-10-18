@@ -1,0 +1,108 @@
+id: refinery-operating-abstraction-v0.1
+version: "0.1"
+archetype_id: refinery-process-manufacturing-v0.1
+frozen: true
+questions:
+  - id: ROA-001
+    question: When an operating deviation emerges on a critical process asset, can CEPIO resolve the operating envelope, applicable procedure and governed response context?
+    priority: critical
+    personas: [console-operator, shift-supervisor, field-operator]
+    capability_tags: [operations, abnormal-situation, procedure, governed-response]
+    runtime: {temporal: true, provenance: true, policy: true, kinetic: true}
+    capabilities:
+      - id: abnormal-operation-response-context
+        description: Resolve process deviation evidence to its operating envelope and executable procedure context.
+        alternatives:
+          - id: deviation-envelope-procedure
+            terms:
+              - {iri: "https://cepio.org/ontology/process#ProcessDeviation", kind: class}
+              - {iri: "https://cepio.org/ontology/process#OperatingEnvelope", kind: class}
+              - {iri: "https://cepio.org/ontology/process#OperatingProcedure", kind: class}
+              - {iri: "https://cepio.org/ontology/process#ProcedureExecution", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#ProcessDeviation", predicate: "https://cepio.org/ontology/process#deviationAgainstEnvelope", target: "https://cepio.org/ontology/process#OperatingEnvelope"}
+              - {source: "https://cepio.org/ontology/process#ProcedureExecution", predicate: "https://cepio.org/ontology/process#executesProcedure", target: "https://cepio.org/ontology/process#OperatingProcedure"}
+
+  - id: ROA-002
+    question: Can CEPIO trace a K-201 condition signal through reliability and maintenance context to production exposure, work and the required spare?
+    priority: critical
+    personas: [reliability-engineer, maintenance-planner, production-assurance-engineer, finance-controller]
+    capability_tags: [reliability, production-loss, work, spares]
+    runtime: {temporal: true, provenance: true, policy: true, kinetic: true}
+    capabilities:
+      - id: reliability-to-work-context
+        description: Connect condition evidence to equipment, governed work and material readiness.
+        alternatives:
+          - id: condition-work-spare
+            terms:
+              - {iri: "https://cepio.org/ontology/reliability#ConditionSignal", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#Equipment", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#SparePart", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#ProductionLoss", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/reliability#ConditionSignal", predicate: "https://cepio.org/ontology/reliability#observedOnEquipment", target: "https://cepio.org/ontology/industrial#Equipment"}
+              - {source: "https://cepio.org/ontology/industrial#Equipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+              - {source: "https://cepio.org/ontology/industrial#WorkOrder", predicate: "https://cepio.org/ontology/industrial#requiresSpare", target: "https://cepio.org/ontology/industrial#SparePart"}
+
+  - id: ROA-003
+    question: Can CEPIO reconstruct the executable refinery plan from crude characterization through blend intent, material lots, movements and transfer routing?
+    priority: critical
+    personas: [refinery-economist, production-scheduler, tank-farm-movements-manager]
+    capability_tags: [planning, blending, movement, inventory]
+    runtime: {temporal: true, provenance: true, policy: false, kinetic: false}
+    capabilities:
+      - id: plan-to-material-flow-context
+        description: Connect feed characterization and schedule intent to lots, movements and transfer routes.
+        alternatives:
+          - id: assay-blend-movement
+            terms:
+              - {iri: "https://cepio.org/ontology/process#CrudeAssay", kind: class}
+              - {iri: "https://cepio.org/ontology/process#BlendPlan", kind: class}
+              - {iri: "https://cepio.org/ontology/process#MaterialMovement", kind: class}
+              - {iri: "https://cepio.org/ontology/process#TransferRoute", kind: class}
+              - {iri: "https://cepio.org/ontology/manufacturing#MaterialLot", kind: class}
+              - {iri: "https://cepio.org/ontology/manufacturing#OperationsSchedule", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#CrudeAssay", predicate: "https://cepio.org/ontology/process#characterizesStream", target: "https://cepio.org/ontology/process#MaterialStream"}
+              - {source: "https://cepio.org/ontology/process#BlendPlan", predicate: "https://cepio.org/ontology/process#blendPlanForSchedule", target: "https://cepio.org/ontology/manufacturing#OperationsSchedule"}
+              - {source: "https://cepio.org/ontology/process#MaterialMovement", predicate: "https://cepio.org/ontology/process#usesTransferRoute", target: "https://cepio.org/ontology/process#TransferRoute"}
+
+  - id: ROA-004
+    question: Can CEPIO explain an off-spec product lot, the specification it was evaluated against, its disposition and the affected material movement?
+    priority: critical
+    personas: [quality-manager, production-scheduler, tank-farm-movements-manager]
+    capability_tags: [quality, specification, disposition, movement]
+    runtime: {temporal: true, provenance: true, policy: true, kinetic: false}
+    capabilities:
+      - id: quality-disposition-context
+        description: Connect a material lot to its quality specification and disposition without asserting false conformance.
+        alternatives:
+          - id: lot-spec-disposition
+            terms:
+              - {iri: "https://cepio.org/ontology/manufacturing#MaterialLot", kind: class}
+              - {iri: "https://cepio.org/ontology/manufacturing#MaterialSpecification", kind: class}
+              - {iri: "https://cepio.org/ontology/manufacturing#QualityDisposition", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/manufacturing#MaterialLot", predicate: "https://cepio.org/ontology/manufacturing#lotEvaluatedAgainstSpecification", target: "https://cepio.org/ontology/manufacturing#MaterialSpecification"}
+              - {source: "https://cepio.org/ontology/manufacturing#QualityDisposition", predicate: "https://cepio.org/ontology/manufacturing#dispositionForLot", target: "https://cepio.org/ontology/manufacturing#MaterialLot"}
+
+  - id: ROA-005
+    question: Can CEPIO combine unit emissions and energy-performance evidence with limits and business context so corrective action can be governed from a common operating graph?
+    priority: critical
+    personas: [energy-manager, environmental-manager, operations-manager, finance-controller]
+    capability_tags: [energy, emissions, compliance, performance]
+    runtime: {temporal: true, provenance: true, policy: true, kinetic: true}
+    capabilities:
+      - id: environmental-performance-context
+        description: Relate emissions evidence to the process unit and applicable emission limit while preserving KPI-based energy semantics.
+        alternatives:
+          - id: emission-unit-limit
+            terms:
+              - {iri: "https://cepio.org/ontology/process#EmissionObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/process#EmissionLimit", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#ProcessUnit", kind: class}
+              - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/process#EmissionObservation", predicate: "https://cepio.org/ontology/process#emissionFromUnit", target: "https://cepio.org/ontology/industrial#ProcessUnit"}
+              - {source: "https://cepio.org/ontology/process#EmissionObservation", predicate: "https://cepio.org/ontology/process#evaluatedAgainstEmissionLimit", target: "https://cepio.org/ontology/process#EmissionLimit"}
