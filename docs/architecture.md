@@ -1,98 +1,185 @@
-# CEPIO v0.2 Architecture
+# CEPIO Architecture
 
 ## Design target
 
-CEPIO is an **operational ontology**, not a semantic catalog. Its runtime is intended to provide the stable business abstraction that applications and AI agents interact with while underlying source systems remain replaceable.
+> **CEPIO is the portable industrial operating intelligence layer for Energy & Process Industries: thin in infrastructure, thick in industrial intelligence.**
+
+CEPIO is not intended to become a proprietary data platform, model runtime or duplicate system of record. It provides a stable, governed industrial operating contract over replaceable enterprise systems and data platforms, then concentrates differentiated value in reusable industrial competence.
+
+## Product architecture
+
+```text
+Authoritative enterprise context
+SAP · PI · OSDU · Fabric · Cognite · P6 · MES · engineering systems
+                         |
+                         v
+               Replaceable bindings
+                         |
+                         v
+              Thin CEPIO operating core
+ semantics · identity · state · time · evidence · provenance
+ uncertainty · policy · authority · Functions · Decisions · Actions
+                         |
+                         v
+                 Thick Industry IQ
+ Skills · competency contracts · risk/failure patterns
+ decision patterns · constraints · KPI/economic logic
+ workflows · evaluation benchmarks
+                         |
+                         v
+          Headless persona-adaptive experiences
+```
+
+The governing rule is:
+
+> **Keep infrastructure thin and replaceable; concentrate CEPIO IP in reusable industrial intelligence.**
+
+## Thin operating core
+
+The Core provides abstractions that should remain stable across domains, customers and platform choices:
+
+- canonical object and relationship identity;
+- events and operational state;
+- valid time and transaction time;
+- evidence and provenance;
+- uncertainty/confidence;
+- Functions and Decisions;
+- governed Actions;
+- policy, authority and audit;
+- compatibility and migration contracts.
+
+The Core should not absorb every customer term, workflow or external platform feature.
+
+## Thick Industry IQ
+
+Industry IQ Packs carry reusable industrial operating competence, including:
+
+- Skills and procedures;
+- competency questions;
+- evidence requirements;
+- failure and degradation patterns;
+- risk and barrier patterns;
+- decision/intervention patterns;
+- constraints;
+- KPI and economic logic;
+- workflow patterns;
+- evaluation and assurance benchmarks;
+- domain semantic compositions.
+
+The architectural goal is rising competency coverage with decreasing Core churn.
+
+## Five-plane runtime view
+
+```text
+Applications · Workspaces · Copilots · Agents
+                       |
+               EXPERIENCE PLANE
+                       |
+Skills · Functions · Decisions · Actions · Workflows
+                       |
+                  KINETIC PLANE
+                       |
+Objects · Relationships · Events · State · Evidence
+                       |
+                 SEMANTIC PLANE
+                       |
+Policy · Time · Provenance · Authority · Audit · Compatibility
+                       |
+                GOVERNANCE PLANE
+                       |
+SAP · PI · OSDU · Fabric · Cognite · P6 · MES
+                       |
+               INTEGRATION PLANE
+```
+
+The five planes describe runtime responsibilities. They do not imply that CEPIO should own the infrastructure implementing every plane.
 
 ## Runtime components
 
 ```text
-                        CEPIO Runtime
-                             │
-        ┌────────────────────┼─────────────────────┐
-        │                    │                     │
- Object Repository      Event Repository      Audit Repository
-        │                    │                     │
-        └────────────────────┼─────────────────────┘
-                             │
-                      Ontology Registry
-                    types · inheritance
-                  relationship constraints
-                             │
-                        Policy Engine
-                             │
-                 ┌───────────┴───────────┐
-                 │                       │
-           Function Runtime        Action Runtime
-                 │                       │
-              typed IO             authorization
-              traversal             preconditions
-                                    idempotency
-                                    audit
-                                    versioning
-                                    compensation metadata
-                             │
-                        Adapter Boundary
-             SAP · PI · OSDU · P6 · Fabric · others
+                         CEPIO Runtime
+                              |
+      +-----------------------+------------------------+
+      |                       |                        |
+Object/Event State      Evidence/Provenance      Audit/Outcome
+      |                       |                        |
+      +-----------------------+------------------------+
+                              |
+                     Ontology / Type Registry
+                              |
+                        Policy / Authority
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+       Skills             Functions          Decisions
+          |                   |                   |
+          +-------------------+-------------------+
+                              |
+                     Workflow / Action Runtime
+                              |
+                       Adapter Boundary
+        SAP · PI · OSDU · Fabric · Cognite · P6 · others
 ```
 
 ## Persistence boundary
 
-`ObjectRepository`, `EventRepository`, `AuditRepository` and `DecisionRepository` are domain-facing interfaces. v0.2 ships in-memory and SQLite reference implementations. Future graph, Fabric or cloud persistence must implement the same contracts instead of leaking storage semantics into applications.
+Domain-facing repository interfaces isolate CEPIO contracts from storage technology. In-memory and SQLite implementations remain reference backends; enterprise persistence may be implemented through different technology choices without changing the CEPIO operating contract.
 
-## Semantic integrity
+## Platform binding strategy
 
-RDF/OWL modules are parsed into `TypeRegistry`. The runtime rejects undeclared object and relationship types and can enforce `rdfs:domain` / `rdfs:range` using subclass reasoning.
+Bindings are replaceable. Use the architectural rule:
 
-Example:
+> **Reuse -> Bind -> Extend -> Own only where CEPIO adds reusable operating intelligence.**
 
-```text
-Compressor is-a RotatingEquipment
-RotatingEquipment is-a Equipment
+Examples:
 
-hasWorkOrder domain Equipment
-hasWorkOrder range WorkOrder
+- OSDU or ADME remains authoritative for subsurface technical data structures;
+- SAP remains authoritative for enterprise transactions it owns;
+- PI or another historian remains authoritative for raw time-series observations;
+- Fabric or Cognite may supply enterprise context and data-product capabilities;
+- CEPIO adds reusable operating semantics, evidence requirements, Skills, Decisions, authority and governed action patterns above them.
 
-Compressor --hasWorkOrder--> WorkOrder  ✓
-Hydrocracker --hasWorkOrder--> WorkOrder ✗
-```
+## Source-system invariants
 
-## Kinetic safety boundary
+1. CEPIO canonical identity remains stable when external identifiers change.
+2. External facts and transactions remain traceable to their authoritative source.
+3. Writeback is never invoked before CEPIO authorization and validation.
+4. External execution is verified and reconciled back into CEPIO audit/evidence.
+5. Source data is not persistently duplicated without a clear runtime reason.
 
-Action execution order is:
+## Headless-first experience
 
-```text
-resolve target
-    ↓
-resolve action definition
-    ↓
-policy evaluation
-    ↓
-authorized idempotency replay check
-    ↓
-preconditions
-    ↓
-effect handler
-    ↓
-immutable audit
-    ↓
-optional external adapter
-```
+CEPIO is **headless at its core and adaptive at its surface**.
 
-Policy is evaluated **before** idempotent replay. Client-provided idempotency keys are internally scoped by actor + action + target, preventing a successful result from becoming an authorization bypass.
+> **Same industrial reality. Different experience for every decision-maker.**
+
+Applications, copilots and agents consume the same governed CEPIO contract. Persona adaptation belongs in the experience layer rather than in competing versions of enterprise truth.
 
 ## Agent boundary
 
-The MCP facade exposes ontology tools through an actor-scoped security context. Object-type and property filtering is applied on reads; action policy is always re-evaluated by the runtime. Agents can therefore be given broad reasoning context while remaining denied from high-risk execution.
+AI agents are software consumers of CEPIO. They can be given broad reasoning context while remaining constrained by authenticated identity, evidence visibility, policy and action authority.
 
-## Versioning
+The core principle is:
 
-Every object carries an integer `version`. Mutations may supply an `expected_version`. A mismatch fails with a concurrency conflict rather than silently overwriting a newer state.
+```text
+Knowledge != Authority
+Recommendation != Execution
+```
 
-## Source-system strategy
+## Microsoft-native, not Microsoft-dependent
 
-Adapters remain side-effect-free stubs in v0.2. The next integration phase should implement transactional adapters while preserving three invariants:
+Microsoft Fabric, Fabric IQ, Foundry, Entra, App Service and AKS are the primary reference implementation ecosystem. They may implement CEPIO capabilities but do not define CEPIO industrial semantics.
 
-1. CEPIO IDs remain stable even if external system IDs change.
-2. external writeback is never invoked before CEPIO authorization and validation;
-3. reconciliation records the source-system result back into CEPIO provenance/audit.
+The same competency, Skill and Decision contracts should remain portable across alternative environments such as Cognite Data Fusion and OSDU-based stacks.
+
+## Architecture success criteria
+
+CEPIO architecture is improving when:
+
+- Core remains stable as domains expand;
+- more value is delivered through reusable Industry IQ Packs;
+- competency coverage rises;
+- the same Skill/Decision contract works over different bindings;
+- customer-specific knowledge stays isolated in profiles/private extensions;
+- humans and agents receive evidence-backed, policy-bounded context;
+- verified outcomes feed future evaluation and learning.
