@@ -5,6 +5,7 @@ fixtures; the gates enforce that predictions remain time-bounded inference, agen
 recommendations cite enterprise evidence, operational-plan revisions have current
 scoped authority, and outcome/value claims retain KPI, risk and provenance evidence.
 """
+
 from __future__ import annotations
 
 import json
@@ -131,11 +132,17 @@ def evaluate_plan_revision_authority(
     decisions = runtime.reverse_neighbors(revision_id, KIN_AUTHORIZES_REVISION)
     assets = runtime.neighbors(revision_id, CORE_IMPACTS)
     if not plans:
-        return QualificationGateResult(status="REJECTED", reason="plan-revision-has-no-original-plan")
+        return QualificationGateResult(
+            status="REJECTED", reason="plan-revision-has-no-original-plan"
+        )
     if not decisions:
-        return QualificationGateResult(status="REJECTED", reason="plan-revision-has-no-authorizing-decision")
+        return QualificationGateResult(
+            status="REJECTED", reason="plan-revision-has-no-authorizing-decision"
+        )
     if not assets:
-        return QualificationGateResult(status="REJECTED", reason="plan-revision-has-no-operating-scope")
+        return QualificationGateResult(
+            status="REJECTED", reason="plan-revision-has-no-operating-scope"
+        )
 
     valid_assignments: list[str] = []
     for asset in assets:
@@ -184,11 +191,17 @@ def evaluate_outcome_assessment(
     outcomes = runtime.neighbors(assessment_id, PERF_OBSERVED_OUTCOME)
     risks = runtime.neighbors(assessment_id, PERF_CONSIDERS_RISK)
     if not decisions:
-        return QualificationGateResult(status="REJECTED", reason="outcome-assessment-has-no-governed-decision")
+        return QualificationGateResult(
+            status="REJECTED", reason="outcome-assessment-has-no-governed-decision"
+        )
     if not outcomes:
-        return QualificationGateResult(status="REJECTED", reason="outcome-assessment-has-no-kpi-evidence")
+        return QualificationGateResult(
+            status="REJECTED", reason="outcome-assessment-has-no-kpi-evidence"
+        )
     if not risks:
-        return QualificationGateResult(status="REJECTED", reason="outcome-assessment-has-no-risk-context")
+        return QualificationGateResult(
+            status="REJECTED", reason="outcome-assessment-has-no-risk-context"
+        )
 
     evidence_kinds = {record.kind for record in evidence.records}
     required_provenance = {"source_reference", "property_provenance", "transformation"}
@@ -204,11 +217,7 @@ def evaluate_outcome_assessment(
         sort_keys=True,
         default=str,
     )
-    missing_ids = [
-        item.id
-        for item in [*outcomes, *risks]
-        if item.id not in serialized_evidence
-    ]
+    missing_ids = [item.id for item in [*outcomes, *risks] if item.id not in serialized_evidence]
     if missing_ids:
         return QualificationGateResult(
             status="REJECTED",
