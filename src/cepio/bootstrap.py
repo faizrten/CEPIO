@@ -4,10 +4,12 @@ from pathlib import Path
 
 from rdflib import Graph
 
-from .action_handlers import approve_maintenance_deferral, create_inspection, create_work_order, defer_work_order, escalate_risk, require_interface, require_parameter, require_target_type, restore_risk_status
+from .action_handlers import approve_maintenance_deferral, create_inspection, create_work_order, escalate_risk, require_interface, require_parameter, require_target_type, restore_risk_status
+from .action_handlers import defer_work_order
 from .config import RuntimeSettings
 from .contract_runtime import ContractAwareCEPIORuntime
-from .functions import AssetRiskInput, MaintenanceDeferralRiskAssessment, MaintenanceDeferralRiskInput, MarginImpactInput, ProductionExposureInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_exposure, calculate_production_loss, evaluate_maintenance_deferral_risk
+from .functions import AssetRiskInput, MarginImpactInput, ProductionExposureInput, ProductionLossInput, calculate_asset_risk, calculate_margin_impact, calculate_production_exposure, calculate_production_loss
+from .functions import MaintenanceDeferralRiskAssessment, MaintenanceDeferralRiskInput, evaluate_maintenance_deferral_risk
 from .kinetic import InMemoryWorkflowRepository, KineticRuntime, SQLiteWorkflowRepository
 from .modules import ModuleCatalogue
 from .observability import TelemetrySink, instrument_runtime
