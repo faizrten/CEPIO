@@ -20,6 +20,22 @@ policies:
     actions: []
     functions: []
     decisions: []
+  petrophysicist:
+    read_types:
+      - https://cepio.org/ontology/subsurface#FormationEvaluationCase
+      - https://cepio.org/ontology/subsurface#PetrophysicalCharacteristic
+      - https://cepio.org/ontology/subsurface#FormationEvaluationState
+      - https://cepio.org/ontology/core#Evidence
+      - https://cepio.org/ontology/core#Assumption
+      - https://cepio.org/ontology/core#UncertaintyAssessment
+      - https://cepio.org/ontology/core#ConfidenceAssessment
+      - https://cepio.org/ontology/core#Dependency
+      - https://cepio.org/ontology/energy#Well
+    read_scopes: [internal]
+    read_properties: {}
+    actions: []
+    functions: []
+    decisions: []
   operator:
     read_types: [Equipment, ProcessUnit, Measurement, KPI, Event]
     read_scopes: [internal]
