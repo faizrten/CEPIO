@@ -64,8 +64,12 @@ class DrillingNPTBindingQualification(BaseModel):
 
 
 def _materialize_context(runtime: CEPIORuntime, context: DrillingNPTContextEvidence) -> None:
-    runtime.upsert_object(OntologyObject(id=context.rig_id, type="OperatingRig", name=context.rig_name))
-    runtime.upsert_object(OntologyObject(id=context.well_id, type="Well", name=context.well_name))
+    runtime.upsert_object(
+        OntologyObject(id=context.rig_id, type="OperatingRig", name=context.rig_name)
+    )
+    runtime.upsert_object(
+        OntologyObject(id=context.well_id, type="Well", name=context.well_name)
+    )
 
     for item in context.activities:
         runtime.upsert_object(
