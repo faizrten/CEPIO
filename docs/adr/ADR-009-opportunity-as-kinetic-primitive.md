@@ -26,7 +26,9 @@ CEPIO Kinetic defines three universal prospective decision concepts:
 
 - `kin:Opportunity` — a prospective, actionable situation in which one or more options could advance an objective or avoid loss;
 - `kin:Option` — a possible course of action evaluated in an opportunity or decision context;
-- `kin:Recommendation` — a reasoned proposal favoring one or more options without constituting the authoritative decision.
+- `kin:OptionRecommendation` — an authority-neutral, reasoned proposal favoring one or more options without constituting the authoritative decision.
+
+`OptionRecommendation` is deliberately named to remain distinct from the existing agentic `Recommendation` concept and to avoid an ambiguous registry short name.
 
 The existing `kin:Decision` remains the authoritative selection/conclusion record.
 
@@ -35,11 +37,11 @@ The minimum universal relationships are:
 ```text
 Opportunity --opportunityForObjective--> Objective
 Opportunity --hasOption---------------> Option
-Opportunity --hasRecommendation-------> Recommendation
-Recommendation --recommendsOption-----> Option
+Opportunity --hasRecommendation-------> OptionRecommendation
+OptionRecommendation --recommendsOption--> Option
 Decision --addressesOpportunity-------> Opportunity
 Decision --selectedOption-------------> Option
-Decision --basedOnRecommendation------> Recommendation
+Decision --basedOnRecommendation------> OptionRecommendation
 ```
 
 Core evidence and uncertainty semantics attach through existing generic Core relationships rather than Kinetic-specific duplicates:
@@ -57,7 +59,7 @@ Opportunity --hasHypothesis------------> Hypothesis
 
 1. Domain modules can represent opportunities consistently without defining parallel decision vocabularies.
 2. CEPIO can rank and govern opportunities across subsurface, drilling, refinery, maintenance and commercial contexts.
-3. Recommendation remains explicitly distinct from Decision, preserving human/agent authority boundaries.
+3. Option recommendation remains explicitly distinct from Decision, preserving human/agent authority boundaries.
 4. Opportunity can participate directly in evidence, uncertainty and confidence graphs without moving prospective semantics into Core.
 5. The same decision-learning loop can be reused across domains:
 
@@ -78,7 +80,7 @@ Evidence
 
 1. `Opportunity` must not become a synonym for `Risk`. Risk concerns adverse uncertainty/consequence; an Opportunity is an actionable prospective path toward an objective, including avoided loss.
 2. `Opportunity` must not imply approval or authority to act.
-3. `Recommendation` must not be modeled as a subclass of `Decision`.
+3. `OptionRecommendation` must not be modeled as a subclass of `Decision`.
 4. Domain modules should specialize what an opportunity concerns, not redefine the universal opportunity/option/decision lifecycle.
 5. Domain-specific value metrics, maturity schemes, ranking models and economics remain domain/profile/runtime concerns unless later promoted through generalization evidence.
 
