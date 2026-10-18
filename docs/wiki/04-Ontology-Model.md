@@ -37,27 +37,40 @@ CEPIO uses modular RDF/OWL ontologies rather than one monolithic schema.
 
 ## Current module catalogue
 
+The versions below mirror `ontology-modules.yaml` on this branch. That manifest remains the machine-readable source of truth.
+
 | Module | Namespace | Current module version | Tier | Stability |
 |---|---|---:|---|---|
 | core | `https://cepio.org/ontology/core#` | 0.2.0 | foundation | stable |
 | lifecycle | `.../lifecycle#` | 0.2.0 | foundation | stable |
-| kinetic | `.../kinetic#` | 0.2.0 | foundation | stable |
-| industrial | `.../industrial#` | 0.2.1 | industrial-common | stable |
+| kinetic | `.../kinetic#` | 0.2.1 | foundation | stable |
+| industrial | `.../industrial#` | 0.2.2 | industrial-common | stable |
 | enterprise | `.../enterprise#` | 0.2.0 | enterprise | stable |
 | energy | `.../energy#` | 0.2.0 | domain | stable |
-| asset | `.../asset#` | 0.1.0 | industrial-common | developing |
-| work_management | `.../work#` | 0.1.0 | industrial-common | developing |
-| reliability | `.../reliability#` | 0.1.1 | industrial-common | developing |
-| hse | `.../hse#` | 0.1.0 | industrial-common | developing |
-| supply | `.../supply#` | 0.1.0 | industrial-common | developing |
-| performance | `.../performance#` | 0.1.2 | industrial-common | developing |
-| workforce | `.../workforce#` | 0.1.0 | industrial-common | developing |
-| agentic_operations | `.../agentic#` | 0.1.0 | industrial-common | developing |
-| process_industry | `.../process#` | 0.1.3 | domain | developing |
-| manufacturing | `.../manufacturing#` | 0.1.0 | domain | experimental |
+| asset | `.../asset#` | 0.1.1 | industrial-common | developing |
+| work_management | `.../work#` | 0.1.1 | industrial-common | developing |
+| reliability | `.../reliability#` | 0.1.2 | industrial-common | developing |
+| hse | `.../hse#` | 0.1.2 | industrial-common | developing |
+| supply | `.../supply#` | 0.1.1 | industrial-common | developing |
+| performance | `.../performance#` | 0.1.4 | industrial-common | developing |
+| workforce | `.../workforce#` | 0.1.3 | industrial-common | developing |
+| agentic_operations | `.../agentic#` | 0.1.1 | industrial-common | developing |
+| process_industry | `.../process#` | 0.1.6 | domain | developing |
+| manufacturing | `.../manufacturing#` | 0.1.1 | domain | experimental |
 | epcic | `.../epcic#` | 0.1.0 | domain | developing |
-| drilling | `.../drilling#` | 0.1.0 | domain | developing |
-| commercial | `.../commercial#` | 0.1.0 | enterprise | developing |
+| drilling | `.../drilling#` | 0.1.2 | domain | developing |
+| commercial | `.../commercial#` | 0.1.2 | enterprise | developing |
+
+## Common decision and optimization semantics
+
+The Drilling Contractor domain-qualification remediation deliberately adds reusable semantics to common modules rather than creating drilling-only shortcuts:
+
+- `agentic_operations:Prediction` represents model-derived inference separately from observed enterprise fact and can carry operating scope/risk context;
+- `agentic_operations:Recommendation` can be explicitly grounded in supporting enterprise evidence and governed at a control point;
+- `kinetic:OperationalPlan` and `kinetic:PlanRevision` preserve the original plan and its proposed revision as distinct governed records, with an authorizing `kinetic:Decision`;
+- `performance:OutcomeAssessment` links a governed decision/intervention to KPI outcome evidence and risk context rather than storing an unsupported scalar value-realization claim.
+
+These abstractions were introduced to close reusable enterprise/optimization gaps while keeping the drilling ontology source-neutral. See [Drilling domain qualification remediation v0.4.1](../drilling-domain-qualification-remediation-v0.4.1.md) for the qualification rationale and regression evidence.
 
 ## Core primitives
 
