@@ -13,6 +13,19 @@ kin:Approval a owl:Class ; rdfs:subClassOf cepio:Event .
 kin:OperationalPlan a owl:Class ; rdfs:subClassOf cepio:Document .
 kin:PlanRevision a owl:Class ; rdfs:subClassOf cepio:Document .
 
+# Universal prospective decision semantics.
+# Opportunity is intentionally Kinetic rather than Core: Core describes what the
+# enterprise knows; Kinetic describes what it may choose to pursue or change.
+kin:Opportunity a owl:Class ;
+  rdfs:subClassOf cepio:Entity ;
+  rdfs:comment "A prospective, actionable situation in which one or more options could advance an objective or avoid loss." .
+kin:Option a owl:Class ;
+  rdfs:subClassOf cepio:Entity ;
+  rdfs:comment "A possible course of action evaluated in an opportunity or decision context." .
+kin:Recommendation a owl:Class ;
+  rdfs:subClassOf cepio:Entity ;
+  rdfs:comment "A reasoned proposal favoring one or more options without constituting the authoritative decision." .
+
 kin:permitsAction a owl:ObjectProperty .
 kin:requiresApproval a owl:ObjectProperty .
 kin:invokesFunction a owl:ObjectProperty .
@@ -20,3 +33,25 @@ kin:governedBy a owl:ObjectProperty .
 kin:resultsIn a owl:ObjectProperty .
 kin:revisesPlan a owl:ObjectProperty ; rdfs:domain kin:PlanRevision ; rdfs:range kin:OperationalPlan .
 kin:authorizesRevision a owl:ObjectProperty ; rdfs:domain kin:Decision ; rdfs:range kin:PlanRevision .
+
+kin:opportunityForObjective a owl:ObjectProperty ;
+  rdfs:domain kin:Opportunity ;
+  rdfs:range cepio:Objective .
+kin:hasOption a owl:ObjectProperty ;
+  rdfs:domain kin:Opportunity ;
+  rdfs:range kin:Option .
+kin:hasRecommendation a owl:ObjectProperty ;
+  rdfs:domain kin:Opportunity ;
+  rdfs:range kin:Recommendation .
+kin:recommendsOption a owl:ObjectProperty ;
+  rdfs:domain kin:Recommendation ;
+  rdfs:range kin:Option .
+kin:addressesOpportunity a owl:ObjectProperty ;
+  rdfs:domain kin:Decision ;
+  rdfs:range kin:Opportunity .
+kin:selectedOption a owl:ObjectProperty ;
+  rdfs:domain kin:Decision ;
+  rdfs:range kin:Option .
+kin:basedOnRecommendation a owl:ObjectProperty ;
+  rdfs:domain kin:Decision ;
+  rdfs:range kin:Recommendation .
