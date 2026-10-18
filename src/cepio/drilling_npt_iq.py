@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from .industry_iq import IndustryIQPackManifest
 from .model import ActionRequest, ObjectRef, OntologyObject, Relationship
 from .runtime import CEPIORuntime
 
@@ -207,8 +208,16 @@ def create_npt_investigation(
 
 
 class DrillingNPTIndustryIQPack:
-    pack_id = "cepio.iq.drilling.npt"
-    version = "0.1.0"
+    manifest = IndustryIQPackManifest(
+        pack_id="cepio.iq.drilling.npt",
+        version="0.1.0",
+        requires_core=">=0.4.0,<1.0.0",
+        functions={"calculateNPTDuration"},
+        decisions={"npt-follow-up-recommendation"},
+        actions={"CreateNPTInvestigation"},
+    )
+    pack_id = manifest.pack_id
+    version = manifest.version
 
     def install(self, runtime: CEPIORuntime) -> None:
         runtime.register_function(

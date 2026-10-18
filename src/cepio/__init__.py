@@ -46,7 +46,17 @@ from .external_actions import (
     build_external_action_runtime,
 )
 from .graph_analytics import GraphAnalyticsEngine
-from .industry_iq import IndustryIQPack, install_industry_iq_packs
+from .industry_iq import (
+    IndustryIQDeploymentManifest,
+    IndustryIQPack,
+    IndustryIQPackManifest,
+    IndustryIQPackRegistry,
+    IndustryIQResolution,
+    IndustryIQResolutionError,
+    industry_iq_manifest,
+    install_industry_iq_packs,
+    version_satisfies,
+)
 from .kinetic import (
     ApprovalTask,
     KineticRuntime,
@@ -119,6 +129,13 @@ __all__ = [
     "RuntimeCapabilityBinding",
     "ExternalRecordReference",
     "IndustryIQPack",
+    "IndustryIQPackManifest",
+    "IndustryIQPackRegistry",
+    "IndustryIQResolution",
+    "IndustryIQDeploymentManifest",
+    "IndustryIQResolutionError",
+    "industry_iq_manifest",
+    "version_satisfies",
     "install_industry_iq_packs",
     "DRILLING_NPT_IQ_PACK",
     "DrillingNPTIndustryIQPack",
