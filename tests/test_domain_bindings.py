@@ -18,7 +18,10 @@ def test_subsurface_contract_loads_through_runtime_model():
     contract = DomainBindingContract.load_yaml(CONTRACT)
     assert contract.profile == "osdu-adme-subsurface"
     assert contract.baseline["osdu_milestone"] == "M26"
-    assert contract.resolve_preferred_binding("subsurface.reservoir.model_scenario") == "adme.reservoir_ddms"
+    assert (
+        contract.resolve_preferred_binding("subsurface.reservoir.model_scenario")
+        == "adme.reservoir_ddms"
+    )
 
 
 def test_object_binding_preserves_treatment_and_provider_service():
@@ -26,7 +29,10 @@ def test_object_binding_preserves_treatment_and_provider_service():
     fault = contract.object_binding("fault_interpretation")
     assert fault.treatment == "EXTEND"
     assert fault.provider_service == "reservoir_ddms"
-    assert "https://cepio.org/ontology/core#UncertaintyAssessment" in fault.sidecar_semantics
+    assert (
+        "https://cepio.org/ontology/core#UncertaintyAssessment"
+        in fault.sidecar_semantics
+    )
 
     well = contract.object_binding("well")
     assert well.treatment == "BIND"
