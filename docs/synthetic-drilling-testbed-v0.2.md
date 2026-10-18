@@ -28,14 +28,16 @@ Every generated multimodal artifact therefore carries:
 - source equipment ID;
 - scenario ID;
 - event time;
-- explicit ground-truth claims;
+- explicit synthetic ground-truth claims;
 - generator provenance.
 
 ## Acceptance gate
 
-The v0.2 gate preserves all twenty v0.1 golden questions and adds ten multimodal questions covering document corroboration, visual evidence, diagram grounding, geospatial relationships, waveform evidence, cross-modal fusion, source-native artifact references and multimodal provenance.
+The v0.2 deterministic conformance gate preserves all twenty v0.1 golden questions and adds ten multimodal questions covering document corroboration, visual evidence, diagram grounding, geospatial relationships, waveform evidence, cross-modal fusion, source-native artifact references and multimodal provenance.
 
-The immediate runtime objective is to make REST, Python SDK and MCP answer the same 30 questions from the same CEPIO semantic contract without application code needing to understand the source formats.
+The immediate runtime objective is to make REST, Python SDK and MCP answer the same 30 fixture questions from the same CEPIO semantic contract without application code needing to understand the source formats.
+
+This public conformance gate must not be confused with the live Agent Challenge qualification evaluator. Public fixture questions and deterministic answers are intentionally reproducible; a real model benchmark requires an evaluator that is not distributed in the public repository.
 
 ## Future modalities
 
