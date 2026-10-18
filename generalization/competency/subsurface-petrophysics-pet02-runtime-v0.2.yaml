@@ -14,6 +14,10 @@ execution:
   deterministic: true
   llm_required: false
   source_record_mutation: prohibited
+  actor_id: petrophysicist
+  actor_roles: [petrophysicist]
+  preflight_required: true
+  preflight_registry: cepio.SkillRegistry
 
 reference_benchmark:
   path: generalization/benchmarks/subsurface-petrophysics-pet02-a17-zone-b.yaml
@@ -31,6 +35,7 @@ skill_sequence:
 
 runtime_answer_contract:
   required:
+    - preflights
     - authoritative_case
     - authority_state
     - superseded_case
@@ -48,11 +53,12 @@ runtime_answer_contract:
     - prohibited_ai_conclusions
 
 status_semantics:
-  ANSWERED: Required evidence and authority context are sufficient for a deterministic assurance answer.
-  INSUFFICIENT_CEPIO_EVIDENCE: Required context, lineage or source/version evidence is missing; answer must fail closed.
+  ANSWERED: Required skill admission, evidence and authority context are sufficient for a deterministic assurance answer.
+  INSUFFICIENT_CEPIO_EVIDENCE: Required runtime admission, context, lineage or source/version evidence is missing; answer must fail closed.
   AUTHORITY_CONFLICT: More than one case is marked authoritative; runtime must not choose one heuristically.
 
 fail_closed_conditions:
+  - any PET-02 skill fails CEPIO runtime/type/policy preflight
   - requested well or interval does not match the resolved evidence package
   - no authoritative formation-evaluation case exists
   - more than one authoritative formation-evaluation case exists
