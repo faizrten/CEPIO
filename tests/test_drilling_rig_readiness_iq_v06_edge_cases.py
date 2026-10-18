@@ -42,7 +42,7 @@ def test_readiness_helpers_fail_closed_on_type_status_and_time_shape():
 
     runtime = build_runtime()
     runtime.upsert_object(OntologyObject(id="WO-1", type="WorkOrder", name="Wrong type"))
-    with pytest.raises(ValueError, match="WO-1 is not an Equipment"):
+    with pytest.raises(ValueError, match="WO-1 is not a Equipment"):
         _require_type(runtime, "WO-1", "Equipment")
 
     with pytest.raises(ValueError, match="missing required normalized status"):
