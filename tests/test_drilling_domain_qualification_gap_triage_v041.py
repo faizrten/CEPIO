@@ -7,8 +7,14 @@ import yaml
 from cepio.generalization import load_gap_triage, run_harness
 
 ROOT = Path(__file__).resolve().parents[1]
-GAPS = ROOT / "generalization/gaps/drilling-contractor-domain-qualification-v0.4.1.yaml"
-RESOLUTIONS = ROOT / "generalization/gaps/drilling-contractor-domain-qualification-v0.4.1-resolutions.yaml"
+GAPS = (
+    ROOT
+    / "generalization/gaps/drilling-contractor-domain-qualification-v0.4.1.yaml"
+)
+RESOLUTIONS = (
+    ROOT
+    / "generalization/gaps/drilling-contractor-domain-qualification-v0.4.1-resolutions.yaml"
+)
 
 EXPECTED = {
     "DC-DQ-009": "GAP-DQ-009-PREDICTION-INFERENCE",
@@ -63,7 +69,12 @@ def test_active_gap_triage_matches_current_normalized_v041_failures(tmp_path):
         if result["status"] in {"PARTIAL", "FAIL"}
     }
 
-    assert report["status_counts"] == {"PASS": 15, "PARTIAL": 0, "FAIL": 0, "ERROR": 0}
+    assert report["status_counts"] == {
+        "PASS": 15,
+        "PARTIAL": 0,
+        "FAIL": 0,
+        "ERROR": 0,
+    }
     assert failures == set()
     assert active.status == "accepted"
     assert active.decisions == []
@@ -75,7 +86,9 @@ def test_resolution_ledger_preserves_the_four_accepted_core_decisions():
     assert ledger["source_triage"] == str(GAPS.relative_to(ROOT)).replace("\\", "/")
 
     resolutions = {item["question_id"]: item for item in ledger["resolutions"]}
-    assert {question: item["gap_id"] for question, item in resolutions.items()} == EXPECTED
+    assert {
+        question: item["gap_id"] for question, item in resolutions.items()
+    } == EXPECTED
     assert {item["disposition"] for item in resolutions.values()} == {"CORE"}
     assert {item["status"] for item in resolutions.values()} == {"implemented"}
     assert {item["module"] for item in resolutions.values()} == {
