@@ -13,9 +13,9 @@ def _graph() -> Graph:
     return graph
 
 
-def test_opportunity_option_and_recommendation_are_kinetic_entities():
+def test_opportunity_option_and_option_recommendation_are_kinetic_entities():
     graph = _graph()
-    for concept in (KIN.Opportunity, KIN.Option, KIN.Recommendation):
+    for concept in (KIN.Opportunity, KIN.Option, KIN.OptionRecommendation):
         assert (concept, RDF.type, OWL.Class) in graph
         assert (concept, RDFS.subClassOf, CEPIO.Entity) in graph
 
@@ -28,12 +28,12 @@ def test_opportunity_is_linked_to_objective_and_options():
     assert (KIN.hasOption, RDFS.range, KIN.Option) in graph
 
 
-def test_recommendation_is_not_a_decision():
+def test_option_recommendation_is_not_a_decision():
     graph = _graph()
-    assert (KIN.hasRecommendation, RDFS.range, KIN.Recommendation) in graph
-    assert (KIN.recommendsOption, RDFS.domain, KIN.Recommendation) in graph
+    assert (KIN.hasRecommendation, RDFS.range, KIN.OptionRecommendation) in graph
+    assert (KIN.recommendsOption, RDFS.domain, KIN.OptionRecommendation) in graph
     assert (KIN.recommendsOption, RDFS.range, KIN.Option) in graph
-    assert (KIN.Recommendation, RDFS.subClassOf, KIN.Decision) not in graph
+    assert (KIN.OptionRecommendation, RDFS.subClassOf, KIN.Decision) not in graph
 
 
 def test_decision_can_address_opportunity_and_select_option():
@@ -43,4 +43,4 @@ def test_decision_can_address_opportunity_and_select_option():
     assert (KIN.selectedOption, RDFS.domain, KIN.Decision) in graph
     assert (KIN.selectedOption, RDFS.range, KIN.Option) in graph
     assert (KIN.basedOnRecommendation, RDFS.domain, KIN.Decision) in graph
-    assert (KIN.basedOnRecommendation, RDFS.range, KIN.Recommendation) in graph
+    assert (KIN.basedOnRecommendation, RDFS.range, KIN.OptionRecommendation) in graph
