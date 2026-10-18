@@ -8,6 +8,7 @@ competency pack, runtime question set, object/relationship types and probes.
 This lets CEPIO distinguish genuine generalization from a collection of customer-specific
 ontology forks. No LLM output participates in pass/fail.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -102,13 +103,12 @@ def _case_semantic_signature(case: RuntimeQuestionCase) -> dict[str, Any]:
 
 
 def suite_semantic_signature(suite: RuntimeCoverageSuite) -> dict[str, Any]:
-    return {
-        case.question_id: _case_semantic_signature(case)
-        for case in suite.questions
-    }
+    return {case.question_id: _case_semantic_signature(case) for case in suite.questions}
 
 
-def _profile_case(case: RuntimeQuestionCase, profile: CustomerQualificationProfile) -> RuntimeQuestionCase:
+def _profile_case(
+    case: RuntimeQuestionCase, profile: CustomerQualificationProfile
+) -> RuntimeQuestionCase:
     """Create an instance-only customer variant while preserving canonical semantics."""
 
     prefix = profile.id.upper().replace("-", "_")
@@ -253,9 +253,7 @@ def run_cross_customer_qualification(repo_root: Path, pack_path: Path) -> dict[s
                 "no_semantic_extension": no_semantic_extension,
                 "question_count": len(results),
                 "status_counts": status_counts,
-                "runtime_coverage_rate": (
-                    status_counts["PASS"] / len(results) if results else 0.0
-                ),
+                "runtime_coverage_rate": (status_counts["PASS"] / len(results) if results else 0.0),
                 "operator_evidence_gate_pass": all_evidence_gates_pass,
                 "status": "PASS" if passed else "FAIL",
                 "results": results,
