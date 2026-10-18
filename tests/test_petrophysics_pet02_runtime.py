@@ -24,6 +24,8 @@ def test_pet02_runtime_answers_the_golden_question_end_to_end():
 
     assert result.status == "ANSWERED"
     assert not result.blockers
+    assert len(result.preflights) == 5
+    assert all(item.status == "READY" for item in result.preflights)
     assert result.answer is not None
     assert result.answer.authoritative_case == "FE-A17-ZB-v3"
     assert result.answer.authority_state == "Authoritative"
@@ -113,6 +115,20 @@ def test_pet02_runtime_emits_the_five_skill_execution_trace():
         "cepio.skill.subsurface.petrophysics.downstream-impact",
     ]
     assert all(item.status == "PASS" for item in result.trace)
+
+
+def test_pet02_runtime_fails_closed_when_actor_cannot_pass_skill_preflight():
+    result = run_pet02_formation_evaluation(
+        BENCHMARK,
+        well="A-17",
+        interval="Zone-B",
+        actor_id="unauthorized-user",
+        actor_roles={"shareholder_viewer"},
+    )
+    assert result.status == "INSUFFICIENT_CEPIO_EVIDENCE"
+    assert result.answer is None
+    assert any(item.status == "BLOCKED" for item in result.preflights)
+    assert all(blocker.code == "SKILL_PREFLIGHT_BLOCKED" for blocker in result.blockers)
 
 
 def test_pet02_runtime_fails_closed_when_requested_context_is_absent():
