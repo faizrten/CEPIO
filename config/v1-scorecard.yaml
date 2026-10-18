@@ -1,0 +1,301 @@
+schema_version: "1.0"
+product: CEPIO
+target_release: v1.0
+north_star: >-
+  CEPIO is the portable industrial operating intelligence layer for Energy & Process
+  Industries: thin in infrastructure, thick in industrial intelligence.
+scoring:
+  total_points: 100
+  baseline_date: "2026-10-18"
+  baseline_points: 63
+  rules:
+    - Product release gates remain independent of this maturity score.
+    - Earned points require explicit evidence.
+    - Partial credit is allowed only for independently verifiable sub-capabilities.
+    - Open PRs may be cited as progress evidence but must not be treated as merged capability.
+    - Customer-confidential and protected Industry IQ content must not be exposed here.
+stages:
+  - id: foundation
+    name: Foundation / Core
+    release_scope: v0.1-v0.4
+    points: 30
+    earned: 30
+    gates:
+      - id: F1
+        title: Semantic scaffold and canonical operating concepts
+        points: 5
+        earned: 5
+        status: qualified
+        evidence:
+          - "docs/roadmap.md: v0.1 Semantic Scaffold completed"
+      - id: F2
+        title: Operational kernel, policy, actions, persistence and SDK foundations
+        points: 5
+        earned: 5
+        status: qualified
+        evidence:
+          - "docs/roadmap.md: v0.2 Operational Kernel completed"
+      - id: F3
+        title: Temporal, provenance and replayable event-to-state kernel
+        points: 5
+        earned: 5
+        status: qualified
+        evidence:
+          - "docs/roadmap.md: v0.3 Temporal + Provenance Kernel completed"
+      - id: F4
+        title: Developer Preview API, identity, deployment and observability baseline
+        points: 6
+        earned: 6
+        status: qualified
+        evidence:
+          - "PR #69: CEPIO v0.4 Developer Preview release gate"
+          - "docs/roadmap.md: v0.4 Developer Preview completed"
+      - id: F5
+        title: Governance, compatibility, security and quality ratchets
+        points: 5
+        earned: 5
+        status: qualified
+        evidence:
+          - "Governance v2, CodeQL, compatibility and quality gates on main"
+      - id: F6
+        title: Pulled-forward workflow, policy, Skill and governed-outcome foundations
+        points: 4
+        earned: 4
+        status: qualified
+        evidence:
+          - "Durable workflow orchestration, policy lineage, Skill preflight and WorkflowOutcome on main"
+
+  - id: v0.5
+    name: Platform Portability
+    release_scope: v0.5
+    points: 15
+    earned: 7
+    gates:
+      - id: P1
+        title: Provider-neutral evidence and action binding contract
+        points: 3
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Existing ExternalRecordReference and governed Action adapter contracts on main"
+          - "PR #189 implements the thin Platform Binding scaffold/conformance kit; not yet merged"
+      - id: P2
+        title: Fabric-native observation/evidence plane with preserved provenance
+        points: 3
+        earned: 2
+        status: in_progress
+        evidence:
+          - "Fabric/Fabric IQ binding completed in v0.4"
+          - "Live authenticated Fabric evidence transport and parity qualification remain open"
+      - id: P3
+        title: Cognite-native evidence binding without graph duplication
+        points: 3
+        earned: 0
+        status: planned
+        evidence: []
+      - id: P4
+        title: Cross-platform identity and same-Skill Fabric/Cognite parity
+        points: 3
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Source-neutral identity/provenance contracts exist; cross-platform proof remains open"
+      - id: P5
+        title: Source-authoritative governed action with write, verify and reconcile
+        points: 3
+        earned: 3
+        status: in_progress
+        evidence:
+          - "Governed write -> verify -> reconcile runtime is implemented and qualified with fake adapters"
+          - "Real SAP production-side qualification remains open and is required for the v0.5 release gate"
+
+  - id: v0.6
+    name: Industry IQ v1
+    release_scope: v0.6
+    points: 15
+    earned: 10
+    gates:
+      - id: I1
+        title: Versioned Industry IQ pack registry and deterministic composition
+        points: 3
+        earned: 3
+        status: qualified
+        evidence:
+          - "PR #188 merged: Industry IQ pack registry and composition v0.5"
+      - id: I2
+        title: Reliability / Maintenance Industry IQ capability depth
+        points: 3
+        earned: 2
+        status: in_progress
+        evidence:
+          - "Equipment degradation and maintenance-deferral Skill/runtime foundations exist"
+          - "Coherent v1 Reliability/Maintenance pack is not yet release-qualified"
+      - id: I3
+        title: Drilling Industry IQ capability depth and portability pressure test
+        points: 3
+        earned: 3
+        status: qualified
+        evidence:
+          - "Drilling semantic/runtime qualification and cross-customer portability are on main"
+      - id: I4
+        title: At least 10 high-value capabilities, including 5 end-to-end governed capabilities
+        points: 3
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Multiple qualified domain capabilities exist, but the v0.6 aggregate capability gate is not yet met"
+      - id: I5
+        title: Same Industry IQ capability definition runs across at least two model/provider configurations
+        points: 3
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Model-agnostic Skill/tool contracts exist; two-provider product qualification remains open"
+
+  - id: v0.7
+    name: Assurance + Generalization
+    release_scope: v0.7
+    points: 12
+    earned: 7
+    gates:
+      - id: A1
+        title: Generalization Lab methodology and reusable-capability promotion discipline
+        points: 3
+        earned: 3
+        status: qualified
+        evidence:
+          - "Generalization Lab and PROFILE -> DOMAIN -> CORE promotion work exists"
+      - id: A2
+        title: Protected assurance corpus spans Reliability/Maintenance and Drilling
+        points: 3
+        earned: 2
+        status: in_progress
+        evidence:
+          - "Protected benchmark/Agent Challenge and drilling qualification assets exist"
+          - "Two-domain production assurance corpus is not yet release-qualified"
+      - id: A3
+        title: Model x platform evaluation matrix separates model quality from binding quality
+        points: 2
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Model and platform evaluation foundations exist; systematic matrix remains open"
+      - id: A4
+        title: Portability scoring and platform/provider ablation are measured
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: A5
+        title: At least one shared capability promoted using documented generalization evidence
+        points: 2
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Cross-customer drilling evidence demonstrates the promotion discipline; formal v0.7 gate remains open"
+
+  - id: v0.8
+    name: Enterprise Profiles + Native Deployment
+    release_scope: v0.8
+    points: 10
+    earned: 3
+    gates:
+      - id: E1
+        title: Stable enterprise PROFILE packaging and customer-IP boundary
+        points: 3
+        earned: 2
+        status: in_progress
+        evidence:
+          - "First-class customer profile architecture and publication/IP controls exist"
+      - id: E2
+        title: One real enterprise profile and native deployment
+        points: 3
+        earned: 0
+        status: planned
+        evidence: []
+      - id: E3
+        title: Governed actions, security, telemetry and SLO evidence in the deployed enterprise
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: E4
+        title: Enterprise specialization without forking shared Core/Industry IQ contracts
+        points: 2
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Profile architecture and synthetic cross-customer qualification de-risk the boundary; real deployment proof remains open"
+
+  - id: v0.9
+    name: Multi-Enterprise Portability
+    release_scope: v0.9
+    points: 8
+    earned: 1
+    gates:
+      - id: M1
+        title: Enterprise #1 real production-context deployment
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: M2
+        title: Enterprise #2 materially different real production-context deployment
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: M3
+        title: Measured cross-enterprise reuse and portability evidence
+        points: 2
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Synthetic drilling cross-customer portability qualification materially de-risks this gate"
+      - id: M4
+        title: Enterprise #1 remains stable when enterprise #2 is introduced
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+
+  - id: v1.0
+    name: Production Guarantees
+    release_scope: v1.0
+    points: 10
+    earned: 5
+    gates:
+      - id: V1
+        title: Stable semantic/API/Skill contracts with explicit compatibility and migration rules
+        points: 2
+        earned: 2
+        status: qualified
+        evidence:
+          - "Versioned API, ontology compatibility, profile/module rules and migration gates exist"
+      - id: V2
+        title: Production-qualified Fabric plus second platform binding and authoritative action binding
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: V3
+        title: Multi-model assurance against the same CEPIO capability corpus
+        points: 2
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Model-agnostic contracts and protected evaluation work exist; production qualification remains open"
+      - id: V4
+        title: Clean-room implementation from documented Core + Industry IQ + binding contracts
+        points: 2
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Developer Preview packaging, SDK/documentation and local preflight substantially de-risk clean-room adoption"
+      - id: V5
+        title: Security/operations/release guarantees frozen and qualified for CEPIO-owned runtime components
+        points: 2
+        earned: 1
+        status: in_progress
+        evidence:
+          - "Governance, security, observability, deployment and release-evidence foundations exist; production SLO/operations guarantee remains open"
