@@ -21,12 +21,16 @@ FIXTURE = ROOT / "mvp/datasets/drilling-v0.2"
 def test_v02_contract_extends_v01_without_replacing_it():
     schema = json.loads((FIXTURE / "schema.json").read_text(encoding="utf-8"))
     golden = json.loads((FIXTURE / "tests/golden-questions.json").read_text(encoding="utf-8"))
-    contract = json.loads((FIXTURE / "ground-truth/artifact-contract.json").read_text(encoding="utf-8"))
+    contract = json.loads(
+        (FIXTURE / "ground-truth/artifact-contract.json").read_text(encoding="utf-8")
+    )
 
     assert schema["inherits"] == "drilling-v0.1"
     assert len(golden) == 30
     assert golden[:20] == json.loads(
-        (ROOT / "mvp/datasets/drilling-v0.1/tests/golden-questions.json").read_text(encoding="utf-8")
+        (ROOT / "mvp/datasets/drilling-v0.1/tests/golden-questions.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert set(contract["required_modalities"]) == {
         "document",
@@ -74,9 +78,9 @@ def test_v02_generator_creates_bound_multimodal_evidence(tmp_path: Path):
 
     geo = json.loads((tmp_path / "geospatial/rig-well-context.geojson").read_text(encoding="utf-8"))
     assert len(geo["features"]) == 14
-    assert {feature["id"] for feature in geo["features"] if feature["geometry"]["type"] == "Point"} >= {
-        "rig-07", "rig-12", "rig-21", "well-02", "well-05", "well-08"
-    }
+    assert {
+        feature["id"] for feature in geo["features"] if feature["geometry"]["type"] == "Point"
+    } >= {"rig-07", "rig-12", "rig-21", "well-02", "well-05", "well-08"}
 
     waveform = tmp_path / "signals/high-frequency/scn-001-vibration_velocity.csv"
     with waveform.open(encoding="utf-8") as handle:
