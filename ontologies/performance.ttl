@@ -1,4 +1,5 @@
 @prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix kin: <https://cepio.org/ontology/kinetic#> .
 @prefix perf: <https://cepio.org/ontology/performance#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -13,6 +14,7 @@ perf:CompositeScore a owl:Class ; rdfs:subClassOf cepio:Measurement .
 perf:FleetException a owl:Class ; rdfs:subClassOf cepio:Risk .
 perf:ActionPerformance a owl:Class ; rdfs:subClassOf cepio:Measurement .
 perf:ProductionLoss a owl:Class ; rdfs:subClassOf cepio:Measurement .
+perf:OutcomeAssessment a owl:Class ; rdfs:subClassOf cepio:Entity .
 
 # Prospective production consequence associated with an asset condition, outage or
 # intervention window. Exposure is deliberately distinct from ProductionLoss:
@@ -31,3 +33,6 @@ perf:scorecardFor a owl:ObjectProperty ; rdfs:domain perf:Scorecard ; rdfs:range
 perf:hasScoreDimension a owl:ObjectProperty ; rdfs:domain perf:Scorecard ; rdfs:range perf:ScoreDimension .
 perf:benchmarkedAgainst a owl:ObjectProperty ; rdfs:domain cepio:Measurement ; rdfs:range perf:Benchmark .
 perf:hasAssetStatus a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range perf:AssetStatus .
+perf:assessmentOfDecision a owl:ObjectProperty ; rdfs:domain perf:OutcomeAssessment ; rdfs:range kin:Decision .
+perf:observedOutcome a owl:ObjectProperty ; rdfs:domain perf:OutcomeAssessment ; rdfs:range perf:KPIObservation .
+perf:considersRisk a owl:ObjectProperty ; rdfs:domain perf:OutcomeAssessment ; rdfs:range cepio:Risk .
