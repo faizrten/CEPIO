@@ -1,0 +1,83 @@
+id: subsurface-petrophysics-pet02-runtime-v0.2
+version: "0.2"
+domain: subsurface
+persona_id: petrophysicist
+journey_id: PET-02
+name: Formation Evaluation Assurance Runtime
+status: experimental
+extends: generalization/competency/subsurface-petrophysics-pet02-v0.1.yaml
+
+execution:
+  module: cepio.formation_evaluation
+  runtime: FormationEvaluationAssuranceRuntime
+  entry_point: run_pet02_formation_evaluation
+  deterministic: true
+  llm_required: false
+  source_record_mutation: prohibited
+
+reference_benchmark:
+  path: generalization/benchmarks/subsurface-petrophysics-pet02-a17-zone-b.yaml
+  synthetic: true
+  expected_status: ANSWERED
+  well: A-17
+  interval: Zone-B
+
+skill_sequence:
+  - cepio.skill.subsurface.petrophysics.formation-evaluation-context
+  - cepio.skill.subsurface.petrophysics.interpretation-delta
+  - cepio.skill.subsurface.petrophysics.assumption-trace
+  - cepio.skill.subsurface.petrophysics.core-log-reconciliation
+  - cepio.skill.subsurface.petrophysics.downstream-impact
+
+runtime_answer_contract:
+  required:
+    - authoritative_case
+    - authority_state
+    - superseded_case
+    - changed_assumptions
+    - changed_findings
+    - active_assumptions
+    - current_findings
+    - supporting_evidence
+    - contradictory_evidence
+    - uncertainty
+    - confidence
+    - downstream_impact
+    - recommended_actions
+    - human_authority_required
+    - prohibited_ai_conclusions
+
+status_semantics:
+  ANSWERED: Required evidence and authority context are sufficient for a deterministic assurance answer.
+  INSUFFICIENT_CEPIO_EVIDENCE: Required context, lineage or source/version evidence is missing; answer must fail closed.
+  AUTHORITY_CONFLICT: More than one case is marked authoritative; runtime must not choose one heuristically.
+
+fail_closed_conditions:
+  - requested well or interval does not match the resolved evidence package
+  - no authoritative formation-evaluation case exists
+  - more than one authoritative formation-evaluation case exists
+  - authoritative case references a missing superseded predecessor
+  - external evidence lacks source system, service, record kind, record id or record version identity
+
+authority:
+  runtime_may:
+    - resolve current authority state
+    - compare interpretation revisions
+    - expose active assumptions
+    - separate supporting and contradictory evidence
+    - expose uncertainty and confidence
+    - trace transitive downstream impact
+    - recommend technical review
+    - recommend information-gain work
+  runtime_may_not:
+    - declare a new interpretation authoritative
+    - approve reserves basis
+    - overwrite external technical records
+    - approve investment or well decisions
+
+acceptance:
+  tests: tests/test_petrophysics_pet02_runtime.py
+  cli: scripts/run_pet02_formation_evaluation.py
+  golden_command: >-
+    PYTHONPATH=src python scripts/run_pet02_formation_evaluation.py
+    --well A-17 --interval Zone-B --fail-on-non-answer
