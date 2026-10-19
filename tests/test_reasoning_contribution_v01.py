@@ -213,9 +213,7 @@ def test_bounded_reasoning_host_rejects_identity_collision_and_type_mismatch():
 def test_reasoning_contribution_validates_internal_evidence_and_hypothesis_references():
     evidence = ReasoningEvidence(
         id="evidence-1",
-        reference=EvidenceReference(
-            object_ref=ObjectRef(id="COND-1", type="ConditionObservation")
-        ),
+        reference=EvidenceReference(object_ref=ObjectRef(id="COND-1", type="ConditionObservation")),
         summary="Condition evidence",
     )
     hypothesis = ReasoningHypothesis(id="hypothesis-1", statement="Potential degradation")
