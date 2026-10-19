@@ -1,0 +1,49 @@
+id: drilling-operator-v0.1
+version: "0.1"
+domain: drilling-operator
+status: frozen
+north_star: >-
+  CEPIO should understand how an upstream operator plans, governs, executes,
+  assures and optimizes well delivery across drilling-contractor and service-company
+  interfaces while preserving source authority and decision rights.
+accountability_boundary:
+  operator_owns:
+    - well objective and value case
+    - approved operational plan and operator change control
+    - subsurface and well-design decision context
+    - operator risk acceptance and intervention decisions
+    - contractor and service performance acceptance
+    - well cost, schedule and portfolio value decisions
+  drilling_contractor_owns:
+    - rig and drilling equipment readiness
+    - contractor crews and competency
+    - rig maintenance and technical integrity
+    - contractor execution capability
+    - contractor HSE and commercial performance obligations
+  shared_interface:
+    - well
+    - drilling activity
+    - operational event
+    - daily drilling report
+    - plan deviation
+    - risk and barrier evidence
+    - service delivery evidence
+    - NPT and performance evidence
+principles:
+  shared_canonical_semantics: true
+  operator_specific_ontology_fork: prohibited
+  contractor_specific_ontology_fork: prohibited
+  source_systems_remain_authoritative: true
+  ai_assessment_is_enterprise_fact: false
+  human_authority_required_for_plan_change: true
+  safety_critical_physical_autonomy: prohibited
+  customer_data_used_for_training: false
+operating_loop:
+  - well_objective
+  - approved_plan
+  - readiness_and_service_interface
+  - execution
+  - deviation_performance_and_risk
+  - operator_decision
+  - governed_plan_revision_or_intervention
+  - outcome_and_well_delivery
