@@ -9,7 +9,14 @@ from pydantic import BaseModel, Field
 
 from ...application_contract import ExecutionContext, SkillEvaluation, SkillInvocation
 from ...application_runtime import build_application_service
-from ...model import ActionRequest, ActionResult, ObjectRef, OntologyObject, PolicyDecision, PolicyEffect
+from ...model import (
+    ActionRequest,
+    ActionResult,
+    ObjectRef,
+    OntologyObject,
+    PolicyDecision,
+    PolicyEffect,
+)
 from ...query import ObjectQuery, ObjectQueryResult
 from ...runtime import AuthorizationError, CEPIORuntime
 
@@ -102,9 +109,7 @@ class EntraClaimsMapper:
             raise AuthorizationError("Verified Entra claims do not contain oid/sub")
 
         mapped_roles = {
-            self.role_map[role]
-            for role in claims.get("roles", [])
-            if role in self.role_map
+            self.role_map[role] for role in claims.get("roles", []) if role in self.role_map
         }
         mapped_roles.update(
             self.group_role_map[group]
@@ -209,7 +214,9 @@ class CEPIOMCPGateway:
         else:
             method = getattr(self.runtime, "get_object_at", None)
             if method is None:
-                raise RuntimeError("Configured CEPIO runtime does not support transaction-time state")
+                raise RuntimeError(
+                    "Configured CEPIO runtime does not support transaction-time state"
+                )
             assert as_of_transaction is not None
             obj = method(object_id, as_of_transaction)
         return self._authorize_object(obj, actor)
