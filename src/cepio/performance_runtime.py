@@ -142,23 +142,19 @@ class PerformanceRuntime:
 
                 # Do not overwrite a direct target evaluation. An observed node may still
                 # expose upstream risk_sources while its current measured result is healthy.
-                if (
-                    target.status in {PerformanceStatus.unknown, PerformanceStatus.not_evaluated}
-                    and source.status
-                    in {
-                        PerformanceStatus.at_risk,
-                        PerformanceStatus.off_track,
-                        PerformanceStatus.critical,
-                    }
-                ):
+                if target.status in {
+                    PerformanceStatus.unknown,
+                    PerformanceStatus.not_evaluated,
+                } and source.status in {
+                    PerformanceStatus.at_risk,
+                    PerformanceStatus.off_track,
+                    PerformanceStatus.critical,
+                }:
                     evaluations[edge.target_node_id] = target.model_copy(
                         update={
                             "status": PerformanceStatus.at_risk,
                             "reasons": target.reasons
-                            + (
-                                f"At risk via {edge.relation.value} from "
-                                f"{edge.source_node_id}",
-                            ),
+                            + (f"At risk via {edge.relation.value} from {edge.source_node_id}",),
                         }
                     )
 
