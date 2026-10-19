@@ -238,7 +238,10 @@ class ReasoningContributionEngine:
         contributions: list[ReasoningContribution] = []
         for contributor_id in sorted(self._contributors):
             contributor = self._contributors[contributor_id]
-            if contributor.required_pack_id is not None and contributor.required_pack_id not in installed:
+            if (
+                contributor.required_pack_id is not None
+                and contributor.required_pack_id not in installed
+            ):
                 raise ReasoningContributionError(
                     "REASONING_PACK_NOT_INSTALLED",
                     f"Reasoning contributor {contributor_id} requires installed Industry IQ pack "
