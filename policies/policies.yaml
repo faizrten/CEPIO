@@ -36,6 +36,31 @@ policies:
     actions: []
     functions: []
     decisions: []
+  production_technologist:
+    read_types:
+      - https://cepio.org/ontology/production#ProductionAssuranceCase
+      - https://cepio.org/ontology/production#WellPerformanceAssessment
+      - https://cepio.org/ontology/production#DeliverabilityAssessment
+      - https://cepio.org/ontology/production#ProductionConstraintAssessment
+      - https://cepio.org/ontology/production#ArtificialLiftPerformanceAssessment
+      - https://cepio.org/ontology/production#WellIntegrityAssessment
+      - https://cepio.org/ontology/production#InterventionEffectivenessAssessment
+      - https://cepio.org/ontology/production#WellOperatingEnvelope
+      - https://cepio.org/ontology/production#WellOperatingLimit
+      - https://cepio.org/ontology/production#ProductionDeviation
+      - https://cepio.org/ontology/core#Evidence
+      - https://cepio.org/ontology/core#Hypothesis
+      - https://cepio.org/ontology/core#Assumption
+      - https://cepio.org/ontology/core#UncertaintyAssessment
+      - https://cepio.org/ontology/core#ConfidenceAssessment
+      - https://cepio.org/ontology/core#Dependency
+      - https://cepio.org/ontology/energy#Well
+    read_scopes: [internal]
+    read_properties: {}
+    actions: []
+    functions: []
+    decisions: []
+    note: "Recommendation-only in v0.1. No live setpoint, start/stop, envelope override, integrity exception or intervention execution authority."
   operator:
     read_types: [Equipment, ProcessUnit, Measurement, KPI, Event]
     read_scopes: [internal]
