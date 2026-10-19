@@ -16,7 +16,7 @@ from cepio.drilling_operator_well_delivery_iq import (
 )
 from cepio.industry_iq import install_industry_iq_packs
 from cepio.model import ActionRequest, Decision, ObjectRef, OntologyObject, Relationship
-from cepio.runtime import AuthorizationError, PreconditionsError
+from cepio.runtime import AuthorizationError
 
 
 AT = datetime(2026, 10, 19, 3, 0, tzinfo=timezone.utc)
@@ -402,14 +402,23 @@ def test_plan_revision_action_preconditions_fail_closed():
         decision_id=decision.id,
     )
 
-    with pytest.raises(PreconditionsError, match="Parameter rationale is required"):
-        runtime.execute_action(base.model_copy(update={"parameters": {"plan_id": "PLAN-1"}}))
-    with pytest.raises(PreconditionsError, match="Parameter plan_id is required"):
-        runtime.execute_action(base.model_copy(update={"parameters": {"rationale": "Reason"}}))
-    with pytest.raises(PreconditionsError, match="scoped to well WELL-2"):
-        runtime.execute_action(
-            base.model_copy(update={"parameters": {"plan_id": "PLAN-2", "rationale": "Reason"}})
-        )
+    missing_rationale = runtime.execute_action(
+        base.model_copy(update={"parameters": {"plan_id": "PLAN-1"}})
+    )
+    assert missing_rationale.status.value == "rejected"
+    assert "Parameter rationale is required" in missing_rationale.message
+
+    missing_plan = runtime.execute_action(
+        base.model_copy(update={"parameters": {"rationale": "Reason"}})
+    )
+    assert missing_plan.status.value == "rejected"
+    assert "Parameter plan_id is required" in missing_plan.message
+
+    wrong_plan = runtime.execute_action(
+        base.model_copy(update={"parameters": {"plan_id": "PLAN-2", "rationale": "Reason"}})
+    )
+    assert wrong_plan.status.value == "rejected"
+    assert "scoped to well WELL-2" in wrong_plan.message
 
 
 def test_action_precondition_helpers_cover_wrong_target_and_unknown_plan():
