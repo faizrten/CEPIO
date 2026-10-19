@@ -83,6 +83,26 @@ Supported reference source types include:
 - Mirrored Database;
 - Semantic Model.
 
+## Live Fabric provider proof
+
+Binding Contract v0.1 adds a separate operational proof over a Fabric Warehouse or SQL analytics endpoint:
+
+```text
+Fabric SQL endpoint
+       |
+ Entra identity
+       |
+FabricSqlTableReader
+       |
+FabricDrillingNPTBinding
+       |
+Binding Contract
+       |
+Drilling NPT Industry IQ
+```
+
+The transport is Microsoft-specific and optional; Drilling semantics remain provider-neutral. The first proof uses a dedicated synthetic `cepio_proof` schema and compares the live Fabric semantic signature to the Synthetic provider. See [Microsoft Fabric Live Binding Proof v0.1](../integrations/microsoft-fabric-live-binding-proof.md).
+
 ## Foundry + MCP
 
 Foundry agents interact through the governed CEPIO MCP gateway rather than directly with raw enterprise data sources.
