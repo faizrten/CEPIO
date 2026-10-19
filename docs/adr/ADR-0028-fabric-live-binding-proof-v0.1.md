@@ -38,9 +38,11 @@ No Fabric transport dependency is introduced into CEPIO Core or the Drilling NPT
 
 The first proof supports `ActiveDirectoryDefault` for local Azure CLI/federated CI, `ActiveDirectoryMSI` for Azure-hosted CEPIO, and explicit interactive/device-code developer modes. The CEPIO settings model does not accept username/password/client-secret fields.
 
-### 3. Query only allow-listed proof tables
+### 3. Use only fixed reviewed proof statements
 
-`FabricSqlTableReader` accepts an explicit table allow-list and validates schema/table identifiers before any connection is opened. The only query shape is a parameterized `SELECT` by `context_id`. The reader exposes no mutation method.
+`FabricSqlTableReader` accepts an explicit subset of the three v0.1 proof tables, but schema names, table names and SQL text are not runtime-configurable. Each supported table maps to a fixed reviewed `SELECT` statement against the dedicated `cepio_proof` schema. The only runtime SQL value is the parameterized `context_id`. The reader exposes no mutation method.
+
+This intentionally gives up generic SQL-table access in v0.1 in favor of a narrow, auditable proof boundary.
 
 ### 4. Keep the first proof synthetic-only
 
@@ -52,11 +54,11 @@ Ordinary CEPIO CI remains credential-free and deterministic. The live proof can 
 
 ## Security boundary
 
-The proof must not contain Fabric credentials in source control, expose customer data, grant the evidence binding write authority, infer connectivity merely because provider code exists, or bypass Binding Contract/Industry IQ qualification.
+The proof must not contain Fabric credentials in source control, expose customer data, grant the evidence binding write authority, infer connectivity merely because provider code exists, accept runtime-supplied SQL identifiers/statements, or bypass Binding Contract/Industry IQ qualification.
 
 ## Validation
 
-Repository acceptance requires unit tests for allow-listed parameterized SQL, resource closure, secretless configuration, fail-closed missing configuration, semantic-drift failure, and preservation of the existing offline Synthetic/Fabric parity. Full CEPIO CI, Quality, compatibility, governance and CodeQL gates remain required.
+Repository acceptance requires unit tests for fixed allow-listed parameterized SQL, resource closure, secretless configuration, fail-closed missing/unsafe configuration, optional-driver failure, semantic-drift failure, and preservation of the existing offline Synthetic/Fabric parity. Full CEPIO CI, Quality, compatibility, governance and CodeQL gates remain required.
 
 A **live proof PASS** is a separate environment qualification and is only established when the manual/local proof reaches a configured Fabric item.
 
