@@ -55,12 +55,15 @@ policies:
       - https://cepio.org/ontology/core#ConfidenceAssessment
       - https://cepio.org/ontology/core#Dependency
       - https://cepio.org/ontology/energy#Well
+      - https://cepio.org/ontology/kinetic#Opportunity
+      - https://cepio.org/ontology/kinetic#Option
+      - https://cepio.org/ontology/kinetic#OptionRecommendation
     read_scopes: [internal]
     read_properties: {}
     actions: []
     functions: []
     decisions: []
-    note: "Recommendation-only in v0.1. No live setpoint, start/stop, envelope override, integrity exception or intervention execution authority."
+    note: "Recommendation-only in v0.2. May evaluate options and constraints but has no live setpoint, start/stop, envelope override, integrity exception or intervention execution authority."
   operator:
     read_types: [Equipment, ProcessUnit, Measurement, KPI, Event]
     read_scopes: [internal]
