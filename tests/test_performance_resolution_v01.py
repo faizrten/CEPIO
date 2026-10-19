@@ -197,9 +197,11 @@ def test_sparse_overlay_can_reference_inherited_subjects_and_nodes():
 
 def test_resolved_contract_is_directly_evaluable_by_existing_runtime():
     industry, organization, role, individual = specialization_chain()
-    contract = PerformanceContractResolver((industry, organization, role, individual)).resolve(
-        individual.id
-    ).contract
+    contract = (
+        PerformanceContractResolver((industry, organization, role, individual))
+        .resolve(individual.id)
+        .contract
+    )
     now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
 
     result = PerformanceRuntime().evaluate(
@@ -251,9 +253,12 @@ def test_child_can_refine_contribution_metadata_without_duplicate_edge():
     ]
     assert len(matching) == 1
     assert matching[0].confidence == 0.8
-    assert result.source_for(
-        "contribution", "repeat-failures|availability|contributes_to"
-    ).source_contract_id == individual.id
+    assert (
+        result.source_for(
+            "contribution", "repeat-failures|availability|contributes_to"
+        ).source_contract_id
+        == individual.id
+    )
 
 
 def test_rejects_node_and_subject_kind_mutation():
