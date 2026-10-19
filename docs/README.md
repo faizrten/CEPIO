@@ -53,7 +53,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - [ADR-0028 — Fabric Live Binding Proof v0.1](adr/ADR-0028-fabric-live-binding-proof-v0.1.md)
 - [ADR-0029 — ReasoningContribution v0.1 and Reliability Domain Enrichment](adr/ADR-0029-reasoning-contribution-v0.1.md)
 - [Kinetic runtime](kinetic-runtime.md)
-- [Kinetic execution resilience v0.2](kinetic-execution-resilience-v0.2.md)
+- [Kinetic execution resilience v0.2](kinetic-execution-resilience.md)
 - [Governed external action runtime](external-action-runtime.md)
 - [Kinetic runtime consistency v0.3.1](kinetic-runtime-consistency-v0.3.1.md)
 - [Kinetic external verification gate v0.4](kinetic-external-verification-v0.4.md)
