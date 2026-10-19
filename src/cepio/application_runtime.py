@@ -7,7 +7,19 @@ from .maintenance_deferral_skill import (
     maintenance_deferral_skill_spec,
 )
 from .runtime import CEPIORuntime
-from .skill_preflight import SkillRegistry
+from .skill_preflight import SkillPreflightSpec, SkillRegistry
+
+
+def shipped_skill_specs() -> tuple[SkillPreflightSpec, ...]:
+    """Return the Skill contracts shipped by the current CEPIO application host."""
+
+    return (maintenance_deferral_skill_spec(),)
+
+
+def shipped_executable_skill_ids() -> frozenset[str]:
+    """Return the shipped Skill IDs with an executable host binding."""
+
+    return frozenset({MAINTENANCE_DEFERRAL_SKILL_ID})
 
 
 def build_application_service(runtime: CEPIORuntime) -> CEPIOApplicationService:
@@ -19,7 +31,8 @@ def build_application_service(runtime: CEPIORuntime) -> CEPIOApplicationService:
     """
 
     skills = SkillRegistry(runtime)
-    skills.register(maintenance_deferral_skill_spec())
+    for spec in shipped_skill_specs():
+        skills.register(spec)
 
     service = CEPIOApplicationService(runtime, skill_registry=skills)
     service.register_skill_executor(
