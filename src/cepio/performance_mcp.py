@@ -33,8 +33,7 @@ class PerformanceMCPFacade(MCPFacade):
             {
                 "name": "cepio_resolve_performance_contract",
                 "description": (
-                    "Resolve an authorized active or version-pinned CEPIO "
-                    "Performance Contract"
+                    "Resolve an authorized active or version-pinned CEPIO Performance Contract"
                 ),
                 "inputSchema": {
                     "type": "object",
