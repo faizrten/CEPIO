@@ -41,9 +41,7 @@ def contract(*, formula_ref: str | None = "logic://refinery-co/availability/v7",
         name="Refinery Co Performance",
         layer="organization",
         organization_id="refinery-co",
-        subjects=(
-            PerformanceSubject(id="refinery-co", kind="enterprise", name="Refinery Co"),
-        ),
+        subjects=(PerformanceSubject(id="refinery-co", kind="enterprise", name="Refinery Co"),),
         nodes=(
             PerformanceNode(
                 id="availability",
@@ -221,7 +219,9 @@ def test_materialization_rejects_naive_evaluation_time_unknown_node_and_missing_
 
 
 def test_materialization_rejects_missing_formula_scope_unit_and_untrusted_function():
-    empty_registry_runtime = PerformanceBusinessLogicRuntime(runtime_with_function(), BusinessLogicRegistry())
+    empty_registry_runtime = PerformanceBusinessLogicRuntime(
+        runtime_with_function(), BusinessLogicRegistry()
+    )
     assert_error(
         "FORMULA_NOT_FOUND",
         lambda: empty_registry_runtime.materialize(
