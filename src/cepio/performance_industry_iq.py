@@ -19,7 +19,11 @@ from .industry_iq import IndustryIQPackManifest
 from .model import Decision, ObjectRef
 from .performance_contract import PerformanceContract, PerformanceNode
 from .performance_runtime import PerformanceObservation, PerformanceWorkflowCandidate
-from .performance_service import PerformanceDeviationAssessment, PerformanceResponseAssessment, PerformanceService
+from .performance_service import (
+    PerformanceDeviationAssessment,
+    PerformanceResponseAssessment,
+    PerformanceService,
+)
 from .runtime import CEPIORuntime
 
 
