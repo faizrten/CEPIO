@@ -114,17 +114,13 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 def _repo_artifact(repo_root: Path, value: str) -> Path:
     if Path(value).is_absolute():
-        raise ValueError(
-            f"compounding artifact path must be repository-relative: {value}"
-        )
+        raise ValueError(f"compounding artifact path must be repository-relative: {value}")
     root = repo_root.resolve()
     candidate = (root / value).resolve()
     if candidate != root and root not in candidate.parents:
         raise ValueError(f"compounding artifact escapes repository root: {value}")
     if not candidate.is_file():
-        raise FileNotFoundError(
-            f"required compounding artifact not found: {value}"
-        )
+        raise FileNotFoundError(f"required compounding artifact not found: {value}")
     return candidate
 
 
@@ -146,15 +142,11 @@ def load_human_decisions(path: Path) -> HumanDecisionPack:
     return HumanDecisionPack.model_validate(_load_yaml(path))
 
 
-def discover_promotion_drafts(
-    repo_root: Path, domain_manifest_path: Path
-) -> list[PromotionDraft]:
+def discover_promotion_drafts(repo_root: Path, domain_manifest_path: Path) -> list[PromotionDraft]:
     manifest = load_domain_manifest(domain_manifest_path)
     if not manifest.artifacts.gap_triage:
         return []
-    triage = _load_yaml(
-        _repo_artifact(repo_root, manifest.artifacts.gap_triage)
-    )
+    triage = _load_yaml(_repo_artifact(repo_root, manifest.artifacts.gap_triage))
     result: list[PromotionDraft] = []
     for decision in triage.get("decisions", []) or []:
         if not isinstance(decision, dict):
@@ -166,22 +158,15 @@ def discover_promotion_drafts(
                 id=str(decision.get("id")),
                 question_id=str(decision.get("question_id")),
                 proposed_layer=str(decision.get("disposition")),
-                missing_semantics=[
-                    str(item)
-                    for item in decision.get("missing_semantics", [])
-                ],
+                missing_semantics=[str(item) for item in decision.get("missing_semantics", [])],
                 rationale=str(decision.get("rationale", "")),
-                proposed_resolution=str(
-                    decision.get("proposed_resolution", "")
-                ),
+                proposed_resolution=str(decision.get("proposed_resolution", "")),
             )
         )
     return result
 
 
-def run_cross_domain_regression(
-    repo_root: Path, suite_path: Path
-) -> dict[str, Any]:
+def run_cross_domain_regression(repo_root: Path, suite_path: Path) -> dict[str, Any]:
     suite = load_regression_suite(suite_path)
     results: list[dict[str, Any]] = []
     for target in suite.targets:
@@ -219,9 +204,7 @@ def run_cross_domain_regression(
                 "status": "PASS" if semantic_ok and runtime_ok else "FAIL",
                 "semantic_pass_rate": semantic_rate,
                 "runtime_coverage_rate": (
-                    runtime["runtime_coverage_rate"]
-                    if runtime is not None
-                    else None
+                    runtime["runtime_coverage_rate"] if runtime is not None else None
                 ),
                 "semantic": semantic,
                 "runtime": runtime,
@@ -277,22 +260,16 @@ def compounding_metrics(
         registry, domain_competency_path
     )
     baseline = onboarding_report.get("semantic_baseline") or {}
-    domain_question_ids = {
-        item["id"] for item in baseline.get("results", [])
-    }
+    domain_question_ids = {item["id"] for item in baseline.get("results", [])}
     reusable_question_ids = {
         competency.split(":", 1)[-1]
         for capability in registry.capabilities
         if capability.layer.value in {"CORE", "COMMON"}
         for competency in capability.competencies
     }
-    covered_questions = len(
-        domain_question_ids.intersection(reusable_question_ids)
-    )
+    covered_questions = len(domain_question_ids.intersection(reusable_question_ids))
     domain_delta = onboarding_report.get("domain_delta") or {}
-    question_count = int(
-        domain_delta.get("question_count", len(domain_question_ids))
-    )
+    question_count = int(domain_delta.get("question_count", len(domain_question_ids)))
     semantic_gap_count = int(domain_delta.get("semantic_gap_count", 0))
     metrics.update(
         {
@@ -300,32 +277,22 @@ def compounding_metrics(
             "reused_semantic_contracts": reused_contracts,
             "required_semantic_contracts": required_contracts,
             "reusable_competency_coverage_rate": (
-                covered_questions / len(domain_question_ids)
-                if domain_question_ids
-                else 0.0
+                covered_questions / len(domain_question_ids) if domain_question_ids else 0.0
             ),
             "new_semantic_gap_count": semantic_gap_count,
-            "marginal_gap_rate": (
-                semantic_gap_count / question_count
-                if question_count
-                else 0.0
-            ),
+            "marginal_gap_rate": (semantic_gap_count / question_count if question_count else 0.0),
             "regression_survival_rate": regression_survival_rate,
             "promotion_candidate_count": promotion_candidates,
             "promotions_applied": promotions_applied,
             "cross_domain_promotion_rate": (
-                promotions_applied / promotion_candidates
-                if promotion_candidates
-                else 0.0
+                promotions_applied / promotion_candidates if promotion_candidates else 0.0
             ),
         }
     )
     return metrics
 
 
-def _promotion_state(
-    evaluation: PromotionEvaluation,
-) -> PromotionWorkflowState:
+def _promotion_state(evaluation: PromotionEvaluation) -> PromotionWorkflowState:
     if evaluation.status == "APPROVED":
         return PromotionWorkflowState.PROMOTED
     if evaluation.status == "REJECTED":
@@ -360,14 +327,9 @@ def _validate_promotion_workflow(path: Path) -> str:
         ),
     }
     declared = {(item.source, item.target) for item in contract.transitions}
-    missing = sorted(
-        f"{source.value}->{target.value}"
-        for source, target in required - declared
-    )
+    missing = sorted(f"{source.value}->{target.value}" for source, target in required - declared)
     if missing:
-        raise ValueError(
-            f"promotion workflow is missing required transitions: {missing}"
-        )
+        raise ValueError(f"promotion workflow is missing required transitions: {missing}")
     return contract.id
 
 
@@ -382,24 +344,17 @@ def _release_gate(
 ) -> tuple[bool, list[str], bool]:
     blockers = list(promotion_blockers)
     if onboarding_status != "READY_FOR_HUMAN_REVIEW":
-        blockers.append(
-            "domain onboarding has not reached Generalization Review"
-        )
+        blockers.append("domain onboarding has not reached Generalization Review")
     if regression_survival_rate < 1.0:
         blockers.append("cross-domain regression must survive at 100%")
     if unresolved_drafts:
-        blockers.append(
-            f"{unresolved_drafts} Generalization Review promotion drafts "
-            "remain unresolved"
-        )
+        blockers.append(f"{unresolved_drafts} Generalization Review promotion drafts remain unresolved")
     if blockers:
         return False, blockers, False
     if release_decision is None:
         return False, [], True
     if release_decision.domain != domain:
-        return False, [
-            "release approval domain does not match onboarding domain"
-        ], False
+        return False, ["release approval domain does not match onboarding domain"], False
     if release_decision.decision != PromotionDecisionValue.APPROVE:
         return False, ["domain release was not approved"], False
     return True, [], False
@@ -440,17 +395,11 @@ def run_cycle(
             "onboarding": onboarding,
             "registry_metrics_before": before,
             "registry_metrics_after": before,
-            "next_action": (
-                "Resolve Domain Onboarding blockers before generalization."
-            ),
+            "next_action": ("Resolve Domain Onboarding blockers before generalization."),
         }
 
-    promotion_workflow_id = _validate_promotion_workflow(
-        promotion_workflow_path
-    )
-    regression = run_cross_domain_regression(
-        repo_root, regression_suite_path
-    )
+    promotion_workflow_id = _validate_promotion_workflow(promotion_workflow_path)
+    regression = run_cross_domain_regression(repo_root, regression_suite_path)
     drafts = discover_promotion_drafts(repo_root, domain_manifest_path)
     promotion_policy = load_promotion_policy(promotion_policy_path)
     candidates = (
@@ -459,12 +408,7 @@ def run_cycle(
         else []
     )
     decisions = (
-        {
-            item.subject_id: item
-            for item in load_human_decisions(
-                promotion_decisions_path
-            ).decisions
-        }
+        {item.subject_id: item for item in load_human_decisions(promotion_decisions_path).decisions}
         if promotion_decisions_path is not None
         else {}
     )
@@ -498,8 +442,7 @@ def run_cycle(
             resolved_gap_ids.update(candidate.source_gap_ids)
         elif evaluation.status == "BLOCKED":
             hard_promotion_blockers.extend(
-                f"{candidate.id}: {blocker}"
-                for blocker in evaluation.blockers
+                f"{candidate.id}: {blocker}" for blocker in evaluation.blockers
             )
 
     unresolved_drafts = {item.id for item in drafts} - resolved_gap_ids
@@ -517,9 +460,7 @@ def run_cycle(
         release_decision=release_decision,
     )
     manifest = load_domain_manifest(domain_manifest_path)
-    competency_path = _repo_artifact(
-        repo_root, manifest.artifacts.competency
-    )
+    competency_path = _repo_artifact(repo_root, manifest.artifacts.competency)
     after = compounding_metrics(
         updated,
         onboarding_report=onboarding,
@@ -532,32 +473,21 @@ def run_cycle(
     if released:
         status = "RELEASED"
         state = "DOMAIN_RELEASED"
-        next_action = (
-            "Persist the reviewed registry update as a new version and publish "
-            "release evidence."
-        )
+        next_action = "Persist the reviewed registry update as a new version and publish release evidence."
     elif release_blockers:
         status = "BLOCKED"
         state = "GENERALIZATION_REVIEW"
-        next_action = (
-            "Resolve promotion/regression blockers and rerun the frozen evidence set."
-        )
+        next_action = "Resolve promotion/regression blockers and rerun the frozen evidence set."
     elif unresolved_drafts or any(
-        item.state == PromotionWorkflowState.ARCHITECTURE_REVIEW
-        for item in promotion_runs
+        item.state == PromotionWorkflowState.ARCHITECTURE_REVIEW for item in promotion_runs
     ):
         status = "READY_FOR_GENERALIZATION_REVIEW"
         state = "GENERALIZATION_REVIEW"
-        next_action = (
-            "Approve or reject promotion candidates; automation cannot "
-            "self-promote capability."
-        )
+        next_action = "Approve or reject promotion candidates; automation cannot self-promote capability."
     elif awaiting_release_approval:
         status = "READY_FOR_RELEASE_REVIEW"
         state = "RELEASE_REVIEW"
-        next_action = (
-            "A human release authority may approve or reject the domain release."
-        )
+        next_action = "A human release authority may approve or reject the domain release."
     else:
         status = "BLOCKED"
         state = "RELEASE_REVIEW"
@@ -569,13 +499,9 @@ def run_cycle(
         "domain": onboarding["domain"],
         "onboarding": onboarding,
         "promotion_workflow_id": promotion_workflow_id,
-        "promotion_drafts": [
-            item.model_dump(mode="json") for item in drafts
-        ],
+        "promotion_drafts": [item.model_dump(mode="json") for item in drafts],
         "unresolved_promotion_draft_ids": sorted(unresolved_drafts),
-        "promotion_runs": [
-            item.model_dump(mode="json") for item in promotion_runs
-        ],
+        "promotion_runs": [item.model_dump(mode="json") for item in promotion_runs],
         "regression": regression,
         "registry_metrics_before": before,
         "registry_metrics_after": after,
@@ -589,9 +515,7 @@ def run_cycle(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description=(
-            "Run the CEPIO compounding industrial-intelligence control loop"
-        )
+        description=("Run the CEPIO compounding industrial-intelligence control loop")
     )
     parser.add_argument(
         "--repo-root",
@@ -601,9 +525,7 @@ def main() -> int:
     parser.add_argument(
         "--domain-manifest",
         type=Path,
-        default=Path(
-            "generalization/domain-packs/refinery-reference-v0.1.yaml"
-        ),
+        default=Path("generalization/domain-packs/refinery-reference-v0.1.yaml"),
     )
     parser.add_argument(
         "--domain-workflow",
@@ -618,16 +540,12 @@ def main() -> int:
     parser.add_argument(
         "--registry",
         type=Path,
-        default=Path(
-            "generalization/capabilities/registry-v0.1.yaml"
-        ),
+        default=Path("generalization/capabilities/registry-v0.1.yaml"),
     )
     parser.add_argument(
         "--regression-suite",
         type=Path,
-        default=Path(
-            "generalization/regression/industrial-common-v0.1.yaml"
-        ),
+        default=Path("generalization/regression/industrial-common-v0.1.yaml"),
     )
     parser.add_argument(
         "--promotion-policy",
@@ -669,33 +587,19 @@ def main() -> int:
     print(f"status: {report['status']}")
     regression = report.get("regression")
     if regression:
-        print(
-            f"regression survival: {regression['survival_rate']:.1%}"
-        )
+        print(f"regression survival: {regression['survival_rate']:.1%}")
     metrics = report.get("registry_metrics_after") or {}
     if "semantic_contract_reuse_rate" in metrics:
-        print(
-            "semantic contract reuse: "
-            f"{metrics['semantic_contract_reuse_rate']:.1%}"
-        )
-        print(
-            "reusable competency coverage: "
-            f"{metrics['reusable_competency_coverage_rate']:.1%}"
-        )
-        print(
-            f"marginal gap rate: {metrics['marginal_gap_rate']:.1%}"
-        )
-    print(
-        f"next: {report.get('next_action', 'Review generated evidence.')}"
-    )
+        print(f"semantic contract reuse: {metrics['semantic_contract_reuse_rate']:.1%}")
+        print(f"reusable competency coverage: {metrics['reusable_competency_coverage_rate']:.1%}")
+        print(f"marginal gap rate: {metrics['marginal_gap_rate']:.1%}")
+    print(f"next: {report.get('next_action', 'Review generated evidence.')}")
 
     registry_out = _resolve(root, args.registry_out)
     if registry_out is not None and report.get("updated_registry") is not None:
         registry_out.parent.mkdir(parents=True, exist_ok=True)
         registry_out.write_text(
-            yaml.safe_dump(
-                report["updated_registry"], sort_keys=False
-            ),
+            yaml.safe_dump(report["updated_registry"], sort_keys=False),
             encoding="utf-8",
         )
     json_out = _resolve(root, args.json_out)
@@ -705,11 +609,7 @@ def main() -> int:
             json.dumps(report, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
-    return (
-        2
-        if args.fail_on_blocked and report["status"] == "BLOCKED"
-        else 0
-    )
+    return 2 if args.fail_on_blocked and report["status"] == "BLOCKED" else 0
 
 
 if __name__ == "__main__":
