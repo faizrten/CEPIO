@@ -9,10 +9,13 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 
 from . import api as legacy
+from .application_contract import ExecutionContext, SkillEvaluation, SkillInvocation
+from .application_runtime import build_application_service
 from .auth import ActorContext, get_actor_context
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import Decision, ErrorEnvelope, OntologyObject, OperationalEvent, Relationship
 from .query import InvalidQueryCursor, ObjectQuery, ObjectQueryResult, QueryBudgetExceeded
+from .runtime import AuthorizationError
 
 
 app: FastAPI = legacy.app
@@ -164,6 +167,25 @@ def v1_query_objects(
         ) from exc
 
 
+def v1_evaluate_skill(
+    invocation: SkillInvocation,
+    request: Request,
+    actor: ActorContext = Depends(get_actor_context),
+) -> SkillEvaluation:
+    service = build_application_service(legacy.runtime)
+    context = ExecutionContext.from_principal(
+        actor,
+        correlation_id=_request_id(request),
+    )
+    try:
+        return service.evaluate_skill(invocation, context)
+    except AuthorizationError as exc:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "skill_authorization", "message": str(exc)},
+        ) from exc
+
+
 def v1_execute_action(
     body: legacy.ActionBody,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
@@ -196,6 +218,7 @@ V1_ROUTES: tuple[tuple[str, Any, list[str], Any, str, str], ...] = (
     ("/graph/communities", legacy.graph_communities, ["GET"], CommunityResult, "getGraphCommunities", "graph"),
     ("/events", legacy.record_event, ["POST"], OperationalEvent, "recordEvent", "events"),
     ("/objects/{object_id}/events", legacy.events_for, ["GET"], list[OperationalEvent], "listObjectEvents", "events"),
+    ("/skills/evaluate", v1_evaluate_skill, ["POST"], SkillEvaluation, "evaluateSkill", "skills"),
     ("/actions", v1_execute_action, ["POST"], None, "executeAction", "actions"),
     ("/functions/{name}", legacy.call_function, ["POST"], dict[str, Any], "callFunction", "functions"),
     ("/decisions", legacy.save_decision, ["POST"], Decision, "saveDecision", "decisions"),
