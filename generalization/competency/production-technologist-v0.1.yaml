@@ -1,0 +1,83 @@
+id: production-technologist-v0.1
+version: "0.1"
+status: experimental
+persona: production_technologist
+domain: production
+benchmark: generalization/benchmarks/production-technologist-p118-v0.1.yaml
+
+semantic_boundary:
+  rule: "CEPIO owns assurance, uncertainty, constraint, opportunity and authority context; source platforms own technical production payloads."
+  objects:
+    - {id: well, treatment: BIND, cepio_type: "https://cepio.org/ontology/energy#Well", storage: identity_operating_context_only}
+    - {id: production_timeseries, treatment: REUSE, authoritative_plane: historian_or_production_data_service}
+    - {id: well_test, treatment: REUSE, authoritative_plane: production_data_service}
+    - {id: nodal_or_well_model, treatment: REUSE, authoritative_plane: engineering_model_system}
+    - {id: flow_network_model, treatment: REUSE, authoritative_plane: engineering_model_system}
+    - {id: artificial_lift_payload, treatment: REUSE, authoritative_plane: lift_or_historian_system}
+    - {id: completion_and_intervention_history, treatment: REUSE, authoritative_plane: well_data_system}
+    - {id: production_assurance_case, treatment: OWN, cepio_type: "https://cepio.org/ontology/production#ProductionAssuranceCase"}
+    - {id: well_performance_assessment, treatment: OWN, cepio_type: "https://cepio.org/ontology/production#WellPerformanceAssessment"}
+    - {id: deliverability_assessment, treatment: OWN, cepio_type: "https://cepio.org/ontology/production#DeliverabilityAssessment"}
+    - {id: production_constraint_assessment, treatment: OWN, cepio_type: "https://cepio.org/ontology/production#ProductionConstraintAssessment"}
+    - {id: well_operating_envelope, treatment: OWN, cepio_type: "https://cepio.org/ontology/production#WellOperatingEnvelope"}
+    - {id: well_operating_limit, treatment: OWN, cepio_type: "https://cepio.org/ontology/production#WellOperatingLimit"}
+    - {id: production_deviation, treatment: OWN, cepio_type: "https://cepio.org/ontology/production#ProductionDeviation"}
+
+runtime_capabilities:
+  - {id: production.well.master, preferred: external_profile_binding, examples: [OSDU_Core, WITSML, master_data]}
+  - {id: production.well.timeseries, preferred: external_profile_binding, examples: [historian, Production_DDMS, PRODML]}
+  - {id: production.well_test, preferred: external_profile_binding, examples: [Production_DDMS, PRODML, well_test_database]}
+  - {id: production.well_model, preferred: external_profile_binding, examples: [PROSPER, PIPESIM, custom_nodal_model]}
+  - {id: production.network_model, preferred: external_profile_binding, examples: [GAP, PIPESIM, network_model]}
+  - {id: production.artificial_lift, preferred: external_profile_binding, examples: [historian, lift_vendor_system, engineering_model]}
+  - {id: production.integrity.status, preferred: external_profile_binding, examples: [well_integrity_system, barrier_management]}
+  - {id: production.operating_envelope, preferred: customer_governed_binding, examples: [well_integrity_system, operating_procedure, engineering_limit_register]}
+  - {id: production.surface.constraint, preferred: external_profile_binding, examples: [historian, process_model, operations_plan]}
+  - {id: production.reservoir.context, preferred: external_profile_binding, examples: [OSDU, reservoir_model, surveillance_database]}
+  - {id: production.petrophysics.context, preferred: cepio_context_binding, examples: [CEPIO_Petrophysics, OSDU]}
+
+executable_journeys:
+  PROD-01:
+    name: Daily Well Surveillance and Exception Triage
+    skill_id: cepio.skill.production.surveillance-exception-triage
+    required_types: [ProductionAssuranceCase, WellPerformanceAssessment, ProductionDeviation, Well]
+    reasoning_pattern: observed_state_vs_expected_or_envelope
+    acceptance:
+      - identifies P-118 as the highest material production exception
+      - identifies P-121 as data-quality-limited rather than diagnosing a technical failure
+      - preserves observed evidence separately from interpretation
+      - does not fabricate missing evidence
+  PROD-02:
+    name: Well Deliverability and Nodal Model Assurance
+    skill_id: cepio.skill.production.deliverability-assurance
+    required_types: [ProductionAssuranceCase, DeliverabilityAssessment, Evidence, Assumption, UncertaintyAssessment, Well]
+    reasoning_pattern: model_prediction_vs_observed_state
+    acceptance:
+      - computes the P-118 deliverability gap from benchmark facts
+      - exposes stale or violated model assumptions
+      - preserves model source and version identity
+      - does not recalculate nodal hydraulics inside CEPIO
+  PROD-06:
+    name: Well Underperformance Diagnosis
+    skill_id: cepio.skill.production.underperformance-diagnosis
+    required_types: [ProductionAssuranceCase, Evidence, Hypothesis, ConfidenceAssessment, UncertaintyAssessment, Well]
+    reasoning_pattern: competing_hypotheses_with_falsification
+    acceptance:
+      - ranks facility backpressure and gas-lift inefficiency above depletion
+      - surfaces insufficient recent BHP evidence for skin or depletion discrimination
+      - exposes supporting and contradictory evidence per hypothesis
+      - provides a falsification or discriminating-evidence test for every diagnosis
+      - recommendation remains non-authoritative
+
+frozen_future_journeys:
+  - {id: PROD-03, name: Production Optimization and Constraint Allocation}
+  - {id: PROD-04, name: Artificial Lift Performance and Optimization}
+  - {id: PROD-05, name: Well Integrity and Operating Envelope Assurance}
+  - {id: PROD-07, name: Production Enhancement and Intervention Opportunity}
+  - {id: PROD-08, name: New Well or Recompletion Start-up and Performance Acceptance}
+  - {id: PROD-09, name: WRFM Forecast and Production Plan Reconciliation}
+  - {id: PROD-10, name: Injection Well Performance and Conformance}
+
+authority:
+  ai_may: [read, reconcile, compare, detect_deviation, create_draft_assessment, rank_hypotheses, estimate_production_gap, recommend_surveillance, recommend_optimization, recommend_intervention_maturation]
+  ai_may_not: [change_live_setpoint, start_or_stop_well, override_operating_envelope, approve_integrity_deviation, approve_workover, execute_intervention, overwrite_external_record]
