@@ -54,7 +54,7 @@ def test_deployment_checks_out_tested_commit_without_saved_credentials(workflow)
     checkout = deploy["steps"][0]
     assert checkout["uses"] == "actions/checkout@v4"
     assert checkout["with"] == {
-        "ref": "${{ github.event.workflow_run.head_sha }}",
+        "ref": "refs/heads/main",
         "persist-credentials": "false",
     }
     assert deploy["env"]["DEPLOY_SHA"] == "${{ github.event.workflow_run.head_sha }}"
@@ -68,7 +68,11 @@ def test_deployment_checks_out_tested_commit_without_saved_credentials(workflow)
     )
     login = next(i for i, step in enumerate(steps) if step.get("uses") == AZURE_LOGIN)
     assert guard < login
-    assert '[[ "$main_sha" != "$DEPLOY_SHA" ]]' in steps[guard]["run"]
+    assert 'checked_out_sha="$(git rev-parse HEAD)"' in steps[guard]["run"]
+    assert (
+        '[[ "$checked_out_sha" != "$DEPLOY_SHA" || "$main_sha" != "$DEPLOY_SHA" ]]'
+        in steps[guard]["run"]
+    )
     assert "exit 1" in steps[guard]["run"]
 
 

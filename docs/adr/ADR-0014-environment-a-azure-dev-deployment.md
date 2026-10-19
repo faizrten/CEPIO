@@ -116,7 +116,9 @@ when only an existing single-instance demo needs image updates.
 The demo deployment has the following controls:
 
 - only successful CEPIO CI runs for same-repository pushes to `main` qualify;
-- checkout uses the exact CI-tested SHA and rejects superseded commits;
+- checkout uses the trusted `refs/heads/main` ref, then verifies its SHA and
+  current remote main match the exact CI-tested SHA before Azure login,
+  rejecting superseded commits without a dynamically supplied checkout ref;
 - the `azure-demo` environment requires the maintainer's explicit approval,
   permits only the `main` branch, and disables administrative bypass;
 - the federated subject is exactly

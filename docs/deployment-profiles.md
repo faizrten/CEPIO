@@ -63,8 +63,10 @@ request to `/api/v1/objects` returns HTTP 401 after deployment.
 `.github/workflows/deploy-azure.yml` deploys the existing Azure demo resources
 after **CEPIO CI** succeeds for a push to `main` in this repository. Pull-request,
 fork, failed, and non-main CI runs cannot enter the deployment job. The workflow
-checks out the exact tested commit, rejects a superseded main commit after
-approval, builds in ACR with a unique commit/run/attempt tag, and configures
+checks out the trusted `refs/heads/main` branch and verifies that both its local
+SHA and the current remote main SHA match the successful CI commit before Azure
+login. It rejects a superseded commit after approval, builds in ACR with a
+unique commit/run/attempt tag, and configures
 App Service with the resulting immutable image digest. Deployment jobs are
 serialized and do not cancel an active rollout.
 

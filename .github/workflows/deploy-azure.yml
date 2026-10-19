@@ -34,15 +34,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: refs/heads/main
           persist-credentials: false
 
       - name: Reject superseded commits
         shell: bash
         run: |
           set -euo pipefail
+          checked_out_sha="$(git rev-parse HEAD)"
           main_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
-          if [[ "$main_sha" != "$DEPLOY_SHA" ]]; then
+          if [[ "$checked_out_sha" != "$DEPLOY_SHA" || "$main_sha" != "$DEPLOY_SHA" ]]; then
             echo "::error::This commit is no longer main. Approve the latest successful CI deployment instead."
             exit 1
           fi
