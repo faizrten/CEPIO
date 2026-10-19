@@ -21,7 +21,9 @@ SCENARIO_PATH = Path("generalization/industry-iq/reliability-scenarios-v0.1.yaml
 ARCHETYPE_PATH = Path("generalization/archetypes/reliability-v0.1.yaml")
 
 
-def _rel(runtime, rel_type: str, source_id: str, source_type: str, target_id: str, target_type: str):
+def _rel(
+    runtime, rel_type: str, source_id: str, source_type: str, target_id: str, target_type: str
+):
     runtime.add_relationship(
         Relationship(
             type=rel_type,
@@ -164,7 +166,10 @@ def test_reliability_archetype_is_cross_industrial_and_preserves_accountability(
 
     assert payload["domain"] == "reliability"
     assert payload["status"] == "frozen"
-    assert "equipment reliability assessment and failure interpretation" in boundary["reliability_owns"]
+    assert (
+        "equipment reliability assessment and failure interpretation"
+        in boundary["reliability_owns"]
+    )
     assert "maintenance planning, scheduling and work execution" in boundary["maintenance_owns"]
     assert "operating context and production/service consequence" in boundary["operations_owns"]
     assert payload["principles"]["cross_industrial_before_domain_specialization"] is True
@@ -180,10 +185,15 @@ def test_reliability_scenario_portfolio_is_frozen_and_reuses_maintenance_deferra
     assert payload["version"] == "0.1"
     assert payload["frozen"] is True
     assert len(scenarios) == 12
-    assert [item["id"] for item in scenarios] == [f"REL-IQ-{index:03d}" for index in range(1, 13)]
+    assert [item["id"] for item in scenarios] == [
+        f"REL-IQ-{index:03d}" for index in range(1, 13)
+    ]
     assert by_id["REL-IQ-001"]["status"] == "executable-v0.1"
     assert by_id["REL-IQ-001"]["pack_id"] == "cepio.iq.reliability.asset-intervention"
-    assert by_id["REL-IQ-007"]["reuses_skill"] == "cepio.skill.maintenance.assess-maintenance-deferral"
+    assert (
+        by_id["REL-IQ-007"]["reuses_skill"]
+        == "cepio.skill.maintenance.assess-maintenance-deferral"
+    )
     assert payload["rules"]["canonical_ontology_changes_for_scenario_pass"] == "prohibited"
     assert payload["rules"]["synthetic_reliability_score_required"] is False
 
@@ -363,12 +373,6 @@ def test_conflicting_current_condition_evidence_fails_closed():
 
 def test_active_failure_requires_scope_failure_mode_and_supported_status_severity():
     runtime = _seed()
-    failure_id, _ = _add_failure(runtime, equipment_id="EQ-1")
-    failure = runtime.get_object(failure_id)
-    for mode in runtime.neighbors(failure_id, "hasFailureMode"):
-        # There is no delete relationship primitive; seed a fresh unmodeled active failure instead.
-        assert mode.type == "FailureMode"
-
     unmodeled = OntologyObject(
         id="FAIL-NOMODE",
         type="FailureEvent",
