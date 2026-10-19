@@ -16,6 +16,20 @@ perf:ActionPerformance a owl:Class ; rdfs:subClassOf cepio:Measurement .
 perf:ProductionLoss a owl:Class ; rdfs:subClassOf cepio:Measurement .
 perf:OutcomeAssessment a owl:Class ; rdfs:subClassOf cepio:Entity .
 
+# Enterprise Performance Graph primitives. CEPIO reuses core Objective, KPI,
+# Measurement, Evidence, dependsOn and contributesTo. Organization-specific KPI
+# formulas, targets and conventions remain contract/configuration semantics rather
+# than becoming global ontology identities.
+perf:PerformanceContract a owl:Class ; rdfs:subClassOf cepio:Contract .
+perf:Outcome a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:KeyResult a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:Target a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:Threshold a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:Guardrail a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:Accountability a owl:Class ; rdfs:subClassOf cepio:Entity .
+perf:Contribution a owl:Class ; rdfs:subClassOf cepio:Dependency .
+perf:PerformanceResponseBinding a owl:Class ; rdfs:subClassOf cepio:Entity .
+
 # Prospective production consequence associated with an asset condition, outage or
 # intervention window. Exposure is deliberately distinct from ProductionLoss:
 # exposure is the quantity at risk before/while a decision is evaluated, while loss
@@ -36,3 +50,15 @@ perf:hasAssetStatus a owl:ObjectProperty ; rdfs:domain cepio:Asset ; rdfs:range 
 perf:assessmentOfDecision a owl:ObjectProperty ; rdfs:domain perf:OutcomeAssessment ; rdfs:range kin:Decision .
 perf:observedOutcome a owl:ObjectProperty ; rdfs:domain perf:OutcomeAssessment ; rdfs:range perf:KPIObservation .
 perf:considersRisk a owl:ObjectProperty ; rdfs:domain perf:OutcomeAssessment ; rdfs:range cepio:Risk .
+
+perf:hasPerformanceNode a owl:ObjectProperty ; rdfs:domain perf:PerformanceContract ; rdfs:range cepio:Entity .
+perf:hasTarget a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range perf:Target .
+perf:hasThreshold a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range perf:Threshold .
+perf:hasGuardrail a owl:ObjectProperty ; rdfs:domain perf:PerformanceContract ; rdfs:range perf:Guardrail .
+perf:hasAccountability a owl:ObjectProperty ; rdfs:domain perf:PerformanceContract ; rdfs:range perf:Accountability .
+perf:accountabilitySubject a owl:ObjectProperty ; rdfs:domain perf:Accountability ; rdfs:range cepio:Entity .
+perf:accountabilityFor a owl:ObjectProperty ; rdfs:domain perf:Accountability ; rdfs:range cepio:Entity .
+perf:hasContribution a owl:ObjectProperty ; rdfs:domain perf:PerformanceContract ; rdfs:range perf:Contribution .
+perf:performanceScope a owl:ObjectProperty ; rdfs:domain cepio:Entity ; rdfs:range cepio:Entity .
+perf:hasResponseBinding a owl:ObjectProperty ; rdfs:domain perf:PerformanceContract ; rdfs:range perf:PerformanceResponseBinding .
+perf:responseFor a owl:ObjectProperty ; rdfs:domain perf:PerformanceResponseBinding ; rdfs:range cepio:Entity .

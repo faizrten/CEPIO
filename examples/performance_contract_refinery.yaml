@@ -1,0 +1,96 @@
+schema_version: "0.1.0"
+id: refinery-performance-example
+version: "0.1.0"
+name: Refinery Enterprise Performance Graph
+layer: organization
+organization_id: refinery-co
+
+subjects:
+  - id: refinery-co
+    kind: enterprise
+    name: Refinery Co
+  - id: operations
+    kind: function
+    name: Operations
+    parent_id: refinery-co
+  - id: coo
+    kind: role
+    name: Chief Operating Officer
+    parent_id: operations
+  - id: reliability-engineer
+    kind: persona
+    name: Reliability Engineer
+    parent_id: operations
+  - id: engineer-42
+    kind: individual
+    name: Engineer 42
+    parent_id: reliability-engineer
+
+nodes:
+  - id: profitability
+    kind: objective
+    name: Improve refinery profitability
+    scope_subject_id: refinery-co
+
+  - id: availability
+    kind: kpi
+    name: Operational availability
+    scope_subject_id: coo
+    unit: ratio
+    definition: Organization-specific operational availability definition
+    formula_ref: logic://refinery-co/availability/v7
+    reference_node_id: cepio.reference.refinery.operational-availability
+    target:
+      operator: gte
+      value: 0.96
+    thresholds:
+      - status: critical
+        condition:
+          operator: lte
+          value: 0.90
+        reason: Availability is below the critical operating threshold
+
+  - id: repeat-failures
+    kind: key_result
+    name: Reduce repeat compressor failures
+    scope_subject_id: engineer-42
+    target:
+      operator: lte
+      value: 5
+
+  - id: maintenance-cost
+    kind: guardrail
+    name: Maintenance cost guardrail
+    scope_subject_id: operations
+    target:
+      operator: lte
+      value: 100
+
+accountabilities:
+  - subject_id: coo
+    node_id: availability
+    relation: accountable_for
+  - subject_id: engineer-42
+    node_id: repeat-failures
+    relation: owns
+
+contributions:
+  - source_node_id: repeat-failures
+    target_node_id: availability
+    relation: contributes_to
+    rationale: Repeat failures reduce operational availability
+  - source_node_id: availability
+    target_node_id: profitability
+    relation: contributes_to
+  - source_node_id: maintenance-cost
+    target_node_id: profitability
+    relation: constrains
+
+response_bindings:
+  - id: availability-investigation
+    node_id: availability
+    statuses:
+      - off_track
+      - critical
+    workflow_definition_id: investigate-availability-loss
+    rationale: Investigate material availability deviation
