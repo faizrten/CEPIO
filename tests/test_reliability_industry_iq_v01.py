@@ -185,14 +185,11 @@ def test_reliability_scenario_portfolio_is_frozen_and_reuses_maintenance_deferra
     assert payload["version"] == "0.1"
     assert payload["frozen"] is True
     assert len(scenarios) == 12
-    assert [item["id"] for item in scenarios] == [
-        f"REL-IQ-{index:03d}" for index in range(1, 13)
-    ]
+    assert [item["id"] for item in scenarios] == [f"REL-IQ-{index:03d}" for index in range(1, 13)]
     assert by_id["REL-IQ-001"]["status"] == "executable-v0.1"
     assert by_id["REL-IQ-001"]["pack_id"] == "cepio.iq.reliability.asset-intervention"
     assert (
-        by_id["REL-IQ-007"]["reuses_skill"]
-        == "cepio.skill.maintenance.assess-maintenance-deferral"
+        by_id["REL-IQ-007"]["reuses_skill"] == "cepio.skill.maintenance.assess-maintenance-deferral"
     )
     assert payload["rules"]["canonical_ontology_changes_for_scenario_pass"] == "prohibited"
     assert payload["rules"]["synthetic_reliability_score_required"] is False
