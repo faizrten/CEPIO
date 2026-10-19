@@ -8,6 +8,7 @@ from cepio.application_contract import (
     EvidenceRole,
     ExecutionContext,
     SkillEvaluationStatus,
+    SkillExecutionHost,
     SkillExecutorRegistry,
     SkillInvocation,
 )
@@ -160,6 +161,22 @@ def test_preflight_blocks_over_authorized_manager_before_executor_runs():
     assert runtime.get_object("WO-101").properties["status"] == "planned"
 
 
+def test_unknown_skill_identity_fails_closed_before_execution():
+    runtime = seed_deferral_case()
+    skills = SkillRegistry(runtime)
+    service = CEPIOApplicationService(runtime, skill_registry=skills)
+    unknown = SkillInvocation(
+        skill_id="cepio.skill.contract.unknown",
+        subject=ObjectRef(id="P-101", type="Pump"),
+    )
+
+    evaluation = service.evaluate_skill(unknown, recommender_context())
+
+    assert evaluation.status == SkillEvaluationStatus.blocked
+    assert evaluation.decision is None
+    assert any("SKILL_NOT_REGISTERED" in message for message in evaluation.messages)
+
+
 def test_ready_but_unbound_executable_skill_fails_closed():
     runtime = seed_deferral_case()
     service = application_service(runtime, bind_executor=False)
@@ -195,6 +212,69 @@ def test_invalid_runtime_evidence_returns_failed_evaluation_without_decision():
     assert evaluation.status == SkillEvaluationStatus.failed
     assert evaluation.decision is None
     assert any("not linked" in message for message in evaluation.messages)
+
+
+@pytest.mark.parametrize(
+    ("parameters", "message_fragment"),
+    [
+        (
+            {
+                "work_order_id": "",
+                "risk_id": "RISK-101",
+                "proposed_deferral_hours": 120.0,
+            },
+            "non-empty parameter work_order_id",
+        ),
+        (
+            {
+                "work_order_id": "WO-101",
+                "risk_id": "RISK-101",
+                "proposed_deferral_hours": None,
+            },
+            "numeric parameter proposed_deferral_hours",
+        ),
+        (
+            {
+                "work_order_id": "WO-101",
+                "risk_id": "RISK-101",
+                "proposed_deferral_hours": "not-a-number",
+            },
+            "numeric parameter proposed_deferral_hours",
+        ),
+        (
+            {
+                "work_order_id": "WO-101",
+                "risk_id": "RISK-101",
+                "proposed_deferral_hours": -1.0,
+            },
+            "proposed_deferral_hours must be non-negative",
+        ),
+    ],
+)
+def test_malformed_deferral_parameters_fail_without_decision(
+    parameters: dict[str, object],
+    message_fragment: str,
+):
+    runtime = seed_deferral_case()
+    service = application_service(runtime)
+    malformed = invocation().model_copy(update={"parameters": parameters})
+
+    evaluation = service.evaluate_skill(malformed, recommender_context())
+
+    assert evaluation.status == SkillEvaluationStatus.failed
+    assert evaluation.decision is None
+    assert any(message_fragment in message for message in evaluation.messages)
+    assert runtime.get_object("WO-101").properties["status"] == "planned"
+
+
+def test_executor_rejects_mismatched_skill_identity():
+    runtime = seed_deferral_case()
+    service = application_service(runtime)
+    host = SkillExecutionHost(service, recommender_context())
+    wrong_skill = invocation().model_copy(update={"skill_id": "cepio.skill.contract.other"})
+
+    with pytest.raises(ValueError, match="Unexpected Skill identity"):
+        execute_maintenance_deferral(wrong_skill, host)
 
 
 def test_outside_supported_window_produces_do_not_defer_decision_without_action():
