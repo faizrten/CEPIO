@@ -60,7 +60,7 @@ Skill admission remains a host/runtime concern:
 ```text
 Skill dependency
       ↓
-required Industry IQ pack ID
+required Industry IQ pack ID + optional SemVer constraint
       ↓
 registry-resolved deployment
       ↓
@@ -71,11 +71,28 @@ READY / BLOCKED
 READY-only dispatch
 ```
 
-The pack registry does not weaken Skill preflight. A Skill still fails closed when a required pack is absent, and target-instance evidence remains an invocation-time concern.
+### v0.5.1 Skill-to-pack compatibility
+
+`SkillPreflightSpec` supports two additive forms:
+
+- `industry_iq_packs={"cepio.iq.drilling.npt"}` — legacy ID-only requirement, treated as any installed version;
+- `industry_iq_pack_constraints={"cepio.iq.drilling.npt": ">=0.1.0,<0.2.0"}` — explicit Skill-to-pack compatibility contract.
+
+Preflight evaluates the installed runtime version using the same deterministic SemVer language as pack resolution. A Skill fails closed when:
+
+- the required pack is absent (`INDUSTRY_IQ_PACK_UNAVAILABLE`);
+- the declared constraint is malformed (`INDUSTRY_IQ_PACK_CONSTRAINT_INVALID`);
+- the installed pack version does not satisfy the Skill contract (`INDUSTRY_IQ_PACK_VERSION_INCOMPATIBLE`).
+
+A compatible constrained dependency emits `INDUSTRY_IQ_PACK_COMPATIBLE`. Existing ID-only declarations retain the v0.4/v0.5 `INDUSTRY_IQ_PACK_AVAILABLE` PASS result for backward compatibility.
+
+This closes the gap between deployment composition and Skill admission: pack presence alone is no longer sufficient when a Skill declares a semantic compatibility range.
+
+The pack registry does not weaken Skill preflight. Target-instance evidence remains an independent invocation-time concern.
 
 ## Current first-class pack
 
-`cepio.iq.drilling.npt@0.1.0` now publishes an explicit manifest declaring:
+`cepio.iq.drilling.npt@0.1.0` publishes an explicit manifest declaring:
 
 - CEPIO Core compatibility `>=0.4.0,<1.0.0`;
 - function `calculateNPTDuration`;
@@ -86,4 +103,4 @@ This makes the v0.4 drilling proof the first registry-managed Industry IQ pack w
 
 ## Next evolution
 
-The next logical extension after this registry is a deployment-level catalogue that can source pack manifests from separately versioned packages or repositories and bind Skill package requirements to explicit pack-version constraints. The runtime contract introduced here is designed so that discovery can evolve without changing the Core execution boundary.
+The next logical extension is a deployment-level catalogue that can source pack manifests from separately versioned packages or repositories while preserving the same resolved deployment manifest and Skill preflight contract. Remote or untrusted pack discovery must remain host-controlled; agents and Skills must not install or upgrade their own Industry IQ dependencies.

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, Field
 
+from .industry_iq import version_satisfies
 from .model import ActionRequest, AuditEntry, PolicyEffect
 from .registry import AmbiguousTypeError, UnknownTypeError
 
@@ -47,11 +48,14 @@ class SkillPreflightSpec(BaseModel):
     identifiers as values. Graph paths remain logical so a package cannot bypass its
     declared binding map when describing evidence traversal. Industry IQ pack IDs are
     deployment capabilities and must be present explicitly when declared by a Skill.
+    ``industry_iq_pack_constraints`` adds an optional SemVer compatibility contract;
+    legacy ID-only declarations remain equivalent to ``*`` for backward compatibility.
     """
 
     skill_id: str
     binding_id: str | None = None
     industry_iq_packs: set[str] = Field(default_factory=set)
+    industry_iq_pack_constraints: dict[str, str] = Field(default_factory=dict)
     object_types: dict[str, str] = Field(default_factory=dict)
     relationships: dict[str, str] = Field(default_factory=dict)
     functions: dict[str, str] = Field(default_factory=dict)
@@ -175,8 +179,11 @@ def evaluate_skill_preflight(
         )
 
     installed_packs = runtime.industry_iq_packs
-    for pack_id in sorted(spec.industry_iq_packs):
-        if pack_id not in installed_packs:
+    required_packs = set(spec.industry_iq_packs) | set(spec.industry_iq_pack_constraints)
+    for pack_id in sorted(required_packs):
+        constraint = spec.industry_iq_pack_constraints.get(pack_id, "*")
+        installed_version = installed_packs.get(pack_id)
+        if installed_version is None:
             blocked(
                 "industry_iq_pack",
                 "INDUSTRY_IQ_PACK_UNAVAILABLE",
@@ -184,13 +191,47 @@ def evaluate_skill_preflight(
                 pack_id,
                 pack_id,
             )
-        else:
+            continue
+        try:
+            compatible = version_satisfies(installed_version, constraint)
+        except ValueError as exc:
+            blocked(
+                "industry_iq_pack",
+                "INDUSTRY_IQ_PACK_CONSTRAINT_INVALID",
+                f"Required Industry IQ pack version constraint is invalid: {exc}",
+                pack_id,
+                installed_version,
+            )
+            continue
+        if not compatible:
+            blocked(
+                "industry_iq_pack",
+                "INDUSTRY_IQ_PACK_VERSION_INCOMPATIBLE",
+                (
+                    f"Installed Industry IQ pack version {installed_version} does not satisfy "
+                    f"required constraint {constraint}."
+                ),
+                pack_id,
+                installed_version,
+            )
+        elif constraint in {"", "*"}:
             passed(
                 "industry_iq_pack",
                 "INDUSTRY_IQ_PACK_AVAILABLE",
-                f"Required Industry IQ pack is installed at version {installed_packs[pack_id]}.",
+                f"Required Industry IQ pack is installed at version {installed_version}.",
                 pack_id,
                 pack_id,
+            )
+        else:
+            passed(
+                "industry_iq_pack",
+                "INDUSTRY_IQ_PACK_COMPATIBLE",
+                (
+                    f"Required Industry IQ pack is installed at version {installed_version} "
+                    f"and satisfies constraint {constraint}."
+                ),
+                pack_id,
+                installed_version,
             )
 
     registry = runtime.type_registry
