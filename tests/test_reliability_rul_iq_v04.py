@@ -203,7 +203,7 @@ def test_no_window_inside_planning_horizon_accelerates_but_long_horizon_monitors
     assert near.disposition == RULReviewDisposition.accelerate_maintenance_review
     assert near.selected_work_order_id is None
 
-    far = _assess(runtime, lower_remaining_life_hours=200.0)
+    far = _assess(runtime, lower_remaining_life_hours=180.0)
     assert far.compatibility == MaintenanceWindowCompatibility.no_qualified_window
     assert far.disposition == RULReviewDisposition.monitor
     assert "continue governed monitoring" in far.recommendation
@@ -213,7 +213,7 @@ def test_expiring_estimate_is_explicit_and_requests_refresh():
     runtime = _runtime()
     _estimate(runtime, valid_to=AT + timedelta(hours=12))
 
-    result = _assess(runtime, lower_remaining_life_hours=200.0)
+    result = _assess(runtime)
     assert result.estimate_state == LifeEstimateState.expiring_soon
     assert result.estimate_valid_to == AT + timedelta(hours=12)
     assert "Refresh the RUL estimate" in result.recommendation
@@ -249,13 +249,13 @@ def test_exact_minimum_margin_is_safe():
 def test_drilling_equipment_and_bare_runtime_use_same_contract():
     runtime = _runtime(equipment_type="DrillingEquipment")
     _estimate(runtime)
-    result = _assess(runtime, lower_remaining_life_hours=200.0)
+    result = _assess(runtime, lower_remaining_life_hours=180.0)
     assert result.equipment_id == "EQ-1"
     assert result.disposition == RULReviewDisposition.monitor
 
     runtime = _runtime(bare=True)
     _estimate(runtime)
-    result = _assess(runtime, lower_remaining_life_hours=200.0)
+    result = _assess(runtime, lower_remaining_life_hours=180.0)
     assert result.central_remaining_life_hours == 180.0
 
 
@@ -274,7 +274,7 @@ def test_assessment_time_and_equipment_type_fail_closed():
 
 
 def test_wrong_unlinked_or_ambiguous_estimate_scope_fails_closed():
-    runtime = _runtime()
+    runtime = _runtime(bare=True)
     _estimate(runtime, estimate_type="WorkOrder")
     with pytest.raises(ValueError, match="RUL-1 is not a RemainingUsefulLifeEstimate"):
         _assess(runtime)
@@ -363,12 +363,12 @@ def test_estimate_validity_fails_closed_for_missing_malformed_naive_future_stale
     with pytest.raises(ValueError, match="validFrom must be an ISO-8601 timestamp"):
         _assess(runtime)
 
-    runtime = _runtime()
+    runtime = _runtime(bare=True)
     _estimate(runtime, valid_from="not-a-time")
     with pytest.raises(ValueError, match="validFrom must be an ISO-8601 timestamp"):
         _assess(runtime)
 
-    runtime = _runtime()
+    runtime = _runtime(bare=True)
     _estimate(runtime, valid_from="2026-10-19T06:00:00")
     with pytest.raises(ValueError, match="validFrom must include timezone context"):
         _assess(runtime)
@@ -404,7 +404,7 @@ def test_duplicate_wrong_type_and_unlinked_work_orders_fail_closed():
     with pytest.raises(ValueError, match="Duplicate WorkOrder evidence"):
         _assess(runtime, work_order_ids=["WO-1", "WO-1"])
 
-    runtime = _runtime()
+    runtime = _runtime(bare=True)
     _estimate(runtime)
     _work_order(runtime, "WO-WRONG", work_type="ConditionObservation")
     with pytest.raises(ValueError, match="WO-WRONG is not a WorkOrder"):
@@ -418,10 +418,22 @@ def test_duplicate_wrong_type_and_unlinked_work_orders_fail_closed():
 
 
 def test_work_order_schedule_must_be_complete_aware_future_and_positive_duration():
-    runtime = _runtime()
+    runtime = _runtime(bare=True)
     _estimate(runtime)
-    _work_order(runtime, "WO-MISSING", start=None, end=AT + timedelta(hours=40))
-    runtime.get_object("WO-MISSING").properties["scheduledStart"] = None
+    work = OntologyObject(
+        id="WO-MISSING",
+        type="WorkOrder",
+        name="WO-MISSING",
+        properties={"scheduledEnd": AT + timedelta(hours=40)},
+    )
+    runtime.upsert_object(work)
+    runtime.add_relationship(
+        Relationship(
+            type="hasWorkOrder",
+            source=ObjectRef(id="EQ-1", type="Equipment"),
+            target=ObjectRef(id=work.id, type=work.type),
+        )
+    )
     with pytest.raises(ValueError, match="scheduledStart must be an ISO-8601 timestamp"):
         _assess(runtime, work_order_ids=["WO-MISSING"])
 
