@@ -67,7 +67,8 @@ def test_management_contract_exposes_sanitized_runtime_and_health():
     assert health.metadata.contract_version == "0.1.0"
     assert descriptor.environment == "test"
     assert descriptor.persistence_mode == "sqlite"
-    assert descriptor.auth_mode == "dev"
+    assert descriptor.application_auth_mode == "dev"
+    assert descriptor.management_access == "loopback-only"
     assert "tenant-secret" not in descriptor.model_dump_json()
 
 
@@ -105,7 +106,8 @@ def test_management_contract_lists_durable_capability_descriptors():
     assert capabilities.industry_iq_pack_count == 1
     assert capabilities.binding_count == 1
     assert capabilities.profile_count == 1
-    assert capabilities.management_contract == "0.1.0"
+    assert capabilities.application_contract_available is True
+    assert capabilities.management_contract_version == "0.1.0"
 
 
 def test_management_contract_does_not_infer_bindings_or_invalid_profile_state():
