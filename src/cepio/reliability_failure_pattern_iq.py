@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import defaultdict
 from datetime import datetime
 from enum import Enum
 
@@ -233,19 +233,12 @@ def assess_failure_pattern_recurrence(
     for failure_mode_id, mode_records in sorted(by_mode.items()):
         equipment_ids = sorted({item.equipment_id for item in mode_records})
         recurring_for_mode = sorted(
-            equipment_id
-            for equipment_id, mode_id in recurring_pairs
-            if mode_id == failure_mode_id
+            equipment_id for equipment_id, mode_id in recurring_pairs if mode_id == failure_mode_id
         )
-        exceeds_population = (
-            len(mode_records) > max_expected_events_per_failure_mode_population
-        )
+        exceeds_population = len(mode_records) > max_expected_events_per_failure_mode_population
         if exceeds_population:
             recurring_failure_mode_ids.add(failure_mode_id)
-        systemic = (
-            exceeds_population
-            and len(equipment_ids) >= min_distinct_equipment_for_systemic
-        )
+        systemic = exceeds_population and len(equipment_ids) >= min_distinct_equipment_for_systemic
         if systemic:
             systemic_failure_mode_ids.add(failure_mode_id)
 
@@ -288,9 +281,7 @@ def assess_failure_pattern_recurrence(
     else:
         status = FailurePatternStatus.within_expectation
         strategy_response = ReliabilityStrategyResponse.monitor
-        recommendation = (
-            "Observed failures remain within the governed recurrence expectations for this analysis window."
-        )
+        recommendation = "Observed failures remain within the governed recurrence expectations for this analysis window."
 
     return FailurePatternAssessment(
         analysis_start=analysis_start,
