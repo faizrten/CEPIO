@@ -155,5 +155,7 @@ def build_performance_service(
 
     resolved_settings = settings or RuntimeSettings.from_env()
     path: Path | None = resolved_settings.sqlite_path()
-    store = InMemoryPerformanceContractStore() if path is None else SQLitePerformanceContractStore(path)
+    store = (
+        InMemoryPerformanceContractStore() if path is None else SQLitePerformanceContractStore(path)
+    )
     return PerformanceService(PerformanceContractRegistry(store))
