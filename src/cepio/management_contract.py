@@ -8,6 +8,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from ._version import __version__
 from .auth import AuthSettings
 from .config import RuntimeSettings
+from .platform_bindings import (
+    BINDING_CONTRACT_VERSION,
+    BindingMode,
+    BindingRegistration,
+)
 from .runtime import CEPIORuntime
 from .skill_preflight import SkillPreflightSpec
 
@@ -63,12 +68,37 @@ class IndustryIQPackDescriptor(BaseModel):
 
 
 class BindingDescriptor(BaseModel):
+    """Management projection of an explicitly registered Binding Contract."""
+
     binding_id: str
     provider: str
     capability: str
     mode: Literal["read", "write", "read-write"]
     status: Literal["ready", "degraded", "not-configured"]
     authority: str
+    source_system: str | None = None
+    declared_capabilities: list[str] = Field(default_factory=list)
+    binding_contract_version: str = BINDING_CONTRACT_VERSION
+
+    @classmethod
+    def from_registration(cls, registration: BindingRegistration) -> "BindingDescriptor":
+        manifest = registration.manifest
+        mode: Literal["read", "write", "read-write"]
+        if manifest.mode == BindingMode.evidence:
+            mode = "read"
+        else:
+            mode = "write"
+        return cls(
+            binding_id=manifest.binding_id,
+            provider=manifest.provider_id,
+            capability=registration.capability_id,
+            mode=mode,
+            status=registration.status.value,
+            authority=registration.authority,
+            source_system=manifest.source_system,
+            declared_capabilities=list(registration.declared_capabilities),
+            binding_contract_version=registration.contract_version,
+        )
 
 
 class ProfileDescriptor(BaseModel):
@@ -84,6 +114,7 @@ class CapabilityInventory(BaseModel):
     profile_count: int
     application_contract_available: bool = True
     management_contract_version: str = MANAGEMENT_CONTRACT_VERSION
+    binding_contract_version: str = BINDING_CONTRACT_VERSION
 
 
 class CEPIOManagementService:
