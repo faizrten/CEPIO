@@ -1,0 +1,83 @@
+@prefix cepio: <https://cepio.org/ontology/core#> .
+@prefix energy: <https://cepio.org/ontology/energy#> .
+@prefix kin: <https://cepio.org/ontology/kinetic#> .
+@prefix prod: <https://cepio.org/ontology/production#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# CEPIO Production owns well-performance assurance, operating constraint,
+# optimization context and outcome learning. It does not own historian time
+# series, well tests, flow-network payloads, lift-system telemetry or nodal-model
+# payloads; those remain authoritative in external production systems/standards.
+
+prod:ProductionAssuranceCase a owl:Class ;
+    rdfs:subClassOf cepio:Entity ;
+    rdfs:comment "A governed production-technology reasoning context for a producing or injecting well, binding evidence, models, constraints, uncertainty and intervention consequences without copying source-system technical payloads." .
+
+prod:WellPerformanceAssessment a owl:Class ;
+    rdfs:subClassOf cepio:Assessment ;
+    rdfs:comment "An assessment of observed well performance relative to expected or required performance." .
+
+prod:DeliverabilityAssessment a owl:Class ;
+    rdfs:subClassOf prod:WellPerformanceAssessment ;
+    rdfs:comment "An assessment of expected versus observed well deliverability under stated reservoir, well and surface assumptions." .
+
+prod:ProductionConstraintAssessment a owl:Class ;
+    rdfs:subClassOf prod:WellPerformanceAssessment ;
+    rdfs:comment "An assessment of active constraints limiting safe or stable well production or injection." .
+
+prod:ArtificialLiftPerformanceAssessment a owl:Class ;
+    rdfs:subClassOf prod:WellPerformanceAssessment ;
+    rdfs:comment "An assessment of artificial-lift performance and its contribution to well deliverability." .
+
+prod:WellIntegrityAssessment a owl:Class ;
+    rdfs:subClassOf cepio:Assessment ;
+    rdfs:comment "A production-technology view of well-integrity evidence and operating restrictions; integrity approval authority remains governed separately." .
+
+prod:InterventionEffectivenessAssessment a owl:Class ;
+    rdfs:subClassOf cepio:Assessment ;
+    rdfs:comment "An assessment of whether an intervention changed well performance as intended, preserving uncertainty and attribution limits." .
+
+prod:WellOperatingEnvelope a owl:Class ;
+    rdfs:subClassOf cepio:Entity ;
+    rdfs:comment "The approved operating context for a well across production, injection, lift and integrity limits. This is intentionally independent of process-unit OperatingEnvelope semantics pending cross-domain generalization evidence." .
+
+prod:WellOperatingLimit a owl:Class ;
+    rdfs:subClassOf kin:Constraint ;
+    rdfs:comment "A governed limit constraining well operation, such as drawdown, pressure, temperature, erosion, sand, lift or integrity limits." .
+
+prod:ProductionDeviation a owl:Class ;
+    rdfs:subClassOf cepio:Event ;
+    rdfs:comment "An observed production or injection deviation relative to an expected state, target, model or operating envelope." .
+
+prod:assuranceForWell a owl:ObjectProperty ;
+    rdfs:domain prod:ProductionAssuranceCase ;
+    rdfs:range energy:Well .
+
+prod:assessmentForWell a owl:ObjectProperty ;
+    rdfs:domain prod:WellPerformanceAssessment ;
+    rdfs:range energy:Well .
+
+prod:hasWellPerformanceAssessment a owl:ObjectProperty ;
+    rdfs:domain prod:ProductionAssuranceCase ;
+    rdfs:range prod:WellPerformanceAssessment .
+
+prod:hasOperatingEnvelope a owl:ObjectProperty ;
+    rdfs:domain prod:ProductionAssuranceCase ;
+    rdfs:range prod:WellOperatingEnvelope .
+
+prod:hasOperatingLimit a owl:ObjectProperty ;
+    rdfs:domain prod:WellOperatingEnvelope ;
+    rdfs:range prod:WellOperatingLimit .
+
+prod:constrainsWell a owl:ObjectProperty ;
+    rdfs:domain prod:WellOperatingLimit ;
+    rdfs:range energy:Well .
+
+prod:deviationForWell a owl:ObjectProperty ;
+    rdfs:domain prod:ProductionDeviation ;
+    rdfs:range energy:Well .
+
+prod:deviationAgainstEnvelope a owl:ObjectProperty ;
+    rdfs:domain prod:ProductionDeviation ;
+    rdfs:range prod:WellOperatingEnvelope .
