@@ -17,6 +17,7 @@ from cepio.performance_contract import (
     PerformanceSubject,
     PerformanceTarget,
 )
+from cepio.performance_mcp import PerformanceMCPFacade
 from cepio.performance_registry import (
     InMemoryPerformanceContractStore,
     PerformanceContractRegistry,
@@ -178,9 +179,7 @@ def test_build_performance_service_uses_sqlite_store(tmp_path):
     service.registry.store.close()
 
 
-def rest_client(
-    service: PerformanceService, *, tenant_id: str | None = "org-a"
-) -> TestClient:
+def rest_client(service: PerformanceService, *, tenant_id: str | None = "org-a") -> TestClient:
     app = FastAPI()
     app.include_router(build_performance_router(service))
     app.dependency_overrides[get_actor_context] = lambda: ActorContext(
@@ -195,9 +194,7 @@ def test_experimental_rest_resolves_and_evaluates_matching_tenant():
     service = service_with_active_contract()
     client = rest_client(service)
 
-    resolved = client.get(
-        "/experimental/performance/v0.1/contracts/org-a-performance/resolved"
-    )
+    resolved = client.get("/experimental/performance/v0.1/contracts/org-a-performance/resolved")
     evaluated = client.post(
         "/experimental/performance/v0.1/contracts/org-a-performance/evaluate",
         json={
@@ -218,9 +215,7 @@ def test_experimental_rest_fails_closed_across_tenant_boundary():
     service = service_with_active_contract()
     client = rest_client(service, tenant_id="org-b")
 
-    resolved = client.get(
-        "/experimental/performance/v0.1/contracts/org-a-performance/resolved"
-    )
+    resolved = client.get("/experimental/performance/v0.1/contracts/org-a-performance/resolved")
     evaluated = client.post(
         "/experimental/performance/v0.1/contracts/org-a-performance/evaluate",
         json={
@@ -235,14 +230,10 @@ def test_experimental_rest_fails_closed_across_tenant_boundary():
 
 
 def test_experimental_rest_allows_tenant_neutral_industry_reference():
-    service = service_with_active_contract(
-        organization_id=None, contract_id="industry-performance"
-    )
+    service = service_with_active_contract(organization_id=None, contract_id="industry-performance")
     client = rest_client(service, tenant_id="org-b")
 
-    response = client.get(
-        "/experimental/performance/v0.1/contracts/industry-performance/resolved"
-    )
+    response = client.get("/experimental/performance/v0.1/contracts/industry-performance/resolved")
 
     assert response.status_code == 200
     assert response.json()["resolved"]["contract"]["organization_id"] is None
@@ -252,9 +243,7 @@ def test_experimental_rest_maps_missing_and_invalid_evaluation_errors():
     service = service_with_active_contract()
     client = rest_client(service)
 
-    missing = client.get(
-        "/experimental/performance/v0.1/contracts/missing/resolved"
-    )
+    missing = client.get("/experimental/performance/v0.1/contracts/missing/resolved")
     invalid = client.post(
         "/experimental/performance/v0.1/contracts/org-a-performance/evaluate",
         json={
@@ -285,7 +274,7 @@ class DummyRuntime:
 def test_mcp_performance_tools_are_opt_in_and_tenant_scoped():
     service = service_with_active_contract()
     plain = MCPFacade(DummyRuntime(), actor_id="agent", actor_roles=set())  # type: ignore[arg-type]
-    scoped = MCPFacade(
+    scoped = PerformanceMCPFacade(
         DummyRuntime(),  # type: ignore[arg-type]
         actor_id="agent",
         actor_roles={"ai_agent_recommender"},
@@ -293,9 +282,7 @@ def test_mcp_performance_tools_are_opt_in_and_tenant_scoped():
         performance_service=service,
     )
 
-    assert "cepio_evaluate_performance" not in {
-        item["name"] for item in plain.list_tools()
-    }
+    assert "cepio_evaluate_performance" not in {item["name"] for item in plain.list_tools()}
     names = {item["name"] for item in scoped.list_tools()}
     assert "cepio_resolve_performance_contract" in names
     assert "cepio_evaluate_performance" in names
@@ -317,9 +304,9 @@ def test_mcp_performance_tools_are_opt_in_and_tenant_scoped():
     assert evaluated["workflow_candidates"][0]["policy_required"] is True
 
 
-def test_mcp_performance_tools_fail_closed_for_cross_tenant_and_unconfigured_service():
+def test_mcp_performance_tools_fail_closed_for_cross_tenant_and_stable_facade():
     service = service_with_active_contract()
-    wrong_tenant = MCPFacade(
+    wrong_tenant = PerformanceMCPFacade(
         DummyRuntime(),  # type: ignore[arg-type]
         actor_id="agent",
         actor_roles=set(),
@@ -338,12 +325,12 @@ def test_mcp_performance_tools_fail_closed_for_cross_tenant_and_unconfigured_ser
             "cepio_evaluate_performance",
             {"contract_id": "org-a-performance", "observations": []},
         )
-    with pytest.raises(KeyError, match="performance service is not configured"):
+    with pytest.raises(KeyError, match="Unknown CEPIO MCP tool"):
         plain.call_tool(
             "cepio_resolve_performance_contract",
             {"contract_id": "org-a-performance"},
         )
-    with pytest.raises(KeyError, match="performance service is not configured"):
+    with pytest.raises(KeyError, match="Unknown CEPIO MCP tool"):
         plain.call_tool(
             "cepio_evaluate_performance",
             {"contract_id": "org-a-performance", "observations": []},
@@ -351,10 +338,8 @@ def test_mcp_performance_tools_fail_closed_for_cross_tenant_and_unconfigured_ser
 
 
 def test_mcp_tenant_neutral_performance_contract_is_accessible():
-    service = service_with_active_contract(
-        organization_id=None, contract_id="industry-performance"
-    )
-    facade = MCPFacade(
+    service = service_with_active_contract(organization_id=None, contract_id="industry-performance")
+    facade = PerformanceMCPFacade(
         DummyRuntime(),  # type: ignore[arg-type]
         actor_id="agent",
         actor_roles=set(),
@@ -368,3 +353,17 @@ def test_mcp_tenant_neutral_performance_contract_is_accessible():
     )
 
     assert result["resolved"]["contract"]["organization_id"] is None
+
+
+def test_performance_mcp_delegates_existing_tools_to_stable_facade():
+    service = service_with_active_contract()
+    facade = PerformanceMCPFacade(
+        DummyRuntime(),  # type: ignore[arg-type]
+        actor_id="agent",
+        actor_roles=set(),
+        tenant_id="org-a",
+        performance_service=service,
+    )
+
+    with pytest.raises(KeyError, match="Unknown CEPIO MCP tool"):
+        facade.call_tool("unknown-tool", {})
