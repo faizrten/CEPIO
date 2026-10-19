@@ -430,9 +430,9 @@ def run_domain_onboarding(
                 "runtime coverage rate "
                 f"{runtime_rate:.3f} < {policy.qualification.minimum_runtime_coverage_rate:.3f}"
             )
-        if runtime_report["status_counts"].get("FAIL", 0) or runtime_report[
-            "status_counts"
-        ].get("ERROR", 0):
+        if runtime_report["status_counts"].get("FAIL", 0) or runtime_report["status_counts"].get(
+            "ERROR", 0
+        ):
             qualification_failures.append("runtime qualification contains FAIL/ERROR results")
     elif policy.qualification.require_runtime:
         qualification_failures.append("policy requires a runtime qualification suite")
