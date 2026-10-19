@@ -6,6 +6,7 @@ from urllib.parse import quote
 
 import httpx
 
+from .application_contract import SkillEvaluation, SkillInvocation
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import ActionRequest, ActionResult, Decision, OntologyObject, OperationalEvent, Relationship
 from .query import ObjectQuery, ObjectQueryResult
@@ -25,6 +26,7 @@ API_OPERATIONS: dict[str, tuple[str, str]] = {
     "getGraphCommunities": ("GET", "/api/v1/graph/communities"),
     "recordEvent": ("POST", "/api/v1/events"),
     "listObjectEvents": ("GET", "/api/v1/objects/{object_id}/events"),
+    "evaluateSkill": ("POST", "/api/v1/skills/evaluate"),
     "executeAction": ("POST", "/api/v1/actions"),
     "callFunction": ("POST", "/api/v1/functions/{name}"),
     "saveDecision": ("POST", "/api/v1/decisions"),
@@ -195,6 +197,14 @@ class CEPIOClient:
         response = self._client.get(self._path("listObjectEvents", object_id=object_id))
         response.raise_for_status()
         return [OperationalEvent.model_validate(value) for value in response.json()]
+
+    def evaluate_skill(self, invocation: SkillInvocation) -> SkillEvaluation:
+        response = self._client.post(
+            self._path("evaluateSkill"),
+            json=invocation.model_dump(mode="json"),
+        )
+        response.raise_for_status()
+        return SkillEvaluation.model_validate(response.json())
 
     def execute_action(
         self,
