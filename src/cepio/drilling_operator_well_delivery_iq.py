@@ -129,8 +129,8 @@ def _plan_deviation_findings(
     for deviation_id in deviation_ids:
         deviation = _require_type(runtime, deviation_id, "PlanDeviation")
         evidence.append(deviation_id)
-        plan_id = deviation.properties.get("planId")
-        if plan_id != approved_plan_id:
+        plan_ids = {item.id for item in runtime.neighbors(deviation_id, "deviationFromPlan")}
+        if approved_plan_id not in plan_ids:
             raise ValueError(
                 f"PlanDeviation {deviation_id} does not reference approved plan {approved_plan_id}"
             )
@@ -305,7 +305,6 @@ def initiate_well_plan_revision(
             "createdBy": request.actor_id,
             "sourceAction": request.action_type,
         },
-        interfaces={"WorkItem"},
     )
     runtime.upsert_object(revision)
     runtime.add_relationship(
