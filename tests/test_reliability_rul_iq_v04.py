@@ -146,9 +146,7 @@ def test_pack_is_not_core_default_and_installs_as_industry_iq():
     assert runtime.has_function("assessRULMaintenanceWindow") is False
     install_industry_iq_packs(runtime, [RELIABILITY_RUL_MAINTENANCE_WINDOW_IQ_PACK])
     assert runtime.has_function("assessRULMaintenanceWindow") is True
-    assert runtime.industry_iq_packs == {
-        "cepio.iq.reliability.rul-maintenance-window": "0.4.0"
-    }
+    assert runtime.industry_iq_packs == {"cepio.iq.reliability.rul-maintenance-window": "0.4.0"}
 
 
 def test_safe_window_uses_conservative_horizon_and_preserves_confidence_separately():
