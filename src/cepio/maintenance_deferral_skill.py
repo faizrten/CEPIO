@@ -130,9 +130,13 @@ def _required_string(parameters: dict[str, Any], name: str) -> str:
 
 def _required_hours(parameters: dict[str, Any]) -> float:
     value = parameters.get("proposed_deferral_hours")
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        raise ValueError(
+            "Maintenance deferral requires numeric parameter proposed_deferral_hours"
+        )
     try:
         hours = float(value)
-    except (TypeError, ValueError) as exc:
+    except ValueError as exc:
         raise ValueError(
             "Maintenance deferral requires numeric parameter proposed_deferral_hours"
         ) from exc
@@ -156,10 +160,10 @@ def execute_maintenance_deferral(
     if invocation.skill_id != MAINTENANCE_DEFERRAL_SKILL_ID:
         raise ValueError(f"Unexpected Skill identity: {invocation.skill_id}")
 
-    for reference in invocation.evidence:
-        host.read_object(reference.object_ref.id)
-    for reference in invocation.assessment_refs:
-        host.read_object(reference.id)
+    for evidence_ref in invocation.evidence:
+        host.read_object(evidence_ref.object_ref.id)
+    for assessment_ref in invocation.assessment_refs:
+        host.read_object(assessment_ref.id)
 
     equipment = host.read_object(invocation.subject.id)
     work_order_id = _required_string(invocation.parameters, "work_order_id")
