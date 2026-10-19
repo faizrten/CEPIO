@@ -289,9 +289,7 @@ def initiate_well_plan_revision(
     request: ActionRequest, target: OntologyObject, runtime: CEPIORuntime
 ) -> dict[str, object]:
     plan_id = str(request.parameters["plan_id"])
-    revision_id = str(
-        request.parameters.get("revision_id", f"PLAN-REV-{uuid4().hex[:8].upper()}")
-    )
+    revision_id = str(request.parameters.get("revision_id", f"PLAN-REV-{uuid4().hex[:8].upper()}"))
     revision = OntologyObject(
         id=revision_id,
         type="PlanRevision",
