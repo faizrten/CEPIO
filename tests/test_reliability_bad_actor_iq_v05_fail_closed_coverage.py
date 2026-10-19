@@ -173,7 +173,9 @@ def test_reversed_exposure_validity_fails_closed():
         _assess(runtime, periods)
 
 
-def _placeholder_period(start: datetime, end: datetime, equipment_ids: list[str]) -> dict[str, object]:
+def _placeholder_period(
+    start: datetime, end: datetime, equipment_ids: list[str]
+) -> dict[str, object]:
     return {
         "analysis_start": start,
         "analysis_end": end,
