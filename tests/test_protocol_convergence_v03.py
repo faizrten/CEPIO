@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 
 from cepio import api as legacy_api
+from cepio import public_api
 from cepio.application_contract import (
     ContractMetadata,
     EvidenceReference,
@@ -17,11 +20,16 @@ from cepio.application_contract import (
 )
 from cepio.application_runtime import build_application_service
 from cepio.bootstrap import build_runtime
-from cepio.integrations.microsoft.foundry_gateway import ActorContext, FixedActorProvider
+from cepio.integrations.microsoft.foundry_gateway import (
+    ActorContext,
+    CEPIOMCPGateway,
+    FixedActorProvider,
+)
 from cepio.integrations.microsoft.foundry_mcp import build_mcp_server
 from cepio.maintenance_deferral_skill import MAINTENANCE_DEFERRAL_SKILL_ID
 from cepio.model import ObjectRef, OntologyObject, Relationship
 from cepio.public_api import app
+from cepio.runtime import AuthorizationError
 from cepio.sdk import CEPIOClient
 
 
@@ -237,3 +245,69 @@ def test_rest_skill_invocation_cannot_supply_actor_authority(monkeypatch):
     assert evaluation.decision is not None
     assert evaluation.decision.created_by == "agent-convergence-01"
     assert runtime.get_object("WO-CONV").properties["status"] == "planned"
+
+
+def test_rest_skill_host_authorization_failure_uses_public_error_boundary(monkeypatch):
+    monkeypatch.setenv("CEPIO_ENVIRONMENT", "test")
+    monkeypatch.setenv("CEPIO_AUTH_MODE", "dev")
+
+    class DeniedService:
+        def evaluate_skill(self, invocation, context):
+            raise AuthorizationError("host denied Skill evaluation")
+
+    monkeypatch.setattr(legacy_api, "runtime", _seed_runtime())
+    monkeypatch.setattr(public_api, "build_application_service", lambda runtime: DeniedService())
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/skills/evaluate",
+            headers={
+                "X-CEPIO-Dev-Actor": "agent-convergence-01",
+                "X-CEPIO-Dev-Roles": "ai_agent_recommender",
+            },
+            json=_invocation().model_dump(mode="json"),
+        )
+
+    assert response.status_code == 403
+    assert response.json()["code"] == "skill_authorization"
+
+
+def test_rest_query_fails_closed_when_runtime_query_capability_is_unavailable(monkeypatch):
+    monkeypatch.setenv("CEPIO_ENVIRONMENT", "test")
+    monkeypatch.setenv("CEPIO_AUTH_MODE", "dev")
+    monkeypatch.setattr(legacy_api, "runtime", object())
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/query/objects",
+            headers={
+                "X-CEPIO-Dev-Actor": "agent-convergence-01",
+                "X-CEPIO-Dev-Roles": "ai_agent_recommender",
+            },
+            json={"object_type": "Equipment"},
+        )
+
+    assert response.status_code == 422
+    assert response.json()["code"] == "query_validation"
+
+
+def test_mcp_gateway_fails_closed_without_transaction_time_capability(monkeypatch):
+    runtime = _seed_runtime()
+    monkeypatch.setattr(runtime, "get_object_at", None)
+    gateway = CEPIOMCPGateway(
+        runtime,
+        FixedActorProvider(
+            ActorContext(
+                subject_id="agent-convergence-01",
+                roles={"ai_agent_recommender"},
+                principal_type="agent",
+                auth_mode="development",
+            )
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="transaction-time state"):
+        gateway.get_state_at(
+            "P-CONV",
+            as_of_transaction=datetime.now(timezone.utc),
+        )
