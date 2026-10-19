@@ -153,9 +153,7 @@ def test_workflow_contract_rejects_undeclared_transition_state(tmp_path: Path):
             "version": "0.1",
             "initial_state": "REQUESTED",
             "states": ["REQUESTED", "SCOPED", "BLOCKED"],
-            "transitions": [
-                {"source": "REQUESTED", "target": "BENCHMARKED", "gate": "invalid"}
-            ],
+            "transitions": [{"source": "REQUESTED", "target": "BENCHMARKED", "gate": "invalid"}],
         },
     )
     with pytest.raises(ValueError, match="undeclared state"):
