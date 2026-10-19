@@ -9,7 +9,7 @@ explicit Decision proposal through the existing application-service policy bound
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable as _Iterable
 from datetime import datetime
 from typing import Literal
 
@@ -17,7 +17,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .application_contract import CEPIOApplicationService, DecisionProposal, ExecutionContext
 from .industry_iq import IndustryIQPackManifest
-from .model import Decision, ObjectRef, OntologyObject
+from .model import Decision, ObjectRef
+from .model import OntologyObject as _OntologyObject
 from .performance_contract import PerformanceContract, PerformanceNode
 from .performance_runtime import PerformanceObservation, PerformanceWorkflowCandidate
 from .performance_service import (
@@ -31,7 +32,7 @@ from .reasoning_contribution import (
     ReasoningContributionEngine,
     ReasoningContributionError,
     ReasoningContributionRequest,
-    ReasoningContributor,
+    ReasoningContributor as _ReasoningContributor,
 )
 from .runtime import CEPIORuntime
 
@@ -133,12 +134,10 @@ class PerformanceIndustryIQService:
         self,
         performance_service: PerformanceService,
         application_service: CEPIOApplicationService,
-        *,
-        reasoning_contributors: Iterable[ReasoningContributor] = (),
     ) -> None:
         self.performance_service = performance_service
         self.application_service = application_service
-        self.reasoning_engine = ReasoningContributionEngine(reasoning_contributors)
+        self.reasoning_engine = ReasoningContributionEngine()
 
     def reason(
         self,
@@ -293,8 +292,8 @@ class PerformanceIndustryIQService:
         self,
         object_ids: tuple[str, ...],
         context: ExecutionContext,
-    ) -> tuple[OntologyObject, ...]:
-        objects: list[OntologyObject] = []
+    ) -> tuple[_OntologyObject, ...]:
+        objects: list[_OntologyObject] = []
         seen: set[str] = set()
         for object_id in object_ids:
             if object_id in seen:
@@ -305,11 +304,11 @@ class PerformanceIndustryIQService:
 
     def _reasoning_contributions(
         self,
-        subject: OntologyObject,
+        subject: _OntologyObject,
         problem: str,
         node: PerformanceNode,
         deviation: PerformanceDeviationAssessment,
-        context_objects: tuple[OntologyObject, ...],
+        context_objects: tuple[_OntologyObject, ...],
     ) -> tuple[ReasoningContribution, ...]:
         subject_ref = ObjectRef(id=subject.id, type=subject.type)
         contribution_request = ReasoningContributionRequest(
@@ -372,7 +371,11 @@ class PerformanceIndustryIQService:
 
         for contribution in contributions:
             for hypothesis in contribution.hypotheses:
-                confidence = "unassessed" if hypothesis.confidence is None else hypothesis.confidence.value
+                confidence = (
+                    "unassessed"
+                    if hypothesis.confidence is None
+                    else hypothesis.confidence.value
+                )
                 support = ", ".join(hypothesis.supporting_evidence_ids) or "none"
                 contradict = ", ".join(hypothesis.contradicting_evidence_ids) or "none"
                 observations.append(
@@ -444,6 +447,23 @@ class PerformanceIndustryIQService:
                 "No response binding matched this deviation; keep the response recommend-only until a governed workflow or action is selected."
             )
         return " ".join(parts)
+
+
+def build_performance_industry_iq_service_with_reasoning(
+    performance_service: PerformanceService,
+    application_service: CEPIOApplicationService,
+    *,
+    reasoning_contributors: _Iterable[_ReasoningContributor],
+) -> PerformanceIndustryIQService:
+    """Additively construct Performance Industry IQ with bounded domain contributors.
+
+    The published ``PerformanceIndustryIQService`` constructor remains unchanged. This
+    helper is the explicit opt-in path for domain reasoning composition.
+    """
+
+    service = PerformanceIndustryIQService(performance_service, application_service)
+    service.reasoning_engine = ReasoningContributionEngine(reasoning_contributors)
+    return service
 
 
 PERFORMANCE_RESPONSE_IQ_PACK = PerformanceResponseIndustryIQPack()
