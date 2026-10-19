@@ -8,7 +8,14 @@ import httpx
 
 from .application_contract import SkillEvaluation, SkillInvocation
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
-from .model import ActionRequest, ActionResult, Decision, OntologyObject, OperationalEvent, Relationship
+from .model import (
+    ActionRequest,
+    ActionResult,
+    Decision,
+    OntologyObject,
+    OperationalEvent,
+    Relationship,
+)
 from .query import ObjectQuery, ObjectQueryResult
 
 
@@ -49,7 +56,9 @@ class CEPIOClient:
         transport: httpx.BaseTransport | None = None,
     ) -> None:
         if access_token and (dev_actor or dev_roles):
-            raise ValueError("Use either an Entra access token or development identity headers, not both")
+            raise ValueError(
+                "Use either an Entra access token or development identity headers, not both"
+            )
         headers = {"Accept": "application/json"}
         if access_token:
             headers["Authorization"] = f"Bearer {access_token}"
@@ -94,7 +103,9 @@ class CEPIOClient:
         response.raise_for_status()
         return OntologyObject.model_validate(response.json()), response.headers.get("ETag")
 
-    def upsert_object(self, obj: OntologyObject, *, expected_version: int | None = None) -> OntologyObject:
+    def upsert_object(
+        self, obj: OntologyObject, *, expected_version: int | None = None
+    ) -> OntologyObject:
         headers = {"If-Match": f'"{expected_version}"'} if expected_version is not None else None
         response = self._client.put(
             self._path("upsertObject", object_id=obj.id),
@@ -111,9 +122,7 @@ class CEPIOClient:
         return [OntologyObject.model_validate(value) for value in response.json()]
 
     def query_objects(self, query: ObjectQuery) -> ObjectQueryResult:
-        response = self._client.post(
-            self._path("queryObjects"), json=query.model_dump(mode="json")
-        )
+        response = self._client.post(self._path("queryObjects"), json=query.model_dump(mode="json"))
         response.raise_for_status()
         return ObjectQueryResult.model_validate(response.json())
 
@@ -124,11 +133,11 @@ class CEPIOClient:
         response.raise_for_status()
         return Relationship.model_validate(response.json())
 
-    def neighbors(self, object_id: str, relationship_type: str | None = None) -> list[OntologyObject]:
+    def neighbors(
+        self, object_id: str, relationship_type: str | None = None
+    ) -> list[OntologyObject]:
         params = {"relationship_type": relationship_type} if relationship_type else None
-        response = self._client.get(
-            self._path("getNeighbors", object_id=object_id), params=params
-        )
+        response = self._client.get(self._path("getNeighbors", object_id=object_id), params=params)
         response.raise_for_status()
         return [OntologyObject.model_validate(value) for value in response.json()]
 
@@ -187,9 +196,7 @@ class CEPIOClient:
         return CommunityResult.model_validate(response.json())
 
     def record_event(self, event: OperationalEvent) -> OperationalEvent:
-        response = self._client.post(
-            self._path("recordEvent"), json=event.model_dump(mode="json")
-        )
+        response = self._client.post(self._path("recordEvent"), json=event.model_dump(mode="json"))
         response.raise_for_status()
         return OperationalEvent.model_validate(response.json())
 
@@ -221,9 +228,7 @@ class CEPIOClient:
         }
         effective_key = idempotency_key or request.idempotency_key
         headers = {"Idempotency-Key": effective_key} if effective_key else None
-        response = self._client.post(
-            self._path("executeAction"), headers=headers, json=payload
-        )
+        response = self._client.post(self._path("executeAction"), headers=headers, json=payload)
         response.raise_for_status()
         return ActionResult.model_validate(response.json())
 
@@ -242,9 +247,7 @@ class CEPIOClient:
         return Decision.model_validate(response.json())
 
     def get_decision(self, decision_id: str) -> Decision:
-        response = self._client.get(
-            self._path("getDecision", decision_id=decision_id)
-        )
+        response = self._client.get(self._path("getDecision", decision_id=decision_id))
         response.raise_for_status()
         return Decision.model_validate(response.json())
 
