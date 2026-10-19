@@ -164,8 +164,7 @@ def test_complete_root_records_all_lineage_types_and_missing_lookup_fails_closed
     resolved = PerformanceContractResolver((root,)).resolve(root.id)
 
     assert (
-        resolved.source_for("accountability", "org|availability|owns").source_contract_id
-        == root.id
+        resolved.source_for("accountability", "org|availability|owns").source_contract_id == root.id
     )
     assert (
         resolved.source_for(
