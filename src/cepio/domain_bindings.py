@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -70,16 +70,16 @@ class DomainBindingContract(BaseModel):
     profile: str
     status: str | None = None
     baseline: dict[str, str] = Field(default_factory=dict)
-    principles: dict = Field(default_factory=dict)
-    providers: dict = Field(default_factory=dict)
+    principles: dict[str, Any] = Field(default_factory=dict)
+    providers: dict[str, Any] = Field(default_factory=dict)
     objects: list[DomainObjectBinding] = Field(default_factory=list)
-    cepio_native: list[dict] = Field(default_factory=list)
+    cepio_native: list[dict[str, Any]] = Field(default_factory=list)
     runtime_capabilities: dict[str, RuntimeCapabilityBinding] = Field(default_factory=dict)
     anti_duplication_invariants: list[str] = Field(default_factory=list)
 
     @classmethod
     def load_yaml(cls, path: str | Path) -> "DomainBindingContract":
-        payload = yaml.safe_load(Path(path).read_text())
+        payload: Any = yaml.safe_load(Path(path).read_text())
         return cls.model_validate(payload)
 
     def object_binding(self, binding_id: str) -> DomainObjectBinding:
