@@ -50,6 +50,7 @@ def build_performance_router(service: PerformanceService) -> APIRouter:
     @router.get(
         "/contracts/{contract_id}/resolved",
         response_model=RegisteredPerformanceContractResolution,
+        include_in_schema=False,
     )
     def resolve_performance_contract(
         contract_id: str,
@@ -70,6 +71,7 @@ def build_performance_router(service: PerformanceService) -> APIRouter:
     @router.post(
         "/contracts/{contract_id}/evaluate",
         response_model=PerformanceResponseAssessment,
+        include_in_schema=False,
     )
     def evaluate_performance_contract(
         contract_id: str,
@@ -90,7 +92,7 @@ def build_performance_router(service: PerformanceService) -> APIRouter:
             return service.evaluate(
                 contract_id,
                 body.observations,
-                version=version,
+                version=resolved.resolved.contract.version,
                 evaluated_at=body.evaluated_at,
             )
         except (PerformanceContractRegistryError, ValueError) as exc:
