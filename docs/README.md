@@ -47,6 +47,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - [ADR-0020 — Management Control Plane v0.1](adr/ADR-0020-management-control-plane-v0.1.md)
 - [Binding Contract v0.1](developer/platform-bindings.md)
 - [ADR-0026 — Binding Contract v0.1](adr/ADR-0026-binding-contract-v0.1.md)
+- [ADR-0028 — Fabric Live Binding Proof v0.1](adr/ADR-0028-fabric-live-binding-proof-v0.1.md)
 - [Kinetic runtime](kinetic-runtime.md)
 - [Kinetic execution resilience v0.2](kinetic-execution-resilience.md)
 - [Governed external action runtime](external-action-runtime.md)
@@ -65,6 +66,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 ## Integrations
 
 - [Microsoft Fabric / Fabric IQ](integrations/microsoft-fabric-iq.md)
+- [Microsoft Fabric Live Binding Proof v0.1](integrations/microsoft-fabric-live-binding-proof.md)
 - [NVIDIA cuGraph](integrations/nvidia-cugraph.md)
 
 ## Documentation model

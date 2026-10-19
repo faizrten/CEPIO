@@ -1,0 +1,69 @@
+{
+  "context_id": "NPT-CONTEXT-001",
+  "context_reference": {
+    "source_system": "synthetic-drilling",
+    "record_kind": "drilling-npt-context",
+    "record_id": "NPT-CONTEXT-001",
+    "record_version": "1"
+  },
+  "rig_id": "RIG-1",
+  "rig_name": "Rig 1",
+  "rig_reference": {
+    "source_system": "synthetic-drilling",
+    "record_kind": "operating-rig",
+    "record_id": "RIG-SRC-1",
+    "record_version": "1"
+  },
+  "well_id": "WELL-1",
+  "well_name": "Well 1",
+  "well_reference": {
+    "source_system": "synthetic-drilling",
+    "record_kind": "well",
+    "record_id": "WELL-SRC-1",
+    "record_version": "1"
+  },
+  "activities": [
+    {
+      "activity_id": "ACT-NPT",
+      "activity_name": "Top drive downtime",
+      "start_time": "2026-10-18T10:00:00+03:00",
+      "end_time": "2026-10-18T12:00:00+03:00",
+      "classification_id": "CLASS-NPT",
+      "classification_name": "Non-productive",
+      "is_productive": false,
+      "activity_reference": {
+        "source_system": "synthetic-drilling",
+        "record_kind": "drilling-activity-interval",
+        "record_id": "ACT-SRC-NPT",
+        "record_version": "1"
+      },
+      "classification_reference": {
+        "source_system": "synthetic-drilling",
+        "record_kind": "drilling-activity-classification",
+        "record_id": "CLASS-SRC-NPT",
+        "record_version": "1"
+      }
+    },
+    {
+      "activity_id": "ACT-PROD",
+      "activity_name": "Drilling ahead",
+      "start_time": "2026-10-18T12:00:00+03:00",
+      "end_time": "2026-10-18T13:30:00+03:00",
+      "classification_id": "CLASS-PROD",
+      "classification_name": "Productive",
+      "is_productive": true,
+      "activity_reference": {
+        "source_system": "synthetic-drilling",
+        "record_kind": "drilling-activity-interval",
+        "record_id": "ACT-SRC-PROD",
+        "record_version": "1"
+      },
+      "classification_reference": {
+        "source_system": "synthetic-drilling",
+        "record_kind": "drilling-activity-classification",
+        "record_id": "CLASS-SRC-PROD",
+        "record_version": "1"
+      }
+    }
+  ]
+}

@@ -205,6 +205,14 @@ PYTHONPATH=src python scripts/generate_fabric_iq_binding.py \
   --output build/fabric-iq/asset-work
 ```
 
+## Live Fabric evidence proof
+
+Fabric IQ semantic deployment and live provider evidence are deliberately separate concerns. CEPIO includes an opt-in live proof that reads normalized drilling NPT evidence from a Fabric Warehouse or SQL analytics endpoint with Microsoft Entra authentication, then runs the same Industry IQ as the Synthetic provider.
+
+See [Microsoft Fabric Live Binding Proof v0.1](microsoft-fabric-live-binding-proof.md).
+
+The live proof does **not** make Fabric transport part of CEPIO Core and does not depend on Fabric Ontology preview APIs.
+
 ## Production deployment boundary
 
 The v0.4 contract intentionally separates generation from deployment:
@@ -239,3 +247,5 @@ This integration is complete when:
 4. round-trip drift detection identifies missing or changed CEPIO semantics;
 5. all tests run with no Fabric credential or service;
 6. Fabric preview changes remain isolated to the Microsoft integration layer.
+
+The live SQL proof is a separate environment qualification and is not a prerequisite for ordinary credential-free CI.
