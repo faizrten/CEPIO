@@ -1,0 +1,122 @@
+id: production-technologist-p118-v0.2
+version: "0.2"
+synthetic: true
+base_benchmark: generalization/benchmarks/production-technologist-p118-v0.1.yaml
+provenance:
+  author: CEPIO
+  source_dataset: none
+  fictional_identifiers: true
+  purpose: deterministic semantic, runtime and regression qualification only
+  engineering_use: prohibited
+  note: Numerical values and option sensitivities are synthetic test fixtures, not field-calibrated engineering predictions and not suitable for live operating decisions.
+
+optimization_case:
+  id: OPT-P118-2026-10-18
+  objective: Recover stable oil production while respecting well-integrity, lift-gas and surface-system constraints.
+  source_ref:
+    source_system: PIPESIM-GAP
+    source_service: optimization_sensitivity_repository
+    record_kind: ProductionOptimizationSensitivity
+    record_id: P118-OPT-2026-10-18
+    record_version: "1"
+  constraints:
+    - {id: C-DRAWDOWN, type: well_integrity, parameter: estimated_drawdown_bar, maximum: 58.0, hard: true}
+    - {id: C-GASLIFT, type: shared_resource, parameter: gas_lift_mmscfd, maximum: 1.85, hard: true}
+    - {id: C-BACKPRESSURE, type: surface_operability, parameter: facility_backpressure_bar, minimum_attainable_without_reconfiguration: 14.0, hard: true}
+  options:
+    - id: OPT-CURRENT
+      description: Maintain current operating condition.
+      gas_lift_mmscfd: 1.4
+      facility_backpressure_bar: 18.0
+      expected_rate_bopd: 4750
+      expected_uplift_bopd: 0
+      estimated_drawdown_bar: 52.0
+      operational_change: none
+    - id: OPT-GL-18
+      description: Evaluate increased gas lift to 1.8 MMscf/d within current surface backpressure.
+      gas_lift_mmscfd: 1.8
+      facility_backpressure_bar: 18.0
+      expected_rate_bopd: 5030
+      expected_uplift_bopd: 280
+      estimated_drawdown_bar: 54.0
+      operational_change: authorized_lift_trial_required
+    - id: OPT-BP-14
+      description: Coordinate surface/network operation to reduce P-118 backpressure to 14 bar without changing lift allocation.
+      gas_lift_mmscfd: 1.4
+      facility_backpressure_bar: 14.0
+      expected_rate_bopd: 5270
+      expected_uplift_bopd: 520
+      estimated_drawdown_bar: 55.0
+      operational_change: authorized_network_change_required
+    - id: OPT-COMB-18-14
+      description: Combine 1.8 MMscf/d lift gas with 14 bar surface backpressure.
+      gas_lift_mmscfd: 1.8
+      facility_backpressure_bar: 14.0
+      expected_rate_bopd: 5440
+      expected_uplift_bopd: 690
+      estimated_drawdown_bar: 57.5
+      operational_change: authorized_combined_trial_and_integrity_review_required
+    - id: OPT-PUSH-20-12
+      description: Restore old-model lift and backpressure assumptions.
+      gas_lift_mmscfd: 2.0
+      facility_backpressure_bar: 12.0
+      expected_rate_bopd: 5600
+      expected_uplift_bopd: 850
+      estimated_drawdown_bar: 60.0
+      operational_change: prohibited_without_constraint_change
+  expected_recommendation:
+    option_id: OPT-BP-14
+    rationale: Highest material uplift among options retaining at least 3 bar drawdown margin and respecting current lift-gas allocation; execution remains an Operations decision.
+
+artificial_lift:
+  assessment_id: AL-P118-2026-10-18
+  method: gas_lift
+  source_ref:
+    source_system: PIPESIM
+    source_service: lift_performance_repository
+    record_kind: GasLiftPerformanceSensitivity
+    record_id: P118-GL-SWEEP-2026-10-18
+    record_version: "5"
+  current_injection_mmscfd: 1.4
+  field_allocation_cap_mmscfd: 1.85
+  external_sensitivity_points:
+    - {gas_lift_mmscfd: 1.4, predicted_rate_bopd: 4750}
+    - {gas_lift_mmscfd: 1.6, predicted_rate_bopd: 4920}
+    - {gas_lift_mmscfd: 1.8, predicted_rate_bopd: 5110}
+    - {gas_lift_mmscfd: 2.0, predicted_rate_bopd: 5190}
+    - {gas_lift_mmscfd: 2.2, predicted_rate_bopd: 5180}
+  expected_operating_candidate_mmscfd: 1.8
+  expected_reasoning:
+    diminishing_returns_after_mmscfd: 1.8
+    external_model_optimum_mmscfd: 2.0
+    constrained_candidate_mmscfd: 1.8
+  falsification_test: An authorized lift-response test showing negligible or adverse stable-rate response between 1.4 and 1.8 MMscf/d would invalidate the current optimization recommendation and require model recalibration.
+
+operating_envelope_evaluation:
+  envelope_id: WOE-P118-v4
+  reduced_margin_thresholds:
+    drawdown_bar: 1.0
+  option_evaluations:
+    - {option_id: OPT-CURRENT, expected_drawdown_bar: 52.0, expected_status: within, drawdown_margin_bar: 6.0}
+    - {option_id: OPT-GL-18, expected_drawdown_bar: 54.0, expected_status: within, drawdown_margin_bar: 4.0}
+    - {option_id: OPT-BP-14, expected_drawdown_bar: 55.0, expected_status: within, drawdown_margin_bar: 3.0}
+    - {option_id: OPT-COMB-18-14, expected_drawdown_bar: 57.5, expected_status: within_reduced_margin_requires_review, drawdown_margin_bar: 0.5}
+    - {option_id: OPT-PUSH-20-12, expected_drawdown_bar: 60.0, expected_status: violates_hard_limit, drawdown_margin_bar: -2.0}
+  authority_rule: CEPIO may classify constraint compliance and recommend escalation, but may not approve an exception or authorize the operating change.
+
+expected_results:
+  PROD-03:
+    ranked_feasible_options: [OPT-BP-14, OPT-GL-18]
+    conditional_review_option: OPT-COMB-18-14
+    rejected_option: OPT-PUSH-20-12
+    recommended_option: OPT-BP-14
+  PROD-04:
+    current_gas_lift_mmscfd: 1.4
+    constrained_candidate_mmscfd: 1.8
+    diminishing_returns_after_mmscfd: 1.8
+    ceipo_calculated_lift_hydraulics: false
+  PROD-05:
+    safe_options: [OPT-CURRENT, OPT-GL-18, OPT-BP-14]
+    requires_review: [OPT-COMB-18-14]
+    prohibited_under_current_envelope: [OPT-PUSH-20-12]
+    autonomous_exception_approval: false
