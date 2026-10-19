@@ -148,11 +148,47 @@ Effective validity is the intersection of all layers. A chain with no overlappin
 
 See [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md) for the specialization contract.
 
+## Durable Performance Contract Registry
+
+`cepio.performance_registry.PerformanceContractRegistry` makes Performance Contracts operational rather than file-local definitions.
+
+It provides:
+
+- immutable versioned contract revisions;
+- draft / active / retired lifecycle;
+- one active revision per contract identity;
+- version-pinned parent selection for specialized contracts;
+- durable source-revision hashes;
+- in-memory and SQLite reference stores;
+- exact organization-scope validation.
+
+The effective contract is resolved from pinned revisions. Changing which revision is active later does not rewrite historical contract lineage.
+
+See [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md).
+
+## Governed Business Logic
+
+Organization-specific KPI formulas remain outside ontology semantics.
+
+`cepio.performance_business_logic` provides the governed execution boundary for formula definitions referenced by `formula_ref`. The purpose is to let a customer version, validate and execute its own business logic without turning that logic into a universal CEPIO semantic definition.
+
+Performance therefore separates:
+
+```text
+semantic identity / target / accountability
+                from
+customer formula implementation
+```
+
+See [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md).
+
 ## Runtime evaluation
 
 `cepio.performance_runtime.PerformanceRuntime` evaluates observations deterministically.
 
-An observation must carry evidence references and a timezone-aware timestamp. The evaluator uses the latest observation at or before evaluation time, applies freshness/validity checks, evaluates targets and thresholds, and reports one of:
+An observation must carry evidence references and a timezone-aware timestamp. It may also carry `source_subject_id`, linking the measured result to a concrete CEPIO object. The evaluator preserves that subject identity through node evaluation and deviation assessment so a later governed Decision can be anchored to real enterprise state.
+
+The evaluator uses the latest observation at or before evaluation time, applies freshness/validity checks, evaluates targets and thresholds, and reports one of:
 
 - `unknown`
 - `not_evaluated`
@@ -186,11 +222,28 @@ Reduce maintenance cost
 
 This provides the foundation for detecting local KPI optimization that harms the wider system.
 
-## From performance deviation to execution
+## Headless Performance surfaces
 
-Performance does not execute side effects directly.
+`cepio.performance_service.PerformanceService` is the protocol-neutral application boundary over the registry and deterministic runtime.
 
-A response binding maps a performance state to a workflow definition:
+It returns:
+
+- resolved contract identity/version;
+- organization scope;
+- source-revision hashes;
+- full deterministic evaluation;
+- actionable deviations;
+- matching response workflow candidates.
+
+The first REST surface is under `/experimental/performance/v0.1` and intentionally excluded from the stable OpenAPI contract. Performance MCP capability is also additive through a separate `PerformanceMCPFacade`, leaving the stable `MCPFacade` unchanged.
+
+Both surfaces enforce exact tenant isolation for organization-scoped contracts. Industry-reference contracts remain tenant-neutral reference intelligence.
+
+See [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md).
+
+## From performance deviation to Industry IQ Decision
+
+A response binding still maps a performance state to a **workflow candidate**, not execution authority:
 
 ```yaml
 response_bindings:
@@ -200,26 +253,79 @@ response_bindings:
     workflow_definition_id: investigate-availability-loss
 ```
 
-The evaluator returns a workflow candidate with:
+The candidate remains:
 
 ```text
 authority = recommend_only
 policy_required = true
 ```
 
-The hand-off is therefore:
+CEPIO now adds a separate Industry IQ reasoning bridge in `cepio.performance_industry_iq`.
+
+The versioned capability pack is:
 
 ```text
-Performance Contract / resolved specialization
-      -> Performance Runtime
-      -> recommend-only Workflow Candidate
-      -> Kinetic Runtime
-      -> Workflow Policy Boundary
-      -> Skill / Workflow / governed Action
-      -> Outcome evidence
+cepio.iq.performance.response@0.1.0
 ```
 
-CEPIO's existing policy, approval and external-action controls remain the only authority for side effects.
+and it registers the named Decision capability:
+
+```text
+performance-deviation-response
+```
+
+`PerformanceIndustryIQService.reason(...)` is side-effect free. It:
+
+1. resolves the exact Performance Contract revision;
+2. checks the trusted tenant against the contract organization;
+3. evaluates evidence using the deterministic Performance Runtime;
+4. selects an actionable deviation;
+5. requires a concrete `source_subject_id` matching the requested CEPIO Decision subject;
+6. summarizes structural risk sources separately from non-causal influence context;
+7. preserves matching workflow candidates as recommend-only options; and
+8. returns an explainable `DecisionProposal`.
+
+`propose_decision(...)` is an explicit second step. It persists the Decision only through `CEPIOApplicationService.propose_decision(...)`, preserving actor identity, object-read policy, named Decision authorization and runtime Decision validation.
+
+The resulting chain is:
+
+```text
+Performance evidence
+      -> governed Business Logic
+      -> version-pinned Performance Contract
+      -> deterministic Performance evaluation
+      -> directly evidence-backed deviation
+      -> Industry IQ reasoning
+      -> governed Decision proposal
+      -> actor/policy-checked Decision record
+      -> Workflow Policy
+      -> authorized workflow/action
+      -> outcome evidence
+```
+
+### Why propagated risk alone cannot create a Decision
+
+An unobserved downstream KPI can become `at_risk` through a structural contribution chain. That is useful management context, but it does not identify a concrete runtime subject.
+
+v0.1 therefore refuses to create a Decision from a propagated-only deviation unless direct evidence provides `source_subject_id`. This prevents an abstract enterprise KPI from being attached to an arbitrary asset, person or other CEPIO object.
+
+### Why influence is not root cause
+
+Influence nodes are surfaced in Decision observations as:
+
+```text
+Influence context (not causal proof)
+```
+
+The Industry IQ assessment explicitly records `causal_claim_made = false`. Domain-specific reasoning may later add hypotheses and additional governed evidence, but it must not rewrite an influence edge into causal truth.
+
+### Context does not become a new disclosure channel
+
+Callers may supply authorized CEPIO context object IDs. The reasoning service validates them through the application-service read boundary and stores stable references in its assessment.
+
+It does not copy arbitrary object properties into Decision text, avoiding a secondary persistence surface with different disclosure semantics.
+
+See [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md).
 
 ## Example
 
@@ -227,30 +333,36 @@ See [`examples/performance_contract_refinery.yaml`](../../examples/performance_c
 
 The example contains an enterprise objective, COO KPI, individual key result, maintenance-cost guardrail, explicit contribution graph and a governed availability-investigation response binding.
 
-## What v0.1 intentionally does not do
+## Current safety boundaries
 
-- no formula execution inside the Performance Runtime;
-- no quantitative causal-impact calculation from graph edges;
-- no automatic workflow start;
-- no REST/MCP persistence surface yet;
-- no implicit KPI cascade;
-- no overlay deletion/tombstone semantics;
-- no cross-customer contract inheritance;
-- no performance-based personnel ranking or opaque scoring.
+Enterprise Performance intentionally does **not**:
 
-These boundaries keep organization meaning explicit and preserve CEPIO's recommend-before-execute architecture.
+- infer quantitative causal impact from contribution/influence edges;
+- automatically start workflows;
+- execute external Actions;
+- automatically persist Decisions merely because a KPI is red;
+- create a Decision for propagated-only risk with no concrete source subject;
+- implicitly cascade enterprise KPIs into personal accountability;
+- permit cross-customer contract inheritance or reasoning;
+- rank personnel from KPI/OKR performance;
+- make experimental Performance REST routes part of the stable `/api/v1` contract.
+
+These boundaries preserve CEPIO's recommend-before-execute architecture.
 
 ## Next evolution
 
-With deterministic contract specialization in place, the next capability sequence is:
+The next controlled evolution is **domain-aware Industry IQ enrichment**:
 
 ```text
-Durable Performance Contract Registry
-        -> Business Logic / formula execution contract
-        -> REST + MCP performance surfaces
-        -> governed performance-to-workflow activation
+Deterministic Performance deviation
+        -> generic Performance Industry IQ reasoning
+        -> domain pack evidence / hypotheses
+        -> governed Decision
+        -> Workflow Policy
 ```
 
-The durable registry should add version selection and lifecycle without weakening the current active-ID and customer-isolation rules. Business Logic execution should remain separate from ontology semantics so customer formulas can be governed, versioned and provenance-backed without becoming universal CEPIO definitions.
+Reliability, drilling, refinery, subsurface and other Industry IQ packs should contribute domain-specific evidence and hypotheses without changing the underlying Performance truth or acquiring Kinetic execution authority.
 
-See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md) for the base performance architecture and [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md) for specialization.
+After that reasoning contract is qualified, the same capability can be exposed through REST/MCP without moving semantic or policy ownership into protocol adapters.
+
+See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md) and [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md).

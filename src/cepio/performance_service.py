@@ -47,6 +47,7 @@ class PerformanceDeviationAssessment(BaseModel):
     value: float | None = None
     observed_at: datetime | None = None
     evidence_refs: tuple[str, ...] = ()
+    source_subject_id: str | None = None
     reasons: tuple[str, ...] = ()
     risk_sources: tuple[str, ...] = ()
     influence_sources: tuple[str, ...] = ()
@@ -115,6 +116,7 @@ class PerformanceService:
                 value=node.value,
                 observed_at=node.observed_at,
                 evidence_refs=node.evidence_refs,
+                source_subject_id=node.source_subject_id,
                 reasons=node.reasons,
                 risk_sources=node.risk_sources,
                 influence_sources=node.influence_sources,
