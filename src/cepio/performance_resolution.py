@@ -268,11 +268,6 @@ class PerformanceContractResolver:
 
     def _validate_chain(self, chain: list[PerformanceContractDefinition]) -> None:
         root = chain[0]
-        if root.extends_contract_id is not None:
-            raise PerformanceContractResolutionError(
-                "INVALID_ROOT",
-                f"Resolved root unexpectedly extends another contract: {root.id}",
-            )
         if root.layer == PerformanceContractLayer.industry_reference and root.organization_id:
             raise PerformanceContractResolutionError(
                 "INDUSTRY_REFERENCE_TENANT_BOUND",
