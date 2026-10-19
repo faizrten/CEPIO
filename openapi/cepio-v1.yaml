@@ -150,6 +150,77 @@ paths:
           description: Host-level authorization failure outside normal Skill preflight blocking.
         '422':
           description: Request validation failure.
+  /api/v1/performance/organizations/{organization_id}/contracts/{contract_id}:
+    get:
+      operationId: getPerformanceContract
+      description: Resolve one effective Performance Contract for an explicitly authorized CEPIO organization. The authenticated identity tenant must be mapped to the requested organization by host configuration; tenant identifiers are never assumed to equal organization identifiers.
+      parameters:
+        - {name: organization_id, in: path, required: true, schema: {type: string}}
+        - {name: contract_id, in: path, required: true, schema: {type: string}}
+        - {name: version, in: query, required: false, schema: {type: [string, 'null']}}
+      responses:
+        '200':
+          description: Fully resolved Performance Contract plus immutable source-revision references.
+        '403':
+          description: Tenant-to-organization scope or KPI read policy denies access.
+        '404':
+          description: Requested active or explicit Performance Contract revision was not found.
+        '422':
+          description: Registered contract chain cannot be resolved safely.
+  /api/v1/performance/organizations/{organization_id}/contracts/{contract_id}/evaluate:
+    post:
+      operationId: evaluatePerformanceContract
+      description: Evaluate an authorized Performance Contract using evidence-backed direct observations and optional governed Business Logic. Formula execution may call only functions already authorized for the actor. The operation returns recommend-only workflow candidates and never starts workflows or external actions.
+      parameters:
+        - {name: organization_id, in: path, required: true, schema: {type: string}}
+        - {name: contract_id, in: path, required: true, schema: {type: string}}
+        - {name: version, in: query, required: false, schema: {type: [string, 'null']}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                observations:
+                  type: array
+                  items:
+                    type: object
+                    required: [node_id, value, observed_at, evidence_refs]
+                    properties:
+                      node_id: {type: string}
+                      value: {type: number}
+                      observed_at: {type: string, format: date-time}
+                      evidence_refs: {type: array, minItems: 1, items: {type: string}}
+                      source_subject_id: {type: [string, 'null']}
+                business_logic:
+                  type: array
+                  items:
+                    type: object
+                    required: [node_id, inputs]
+                    properties:
+                      node_id: {type: string}
+                      inputs:
+                        type: array
+                        minItems: 1
+                        items:
+                          type: object
+                          required: [name, value, observed_at, evidence_refs]
+                          properties:
+                            name: {type: string}
+                            value: {}
+                            observed_at: {type: string, format: date-time}
+                            evidence_refs: {type: array, minItems: 1, items: {type: string}}
+                evaluated_at: {type: [string, 'null'], format: date-time}
+      responses:
+        '200':
+          description: Deterministic PerformanceEvaluation, immutable source revisions, and Business Logic execution lineage. Workflow candidates remain recommend-only and policy-required.
+        '403':
+          description: Tenant-to-organization, KPI read, or underlying trusted-function policy denies access.
+        '404':
+          description: Requested active or explicit Performance Contract revision was not found.
+        '422':
+          description: Evidence, Business Logic, contract resolution, or evaluation validation failed closed.
   /api/v1/actions:
     post:
       operationId: executeAction
