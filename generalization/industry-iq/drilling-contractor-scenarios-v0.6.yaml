@@ -1,0 +1,122 @@
+version: "0.6"
+domain: drilling-contractor
+north_star: >-
+  CEPIO Drilling Contractor Industry IQ understands how a drilling contractor
+  prepares, executes, protects, improves and monetizes rig operations while
+  preserving evidence, authority and customer/source-system boundaries.
+
+operating_loop:
+  - readiness
+  - performance
+  - non_productive_time
+  - reliability
+  - commercial_consequence
+  - governed_action
+
+rules:
+  canonical_ontology_changes_for_scenario_pass: prohibited
+  readiness_is_derived: true
+  customer_data_used_for_training: false
+  source_systems_remain_authoritative: true
+  evidence_bindings_are_replaceable: true
+  safety_critical_physical_autonomy: prohibited
+
+scenarios:
+  - id: DR-IQ-001
+    name: Rig Readiness IQ
+    priority: P0
+    status: executable-v0.1
+    pack_id: cepio.iq.drilling.rig-readiness
+    question: Can this rig execute the planned operation, and what blocks readiness?
+    dimensions: [equipment, well_control, workforce, supply]
+
+  - id: DR-IQ-002
+    name: NPT IQ
+    priority: P0
+    status: executable-v0.1
+    pack_id: cepio.iq.drilling.npt
+    question: What non-productive time occurred and what evidence supports follow-up?
+
+  - id: DR-IQ-003
+    name: Reliability IQ
+    priority: P0
+    status: planned
+    question: What is likely to fail and which intervention prevents downtime?
+
+  - id: DR-IQ-004
+    name: Drilling Performance IQ
+    priority: P0
+    status: planned
+    question: Where is invisible lost time and what explains normalized performance loss?
+
+  - id: DR-IQ-005
+    name: Commercial and Contract IQ
+    priority: P0
+    status: planned
+    question: What is the day-rate, entitlement, claims, margin and cash consequence of execution?
+
+  - id: DR-IQ-006
+    name: Well Control IQ
+    priority: P1
+    status: planned
+    question: Is the well-control system valid and ready for the planned operation?
+
+  - id: DR-IQ-007
+    name: Critical Spares IQ
+    priority: P1
+    status: planned
+    question: Which material or spare constraint is likely to become operational downtime?
+
+  - id: DR-IQ-008
+    name: Workforce and Competency IQ
+    priority: P1
+    status: planned
+    question: Are the assigned people competent, current, available and within operating constraints?
+
+  - id: DR-IQ-009
+    name: Rig Move IQ
+    priority: P1
+    status: planned
+    question: Can the rig move proceed and what dependency prevents readiness?
+
+  - id: DR-IQ-010
+    name: HSE and Barrier IQ
+    priority: P1
+    status: planned
+    question: Which degraded barrier materially changes the risk of planned work?
+
+  - id: DR-IQ-011
+    name: Program Execution IQ
+    priority: P1
+    status: planned
+    question: Is execution aligned to the operator program and where are deviations emerging?
+
+  - id: DR-IQ-012
+    name: Fleet Allocation IQ
+    priority: P2
+    status: planned
+    question: Which rig should serve which campaign or contract under operating and economic constraints?
+
+  - id: DR-IQ-013
+    name: Claims and Invoice Assurance IQ
+    priority: P2
+    status: planned
+    question: Is operational evidence being converted into contractual entitlement and correct billing?
+
+  - id: DR-IQ-014
+    name: Service Delivery IQ
+    priority: P2
+    status: planned
+    question: Are contracted drilling services ready, performed, evidenced and accepted?
+
+  - id: DR-IQ-015
+    name: Lessons Learned IQ
+    priority: P2
+    status: planned
+    question: Have repeated failure and NPT patterns been converted into current operating guidance?
+
+  - id: DR-IQ-016
+    name: Capital Allocation IQ
+    priority: P2
+    status: planned
+    question: Which rig upgrade or reliability investment creates the strongest evidence-backed fleet return?
