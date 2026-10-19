@@ -33,7 +33,7 @@ def main() -> int:
     require(appservice, "minTlsVersion: '1.2'", "App Service profile")
     require(aks_text, "/api/v1/health", "AKS profile")
     require(aks_text, "azure.workload.identity/use", "AKS profile")
-    require(aks_text, "CEPIO_AUTH_MODE, value: \"entra\"", "AKS profile")
+    require(aks_text, 'CEPIO_AUTH_MODE, value: "entra"', "AKS profile")
 
     documents = list(yaml.safe_load_all(aks_text))
     deployment = next(d for d in documents if d and d.get("kind") == "Deployment")
