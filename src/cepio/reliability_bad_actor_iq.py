@@ -164,7 +164,9 @@ def _require_exact_neighbor(
 ) -> None:
     target_ids = sorted({item.id for item in runtime.neighbors(source_id, relationship_type)})
     if target_ids != [expected_id]:
-        raise ValueError(f"{label} must resolve through {relationship_type} to exactly {expected_id}")
+        raise ValueError(
+            f"{label} must resolve through {relationship_type} to exactly {expected_id}"
+        )
 
 
 def _qualify_exposure(
@@ -252,13 +254,17 @@ def _qualify_failures(
     return len(failure_event_ids), downtime_hours, evidence_ids
 
 
-def _validate_periods(periods: list[FleetReliabilityPeriodInput]) -> list[FleetReliabilityPeriodInput]:
+def _validate_periods(
+    periods: list[FleetReliabilityPeriodInput],
+) -> list[FleetReliabilityPeriodInput]:
+    for period in periods:
+        if period.analysis_start.tzinfo is None or period.analysis_end.tzinfo is None:
+            raise ValueError("All analysis period boundaries must include timezone context")
+
     ordered = sorted(periods, key=lambda item: item.analysis_start)
     seen_ranges: set[tuple[datetime, datetime]] = set()
     previous_end: datetime | None = None
     for period in ordered:
-        if period.analysis_start.tzinfo is None or period.analysis_end.tzinfo is None:
-            raise ValueError("All analysis period boundaries must include timezone context")
         if period.analysis_end <= period.analysis_start:
             raise ValueError("Each analysis period must have positive duration")
         interval = (period.analysis_start, period.analysis_end)
@@ -425,7 +431,11 @@ def assess_bad_actor_fleet_reliability(
                     peer_median_downtime_rate=round(median_downtime_rate, 6),
                     status=status,
                     evidence_ids=sorted(
-                        {record.equipment_id, record.exposure_observation_id, *record.failure_event_ids}
+                        {
+                            record.equipment_id,
+                            record.exposure_observation_id,
+                            *record.failure_event_ids,
+                        }
                     ),
                 )
             )
