@@ -10,7 +10,9 @@ from cepio.drilling_operator_well_delivery_iq import (
     WellDeliveryStatus,
     _is_a,
     _normalized_property,
+    _require_scoped_approved_plan,
     _require_type,
+    _require_well_target,
 )
 from cepio.industry_iq import install_industry_iq_packs
 from cepio.model import ActionRequest, Decision, ObjectRef, OntologyObject, Relationship
@@ -107,9 +109,10 @@ def _add_deviation(
             id=deviation_id,
             type="PlanDeviation",
             name=f"Deviation {deviation_id}",
-            properties={"status": status, "severity": severity, "planId": plan_id},
+            properties={"status": status, "severity": severity},
         )
     )
+    _rel(runtime, "deviationFromPlan", deviation_id, "PlanDeviation", plan_id, "OperationalPlan")
     _rel(runtime, "impacts", deviation_id, "PlanDeviation", impact_id, impact_type)
     return deviation_id
 
@@ -154,7 +157,6 @@ def test_pack_installs_explicit_operator_capabilities_only():
 
 def test_on_plan_requires_approved_plan_and_scoped_execution_evidence():
     result = _assess(_seed())
-
     assert result.status == WellDeliveryStatus.on_plan
     assert result.findings == []
     assert result.evidence_ids == ["ACT-1", "ACT-2", "PLAN-1", "WELL-1"]
@@ -164,9 +166,7 @@ def test_on_plan_requires_approved_plan_and_scoped_execution_evidence():
 def test_advisory_plan_deviation_makes_delivery_at_risk():
     runtime = _seed()
     deviation_id = _add_deviation(runtime, severity="ADVISORY")
-
     result = _assess(runtime, plan_deviation_ids=[deviation_id])
-
     assert result.status == WellDeliveryStatus.at_risk
     assert [item.code for item in result.findings] == ["plan.active-deviation"]
     assert result.findings[0].severity == "advisory"
@@ -176,9 +176,7 @@ def test_advisory_plan_deviation_makes_delivery_at_risk():
 def test_material_plan_deviation_requires_operator_intervention():
     runtime = _seed()
     deviation_id = _add_deviation(runtime, severity="MATERIAL")
-
     result = _assess(runtime, plan_deviation_ids=[deviation_id])
-
     assert result.status == WellDeliveryStatus.intervention_required
     assert result.findings[0].severity == "blocking"
     assert "plan revision" in result.recommendation.lower()
@@ -187,9 +185,7 @@ def test_material_plan_deviation_requires_operator_intervention():
 def test_high_well_risk_requires_operator_intervention():
     runtime = _seed()
     risk_id = _add_risk(runtime, severity="HIGH")
-
     result = _assess(runtime, risk_ids=[risk_id])
-
     assert result.status == WellDeliveryStatus.intervention_required
     assert result.findings[0].code == "execution.active-risk"
     assert result.findings[0].severity == "blocking"
@@ -204,9 +200,7 @@ def test_medium_activity_scoped_risk_is_advisory():
         owner_id="ACT-1",
         owner_type="ActivityInterval",
     )
-
     result = _assess(runtime, risk_ids=[risk_id])
-
     assert result.status == WellDeliveryStatus.at_risk
     assert result.findings[0].severity == "advisory"
 
@@ -215,9 +209,7 @@ def test_closed_deviation_and_mitigated_risk_remain_evidence_but_do_not_trigger(
     runtime = _seed()
     deviation_id = _add_deviation(runtime, status="CLOSED", severity="CRITICAL")
     risk_id = _add_risk(runtime, status="MITIGATED", severity="CRITICAL")
-
     result = _assess(runtime, plan_deviation_ids=[deviation_id], risk_ids=[risk_id])
-
     assert result.status == WellDeliveryStatus.on_plan
     assert result.findings == []
     assert deviation_id in result.evidence_ids
@@ -229,9 +221,7 @@ def test_blocked_activity_is_operator_intervention_signal():
     activity = runtime.get_object("ACT-1")
     activity.properties["status"] = "BLOCKED"
     runtime.upsert_object(activity, expected_version=activity.version)
-
     result = _assess(runtime)
-
     assert result.status == WellDeliveryStatus.intervention_required
     assert result.findings[0].code == "execution.activity-blocked"
 
@@ -290,11 +280,7 @@ def test_deviation_must_reference_plan_and_assessed_scope():
         _assess(runtime, plan_deviation_ids=[deviation_id])
 
     runtime = _seed()
-    deviation_id = _add_deviation(
-        runtime,
-        impact_id="WELL-2",
-        impact_type="Well",
-    )
+    deviation_id = _add_deviation(runtime, impact_id="WELL-2", impact_type="Well")
     with pytest.raises(ValueError, match="is not scoped to well WELL-1"):
         _assess(runtime, plan_deviation_ids=[deviation_id])
 
@@ -342,7 +328,9 @@ def test_helpers_fail_closed_on_wrong_type_and_missing_normalized_property():
     with pytest.raises(ValueError, match="NOT-WELL is not a Well"):
         _require_type(runtime, "NOT-WELL", "Well")
     with pytest.raises(ValueError, match="missing required normalized status"):
-        _normalized_property(OntologyObject(id="OBJ-1", type="WorkItem", name="No status"), "status")
+        _normalized_property(
+            OntologyObject(id="OBJ-1", type="WorkItem", name="No status"), "status"
+        )
 
 
 def test_plan_revision_is_recommendation_first_and_human_operator_action():
@@ -374,7 +362,6 @@ def test_plan_revision_is_recommendation_first_and_human_operator_action():
         },
         decision_id=decision.id,
     )
-
     with pytest.raises(AuthorizationError):
         runtime.execute_action(request)
 
@@ -408,7 +395,6 @@ def test_plan_revision_action_preconditions_fail_closed():
             created_by="human-1",
         )
     )
-
     base = ActionRequest(
         action_type="InitiateWellPlanRevision",
         target=ObjectRef(id="WELL-1", type="Well"),
@@ -429,23 +415,22 @@ def test_plan_revision_action_preconditions_fail_closed():
             )
         )
 
-    runtime.upsert_object(OntologyObject(id="NOT-WELL", type="WorkItem", name="Wrong target"))
-    wrong_target_decision = runtime.save_decision(
-        Decision(
-            decision_type="operator-well-delivery-intervention-recommendation",
-            subject=ObjectRef(id="WELL-1", type="Well"),
-            problem="Review",
-            recommendation="Revise",
-            recommended_action="InitiateWellPlanRevision",
-            created_by="human-1",
-        )
+
+def test_action_precondition_helpers_cover_wrong_target_and_unknown_plan():
+    runtime = _seed()
+    target = runtime.get_object("WELL-1")
+    request = ActionRequest(
+        action_type="InitiateWellPlanRevision",
+        target=ObjectRef(id="WELL-1", type="Well"),
+        actor_id="human-1",
+        actor_roles={"operator_drilling_engineer"},
+        parameters={"plan_id": "MISSING-PLAN", "rationale": "Reason"},
     )
-    with pytest.raises(PreconditionsError, match="Target must be a Well"):
-        runtime.execute_action(
-            base.model_copy(
-                update={
-                    "target": ObjectRef(id="NOT-WELL", type="WorkItem"),
-                    "decision_id": wrong_target_decision.id,
-                }
-            )
-        )
+    ok, reason = _require_scoped_approved_plan(request, target, runtime)
+    assert ok is False
+    assert "Unknown CEPIO object" in reason
+
+    wrong_target = OntologyObject(id="NOT-WELL", type="WorkItem", name="Wrong target")
+    ok, reason = _require_well_target(request, wrong_target, runtime)
+    assert ok is False
+    assert reason == "Target must be a Well"
