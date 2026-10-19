@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+import cepio.domain_onboarding as domain_onboarding
 from cepio.domain_onboarding import (
     DomainOnboardingState,
     _artifact_path,
@@ -272,3 +273,42 @@ def test_gap_triage_rejects_stale_coverage(tmp_path: Path):
     path = _write_yaml(tmp_path / "gaps.yaml", _gap_triage())
     with pytest.raises(ValueError, match="stale/non-current gaps"):
         _validate(path, expected=set())
+
+
+def test_onboarding_blocks_when_gap_triage_is_required(monkeypatch: pytest.MonkeyPatch):
+    original = domain_onboarding.run_harness
+
+    def with_gap(*args: object, **kwargs: object) -> dict[str, object]:
+        report = original(*args, **kwargs)
+        report["results"][0]["status"] = "PARTIAL"
+        report["results"][0]["missing"] = ["urn:test:new-gap"]
+        return report
+
+    monkeypatch.setattr(domain_onboarding, "run_harness", with_gap)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert "require an accepted triage pack" in report["block_reason"]
+
+
+def test_onboarding_blocks_when_runtime_qualification_errors(monkeypatch: pytest.MonkeyPatch):
+    def fail_runtime(*args: object, **kwargs: object) -> dict[str, object]:
+        raise RuntimeError("runtime fixture failed")
+
+    monkeypatch.setattr(domain_onboarding, "run_runtime_coverage", fail_runtime)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert report["block_reason"] == "runtime fixture failed"
+
+
+def test_onboarding_blocks_when_semantic_threshold_regresses(monkeypatch: pytest.MonkeyPatch):
+    original = domain_onboarding.run_harness
+
+    def lower_rate(*args: object, **kwargs: object) -> dict[str, object]:
+        report = original(*args, **kwargs)
+        report["semantic_check_pass_rate"] = 0.5
+        return report
+
+    monkeypatch.setattr(domain_onboarding, "run_harness", lower_rate)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert "semantic pass rate 0.500" in report["block_reason"]
