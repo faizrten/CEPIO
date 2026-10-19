@@ -253,9 +253,7 @@ def test_contract_rejects_self_edge_duplicate_ids_and_invalid_subject_links():
             name="Unknown parent",
             layer="organization",
             subjects=(
-                PerformanceSubject(
-                    id="child", kind="function", name="Child", parent_id="missing"
-                ),
+                PerformanceSubject(id="child", kind="function", name="Child", parent_id="missing"),
             ),
             nodes=(
                 PerformanceNode(id="child-kpi", kind="kpi", name="KPI", scope_subject_id="child"),
