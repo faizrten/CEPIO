@@ -2,14 +2,21 @@ from __future__ import annotations
 
 import pytest
 
+from cepio.application_contract import EvidenceReference
+from cepio.bootstrap import build_runtime
 from cepio.industry_iq import IndustryIQPackRegistry
 from cepio.model import ObjectRef, OntologyObject
 from cepio.performance_industry_iq import PERFORMANCE_RESPONSE_IQ_PACK
 from cepio.reasoning_contribution import (
     BoundedReasoningHost,
+    ReasoningContribution,
     ReasoningContributionEngine,
     ReasoningContributionError,
     ReasoningContributionRequest,
+    ReasoningEvidence,
+    ReasoningHypothesis,
+    ReasoningUncertainty,
+    UncertaintyBand,
 )
 from cepio.reliability_reasoning import (
     RELIABILITY_REASONING_CONTRIBUTOR_ID,
@@ -17,7 +24,6 @@ from cepio.reliability_reasoning import (
     RELIABILITY_REASONING_IQ_PACK_ID,
     ReliabilityReasoningContributor,
 )
-from cepio.bootstrap import build_runtime
 
 
 def objects() -> tuple[OntologyObject, ...]:
@@ -79,6 +85,35 @@ def request(context: tuple[OntologyObject, ...]) -> ReasoningContributionRequest
         performance_evidence_refs=("pi://availability/C-4102",),
         context_object_refs=tuple(ObjectRef(id=obj.id, type=obj.type) for obj in context),
     )
+
+
+def base_contribution(**overrides: object) -> ReasoningContribution:
+    values: dict[str, object] = {
+        "contributor_id": "stub",
+        "contributor_version": "1.0.0",
+        "domain": "stub-domain",
+        "subject": ObjectRef(id="COMP-1", type="Equipment"),
+    }
+    values.update(overrides)
+    return ReasoningContribution(**values)
+
+
+class StubContributor:
+    contributor_id = "stub"
+    version = "1.0.0"
+    domain = "stub-domain"
+    required_pack_id = None
+
+    def __init__(self, contribution: ReasoningContribution) -> None:
+        self._contribution = contribution
+
+    def contribute(
+        self,
+        contribution_request: ReasoningContributionRequest,
+        host: BoundedReasoningHost,
+    ) -> ReasoningContribution:
+        del contribution_request, host
+        return self._contribution
 
 
 def test_reliability_pack_depends_on_performance_reasoning_and_adds_no_execution_authority():
@@ -157,6 +192,93 @@ def test_bounded_reasoning_host_cannot_read_object_outside_authorized_context():
         host.read_object(ObjectRef(id="WO-SECRET", type="WorkOrder"))
 
     assert exc_info.value.code == "CONTEXT_OBJECT_NOT_AUTHORIZED"
+
+
+def test_bounded_reasoning_host_rejects_identity_collision_and_type_mismatch():
+    with pytest.raises(ReasoningContributionError) as exc_info:
+        BoundedReasoningHost(
+            (
+                OntologyObject(id="X-1", type="Asset", name="Asset X"),
+                OntologyObject(id="X-1", type="WorkOrder", name="Work X"),
+            )
+        )
+    assert exc_info.value.code == "CONTEXT_IDENTITY_COLLISION"
+
+    host = BoundedReasoningHost((OntologyObject(id="X-2", type="Asset", name="Asset X2"),))
+    with pytest.raises(ReasoningContributionError) as exc_info:
+        host.read_object(ObjectRef(id="X-2", type="WorkOrder"))
+    assert exc_info.value.code == "CONTEXT_OBJECT_TYPE_MISMATCH"
+
+
+def test_reasoning_contribution_validates_internal_evidence_and_hypothesis_references():
+    evidence = ReasoningEvidence(
+        id="evidence-1",
+        reference=EvidenceReference(
+            object_ref=ObjectRef(id="COND-1", type="ConditionObservation")
+        ),
+        summary="Condition evidence",
+    )
+    hypothesis = ReasoningHypothesis(id="hypothesis-1", statement="Potential degradation")
+
+    with pytest.raises(ValueError, match="evidence IDs must be unique"):
+        base_contribution(evidence=(evidence, evidence))
+
+    with pytest.raises(ValueError, match="hypothesis IDs must be unique"):
+        base_contribution(hypotheses=(hypothesis, hypothesis))
+
+    with pytest.raises(ValueError, match="unknown evidence IDs"):
+        base_contribution(
+            hypotheses=(
+                ReasoningHypothesis(
+                    id="hypothesis-missing-evidence",
+                    statement="Potential degradation",
+                    supporting_evidence_ids=("missing-evidence",),
+                ),
+            )
+        )
+
+    with pytest.raises(ValueError, match="unknown hypothesis IDs"):
+        base_contribution(
+            uncertainties=(
+                ReasoningUncertainty(
+                    id="uncertainty-1",
+                    description="Mechanism remains uncertain",
+                    level=UncertaintyBand.medium,
+                    related_hypothesis_ids=("missing-hypothesis",),
+                ),
+            )
+        )
+
+
+def test_reasoning_engine_fails_closed_on_contributor_contract_mismatch():
+    context = objects()[:1]
+    contribution_request = request(context)
+    host = BoundedReasoningHost(context)
+
+    cases = (
+        (
+            base_contribution(contributor_id="other"),
+            "CONTRIBUTOR_IDENTITY_MISMATCH",
+        ),
+        (
+            base_contribution(contributor_version="2.0.0"),
+            "CONTRIBUTOR_VERSION_MISMATCH",
+        ),
+        (
+            base_contribution(domain="other-domain"),
+            "CONTRIBUTOR_DOMAIN_MISMATCH",
+        ),
+        (
+            base_contribution(subject=ObjectRef(id="COMP-2", type="Equipment")),
+            "CONTRIBUTION_SUBJECT_MISMATCH",
+        ),
+    )
+
+    for contribution, expected_code in cases:
+        engine = ReasoningContributionEngine([StubContributor(contribution)])
+        with pytest.raises(ReasoningContributionError) as exc_info:
+            engine.evaluate(contribution_request, host)
+        assert exc_info.value.code == expected_code
 
 
 def test_reliability_contributor_fails_safe_when_context_has_no_reliability_evidence():
