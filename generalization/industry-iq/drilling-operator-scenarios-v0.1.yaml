@@ -1,0 +1,142 @@
+id: drilling-operator-industry-iq-v0.1
+version: "0.1"
+domain: drilling-operator
+archetype: drilling-operator-v0.1
+frozen: true
+north_star: >-
+  Turn shared drilling evidence into operator-owned well-delivery intelligence,
+  governed decisions and auditable interventions without forking canonical semantics.
+rules:
+  canonical_ontology_changes_for_scenario_pass: prohibited
+  operator_specific_ontology_fork: prohibited
+  contractor_and_service_evidence_may_inform_operator_iq: true
+  operator_decision_rights_remain_operator_owned: true
+  source_systems_remain_authoritative: true
+  evidence_bindings_are_replaceable: true
+  ai_assessment_is_enterprise_fact: false
+  customer_data_used_for_training: false
+  safety_critical_physical_autonomy: prohibited
+scenarios:
+  - id: OP-IQ-001
+    title: Well Delivery Assurance IQ
+    owner: operator
+    operating_question: >-
+      Given the approved operator plan and current well execution, are we still on plan,
+      which deviations or risks materially threaten delivery, and is a governed plan
+      revision required?
+    status: executable-v0.1
+    pack_id: cepio.iq.drilling.operator-well-delivery
+    shared_semantics:
+      - Well
+      - OperationalPlan
+      - PlanRevision
+      - ActivityInterval
+      - PlanDeviation
+      - Risk
+      - Decision
+  - id: OP-IQ-002
+    title: Drilling Performance and Invisible Lost Time IQ
+    owner: operator
+    operating_question: >-
+      Where is execution underperforming comparable wells or hole sections after
+      normalizing context, and what is the recoverable time/value opportunity?
+    status: planned
+  - id: OP-IQ-003
+    title: NPT and Root Cause IQ
+    owner: shared
+    operating_question: >-
+      Which nonproductive intervals materially affect well delivery, what causal evidence
+      supports the interpretation, and which party owns the recovery action?
+    status: planned
+    reuses_pack: cepio.iq.drilling.npt
+  - id: OP-IQ-004
+    title: Operational Risk and Barrier IQ
+    owner: operator
+    operating_question: >-
+      Which current well-execution risks or degraded barriers require operator attention,
+      escalation or risk-acceptance decisions?
+    status: planned
+  - id: OP-IQ-005
+    title: Well Control Decision Support IQ
+    owner: operator
+    operating_question: >-
+      Does current well-control evidence support the planned operation and which operator
+      decision is required when test, barrier or operating-envelope evidence deteriorates?
+    status: planned
+  - id: OP-IQ-006
+    title: Contractor and Rig Performance IQ
+    owner: operator
+    operating_question: >-
+      Is the assigned contractor and rig delivering the expected technical, operational
+      and commercial performance for this well and campaign?
+    status: planned
+  - id: OP-IQ-007
+    title: Service Delivery and Acceptance IQ
+    owner: operator
+    operating_question: >-
+      Which directional drilling, fluids, cementing or other service deliverables meet
+      acceptance criteria, and where is evidence insufficient or performance disputed?
+    status: planned
+  - id: OP-IQ-008
+    title: Well Cost and Economics IQ
+    owner: operator
+    operating_question: >-
+      How do current execution, NPT, service and schedule outcomes affect expected well
+      cost, remaining authorization exposure and value delivery?
+    status: planned
+  - id: OP-IQ-009
+    title: Plan Revision and Change Control IQ
+    owner: operator
+    operating_question: >-
+      Which material execution changes require formal plan revision, who has authority,
+      and what evidence and rationale must be retained?
+    status: planned
+  - id: OP-IQ-010
+    title: Material and Logistics Readiness IQ
+    owner: shared
+    operating_question: >-
+      Are operator- or contractor-supplied critical materials and logistics ready for the
+      upcoming well sequence, and what delivery risk remains?
+    status: planned
+  - id: OP-IQ-011
+    title: Offset Well and Lessons Learned IQ
+    owner: operator
+    operating_question: >-
+      Which comparable offset-well outcomes, failure modes and lessons should alter the
+      current plan or operating guidance?
+    status: planned
+  - id: OP-IQ-012
+    title: Campaign and Rig Allocation IQ
+    owner: operator
+    operating_question: >-
+      Which rig, sequence and campaign allocation best protects delivery value given
+      readiness, capability, schedule, risk and commercial constraints?
+    status: planned
+  - id: OP-IQ-013
+    title: Subsurface-to-Execution Integration IQ
+    owner: operator
+    operating_question: >-
+      Which changes in geological, pressure or reservoir uncertainty should alter current
+      drilling decisions, data acquisition or well-plan assumptions?
+    status: planned
+  - id: OP-IQ-014
+    title: Completion and Production Readiness IQ
+    owner: operator
+    operating_question: >-
+      Is the well sufficiently complete, evidenced and handed over for the next completion,
+      testing or production stage?
+    status: planned
+  - id: OP-IQ-015
+    title: Claims and Commercial Exposure IQ
+    owner: operator
+    operating_question: >-
+      Which operational events create valid rate, claim, service-credit or contractual
+      exposure and what evidence supports the operator position?
+    status: planned
+  - id: OP-IQ-016
+    title: Well Portfolio and Capital Allocation IQ
+    owner: operator
+    operating_question: >-
+      Across the drilling portfolio, where should capital, rig time or intervention effort
+      be reallocated to maximize risk-adjusted well-delivery value?
+    status: planned
