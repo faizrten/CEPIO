@@ -12,6 +12,7 @@ export const CEPIO_V1_OPERATIONS = {
   getGraphCommunities: ["GET", "/api/v1/graph/communities"] as const,
   recordEvent: ["POST", "/api/v1/events"] as const,
   listObjectEvents: ["GET", "/api/v1/objects/{object_id}/events"] as const,
+  evaluateSkill: ["POST", "/api/v1/skills/evaluate"] as const,
   executeAction: ["POST", "/api/v1/actions"] as const,
   callFunction: ["POST", "/api/v1/functions/{name}"] as const,
   saveDecision: ["POST", "/api/v1/decisions"] as const,
@@ -70,6 +71,53 @@ export interface ActionRequest {
   parameters?: Record<string, unknown>;
   correlation_id?: string | null;
   decision_id?: string | null;
+}
+
+export type EvidenceRole = "supporting" | "contradicting" | "contextual" | "assumption";
+
+export interface EvidenceReference {
+  object_ref: ObjectRef;
+  role?: EvidenceRole;
+  provenance_ref?: string | null;
+}
+
+export interface ContractMetadata {
+  contract_version?: "0.2.0";
+  correlation_id?: string | null;
+}
+
+export interface SkillInvocation {
+  skill_id: string;
+  subject: ObjectRef;
+  parameters?: Record<string, unknown>;
+  evidence?: EvidenceReference[];
+  assessment_refs?: ObjectRef[];
+  metadata?: ContractMetadata;
+}
+
+export interface SkillDecision {
+  id: string;
+  decision_type?: string | null;
+  subject: ObjectRef;
+  problem: string;
+  observations?: string[];
+  recommendation: string;
+  recommended_action?: string | null;
+  confidence?: number | null;
+  created_by?: string | null;
+}
+
+export interface SkillEvaluation {
+  skill_id: string;
+  subject: ObjectRef;
+  status: "completed" | "blocked" | "failed";
+  recommendation?: string | null;
+  outputs: Record<string, unknown>;
+  evidence: EvidenceReference[];
+  assessment_refs: ObjectRef[];
+  decision?: SkillDecision | null;
+  messages: string[];
+  metadata: ContractMetadata;
 }
 
 export interface CEPIOClientOptions {
@@ -195,6 +243,12 @@ export class CEPIOClient {
 
   async eventsFor(objectId: string): Promise<OperationalEvent[]> {
     return (await this.request<OperationalEvent[]>("listObjectEvents", {}, { object_id: objectId })).data;
+  }
+
+  async evaluateSkill(invocation: SkillInvocation): Promise<SkillEvaluation> {
+    return (await this.request<SkillEvaluation>("evaluateSkill", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(invocation),
+    })).data;
   }
 
   async executeAction(action: ActionRequest, idempotencyKey?: string): Promise<Record<string, unknown>> {
