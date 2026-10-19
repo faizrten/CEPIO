@@ -14,6 +14,8 @@ from .application_runtime import build_application_service
 from .auth import ActorContext, get_actor_context
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import Decision, ErrorEnvelope, OntologyObject, OperationalEvent, Relationship
+from .performance_api import build_performance_router
+from .performance_service import build_performance_service
 from .query import InvalidQueryCursor, ObjectQuery, ObjectQueryResult, QueryBudgetExceeded
 from .runtime import AuthorizationError
 
@@ -24,6 +26,8 @@ app.description = (
     "The supported public REST contract is exposed under /api/v1. Unversioned routes "
     "remain temporarily for compatibility but are excluded from the public OpenAPI contract."
 )
+performance_service = build_performance_service()
+app.include_router(build_performance_router(performance_service))
 
 
 def _request_id(request: Request) -> str:
