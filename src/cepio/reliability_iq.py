@@ -173,9 +173,7 @@ def _assess_condition(
 
     for signal_key, bands in signal_bands.items():
         if "normal" in bands and len(bands) > 1:
-            raise ValueError(
-                f"Conflicting current condition evidence for signalKey {signal_key}"
-            )
+            raise ValueError(f"Conflicting current condition evidence for signalKey {signal_key}")
 
     return findings, evidence
 
@@ -353,9 +351,7 @@ def assess_asset_reliability(
     work_findings, work_evidence = _assess_work_orders(
         runtime, equipment.id, list(work_order_ids or [])
     )
-    risk_findings, risk_evidence = _assess_risks(
-        runtime, equipment.id, list(risk_ids or [])
-    )
+    risk_findings, risk_evidence = _assess_risks(runtime, equipment.id, list(risk_ids or []))
     findings = [*condition_findings, *failure_findings, *work_findings, *risk_findings]
 
     if any(item.severity == "blocking" for item in findings):
@@ -369,9 +365,7 @@ def assess_asset_reliability(
     if status == AssetReliabilityStatus.reliable:
         recommendation = "Current governed evidence supports continued service."
     elif action is not None:
-        recommendation = (
-            f"Reliability review is required; consider governed action {action} using the cited evidence."
-        )
+        recommendation = f"Reliability review is required; consider governed action {action} using the cited evidence."
     else:
         recommendation = (
             "Reliability intervention is required, but v0.1 has no safe existing action mapping; "
@@ -411,9 +405,7 @@ class ReliabilityAssetInterventionIndustryIQPack:
                 "Reliability IQ requires governed Core actions: " + ", ".join(missing_actions)
             )
         if not runtime.has_decision(_REQUIRED_CORE_DECISION):
-            raise RuntimeError(
-                f"Reliability IQ requires Core decision {_REQUIRED_CORE_DECISION}"
-            )
+            raise RuntimeError(f"Reliability IQ requires Core decision {_REQUIRED_CORE_DECISION}")
         runtime.register_function(
             "assessAssetReliability",
             assess_asset_reliability,
