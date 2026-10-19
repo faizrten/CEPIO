@@ -131,9 +131,7 @@ def _required_string(parameters: dict[str, Any], name: str) -> str:
 def _required_hours(parameters: dict[str, Any]) -> float:
     value = parameters.get("proposed_deferral_hours")
     if isinstance(value, bool) or not isinstance(value, (int, float, str)):
-        raise ValueError(
-            "Maintenance deferral requires numeric parameter proposed_deferral_hours"
-        )
+        raise ValueError("Maintenance deferral requires numeric parameter proposed_deferral_hours")
     try:
         hours = float(value)
     except ValueError as exc:
