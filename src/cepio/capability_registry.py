@@ -109,9 +109,7 @@ class CapabilityRegistry(BaseModel):
         return self
 
     def get(self, capability_id: str) -> CapabilityRecord | None:
-        return next(
-            (item for item in self.capabilities if item.id == capability_id), None
-        )
+        return next((item for item in self.capabilities if item.id == capability_id), None)
 
 
 class PromotionDecisionValue(str, Enum):
@@ -149,9 +147,7 @@ class CapabilityPromotionPolicy(BaseModel):
     allowed_target_layers: set[CapabilityLayer] = Field(
         default_factory=lambda: {CapabilityLayer.CORE, CapabilityLayer.COMMON}
     )
-    minimum_regression_survival_rate: float = Field(
-        default=1.0, ge=0.0, le=1.0
-    )
+    minimum_regression_survival_rate: float = Field(default=1.0, ge=0.0, le=1.0)
     require_human_approval: bool = True
     forbid_customer_specific_evidence: bool = True
 
@@ -191,10 +187,7 @@ class PromotionWorkflowContract(BaseModel):
         states = set(self.states)
         if self.initial_state not in states:
             raise ValueError("promotion workflow initial_state must be declared")
-        if any(
-            item.source not in states or item.target not in states
-            for item in self.transitions
-        ):
+        if any(item.source not in states or item.target not in states for item in self.transitions):
             raise ValueError("promotion workflow transition references undeclared state")
         return self
 
@@ -233,25 +226,18 @@ def evaluate_promotion(
     blockers: list[str] = []
     proposed = candidate.proposed
     if proposed.layer not in policy.allowed_target_layers:
-        blockers.append(
-            f"target layer {proposed.layer.value} is not promotable by this policy"
-        )
+        blockers.append(f"target layer {proposed.layer.value} is not promotable by this policy")
     if len(candidate.source_domains) < policy.minimum_independent_domains:
         blockers.append(
             f"independent domains {len(candidate.source_domains)} "
             f"< {policy.minimum_independent_domains}"
         )
     if not candidate.source_domains.issubset(proposed.validated_domains):
-        blockers.append(
-            "candidate source domains must be present in proposed validated_domains"
-        )
+        blockers.append("candidate source domains must be present in proposed validated_domains")
     if policy.forbid_customer_specific_evidence and any(
-        item.customer_specific or item.scope == EvidenceScope.PROFILE
-        for item in proposed.evidence
+        item.customer_specific or item.scope == EvidenceScope.PROFILE for item in proposed.evidence
     ):
-        blockers.append(
-            "customer-specific evidence cannot justify global capability promotion"
-        )
+        blockers.append("customer-specific evidence cannot justify global capability promotion")
     if regression_survival_rate < policy.minimum_regression_survival_rate:
         blockers.append(
             "regression survival rate "
@@ -259,13 +245,9 @@ def evaluate_promotion(
             f"< {policy.minimum_regression_survival_rate:.3f}"
         )
     if blockers:
-        return PromotionEvaluation(
-            candidate_id=candidate.id, status="BLOCKED", blockers=blockers
-        )
+        return PromotionEvaluation(candidate_id=candidate.id, status="BLOCKED", blockers=blockers)
     if policy.require_human_approval and decision is None:
-        return PromotionEvaluation(
-            candidate_id=candidate.id, status="READY_FOR_HUMAN_REVIEW"
-        )
+        return PromotionEvaluation(candidate_id=candidate.id, status="READY_FOR_HUMAN_REVIEW")
     if decision is not None and decision.subject_id != candidate.id:
         return PromotionEvaluation(
             candidate_id=candidate.id,
@@ -283,19 +265,13 @@ def apply_promotion(
     evaluation: PromotionEvaluation,
 ) -> CapabilityRegistry:
     if evaluation.status != "APPROVED" or evaluation.candidate_id != candidate.id:
-        raise ValueError(
-            "promotion candidate must pass policy evaluation before registry mutation"
-        )
+        raise ValueError("promotion candidate must pass policy evaluation before registry mutation")
     capabilities = list(registry.capabilities)
     existing = registry.get(candidate.proposed.id)
     if existing is None:
         capabilities.append(candidate.proposed)
     else:
-        index = next(
-            i
-            for i, item in enumerate(capabilities)
-            if item.id == candidate.proposed.id
-        )
+        index = next(i for i, item in enumerate(capabilities) if item.id == candidate.proposed.id)
         capabilities[index] = candidate.proposed
     return CapabilityRegistry(
         id=registry.id,
@@ -311,22 +287,15 @@ def registry_metrics(registry: CapabilityRegistry) -> dict[str, Any]:
         for item in registry.capabilities
         if item.layer in {CapabilityLayer.CORE, CapabilityLayer.COMMON}
     ]
-    cross_domain = [
-        item for item in registry.capabilities if len(item.validated_domains) >= 2
-    ]
-    domain_proofs = sum(
-        len(item.validated_domains) for item in registry.capabilities
-    )
+    cross_domain = [item for item in registry.capabilities if len(item.validated_domains) >= 2]
+    domain_proofs = sum(len(item.validated_domains) for item in registry.capabilities)
     return {
         "capability_count": count,
         "reusable_capability_count": len(reusable),
         "cross_domain_capability_count": len(cross_domain),
-        "average_validated_domains_per_capability": (
-            domain_proofs / count if count else 0.0
-        ),
+        "average_validated_domains_per_capability": (domain_proofs / count if count else 0.0),
         "qualified_or_better_count": sum(
-            item.maturity
-            in {CapabilityMaturity.QUALIFIED, CapabilityMaturity.PRODUCTION}
+            item.maturity in {CapabilityMaturity.QUALIFIED, CapabilityMaturity.PRODUCTION}
             for item in registry.capabilities
         ),
         "registry_hash": stable_hash(registry.model_dump(mode="json")),
