@@ -117,9 +117,7 @@ def test_registry_load_get_hash_and_metrics(tmp_path: Path):
     assert metrics["cross_domain_capability_count"] == 1
     assert metrics["average_validated_domains_per_capability"] == 2.0
     assert metrics["qualified_or_better_count"] == 1
-    assert metrics["registry_hash"] == stable_hash(
-        registry.model_dump(mode="json")
-    )
+    assert metrics["registry_hash"] == stable_hash(registry.model_dump(mode="json"))
     assert stable_hash({"b": 2, "a": 1}) == stable_hash({"a": 1, "b": 2})
 
 
@@ -131,33 +129,21 @@ def test_empty_registry_metrics():
 
 def test_registry_rejects_duplicate_capabilities():
     with pytest.raises(ValidationError, match="duplicate capability IDs"):
-        CapabilityRegistry(
-            id="bad", version="0.1", capabilities=[record(), record()]
-        )
+        CapabilityRegistry(id="bad", version="0.1", capabilities=[record(), record()])
 
 
 @pytest.mark.parametrize(
     "bad_evidence",
     [evidence(customer_specific=True), evidence(scope=EvidenceScope.PROFILE)],
 )
-def test_global_record_rejects_customer_specific_evidence(
-    bad_evidence: CapabilityEvidenceRef,
-):
-    with pytest.raises(
-        ValidationError, match="cannot embed customer-specific evidence"
-    ):
+def test_global_record_rejects_customer_specific_evidence(bad_evidence: CapabilityEvidenceRef):
+    with pytest.raises(ValidationError, match="cannot embed customer-specific evidence"):
         record(evidence=[bad_evidence])
 
 
 def test_global_record_rejects_customer_profile_path():
-    with pytest.raises(
-        ValidationError, match="cannot reference customer profile artifacts"
-    ):
-        record(
-            evidence=[
-                evidence(artifact="generalization/customers/acme/profile.yaml")
-            ]
-        )
+    with pytest.raises(ValidationError, match="cannot reference customer profile artifacts"):
+        record(evidence=[evidence(artifact="generalization/customers/acme/profile.yaml")])
 
 
 def test_profile_record_can_reference_customer_evidence():
@@ -175,9 +161,7 @@ def test_profile_record_can_reference_customer_evidence():
 
 
 def test_human_decision_rejects_agent_roles():
-    with pytest.raises(
-        ValidationError, match="cannot grant architecture approval"
-    ):
+    with pytest.raises(ValidationError, match="cannot grant architecture approval"):
         decision(role="ai_agent")
     assert decision().decision.value == "APPROVE"
 
@@ -204,9 +188,7 @@ def test_policy_and_workflow_loaders(tmp_path: Path):
         ],
     }
     workflow_path = tmp_path / "workflow.yaml"
-    workflow_path.write_text(
-        yaml.safe_dump(workflow_payload), encoding="utf-8"
-    )
+    workflow_path.write_text(yaml.safe_dump(workflow_payload), encoding="utf-8")
     loaded = load_promotion_workflow(workflow_path)
     assert loaded.initial_state == PromotionWorkflowState.CANDIDATE
 
@@ -229,9 +211,7 @@ def test_promotion_workflow_rejects_bad_initial_and_transition():
                 "transitions": [],
             }
         )
-    with pytest.raises(
-        ValidationError, match="transition references undeclared state"
-    ):
+    with pytest.raises(ValidationError, match="transition references undeclared state"):
         PromotionWorkflowContract.model_validate(
             {
                 "id": "bad",
@@ -280,9 +260,7 @@ def test_promotion_policy_blockers_are_accumulated():
     assert result.status == "BLOCKED"
     assert any("target layer DOMAIN" in blocker for blocker in result.blockers)
     assert any("independent domains 1" in blocker for blocker in result.blockers)
-    assert any(
-        "regression survival rate" in blocker for blocker in result.blockers
-    )
+    assert any("regression survival rate" in blocker for blocker in result.blockers)
 
 
 def test_promotion_rejects_source_domain_mismatch():
@@ -315,9 +293,7 @@ def test_promotion_rejects_customer_specific_evidence_when_policy_requests_it():
         ),
     )
     assert result.status == "BLOCKED"
-    assert any(
-        "customer-specific evidence" in blocker for blocker in result.blockers
-    )
+    assert any("customer-specific evidence" in blocker for blocker in result.blockers)
 
 
 def test_promotion_rejects_wrong_decision_subject():
@@ -328,9 +304,7 @@ def test_promotion_rejects_wrong_decision_subject():
         policy=policy(),
     )
     assert result.status == "BLOCKED"
-    assert result.blockers == [
-        "approval subject does not match promotion candidate"
-    ]
+    assert result.blockers == ["approval subject does not match promotion candidate"]
 
 
 def test_policy_can_disable_human_approval():
@@ -353,9 +327,7 @@ def test_apply_promotion_add_replace_and_refuse():
     assert added_record.version == "0.1.0"
 
     replacement = item.model_copy(
-        update={
-            "proposed": item.proposed.model_copy(update={"version": "0.2.0"})
-        }
+        update={"proposed": item.proposed.model_copy(update={"version": "0.2.0"})}
     )
     replaced = apply_promotion(
         added,
@@ -366,19 +338,13 @@ def test_apply_promotion_add_replace_and_refuse():
     assert replaced_record is not None
     assert replaced_record.version == "0.2.0"
 
-    with pytest.raises(
-        ValueError, match="must pass policy evaluation"
-    ):
+    with pytest.raises(ValueError, match="must pass policy evaluation"):
         apply_promotion(
             empty,
             item,
-            PromotionEvaluation(
-                candidate_id=item.id, status="BLOCKED", blockers=["no"]
-            ),
+            PromotionEvaluation(candidate_id=item.id, status="BLOCKED", blockers=["no"]),
         )
-    with pytest.raises(
-        ValueError, match="must pass policy evaluation"
-    ):
+    with pytest.raises(ValueError, match="must pass policy evaluation"):
         apply_promotion(
             empty,
             item,
