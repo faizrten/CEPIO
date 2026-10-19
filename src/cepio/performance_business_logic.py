@@ -190,7 +190,10 @@ class PerformanceBusinessLogicRuntime:
 
         registered = self.registry.get(node.formula_ref)
         definition = registered.definition
-        if definition.organization_id is not None and definition.organization_id != contract.organization_id:
+        if (
+            definition.organization_id is not None
+            and definition.organization_id != contract.organization_id
+        ):
             raise BusinessLogicExecutionError(
                 "ORGANIZATION_SCOPE_MISMATCH",
                 f"Business Logic {definition.formula_ref} is scoped to "
@@ -270,9 +273,7 @@ class PerformanceBusinessLogicRuntime:
 
         # The derived observation is no fresher than its oldest required input.
         effective_observed_at = min(item.observed_at for item in supplied)
-        evidence_refs = tuple(
-            sorted({ref for item in supplied for ref in item.evidence_refs})
-        )
+        evidence_refs = tuple(sorted({ref for item in supplied for ref in item.evidence_refs}))
         lineage = tuple(
             BusinessLogicInputLineage(
                 name=item.name,
