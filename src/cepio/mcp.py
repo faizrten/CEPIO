@@ -62,7 +62,6 @@ class MCPFacade:
                                 "observations": {"type": "array", "items": {"type": "object"}},
                                 "business_logic": {"type": "array", "items": {"type": "object"}},
                                 "evaluated_at": {"type": ["string", "null"], "format": "date-time"},
-                                "stale_after_seconds": {"type": ["integer", "null"], "minimum": 1},
                             },
                             "required": ["organization_id", "contract_id"],
                         },
@@ -171,7 +170,6 @@ class MCPFacade:
                     "observations": arguments.get("observations", []),
                     "business_logic": arguments.get("business_logic", []),
                     "evaluated_at": arguments.get("evaluated_at"),
-                    "stale_after_seconds": arguments.get("stale_after_seconds"),
                 }
             )
             result = self.performance_service.evaluate(
