@@ -1,0 +1,39 @@
+id: workflow.domain-onboarding.v1
+version: "0.1"
+initial_state: REQUESTED
+states:
+  - REQUESTED
+  - SCOPED
+  - BENCHMARKED
+  - BASELINED
+  - GAP_ANALYZED
+  - QUALIFYING
+  - QUALIFIED
+  - GENERALIZATION_REVIEW
+  - RELEASE_CANDIDATE
+  - RELEASED
+  - BLOCKED
+  - REJECTED
+  - DEPRECATED
+transitions:
+  - {source: REQUESTED, target: SCOPED, gate: scope_complete}
+  - {source: SCOPED, target: BENCHMARKED, gate: benchmark_frozen}
+  - {source: BENCHMARKED, target: BASELINED, gate: baseline_executable}
+  - {source: BASELINED, target: GAP_ANALYZED, gate: gap_classification_complete}
+  - {source: GAP_ANALYZED, target: QUALIFYING, gate: qualification_started}
+  - {source: QUALIFYING, target: QUALIFIED, gate: qualification_policy}
+  - {source: QUALIFIED, target: GENERALIZATION_REVIEW, gate: human_generalization_review}
+  - {source: GENERALIZATION_REVIEW, target: RELEASE_CANDIDATE, gate: generalization_approved}
+  - {source: RELEASE_CANDIDATE, target: RELEASED, gate: release_approved}
+
+  # Fail-closed policy exits. A rerun starts a new deterministic workflow evaluation.
+  - {source: REQUESTED, target: BLOCKED, gate: policy_failure}
+  - {source: SCOPED, target: BLOCKED, gate: policy_failure}
+  - {source: BENCHMARKED, target: BLOCKED, gate: policy_failure}
+  - {source: BASELINED, target: BLOCKED, gate: policy_failure}
+  - {source: GAP_ANALYZED, target: BLOCKED, gate: policy_failure}
+  - {source: QUALIFYING, target: BLOCKED, gate: policy_failure}
+  - {source: QUALIFIED, target: BLOCKED, gate: policy_failure}
+  - {source: GENERALIZATION_REVIEW, target: REJECTED, gate: generalization_rejected}
+  - {source: RELEASE_CANDIDATE, target: BLOCKED, gate: release_policy_failure}
+  - {source: RELEASED, target: DEPRECATED, gate: deprecation_approved}

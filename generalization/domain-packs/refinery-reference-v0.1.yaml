@@ -1,0 +1,14 @@
+id: refinery-reference-domain-onboarding-v0.1
+version: "0.1"
+domain: refinery-process-manufacturing
+name: Refinery operating abstraction reference onboarding
+mode: backfill-reference
+adjacent_domains:
+  - industrial-common
+  - process-manufacturing
+artifacts:
+  archetype: generalization/archetypes/refinery-process-manufacturing-v0.1.yaml
+  personas: generalization/personas/refinery-process-manufacturing-v0.2.yaml
+  standards: generalization/standards/refinery-process-references-v0.2.yaml
+  competency: generalization/competency/refinery-operating-abstraction-v0.1.yaml
+  runtime_suite: generalization/runtime/refinery-operating-abstraction-v0.1.yaml
