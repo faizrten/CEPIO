@@ -7,8 +7,13 @@ from cepio.auth import AuthSettings
 from cepio.bootstrap import build_runtime
 from cepio.config import RuntimeSettings
 from cepio.management_api import _is_local_host, create_management_app
-from cepio.management_contract import BindingDescriptor
-from cepio.management_runtime import build_management_service
+from cepio.management_runtime import build_management_service_from_registrations
+from cepio.platform_bindings import (
+    BindingCapability,
+    BindingMode,
+    BindingRegistration,
+    PlatformBindingManifest,
+)
 
 
 def management_service():
@@ -32,18 +37,20 @@ def management_service():
         jwks_uri=None,
         group_role_map={},
     )
-    return build_management_service(
+    return build_management_service_from_registrations(
         runtime,
         runtime_settings=settings,
         auth_settings=auth,
-        bindings=[
-            BindingDescriptor(
-                binding_id="synthetic-reference",
-                provider="synthetic",
-                capability="industrial-observation",
-                mode="read",
-                status="ready",
-                authority="observation-only",
+        binding_registrations=[
+            BindingRegistration(
+                manifest=PlatformBindingManifest(
+                    binding_id="synthetic-reference",
+                    provider_id="synthetic",
+                    source_system="synthetic-reference",
+                    mode=BindingMode.evidence,
+                    capabilities=frozenset({BindingCapability.resolve_evidence}),
+                ),
+                capability_id="industrial-observation",
             )
         ],
     )
@@ -80,6 +87,7 @@ def test_management_api_payloads_are_durable_descriptors():
     status = client.get("/management/v1/status").json()
     skills = client.get("/management/v1/skills").json()
     bindings = client.get("/management/v1/bindings").json()
+    capabilities = client.get("/management/v1/capabilities").json()
 
     assert status["environment"] == "test"
     assert status["persistence_mode"] == "memory"
@@ -95,8 +103,12 @@ def test_management_api_payloads_are_durable_descriptors():
             "mode": "read",
             "status": "ready",
             "authority": "observation-only",
+            "source_system": "synthetic-reference",
+            "declared_capabilities": ["resolve-evidence"],
+            "binding_contract_version": "0.1",
         }
     ]
+    assert capabilities["binding_contract_version"] == "0.1"
 
 
 def test_management_api_rejects_non_loopback_clients():
