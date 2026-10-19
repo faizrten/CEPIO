@@ -317,15 +317,104 @@ Influence nodes are surfaced in Decision observations as:
 Influence context (not causal proof)
 ```
 
-The Industry IQ assessment explicitly records `causal_claim_made = false`. Domain-specific reasoning may later add hypotheses and additional governed evidence, but it must not rewrite an influence edge into causal truth.
+The Industry IQ assessment explicitly records `causal_claim_made = false`. Domain-specific reasoning may add hypotheses and additional governed evidence, but it must not rewrite an influence edge into causal truth.
 
 ### Context does not become a new disclosure channel
 
 Callers may supply authorized CEPIO context object IDs. The reasoning service validates them through the application-service read boundary and stores stable references in its assessment.
 
-It does not copy arbitrary object properties into Decision text, avoiding a secondary persistence surface with different disclosure semantics.
+It does not copy arbitrary object properties into Decision text. Domain contributors receive only the explicit authorized objects through a bounded read-only host and may project only the evidence fields they are designed to use.
 
 See [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md).
+
+## Domain-aware ReasoningContribution v0.1
+
+`cepio.reasoning_contribution` is the reusable runtime contract for domain-aware reasoning. It operationalizes Core's existing Evidence / Hypothesis / Uncertainty / InformationGain semantics without introducing another ontology module.
+
+A `ReasoningContribution` can contain:
+
+- bounded evidence projections;
+- hypotheses with supporting and contradicting evidence IDs;
+- confidence bands;
+- explicit uncertainties;
+- information-gain candidates;
+- recommend-only intervention options.
+
+Every contribution remains:
+
+```text
+causal_claim_made = false
+authority = recommend_only
+```
+
+and every hypothesis remains:
+
+```text
+claim_status = hypothesis_only
+```
+
+### Bounded contributor context
+
+`BoundedReasoningHost` exposes only objects that were already authorized through `CEPIOApplicationService` and explicitly supplied in the Performance reasoning request. A contributor cannot use this surface to graph-crawl, call Functions, retrieve arbitrary provider data, persist Decisions, start workflows or execute Actions.
+
+A contributor can also require an installed Industry IQ pack. The reasoning engine fails closed if that deployment capability is missing.
+
+The published `PerformanceIndustryIQService(performance_service, application_service)` constructor remains unchanged. Domain-aware composition is opt-in through `build_performance_industry_iq_service_with_reasoning(...)`, which preserves the frozen application contract while supplying a bounded contributor engine.
+
+### Reliability is the first implementation
+
+The first domain pack is:
+
+```text
+cepio.iq.reliability.reasoning@0.1.0
+```
+
+with contributor:
+
+```text
+cepio.reasoning.reliability@0.1.0
+```
+
+It depends on the generic Performance response pack and claims no Function, Decision or Action capability.
+
+v0.1 reasons deterministically over explicit `ConditionObservation` / `ConditionSignal`, `FailureEvent` and `WorkOrder` context. It can form three hypothesis families:
+
+```text
+condition degradation may be contributing
+recurring/unresolved failure mechanism may be contributing
+previous corrective work may not have fully resolved the issue
+```
+
+For each, CEPIO keeps the evidence trail, contradicting evidence where available, uncertainty and the next evidence check that could reduce decision uncertainty.
+
+Example:
+
+```text
+Operational Availability = off_track
+        |
+        v
+Reliability context
+  - vibration degraded/rising
+  - repeated bearing failures
+  - corrective WO reopened
+        |
+        v
+ReasoningContribution
+  H1 condition degradation
+  H2 recurring failure mechanism
+  H3 corrective-work effectiveness
+        |
+        +--> explicit uncertainty
+        +--> information-gain checks
+        +--> recommend-only intervention options
+        |
+        v
+same governed performance-deviation-response Decision
+```
+
+The Decision still carries `recommended_action = null`; Workflow Policy and Kinetic Runtime remain the execution boundary.
+
+See [ADR-0029](../adr/ADR-0029-reasoning-contribution-v0.1.md).
 
 ## Example
 
@@ -338,6 +427,9 @@ The example contains an enterprise objective, COO KPI, individual key result, ma
 Enterprise Performance intentionally does **not**:
 
 - infer quantitative causal impact from contribution/influence edges;
+- promote domain hypotheses to causal truth;
+- let contributors read objects outside explicit authorized reasoning context;
+- let contributors call Functions, provider bindings, workflows or Actions;
 - automatically start workflows;
 - execute external Actions;
 - automatically persist Decisions merely because a KPI is red;
@@ -351,18 +443,17 @@ These boundaries preserve CEPIO's recommend-before-execute architecture.
 
 ## Next evolution
 
-The next controlled evolution is **domain-aware Industry IQ enrichment**:
+The next controlled evolution is to qualify a **second independent domain contributor**—most naturally Drilling or Refinery—against the same `ReasoningContribution` contract:
 
 ```text
 Deterministic Performance deviation
         -> generic Performance Industry IQ reasoning
-        -> domain pack evidence / hypotheses
+        -> Reliability contribution
+        -> Drilling / Refinery contribution
         -> governed Decision
         -> Workflow Policy
 ```
 
-Reliability, drilling, refinery, subsurface and other Industry IQ packs should contribute domain-specific evidence and hypotheses without changing the underlying Performance truth or acquiring Kinetic execution authority.
+That proof matters because it establishes that the contract is genuinely reusable rather than a Reliability-specific abstraction. Only after multi-domain qualification should CEPIO consider a governed contributor registry, durable hypothesis/evidence persistence and experimental REST/MCP exposure.
 
-After that reasoning contract is qualified, the same capability can be exposed through REST/MCP without moving semantic or policy ownership into protocol adapters.
-
-See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md) and [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md).
+See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md), [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md) and [ADR-0029](../adr/ADR-0029-reasoning-contribution-v0.1.md).

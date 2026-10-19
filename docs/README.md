@@ -11,6 +11,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[CEPIO v0.4 Developer Preview](developer-preview.md)** — clean-environment install, startup, qualification and release boundary.
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
 - **[Management Control Plane](wiki/21-Management-Control-Plane.md)** — protocol-neutral Management Contract v0.1 and local read-only FastAPI projection.
+- **[Enterprise Performance Graph](wiki/22-Enterprise-Performance-Graph.md)** — organization/persona objectives, KPIs, governed Business Logic, deterministic deviations and the Performance-to-Decision loop.
 - **[Binding Contract v0.1](developer/platform-bindings.md)** — provider-neutral manifest, runtime registration, conformance and Management projection for replaceable industrial platforms.
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.
 - **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
@@ -45,11 +46,14 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 - [Management Control Plane](wiki/21-Management-Control-Plane.md)
 - [ADR-0020 — Management Control Plane v0.1](adr/ADR-0020-management-control-plane-v0.1.md)
+- [Enterprise Performance Graph](wiki/22-Enterprise-Performance-Graph.md)
+- [ADR-0027 — Performance Deviation to Industry IQ Decision v0.1](adr/ADR-0027-performance-industry-iq-decision-v0.1.md)
 - [Binding Contract v0.1](developer/platform-bindings.md)
 - [ADR-0026 — Binding Contract v0.1](adr/ADR-0026-binding-contract-v0.1.md)
 - [ADR-0028 — Fabric Live Binding Proof v0.1](adr/ADR-0028-fabric-live-binding-proof-v0.1.md)
+- [ADR-0029 — ReasoningContribution v0.1 and Reliability Domain Enrichment](adr/ADR-0029-reasoning-contribution-v0.1.md)
 - [Kinetic runtime](kinetic-runtime.md)
-- [Kinetic execution resilience v0.2](kinetic-execution-resilience.md)
+- [Kinetic execution resilience v0.2](kinetic-execution-resilience-v0.2.md)
 - [Governed external action runtime](external-action-runtime.md)
 - [Kinetic runtime consistency v0.3.1](kinetic-runtime-consistency-v0.3.1.md)
 - [Kinetic external verification gate v0.4](kinetic-external-verification-v0.4.md)

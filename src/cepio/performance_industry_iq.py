@@ -3,12 +3,13 @@
 This module turns an evidence-backed Performance deviation into an explainable Decision
 proposal without granting workflow or action execution authority. Performance state is
 still evaluated deterministically by :mod:`cepio.performance_runtime`; this layer only
-organizes governed context and routes an explicit Decision proposal through the existing
-application-service policy boundary.
+organizes governed context, composes bounded domain reasoning contributions and routes an
+explicit Decision proposal through the existing application-service policy boundary.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable as _Iterable
 from datetime import datetime
 from typing import Literal
 
@@ -17,12 +18,21 @@ from pydantic import BaseModel, ConfigDict, Field
 from .application_contract import CEPIOApplicationService, DecisionProposal, ExecutionContext
 from .industry_iq import IndustryIQPackManifest
 from .model import Decision, ObjectRef
+from .model import OntologyObject as _OntologyObject
 from .performance_contract import PerformanceContract, PerformanceNode
 from .performance_runtime import PerformanceObservation, PerformanceWorkflowCandidate
 from .performance_service import (
     PerformanceDeviationAssessment,
     PerformanceResponseAssessment,
     PerformanceService,
+)
+from .reasoning_contribution import (
+    BoundedReasoningHost,
+    ReasoningContribution,
+    ReasoningContributionEngine,
+    ReasoningContributionError,
+    ReasoningContributionRequest,
+    ReasoningContributor as _ReasoningContributor,
 )
 from .runtime import CEPIORuntime
 
@@ -66,6 +76,7 @@ class PerformanceReasoningAssessment(BaseModel):
     subject: ObjectRef
     deviation: PerformanceDeviationAssessment
     contextual_objects: tuple[ObjectRef, ...] = ()
+    reasoning_contributions: tuple[ReasoningContribution, ...] = ()
     workflow_candidates: tuple[PerformanceWorkflowCandidate, ...] = ()
     source_revision_hashes: tuple[str, ...] = ()
     decision_proposal: DecisionProposal
@@ -109,10 +120,14 @@ class PerformanceResponseIndustryIQPack:
 class PerformanceIndustryIQService:
     """Bridge deterministic Performance evidence into a governed CEPIO Decision.
 
-    ``reason`` is side-effect free. ``propose_decision`` persists only a Decision record
-    and delegates authorization, creator identity and Decision contract validation to the
-    existing :class:`CEPIOApplicationService`. Neither method starts a workflow or
-    executes an Action.
+    ``reason`` is side-effect free. Optional domain contributors can enrich the reasoning
+    with hypotheses, explicit uncertainty and information-gain suggestions, but only from
+    objects already authorized and explicitly supplied in the request context.
+
+    ``propose_decision`` persists only a Decision record and delegates authorization,
+    creator identity and Decision contract validation to the existing
+    :class:`CEPIOApplicationService`. Neither method starts a workflow or executes an
+    Action.
     """
 
     def __init__(
@@ -122,6 +137,7 @@ class PerformanceIndustryIQService:
     ) -> None:
         self.performance_service = performance_service
         self.application_service = application_service
+        self.reasoning_engine = ReasoningContributionEngine()
 
     def reason(
         self,
@@ -172,18 +188,32 @@ class PerformanceIndustryIQService:
                 f"{subject.type!r}",
             )
 
-        contextual_objects = self._read_context(request.context_object_ids, context)
-        observations = self._decision_observations(
-            node,
-            deviation,
-            contextual_objects,
-            contract,
-        )
-        recommendation = self._recommendation(node, deviation, contract)
+        context_objects = self._read_context_objects(request.context_object_ids, context)
+        contextual_refs = tuple(ObjectRef(id=obj.id, type=obj.type) for obj in context_objects)
         problem = (
             f"How should {subject.name} respond to {node.name} being "
             f"{deviation.status.value} under Performance Contract "
             f"{contract.id}@{contract.version}?"
+        )
+        contributions = self._reasoning_contributions(
+            subject,
+            problem,
+            node,
+            deviation,
+            context_objects,
+        )
+        observations = self._decision_observations(
+            node,
+            deviation,
+            contextual_refs,
+            contract,
+            contributions,
+        )
+        recommendation = self._recommendation(
+            node,
+            deviation,
+            contract,
+            contributions,
         )
         proposal = DecisionProposal(
             decision_type=PERFORMANCE_RESPONSE_DECISION_TYPE,
@@ -203,7 +233,8 @@ class PerformanceIndustryIQService:
             node_name=node.name,
             subject=proposal.subject,
             deviation=deviation,
-            contextual_objects=contextual_objects,
+            contextual_objects=contextual_refs,
+            reasoning_contributions=contributions,
             workflow_candidates=deviation.workflow_candidates,
             source_revision_hashes=response.source_revision_hashes,
             decision_proposal=proposal,
@@ -257,20 +288,48 @@ class PerformanceIndustryIQService:
             f"Performance node {node_id!r} is not present in the resolved contract",
         )
 
-    def _read_context(
+    def _read_context_objects(
         self,
         object_ids: tuple[str, ...],
         context: ExecutionContext,
-    ) -> tuple[ObjectRef, ...]:
-        refs: list[ObjectRef] = []
+    ) -> tuple[_OntologyObject, ...]:
+        objects: list[_OntologyObject] = []
         seen: set[str] = set()
         for object_id in object_ids:
             if object_id in seen:
                 continue
             seen.add(object_id)
-            obj = self.application_service.read_object(object_id, context)
-            refs.append(ObjectRef(id=obj.id, type=obj.type))
-        return tuple(refs)
+            objects.append(self.application_service.read_object(object_id, context))
+        return tuple(objects)
+
+    def _reasoning_contributions(
+        self,
+        subject: _OntologyObject,
+        problem: str,
+        node: PerformanceNode,
+        deviation: PerformanceDeviationAssessment,
+        context_objects: tuple[_OntologyObject, ...],
+    ) -> tuple[ReasoningContribution, ...]:
+        subject_ref = ObjectRef(id=subject.id, type=subject.type)
+        contribution_request = ReasoningContributionRequest(
+            subject=subject_ref,
+            problem=problem,
+            performance_node_id=node.id,
+            performance_status=deviation.status.value,
+            performance_evidence_refs=deviation.evidence_refs,
+            context_object_refs=tuple(
+                ObjectRef(id=obj.id, type=obj.type) for obj in context_objects
+            ),
+        )
+        host = BoundedReasoningHost((subject, *context_objects))
+        try:
+            return self.reasoning_engine.evaluate(
+                contribution_request,
+                host,
+                installed_packs=self.application_service.runtime.industry_iq_packs,
+            )
+        except ReasoningContributionError as exc:
+            raise PerformanceReasoningError(exc.code, str(exc)) from exc
 
     @staticmethod
     def _node_labels(contract: PerformanceContract, node_ids: tuple[str, ...]) -> tuple[str, ...]:
@@ -283,6 +342,7 @@ class PerformanceIndustryIQService:
         deviation: PerformanceDeviationAssessment,
         contextual_objects: tuple[ObjectRef, ...],
         contract: PerformanceContract,
+        contributions: tuple[ReasoningContribution, ...],
     ) -> list[str]:
         value = "unknown" if deviation.value is None else f"{deviation.value:g}"
         if node.unit:
@@ -308,6 +368,24 @@ class PerformanceIndustryIQService:
                 "Authorized CEPIO context objects: "
                 + ", ".join(f"{item.type}:{item.id}" for item in contextual_objects)
             )
+
+        for contribution in contributions:
+            for hypothesis in contribution.hypotheses:
+                confidence = (
+                    "unassessed" if hypothesis.confidence is None else hypothesis.confidence.value
+                )
+                support = ", ".join(hypothesis.supporting_evidence_ids) or "none"
+                contradict = ", ".join(hypothesis.contradicting_evidence_ids) or "none"
+                observations.append(
+                    f"{contribution.domain.title()} hypothesis (not causal proof): "
+                    f"{hypothesis.statement} confidence={confidence}; "
+                    f"support={support}; contradict={contradict}"
+                )
+            for uncertainty in contribution.uncertainties:
+                observations.append(
+                    f"{contribution.domain.title()} uncertainty [{uncertainty.level.value}]: "
+                    f"{uncertainty.description}"
+                )
         return observations
 
     def _recommendation(
@@ -315,6 +393,7 @@ class PerformanceIndustryIQService:
         node: PerformanceNode,
         deviation: PerformanceDeviationAssessment,
         contract: PerformanceContract,
+        contributions: tuple[ReasoningContribution, ...],
     ) -> str:
         parts = [
             f"Investigate the governed evidence behind the {node.name} deviation before selecting an intervention."
@@ -333,6 +412,26 @@ class PerformanceIndustryIQService:
                 + ", ".join(influence_labels)
                 + "."
             )
+
+        for contribution in contributions:
+            if contribution.hypotheses:
+                hypothesis_titles = "; ".join(item.statement for item in contribution.hypotheses)
+                parts.append(
+                    f"Treat {contribution.domain} Industry IQ output as hypotheses to test, not facts: "
+                    f"{hypothesis_titles}"
+                )
+            if contribution.information_gain:
+                checks = "; ".join(item.question for item in contribution.information_gain)
+                parts.append(
+                    f"Prioritize {contribution.domain} information-gain checks before intervention: {checks}"
+                )
+            if contribution.intervention_options:
+                options = ", ".join(item.title for item in contribution.intervention_options)
+                parts.append(
+                    f"Consider recommend-only {contribution.domain} intervention option(s): {options}. "
+                    "Policy and execution authority remain separate."
+                )
+
         if deviation.workflow_candidates:
             workflows = ", ".join(
                 candidate.workflow_definition_id for candidate in deviation.workflow_candidates
@@ -346,6 +445,23 @@ class PerformanceIndustryIQService:
                 "No response binding matched this deviation; keep the response recommend-only until a governed workflow or action is selected."
             )
         return " ".join(parts)
+
+
+def build_performance_industry_iq_service_with_reasoning(
+    performance_service: PerformanceService,
+    application_service: CEPIOApplicationService,
+    *,
+    reasoning_contributors: _Iterable[_ReasoningContributor],
+) -> PerformanceIndustryIQService:
+    """Additively construct Performance Industry IQ with bounded domain contributors.
+
+    The published ``PerformanceIndustryIQService`` constructor remains unchanged. This
+    helper is the explicit opt-in path for domain reasoning composition.
+    """
+
+    service = PerformanceIndustryIQService(performance_service, application_service)
+    service.reasoning_engine = ReasoningContributionEngine(reasoning_contributors)
+    return service
 
 
 PERFORMANCE_RESPONSE_IQ_PACK = PerformanceResponseIndustryIQPack()

@@ -22,10 +22,15 @@ from cepio.performance_industry_iq import (
     PerformanceIndustryIQService,
     PerformanceReasoningError,
     PerformanceReasoningRequest,
+    build_performance_industry_iq_service_with_reasoning,
 )
 from cepio.performance_registry import InMemoryPerformanceContractStore, PerformanceContractRegistry
 from cepio.performance_runtime import PerformanceObservation
 from cepio.performance_service import PerformanceService
+from cepio.reliability_reasoning import (
+    RELIABILITY_REASONING_IQ_PACK,
+    ReliabilityReasoningContributor,
+)
 from cepio.runtime import AuthorizationError
 
 
@@ -197,6 +202,7 @@ def test_reasoning_creates_explainable_recommend_only_decision_proposal():
     assert assessment.deviation.risk_sources == ("repeat-failures",)
     assert assessment.deviation.influence_sources == ("maintenance-cost",)
     assert assessment.contextual_objects == (ObjectRef(id="WO-1", type="WorkOrder"),)
+    assert assessment.reasoning_contributions == ()
     assert assessment.workflow_candidates[0].workflow_definition_id == (
         "investigate-availability-loss"
     )
@@ -283,3 +289,96 @@ def test_reasoning_requires_deployed_industry_iq_capability():
         service.reason(request(), admin_context())
 
     assert exc_info.value.code == "PERFORMANCE_IQ_PACK_NOT_INSTALLED"
+
+
+def test_reliability_contribution_enriches_same_governed_decision_without_execution():
+    runtime, base_service = build_services(install_pack=False)
+    install_industry_iq_packs(
+        runtime,
+        [PERFORMANCE_RESPONSE_IQ_PACK, RELIABILITY_REASONING_IQ_PACK],
+    )
+    runtime.upsert_object(
+        OntologyObject(
+            id="COND-1",
+            type="ConditionObservation",
+            name="Drive-end vibration",
+            properties={
+                "sharingScope": "internal",
+                "metric": "vibration",
+                "value": 9.2,
+                "unit": "mm/s",
+                "status": "degraded",
+                "trend": "rising",
+            },
+        )
+    )
+    runtime.upsert_object(
+        OntologyObject(
+            id="FAIL-1",
+            type="FailureEvent",
+            name="Repeat bearing failure",
+            properties={
+                "sharingScope": "internal",
+                "failure_mode": "bearing-degradation",
+                "repeat_failure": True,
+            },
+        )
+    )
+    runtime.upsert_object(
+        OntologyObject(
+            id="FAIL-2",
+            type="FailureEvent",
+            name="Prior bearing failure",
+            properties={
+                "sharingScope": "internal",
+                "failure_mode": "bearing-degradation",
+            },
+        )
+    )
+    runtime.upsert_object(
+        OntologyObject(
+            id="WO-REL-1",
+            type="WorkOrder",
+            name="Replace drive-end bearing",
+            properties={
+                "sharingScope": "internal",
+                "status": "reopened",
+                "reopen_count": 1,
+            },
+        )
+    )
+
+    service = build_performance_industry_iq_service_with_reasoning(
+        base_service.performance_service,
+        base_service.application_service,
+        reasoning_contributors=(ReliabilityReasoningContributor(),),
+    )
+    enriched_request = PerformanceReasoningRequest(
+        contract_id="org-a-performance",
+        node_id="availability",
+        subject=ObjectRef(id="COMP-1", type="Equipment"),
+        observations=observations(),
+        evaluated_at=NOW,
+        context_object_ids=("COND-1", "FAIL-1", "FAIL-2", "WO-REL-1"),
+    )
+
+    result = service.propose_decision(enriched_request, admin_context())
+
+    assert len(result.assessment.reasoning_contributions) == 1
+    contribution = result.assessment.reasoning_contributions[0]
+    assert contribution.domain == "reliability"
+    assert contribution.causal_claim_made is False
+    assert {item.id for item in contribution.hypotheses} == {
+        "reliability.condition-degradation",
+        "reliability.recurring-failure-mechanism",
+        "reliability.corrective-action-effectiveness",
+    }
+    assert any(
+        "Reliability hypothesis (not causal proof)" in item for item in result.decision.observations
+    )
+    assert "information-gain checks" in result.decision.recommendation
+    assert "Policy and execution authority remain separate" in result.decision.recommendation
+    assert result.decision.recommended_action is None
+    assert result.workflow_started is False
+    assert result.action_executed is False
+    assert runtime.all_audits() == []
