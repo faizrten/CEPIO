@@ -338,8 +338,6 @@ def assess_bad_actor_fleet_reliability(
     first_peer_ids = sorted(item.equipment_id for item in ordered_periods[0].assets)
     if len(first_peer_ids) != len(set(first_peer_ids)):
         raise ValueError("Duplicate equipment in peer population")
-    if len(first_peer_ids) < 3:
-        raise ValueError("Bad-actor assessment requires at least three peer equipment items")
 
     seen_exposure_ids: set[str] = set()
     seen_failure_ids: set[str] = set()
