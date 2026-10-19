@@ -45,11 +45,7 @@ def test_only_well_delivery_is_newly_executable_operator_iq():
     assert by_id["OP-IQ-001"]["status"] == "executable-v0.1"
     assert by_id["OP-IQ-001"]["pack_id"] == "cepio.iq.drilling.operator-well-delivery"
     assert by_id["OP-IQ-003"]["reuses_pack"] == "cepio.iq.drilling.npt"
-    assert all(
-        item["status"] == "planned"
-        for item in scenarios
-        if item["id"] != "OP-IQ-001"
-    )
+    assert all(item["status"] == "planned" for item in scenarios if item["id"] != "OP-IQ-001")
 
 
 def test_operator_iq_rules_keep_shared_semantics_and_human_authority():
