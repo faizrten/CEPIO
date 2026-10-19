@@ -156,6 +156,11 @@ def execute_maintenance_deferral(
     if invocation.skill_id != MAINTENANCE_DEFERRAL_SKILL_ID:
         raise ValueError(f"Unexpected Skill identity: {invocation.skill_id}")
 
+    for reference in invocation.evidence:
+        host.read_object(reference.object_ref.id)
+    for reference in invocation.assessment_refs:
+        host.read_object(reference.id)
+
     equipment = host.read_object(invocation.subject.id)
     work_order_id = _required_string(invocation.parameters, "work_order_id")
     risk_id = _required_string(invocation.parameters, "risk_id")
