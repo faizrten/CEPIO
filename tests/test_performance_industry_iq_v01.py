@@ -205,8 +205,14 @@ def test_reasoning_creates_explainable_recommend_only_decision_proposal():
     assert assessment.decision_proposal.recommended_action is None
     assert "do not treat it as causal proof" in assessment.decision_proposal.recommendation
     assert "no workflow has been started" in assessment.decision_proposal.recommendation
-    assert any("Upstream structural risk sources" in item for item in assessment.decision_proposal.observations)
-    assert any("Influence context (not causal proof)" in item for item in assessment.decision_proposal.observations)
+    assert any(
+        "Upstream structural risk sources" in item
+        for item in assessment.decision_proposal.observations
+    )
+    assert any(
+        "Influence context (not causal proof)" in item
+        for item in assessment.decision_proposal.observations
+    )
     assert assessment.authority == "recommend_only"
     assert assessment.policy_required is True
     assert assessment.causal_claim_made is False
