@@ -120,6 +120,36 @@ paths:
       operationId: listObjectEvents
       responses:
         '200': {description: OK}
+  /api/v1/skills/evaluate:
+    post:
+      operationId: evaluateSkill
+      description: Evaluate one admitted CEPIO Skill. Caller identity and roles are derived from the authenticated host context and are never accepted in the SkillInvocation payload. The operation may persist a governed Decision but never grants or performs operational Action authority implicitly.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [skill_id, subject]
+              properties:
+                skill_id: {type: string}
+                subject:
+                  type: object
+                  required: [id, type]
+                  properties:
+                    id: {type: string}
+                    type: {type: string}
+                parameters: {type: object, additionalProperties: true}
+                evidence: {type: array, items: {type: object}}
+                assessment_refs: {type: array, items: {type: object}}
+                metadata: {type: object}
+      responses:
+        '200':
+          description: Completed, blocked, or failed SkillEvaluation from the shared CEPIO Application Contract execution path.
+        '403':
+          description: Host-level authorization failure outside normal Skill preflight blocking.
+        '422':
+          description: Request validation failure.
   /api/v1/actions:
     post:
       operationId: executeAction

@@ -9,10 +9,13 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 
 from . import api as legacy
+from .application_contract import ExecutionContext, SkillEvaluation, SkillInvocation
+from .application_runtime import build_application_service
 from .auth import ActorContext, get_actor_context
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import Decision, ErrorEnvelope, OntologyObject, OperationalEvent, Relationship
 from .query import InvalidQueryCursor, ObjectQuery, ObjectQueryResult, QueryBudgetExceeded
+from .runtime import AuthorizationError
 
 
 app: FastAPI = legacy.app
@@ -27,7 +30,9 @@ def _request_id(request: Request) -> str:
     return str(getattr(request.state, "request_id", uuid4()))
 
 
-def _error_payload(request: Request, code: str, message: str, details: dict[str, Any] | None = None) -> dict[str, Any]:
+def _error_payload(
+    request: Request, code: str, message: str, details: dict[str, Any] | None = None
+) -> dict[str, Any]:
     return ErrorEnvelope(
         code=code,
         message=message,
@@ -111,7 +116,10 @@ def _parse_if_match(value: str | None) -> int | None:
     if not token.isdigit():
         raise HTTPException(
             status_code=400,
-            detail={"code": "invalid_if_match", "message": "If-Match must contain an object version ETag"},
+            detail={
+                "code": "invalid_if_match",
+                "message": "If-Match must contain an object version ETag",
+            },
         )
     return int(token)
 
@@ -145,7 +153,9 @@ def v1_query_objects(
     try:
         method = getattr(legacy.runtime, "query_objects_for_actor", None)
         if method is None:
-            raise RuntimeError("Configured CEPIO runtime does not expose actor-scoped typed queries")
+            raise RuntimeError(
+                "Configured CEPIO runtime does not expose actor-scoped typed queries"
+            )
         return method(query, actor.roles)
     except QueryBudgetExceeded as exc:
         raise HTTPException(
@@ -161,6 +171,27 @@ def v1_query_objects(
         raise HTTPException(
             status_code=422,
             detail={"code": "query_validation", "message": str(exc)},
+        ) from exc
+
+
+def v1_evaluate_skill(
+    invocation: SkillInvocation,
+    request: Request,
+    actor: ActorContext = Depends(get_actor_context),
+) -> SkillEvaluation:
+    service = build_application_service(legacy.runtime)
+    context = ExecutionContext(
+        actor_id=actor.actor_id,
+        actor_roles=frozenset(actor.roles),
+        tenant_id=actor.tenant_id,
+        correlation_id=_request_id(request),
+    )
+    try:
+        return service.evaluate_skill(invocation, context)
+    except AuthorizationError as exc:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "skill_authorization", "message": str(exc)},
         ) from exc
 
 
@@ -184,28 +215,112 @@ def v1_execute_action(
 
 V1_ROUTES: tuple[tuple[str, Any, list[str], Any, str, str], ...] = (
     ("/health", legacy.health, ["GET"], None, "getHealth", "system"),
-    ("/objects/{object_id}", v1_upsert_object, ["PUT"], OntologyObject, "upsertObject", "objects"),
-    ("/objects/{object_id}", v1_get_object, ["GET"], OntologyObject, "getObject", "objects"),
+    (
+        "/objects/{object_id}",
+        v1_upsert_object,
+        ["PUT"],
+        OntologyObject,
+        "upsertObject",
+        "objects",
+    ),
+    (
+        "/objects/{object_id}",
+        v1_get_object,
+        ["GET"],
+        OntologyObject,
+        "getObject",
+        "objects",
+    ),
     ("/objects", legacy.list_objects, ["GET"], list[OntologyObject], "listObjects", "objects"),
     ("/query/objects", v1_query_objects, ["POST"], ObjectQueryResult, "queryObjects", "query"),
-    ("/relationships", legacy.add_relationship, ["POST"], Relationship, "addRelationship", "relationships"),
-    ("/objects/{object_id}/neighbors", legacy.neighbors, ["GET"], list[OntologyObject], "getNeighbors", "relationships"),
+    (
+        "/relationships",
+        legacy.add_relationship,
+        ["POST"],
+        Relationship,
+        "addRelationship",
+        "relationships",
+    ),
+    (
+        "/objects/{object_id}/neighbors",
+        legacy.neighbors,
+        ["GET"],
+        list[OntologyObject],
+        "getNeighbors",
+        "relationships",
+    ),
     ("/graph/backend", legacy.graph_backend, ["GET"], GraphBackendInfo, "getGraphBackend", "graph"),
-    ("/graph/centrality", legacy.graph_centrality, ["GET"], CentralityResult, "getGraphCentrality", "graph"),
-    ("/graph/blast-radius/{object_id}", legacy.graph_blast_radius, ["GET"], BlastRadiusResult, "getBlastRadius", "graph"),
-    ("/graph/communities", legacy.graph_communities, ["GET"], CommunityResult, "getGraphCommunities", "graph"),
+    (
+        "/graph/centrality",
+        legacy.graph_centrality,
+        ["GET"],
+        CentralityResult,
+        "getGraphCentrality",
+        "graph",
+    ),
+    (
+        "/graph/blast-radius/{object_id}",
+        legacy.graph_blast_radius,
+        ["GET"],
+        BlastRadiusResult,
+        "getBlastRadius",
+        "graph",
+    ),
+    (
+        "/graph/communities",
+        legacy.graph_communities,
+        ["GET"],
+        CommunityResult,
+        "getGraphCommunities",
+        "graph",
+    ),
     ("/events", legacy.record_event, ["POST"], OperationalEvent, "recordEvent", "events"),
-    ("/objects/{object_id}/events", legacy.events_for, ["GET"], list[OperationalEvent], "listObjectEvents", "events"),
+    (
+        "/objects/{object_id}/events",
+        legacy.events_for,
+        ["GET"],
+        list[OperationalEvent],
+        "listObjectEvents",
+        "events",
+    ),
+    (
+        "/skills/evaluate",
+        v1_evaluate_skill,
+        ["POST"],
+        SkillEvaluation,
+        "evaluateSkill",
+        "skills",
+    ),
     ("/actions", v1_execute_action, ["POST"], None, "executeAction", "actions"),
-    ("/functions/{name}", legacy.call_function, ["POST"], dict[str, Any], "callFunction", "functions"),
+    (
+        "/functions/{name}",
+        legacy.call_function,
+        ["POST"],
+        dict[str, Any],
+        "callFunction",
+        "functions",
+    ),
     ("/decisions", legacy.save_decision, ["POST"], Decision, "saveDecision", "decisions"),
-    ("/decisions/{decision_id}", legacy.get_decision, ["GET"], Decision, "getDecision", "decisions"),
+    (
+        "/decisions/{decision_id}",
+        legacy.get_decision,
+        ["GET"],
+        Decision,
+        "getDecision",
+        "decisions",
+    ),
     ("/audit", legacy.audit, ["GET"], list[dict[str, Any]], "listAudit", "audit"),
 )
 
 
 def _install_v1_routes() -> None:
-    existing = {(route.path, frozenset(route.methods or set())) for route in app.routes if hasattr(route, "methods")}
+    existing: set[tuple[str, frozenset[str]]] = set()
+    for route in app.routes:
+        path = getattr(route, "path", None)
+        methods = getattr(route, "methods", None)
+        if isinstance(path, str) and methods is not None:
+            existing.add((path, frozenset(methods)))
+
     for path, endpoint, methods, response_model, operation_id, tag in V1_ROUTES:
         full_path = f"/api/v1{path}"
         signature = (full_path, frozenset(methods))
@@ -231,9 +346,7 @@ def _public_openapi() -> dict[str, Any]:
         routes=app.routes,
     )
     schema["paths"] = {
-        path: item
-        for path, item in schema.get("paths", {}).items()
-        if path.startswith("/api/v1/")
+        path: item for path, item in schema.get("paths", {}).items() if path.startswith("/api/v1/")
     }
     app.openapi_schema = schema
     return schema

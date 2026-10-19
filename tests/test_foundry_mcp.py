@@ -193,12 +193,16 @@ def test_actual_mcp_protocol_lists_governed_tools_and_hides_actor_arguments():
                 "cepio_get_state_at",
                 "cepio_explain_property",
                 "cepio_call_function",
+                "cepio_evaluate_skill",
                 "cepio_recommend_action",
                 "cepio_execute_action",
             }
             execute_schema = tools["cepio_execute_action"].input_schema
             assert "actor_id" not in execute_schema.get("properties", {})
             assert "actor_roles" not in execute_schema.get("properties", {})
+            skill_schema = tools["cepio_evaluate_skill"].input_schema
+            assert "actor_id" not in skill_schema.get("properties", {})
+            assert "actor_roles" not in skill_schema.get("properties", {})
 
             obj_result = await client.call_tool("cepio_get_object", {"object_id": "K-MCP"})
             assert obj_result.is_error is False
@@ -233,7 +237,10 @@ def test_actual_mcp_protocol_lists_governed_tools_and_hides_actor_arguments():
             )
             assert explain_result.is_error is False
             assert explain_result.structured_content["object_id"] == "K-MCP"
-            assert explain_result.structured_content["provenance"][0]["source"]["source_system"] == "SAP"
+            assert (
+                explain_result.structured_content["provenance"][0]["source"]["source_system"]
+                == "SAP"
+            )
 
             rec_result = await client.call_tool(
                 "cepio_recommend_action",

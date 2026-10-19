@@ -7,7 +7,16 @@ from typing import Any, Iterator, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
-from ...model import ActionRequest, ActionResult, ObjectRef, OntologyObject, PolicyDecision, PolicyEffect
+from ...application_contract import ExecutionContext, SkillEvaluation, SkillInvocation
+from ...application_runtime import build_application_service
+from ...model import (
+    ActionRequest,
+    ActionResult,
+    ObjectRef,
+    OntologyObject,
+    PolicyDecision,
+    PolicyEffect,
+)
 from ...query import ObjectQuery, ObjectQueryResult
 from ...runtime import AuthorizationError, CEPIORuntime
 
@@ -100,9 +109,7 @@ class EntraClaimsMapper:
             raise AuthorizationError("Verified Entra claims do not contain oid/sub")
 
         mapped_roles = {
-            self.role_map[role]
-            for role in claims.get("roles", [])
-            if role in self.role_map
+            self.role_map[role] for role in claims.get("roles", []) if role in self.role_map
         }
         mapped_roles.update(
             self.group_role_map[group]
@@ -141,9 +148,18 @@ class CEPIOMCPGateway:
     def __init__(self, runtime: CEPIORuntime, actor_provider: ActorProvider) -> None:
         self.runtime = runtime
         self.actor_provider = actor_provider
+        self.application_service = build_application_service(runtime)
 
     def _actor(self) -> ActorContext:
         return self.actor_provider.current_actor()
+
+    @staticmethod
+    def _execution_context(actor: ActorContext) -> ExecutionContext:
+        return ExecutionContext(
+            actor_id=actor.subject_id,
+            actor_roles=frozenset(actor.roles),
+            tenant_id=actor.tenant_id,
+        )
 
     def _authorize_object(self, obj: OntologyObject, actor: ActorContext) -> OntologyObject:
         if not self.runtime.policy_engine.can_read_type(actor.roles, obj.type):
@@ -198,7 +214,9 @@ class CEPIOMCPGateway:
         else:
             method = getattr(self.runtime, "get_object_at", None)
             if method is None:
-                raise RuntimeError("Configured CEPIO runtime does not support transaction-time state")
+                raise RuntimeError(
+                    "Configured CEPIO runtime does not support transaction-time state"
+                )
             assert as_of_transaction is not None
             obj = method(object_id, as_of_transaction)
         return self._authorize_object(obj, actor)
@@ -234,6 +252,13 @@ class CEPIOMCPGateway:
                 f"Actor {actor.subject_id} is not authorized to call function {function_name}"
             )
         return self.runtime.call_function(function_name, **arguments)
+
+    def evaluate_skill(self, invocation: SkillInvocation) -> SkillEvaluation:
+        actor = self._actor()
+        return self.application_service.evaluate_skill(
+            invocation,
+            self._execution_context(actor),
+        )
 
     def recommend_action(
         self,

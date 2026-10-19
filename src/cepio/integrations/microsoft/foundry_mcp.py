@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+from ...application_contract import SkillInvocation
 from ...query import ObjectQuery
 from ...runtime import CEPIORuntime
 from .foundry_gateway import ActorProvider, CEPIOMCPGateway
@@ -26,8 +27,9 @@ def build_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
         "CEPIO Industrial Operating Gateway",
         instructions=(
             "Use CEPIO tools for governed industrial object queries, temporal state, "
-            "lineage, functions and actions. Never infer authorization from the model. "
-            "cepio_execute_action is a separate governed operation from recommendation."
+            "lineage, functions, Skills and actions. Never infer authorization from the model. "
+            "cepio_evaluate_skill may produce a governed Decision but does not grant action "
+            "authority; cepio_execute_action remains a separate governed operation."
         ),
     )
 
@@ -66,6 +68,11 @@ def build_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
         if hasattr(value, "model_dump"):
             value = value.model_dump(mode="json")
         return {"result": value}
+
+    @mcp.tool(name="cepio_evaluate_skill", title="Evaluate governed CEPIO Skill")
+    def cepio_evaluate_skill(invocation: SkillInvocation) -> dict[str, Any]:
+        """Evaluate one admitted executable Skill through the shared application contract."""
+        return gateway.evaluate_skill(invocation).model_dump(mode="json")
 
     @mcp.tool(name="cepio_recommend_action", title="Evaluate CEPIO action recommendation")
     def cepio_recommend_action(
