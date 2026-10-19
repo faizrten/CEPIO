@@ -2,7 +2,7 @@
 
 ## Why CEPIO needs multiple interfaces
 
-CEPIO now distinguishes its **application contract** from the protocols used to access it.
+CEPIO distinguishes its **application contract** from the protocols used to access it.
 
 The application contract is the stable semantic and behavioral promise. REST, SDKs, MCP tools, events and future interfaces are protocol projections over that contract.
 
@@ -17,7 +17,7 @@ The application contract is the stable semantic and behavioral promise. REST, SD
                        notebooks/data        Foundry/Copilot
 ```
 
-See [`docs/application-contract-v0.1.md`](../application-contract-v0.1.md).
+Current specification: [`docs/application-contract-v0.2.md`](../application-contract-v0.2.md). The v0.1 specification remains the historical envelope baseline.
 
 ## Contract vs API
 
@@ -35,21 +35,50 @@ application contract
  REST / MCP / SDK / Events
 ```
 
-An SDK or MCP tool must not invent new CEPIO semantics. The same rule now applies to REST endpoints.
+An SDK or MCP tool must not invent new CEPIO semantics. The same rule applies to REST endpoints.
 
-## Application Contract v0.1
+## Application Contract v0.2
 
-The first protocol-neutral application contract introduces stable envelopes for:
+v0.1 introduced protocol-neutral envelopes for industrial context, evidence references, Skill invocation/evaluation, Decision proposals, Action intents and trusted execution context.
 
-- industrial context and evidence references;
-- Skill invocation and evaluation;
-- Decision proposals;
-- Action intents;
-- trusted execution context.
+v0.2 makes the Skill envelope executable through `CEPIOApplicationService.evaluate_skill`:
 
-`CEPIOApplicationService` is the thin facade that maps those requests onto existing runtime semantics. It injects trusted actor identity and delegates policy, persistence, Decision validation, Action execution and audit to the existing CEPIO runtime.
+```text
+SkillInvocation + trusted ExecutionContext
+                |
+                v
+        actor-aware preflight
+                |
+            READY only
+                |
+                v
+       executable Skill binding
+                |
+                v
+       restricted governed host
+                |
+        +-------+-------+
+        |               |
+actor-scoped reads   authorized Functions
+        |               |
+        +-------+-------+
+                |
+                v
+       SkillExecutionOutput
+                |
+         optional DecisionProposal
+                |
+                v
+          SkillEvaluation
+```
 
-Existing REST/MCP surfaces are not migrated in this increment; v0.1 is additive. Subsequent increments will converge those interfaces onto the same service with cross-protocol conformance tests.
+`SkillExecutorRegistry` binds stable Skill identity to executable procedure code, while `SkillRegistry` remains authoritative for admission. Duplicate executable bindings fail closed.
+
+Executable procedures receive `SkillExecutionHost`, not raw runtime access. In v0.2 that host exposes actor-scoped reads and policy-authorized deterministic Functions only. A procedure can propose a Decision, but the application service persists it with trusted host identity.
+
+The first executable reference is `cepio.skill.maintenance.assess-maintenance-deferral`. It interprets already-governed Risk evidence through `evaluateMaintenanceDeferralRisk`, may persist a maintenance-deferral Decision, and never executes `DeferWorkOrder` itself.
+
+Existing REST/MCP/SDK surfaces are still not migrated in this increment. Protocol convergence follows after the execution kernel is qualified.
 
 ## Public API v1 — implemented REST boundary
 
@@ -91,6 +120,8 @@ API v1 reuses the same secured CEPIO endpoint functions as the compatibility rou
 
 The application-contract direction strengthens this boundary: caller-visible `SkillInvocation`, `DecisionProposal` and `ActionIntent` payloads do not contain caller-selected identity or roles. Protocol adapters inject trusted execution context separately.
 
+For executable Skills, the same actor context is re-used for READY preflight, actor-scoped object reads, Function authorization and any resulting Decision persistence.
+
 ## Object API
 
 Responsibilities:
@@ -115,11 +146,15 @@ Functions and actions are separate API surfaces because they carry different ris
 
 The application contract adds `ActionIntent` as the caller-visible protocol-neutral request. Runtime `ActionRequest` remains the internal governed execution form carrying host-injected identity and roles.
 
+Skill execution does not collapse this distinction. A Skill may return a recommendation or Decision that names an Action while direct Action execution remains a separate governed operation.
+
 ## Python and TypeScript SDKs
 
 The Python SDK is the natural access path for data engineering, AI/ML workflows, notebooks, backend services, automation and ontology tooling.
 
 A TypeScript SDK is strategically important for CEPIO web applications, visualization clients and React-based industrial applications. Both SDKs should converge on the CEPIO application contract and remain synchronized with supported protocol surfaces rather than becoming separate semantic layers.
+
+Future SDK Skill methods should call the same `evaluate_skill` application operation rather than reproduce Skill procedure logic client-side.
 
 ## MCP
 
@@ -137,7 +172,7 @@ cepio_execute_action
 
 Identity and roles are injected from the authenticated hosting context. They are **not model-callable arguments**.
 
-Future Skill-oriented MCP tools should map onto the same `SkillInvocation` / `SkillEvaluation` application contract used by REST and SDK clients.
+Future Skill-oriented MCP tools should map onto the same `SkillInvocation` / `SkillEvaluation` application contract and `evaluate_skill` execution path used by REST and SDK clients.
 
 ## Recommendation vs execution
 
@@ -154,6 +189,8 @@ Recommend action
 
 An agent can therefore be broad in reasoning context while remaining constrained in operational authority.
 
+Application Contract v0.2 proves this explicitly for maintenance deferral: the AI recommender can evaluate the Skill and propose the governed Decision, but cannot use Skill execution to transition the WorkOrder.
+
 ## Remaining API production hardening
 
 The versioned REST contract is established, but API v1 is not yet production-GA. Remaining P0 hardening includes:
@@ -164,4 +201,5 @@ The versioned REST contract is established, but API v1 is not yet production-GA.
 - repository query pushdown;
 - cursor pagination;
 - deeper schema-level OpenAPI compatibility checks;
-- gradual routing of REST operations through the protocol-neutral application service without changing accepted v1 behavior.
+- gradual routing of REST operations through the protocol-neutral application service without changing accepted v1 behavior;
+- cross-protocol Skill conformance once `evaluate_skill` is projected onto REST, MCP and SDK.
