@@ -372,9 +372,7 @@ class PerformanceIndustryIQService:
         for contribution in contributions:
             for hypothesis in contribution.hypotheses:
                 confidence = (
-                    "unassessed"
-                    if hypothesis.confidence is None
-                    else hypothesis.confidence.value
+                    "unassessed" if hypothesis.confidence is None else hypothesis.confidence.value
                 )
                 support = ", ".join(hypothesis.supporting_evidence_ids) or "none"
                 contradict = ", ".join(hypothesis.contradicting_evidence_ids) or "none"
