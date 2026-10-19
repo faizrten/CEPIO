@@ -201,5 +201,7 @@ def test_pack_fails_closed_when_actions_exist_but_core_decision_is_missing():
     for action_name in ("CreateInspection", "CreateWorkOrder", "EscalateRisk"):
         runtime.register_action(action_name, _noop_action, set())
 
-    with pytest.raises(RuntimeError, match="requires Core decision maintenance-intervention-recommendation"):
+    with pytest.raises(
+        RuntimeError, match="requires Core decision maintenance-intervention-recommendation"
+    ):
         RELIABILITY_ASSET_INTERVENTION_IQ_PACK.install(runtime)
