@@ -373,9 +373,7 @@ class CEPIOApplicationService:
             recommendation=output.recommendation,
             outputs=output.outputs,
             evidence=self._merge_evidence(invocation.evidence, output.evidence),
-            assessment_refs=self._merge_refs(
-                invocation.assessment_refs, output.assessment_refs
-            ),
+            assessment_refs=self._merge_refs(invocation.assessment_refs, output.assessment_refs),
             decision=decision,
             messages=output.messages,
             metadata=metadata,
