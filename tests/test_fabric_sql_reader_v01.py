@@ -145,8 +145,7 @@ def test_reader_uses_fixed_parameterized_select_and_closes_resources():
     assert seen_connection_strings == [_settings().connection_string]
     assert cursor.executed == [
         (
-            "SELECT * FROM [cepio_proof].[cepio_drilling_activity_interval] "
-            "WHERE [context_id] = ?",
+            "SELECT * FROM [cepio_proof].[cepio_drilling_activity_interval] WHERE [context_id] = ?",
             ("NPT-CONTEXT-001",),
         )
     ]
