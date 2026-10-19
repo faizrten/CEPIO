@@ -36,9 +36,7 @@ def test_version_constrained_pack_fails_closed_when_installed_version_is_incompa
     result = _preflight(runtime, ">=0.1.0,<0.2.0")
 
     assert result.status == "BLOCKED"
-    assert [check.code for check in result.blockers] == [
-        "INDUSTRY_IQ_PACK_VERSION_INCOMPATIBLE"
-    ]
+    assert [check.code for check in result.blockers] == ["INDUSTRY_IQ_PACK_VERSION_INCOMPATIBLE"]
 
 
 def test_invalid_skill_pack_constraint_fails_closed_instead_of_raising():
@@ -48,9 +46,7 @@ def test_invalid_skill_pack_constraint_fails_closed_instead_of_raising():
     result = _preflight(runtime, ">=bad")
 
     assert result.status == "BLOCKED"
-    assert [check.code for check in result.blockers] == [
-        "INDUSTRY_IQ_PACK_CONSTRAINT_INVALID"
-    ]
+    assert [check.code for check in result.blockers] == ["INDUSTRY_IQ_PACK_CONSTRAINT_INVALID"]
 
 
 def test_constraint_only_declaration_still_requires_pack_presence():
