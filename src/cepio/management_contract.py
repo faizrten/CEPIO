@@ -32,7 +32,8 @@ class RuntimeDescriptor(BaseModel):
     cepio_version: str
     environment: str
     persistence_mode: Literal["memory", "sqlite", "external"]
-    auth_mode: str
+    application_auth_mode: str
+    management_access: Literal["loopback-only"] = "loopback-only"
     validate_types: bool
     validate_properties: bool
     strict_properties: bool
@@ -81,8 +82,8 @@ class CapabilityInventory(BaseModel):
     industry_iq_pack_count: int
     binding_count: int
     profile_count: int
-    application_contract: bool = True
-    management_contract: str = MANAGEMENT_CONTRACT_VERSION
+    application_contract_available: bool = True
+    management_contract_version: str = MANAGEMENT_CONTRACT_VERSION
 
 
 class CEPIOManagementService:
@@ -125,7 +126,7 @@ class CEPIOManagementService:
             cepio_version=__version__,
             environment=self.runtime_settings.environment,
             persistence_mode=persistence_mode,
-            auth_mode=self.auth_settings.mode,
+            application_auth_mode=self.auth_settings.mode,
             validate_types=self.runtime_settings.validate_types,
             validate_properties=self.runtime_settings.validate_properties,
             strict_properties=self.runtime_settings.strict_properties,
