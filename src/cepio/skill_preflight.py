@@ -214,6 +214,14 @@ def evaluate_skill_preflight(
                 pack_id,
                 installed_version,
             )
+        elif constraint in {"", "*"}:
+            passed(
+                "industry_iq_pack",
+                "INDUSTRY_IQ_PACK_AVAILABLE",
+                f"Required Industry IQ pack is installed at version {installed_version}.",
+                pack_id,
+                pack_id,
+            )
         else:
             passed(
                 "industry_iq_pack",
