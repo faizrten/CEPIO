@@ -137,10 +137,7 @@ def test_v02_promotes_rel_iq_002_without_mutating_frozen_v01_portfolio():
     assert v02["frozen"] is True
     assert new_by_id["REL-IQ-001"]["status"] == "executable-v0.1"
     assert new_by_id["REL-IQ-002"]["status"] == "executable-v0.2"
-    assert (
-        new_by_id["REL-IQ-002"]["pack_id"]
-        == "cepio.iq.reliability.failure-pattern-recurrence"
-    )
+    assert new_by_id["REL-IQ-002"]["pack_id"] == "cepio.iq.reliability.failure-pattern-recurrence"
     assert v02["rules"]["recorded_common_cause_is_proven_root_cause"] is False
     assert v02["rules"]["bad_actor_ranking_requires_exposure_normalization"] is True
 
@@ -241,10 +238,7 @@ def test_systemic_recurrence_works_across_generic_and_drilling_equipment():
 def test_population_exceedance_on_one_equipment_remains_local_not_systemic():
     runtime = _runtime()
     _equipment(runtime, "EQ-1")
-    ids = [
-        _failure(runtime, f"F-{index}", "EQ-1", "FM-X", cause=None)
-        for index in range(1, 5)
-    ]
+    ids = [_failure(runtime, f"F-{index}", "EQ-1", "FM-X", cause=None) for index in range(1, 5)]
 
     result = _assess(
         runtime,
