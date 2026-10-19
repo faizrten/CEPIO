@@ -109,7 +109,10 @@ class InMemoryPerformanceContractStore(PerformanceContractStore):
     def get_active(self, contract_id: str) -> PerformanceContractRevision | None:
         with self._lock:
             for item in self._revisions.values():
-                if item.contract_id == contract_id and item.lifecycle == PerformanceContractLifecycle.active:
+                if (
+                    item.contract_id == contract_id
+                    and item.lifecycle == PerformanceContractLifecycle.active
+                ):
                     return item.model_copy(deep=True)
         return None
 
@@ -135,7 +138,10 @@ class InMemoryPerformanceContractStore(PerformanceContractStore):
             if target.lifecycle == PerformanceContractLifecycle.active:
                 return target.model_copy(deep=True)
             for other_key, item in tuple(self._revisions.items()):
-                if item.contract_id == contract_id and item.lifecycle == PerformanceContractLifecycle.active:
+                if (
+                    item.contract_id == contract_id
+                    and item.lifecycle == PerformanceContractLifecycle.active
+                ):
                     self._revisions[other_key] = item.model_copy(
                         update={
                             "lifecycle": PerformanceContractLifecycle.retired,
@@ -321,7 +327,10 @@ class SQLitePerformanceContractStore(PerformanceContractStore):
             ).fetchone()
             if row is None:
                 raise KeyError((contract_id, version))
-            if PerformanceContractLifecycle(row["lifecycle"]) != PerformanceContractLifecycle.retired:
+            if (
+                PerformanceContractLifecycle(row["lifecycle"])
+                != PerformanceContractLifecycle.retired
+            ):
                 self._conn.execute(
                     """UPDATE performance_contract_revisions
                        SET lifecycle = 'retired', retired_at = ?
@@ -398,7 +407,11 @@ class PerformanceContractRegistry:
             update={"effective_organization_id": validated.resolved.contract.organization_id}
         )
         self.store.create(draft)
-        return self.activate(definition.id, definition.version, activated_at=timestamp) if activate else draft
+        return (
+            self.activate(definition.id, definition.version, activated_at=timestamp)
+            if activate
+            else draft
+        )
 
     def get(self, contract_id: str, version: str) -> PerformanceContractRevision:
         revision = self.store.get(contract_id, version)
