@@ -84,6 +84,8 @@ Current repository implementation also includes incremental Skill binding/prefli
 
 [Competency & Assurance](20-Competency-Assurance.md) is a first-class acceptance discipline. Drilling persona pack v0.3 has a checked-in 14/14 semantic PASS expectation; the operational fixture separately expects five assurance gates to pass. Those scopes do not establish complete runtime coverage or production readiness.
 
+[Management Control Plane](21-Management-Control-Plane.md) defines the separate read-only Management Contract and local FastAPI projection used to inspect runtime capabilities without mixing administrative concerns into the public application API.
+
 ## Operating loop
 
 ```text
@@ -128,6 +130,10 @@ CEPIO's purpose is not merely to describe the enterprise. It is to create a gove
 
 19. [Target Users / Personas](19-Target-Users-Personas.md)
 20. [Competency & Assurance](20-Competency-Assurance.md)
+
+### Control plane
+
+21. [Management Control Plane](21-Management-Control-Plane.md)
 
 ## Documentation governance
 
