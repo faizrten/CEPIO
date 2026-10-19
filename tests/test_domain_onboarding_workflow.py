@@ -60,6 +60,12 @@ def _validate(path: Path, expected: set[tuple[str, str]] | None = None) -> dict[
     )
 
 
+def _manifest_copy(tmp_path: Path, **artifact_overrides: object) -> Path:
+    payload = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
+    payload["artifacts"].update(artifact_overrides)
+    return _write_yaml(tmp_path / "manifest.yaml", payload)
+
+
 def test_refinery_reference_pack_reaches_generalization_review():
     report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
 
@@ -118,6 +124,13 @@ def test_expected_gap_keys_only_includes_partial_and_fail():
     }
 
 
+def test_yaml_loader_requires_mapping(tmp_path: Path):
+    path = tmp_path / "invalid.yaml"
+    path.write_text("- not\n- a\n- mapping\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="must contain a YAML mapping"):
+        domain_onboarding._load_yaml(path)
+
+
 def test_artifact_path_is_repository_bounded(tmp_path: Path):
     artifact = tmp_path / "inside.yaml"
     artifact.write_text("id: inside\n", encoding="utf-8")
@@ -159,6 +172,18 @@ def test_workflow_contract_rejects_undeclared_transition_state(tmp_path: Path):
     )
     with pytest.raises(ValueError, match="undeclared state"):
         load_domain_workflow(path)
+
+
+def test_runtime_rejects_transition_missing_from_contract(tmp_path: Path):
+    payload = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    payload["transitions"] = [
+        item
+        for item in payload["transitions"]
+        if not (item["source"] == "REQUESTED" and item["target"] == "SCOPED")
+    ]
+    path = _write_yaml(tmp_path / "workflow.yaml", payload)
+    with pytest.raises(ValueError, match="workflow forbids transition REQUESTED->SCOPED"):
+        run_domain_onboarding(ROOT, MANIFEST, path, POLICY)
 
 
 def test_policy_rejects_duplicate_gap_dispositions(tmp_path: Path):
@@ -275,6 +300,74 @@ def test_gap_triage_rejects_stale_coverage(tmp_path: Path):
         _validate(path, expected=set())
 
 
+def test_onboarding_blocks_scope_loader_errors(monkeypatch: pytest.MonkeyPatch):
+    def fail_load(path: Path) -> object:
+        raise RuntimeError(f"cannot load {path.name}")
+
+    monkeypatch.setattr(domain_onboarding, "load_archetype", fail_load)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert "cannot load" in report["block_reason"]
+
+
+def test_onboarding_blocks_mismatched_archetype(monkeypatch: pytest.MonkeyPatch):
+    original = domain_onboarding.load_archetype
+
+    def mismatch(path: Path) -> object:
+        return original(path).model_copy(update={"id": "different-archetype"})
+
+    monkeypatch.setattr(domain_onboarding, "load_archetype", mismatch)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert "competency archetype" in report["block_reason"]
+
+
+def test_onboarding_blocks_empty_persona_pack(monkeypatch: pytest.MonkeyPatch):
+    original = domain_onboarding.load_personas
+
+    def empty(path: Path) -> object:
+        return original(path).model_copy(update={"personas": []})
+
+    monkeypatch.setattr(domain_onboarding, "load_personas", empty)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert report["block_reason"] == "persona pack must contain at least one persona"
+
+
+def test_onboarding_blocks_empty_standards_registry(monkeypatch: pytest.MonkeyPatch):
+    original = domain_onboarding.load_standards
+
+    def empty(path: Path) -> object:
+        return original(path).model_copy(update={"references": []})
+
+    monkeypatch.setattr(domain_onboarding, "load_standards", empty)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert report["block_reason"] == "standards registry must contain at least one reference"
+
+
+def test_onboarding_blocks_unfrozen_benchmark(monkeypatch: pytest.MonkeyPatch):
+    original = domain_onboarding.load_pack
+
+    def unfrozen(path: Path) -> object:
+        return original(path).model_copy(update={"frozen": False})
+
+    monkeypatch.setattr(domain_onboarding, "load_pack", unfrozen)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert "must be frozen" in report["block_reason"]
+
+
+def test_onboarding_blocks_baseline_execution_error(monkeypatch: pytest.MonkeyPatch):
+    def fail_harness(*args: object, **kwargs: object) -> dict[str, object]:
+        raise RuntimeError("baseline exploded")
+
+    monkeypatch.setattr(domain_onboarding, "run_harness", fail_harness)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert report["block_reason"] == "baseline exploded"
+
+
 def test_onboarding_blocks_when_gap_triage_is_required(monkeypatch: pytest.MonkeyPatch):
     original = domain_onboarding.run_harness
 
@@ -290,6 +383,47 @@ def test_onboarding_blocks_when_gap_triage_is_required(monkeypatch: pytest.Monke
     assert "require an accepted triage pack" in report["block_reason"]
 
 
+def test_onboarding_blocks_gap_triage_validation_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+):
+    original = domain_onboarding.run_harness
+
+    def with_gap(*args: object, **kwargs: object) -> dict[str, object]:
+        report = original(*args, **kwargs)
+        report["results"][0]["status"] = "PARTIAL"
+        report["results"][0]["missing"] = ["urn:test:new-gap"]
+        return report
+
+    def fail_triage(*args: object, **kwargs: object) -> dict[str, object]:
+        raise RuntimeError("triage rejected")
+
+    manifest = _manifest_copy(
+        tmp_path, gap_triage="generalization/gaps/drilling-contractor-v0.1.yaml"
+    )
+    monkeypatch.setattr(domain_onboarding, "run_harness", with_gap)
+    monkeypatch.setattr(domain_onboarding, "_validate_gap_triage", fail_triage)
+    report = run_domain_onboarding(ROOT, manifest, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert report["block_reason"] == "triage rejected"
+
+
+def test_onboarding_blocks_critical_and_error_semantic_results(monkeypatch: pytest.MonkeyPatch):
+    original = domain_onboarding.run_harness
+
+    def failing_semantics(*args: object, **kwargs: object) -> dict[str, object]:
+        report = original(*args, **kwargs)
+        report["results"][0]["status"] = "FAIL"
+        report["results"][0]["missing"] = []
+        report["status_counts"]["ERROR"] = 1
+        return report
+
+    monkeypatch.setattr(domain_onboarding, "run_harness", failing_semantics)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert "critical failures" in report["block_reason"]
+    assert "ERROR" in report["block_reason"]
+
+
 def test_onboarding_blocks_when_runtime_qualification_errors(monkeypatch: pytest.MonkeyPatch):
     def fail_runtime(*args: object, **kwargs: object) -> dict[str, object]:
         raise RuntimeError("runtime fixture failed")
@@ -298,6 +432,30 @@ def test_onboarding_blocks_when_runtime_qualification_errors(monkeypatch: pytest
     report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
     assert report["status"] == "BLOCKED"
     assert report["block_reason"] == "runtime fixture failed"
+
+
+def test_onboarding_blocks_runtime_threshold_and_failed_results(monkeypatch: pytest.MonkeyPatch):
+    original = domain_onboarding.run_runtime_coverage
+
+    def degraded_runtime(*args: object, **kwargs: object) -> dict[str, object]:
+        report = original(*args, **kwargs)
+        report["runtime_coverage_rate"] = 0.5
+        report["status_counts"]["FAIL"] = 1
+        report["status_counts"]["ERROR"] = 1
+        return report
+
+    monkeypatch.setattr(domain_onboarding, "run_runtime_coverage", degraded_runtime)
+    report = run_domain_onboarding(ROOT, MANIFEST, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert "runtime coverage rate 0.500" in report["block_reason"]
+    assert "FAIL/ERROR" in report["block_reason"]
+
+
+def test_onboarding_blocks_when_required_runtime_suite_is_missing(tmp_path: Path):
+    manifest = _manifest_copy(tmp_path, runtime_suite=None)
+    report = run_domain_onboarding(ROOT, manifest, WORKFLOW, POLICY)
+    assert report["status"] == "BLOCKED"
+    assert report["block_reason"] == "policy requires a runtime qualification suite"
 
 
 def test_onboarding_blocks_when_semantic_threshold_regresses(monkeypatch: pytest.MonkeyPatch):
