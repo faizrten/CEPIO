@@ -14,6 +14,13 @@ from .application_runtime import build_application_service
 from .auth import ActorContext, get_actor_context
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import Decision, ErrorEnvelope, OntologyObject, OperationalEvent, Relationship
+from .performance_service import (
+    PerformanceContractView,
+    PerformanceEvaluationRequest,
+    PerformanceEvaluationResponse,
+    PerformanceServiceError,
+    build_performance_service,
+)
 from .query import InvalidQueryCursor, ObjectQuery, ObjectQueryResult, QueryBudgetExceeded
 from .runtime import AuthorizationError
 
@@ -24,6 +31,7 @@ app.description = (
     "The supported public REST contract is exposed under /api/v1. Unversioned routes "
     "remain temporarily for compatibility but are excluded from the public OpenAPI contract."
 )
+performance_service = build_performance_service(legacy.runtime)
 
 
 def _request_id(request: Request) -> str:
@@ -124,6 +132,13 @@ def _parse_if_match(value: str | None) -> int | None:
     return int(token)
 
 
+def _raise_performance_http_error(exc: PerformanceServiceError) -> None:
+    raise HTTPException(
+        status_code=exc.status_code,
+        detail={"code": exc.code, "message": str(exc)},
+    ) from exc
+
+
 def v1_get_object(
     object_id: str,
     response: Response,
@@ -193,6 +208,42 @@ def v1_evaluate_skill(
             status_code=403,
             detail={"code": "skill_authorization", "message": str(exc)},
         ) from exc
+
+
+def v1_get_performance_contract(
+    organization_id: str,
+    contract_id: str,
+    version: str | None = None,
+    actor: ActorContext = Depends(get_actor_context),
+) -> PerformanceContractView:
+    try:
+        return performance_service.resolve(
+            actor,
+            organization_id,
+            contract_id,
+            version=version,
+        )
+    except PerformanceServiceError as exc:
+        _raise_performance_http_error(exc)
+
+
+def v1_evaluate_performance_contract(
+    organization_id: str,
+    contract_id: str,
+    body: PerformanceEvaluationRequest,
+    version: str | None = None,
+    actor: ActorContext = Depends(get_actor_context),
+) -> PerformanceEvaluationResponse:
+    try:
+        return performance_service.evaluate(
+            actor,
+            organization_id,
+            contract_id,
+            body,
+            version=version,
+        )
+    except PerformanceServiceError as exc:
+        _raise_performance_http_error(exc)
 
 
 def v1_execute_action(
@@ -290,6 +341,22 @@ V1_ROUTES: tuple[tuple[str, Any, list[str], Any, str, str], ...] = (
         SkillEvaluation,
         "evaluateSkill",
         "skills",
+    ),
+    (
+        "/performance/organizations/{organization_id}/contracts/{contract_id}",
+        v1_get_performance_contract,
+        ["GET"],
+        PerformanceContractView,
+        "getPerformanceContract",
+        "performance",
+    ),
+    (
+        "/performance/organizations/{organization_id}/contracts/{contract_id}/evaluate",
+        v1_evaluate_performance_contract,
+        ["POST"],
+        PerformanceEvaluationResponse,
+        "evaluatePerformanceContract",
+        "performance",
     ),
     ("/actions", v1_execute_action, ["POST"], None, "executeAction", "actions"),
     (
