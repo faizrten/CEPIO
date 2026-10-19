@@ -22,6 +22,7 @@ from cepio.performance_industry_iq import (
     PerformanceIndustryIQService,
     PerformanceReasoningError,
     PerformanceReasoningRequest,
+    build_performance_industry_iq_service_with_reasoning,
 )
 from cepio.performance_registry import InMemoryPerformanceContractStore, PerformanceContractRegistry
 from cepio.performance_runtime import PerformanceObservation
@@ -347,7 +348,7 @@ def test_reliability_contribution_enriches_same_governed_decision_without_execut
         )
     )
 
-    service = PerformanceIndustryIQService(
+    service = build_performance_industry_iq_service_with_reasoning(
         base_service.performance_service,
         base_service.application_service,
         reasoning_contributors=(ReliabilityReasoningContributor(),),
