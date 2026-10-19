@@ -10,6 +10,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 - **[CEPIO v0.4 Developer Preview](developer-preview.md)** — clean-environment install, startup, qualification and release boundary.
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
+- **[Management Control Plane](wiki/21-Management-Control-Plane.md)** — protocol-neutral Management Contract v0.1 and local read-only FastAPI projection.
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.
 - **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
 - **[Kinetic Runtime](kinetic-runtime.md)** — durable workflow kernel over CEPIO Functions, Decisions, approvals and governed Actions.
@@ -41,6 +42,8 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 ## Key technical contracts
 
+- [Management Control Plane](wiki/21-Management-Control-Plane.md)
+- [ADR-0020 — Management Control Plane v0.1](adr/ADR-0020-management-control-plane-v0.1.md)
 - [Kinetic runtime](kinetic-runtime.md)
 - [Kinetic execution resilience v0.2](kinetic-execution-resilience.md)
 - [Governed external action runtime](external-action-runtime.md)
