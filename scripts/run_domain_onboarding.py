@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Execute the CEPIO Domain Onboarding control-plane workflow."""
+
 from __future__ import annotations
 
 import argparse
@@ -10,7 +11,9 @@ from cepio.domain_onboarding import run_domain_onboarding
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the governed CEPIO Domain Onboarding workflow")
+    parser = argparse.ArgumentParser(
+        description="Run the governed CEPIO Domain Onboarding workflow"
+    )
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument(
         "--manifest",
@@ -60,7 +63,9 @@ def main() -> int:
 
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        args.json_out.write_text(
+            json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
 
     if args.fail_on_blocked and report["status"] == "BLOCKED":
         return 2
