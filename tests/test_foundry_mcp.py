@@ -237,7 +237,10 @@ def test_actual_mcp_protocol_lists_governed_tools_and_hides_actor_arguments():
             )
             assert explain_result.is_error is False
             assert explain_result.structured_content["object_id"] == "K-MCP"
-            assert explain_result.structured_content["provenance"][0]["source"]["source_system"] == "SAP"
+            assert (
+                explain_result.structured_content["provenance"][0]["source"]["source_system"]
+                == "SAP"
+            )
 
             rec_result = await client.call_tool(
                 "cepio_recommend_action",
