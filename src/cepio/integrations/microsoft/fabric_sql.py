@@ -7,7 +7,6 @@ in CEPIO Industry IQ and provider-neutral binding modules.
 from __future__ import annotations
 
 import os
-import re
 from collections.abc import Callable, Iterable, Sequence
 from typing import Any, Literal, Protocol, cast
 
@@ -21,7 +20,18 @@ FabricSqlAuthentication = Literal[
     "ActiveDirectoryDeviceCode",
 ]
 
-_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_PROOF_SELECT_STATEMENTS = {
+    "cepio_drilling_npt_context": (
+        "SELECT * FROM [cepio_proof].[cepio_drilling_npt_context] WHERE [context_id] = ?"
+    ),
+    "cepio_drilling_activity_interval": (
+        "SELECT * FROM [cepio_proof].[cepio_drilling_activity_interval] WHERE [context_id] = ?"
+    ),
+    "cepio_drilling_activity_classification": (
+        "SELECT * FROM [cepio_proof].[cepio_drilling_activity_classification] "
+        "WHERE [context_id] = ?"
+    ),
+}
 
 
 class FabricSqlConfigurationError(RuntimeError):
@@ -35,7 +45,6 @@ class FabricSqlSettings(BaseModel):
 
     server: str
     database: str
-    schema_name: str = "cepio_proof"
     authentication: FabricSqlAuthentication = "ActiveDirectoryDefault"
     connection_timeout_seconds: int = Field(default=30, ge=1, le=300)
 
@@ -45,8 +54,6 @@ class FabricSqlSettings(BaseModel):
             raise ValueError("Fabric SQL server must be non-empty and must not contain ';'")
         if not self.database.strip() or ";" in self.database:
             raise ValueError("Fabric SQL database must be non-empty and must not contain ';'")
-        if not _IDENTIFIER.fullmatch(self.schema_name):
-            raise ValueError("Fabric SQL schema_name must be a simple SQL identifier")
         return self
 
     @classmethod
@@ -77,8 +84,6 @@ class FabricSqlSettings(BaseModel):
         return cls(
             server=server,
             database=database,
-            schema_name=os.getenv("CEPIO_FABRIC_SQL_SCHEMA", "cepio_proof").strip()
-            or "cepio_proof",
             authentication=cast(
                 FabricSqlAuthentication,
                 os.getenv("CEPIO_FABRIC_SQL_AUTH", "ActiveDirectoryDefault").strip(),
@@ -131,10 +136,11 @@ def _mssql_connect(connection_string: str) -> _Connection:
 
 
 class FabricSqlTableReader:
-    """Read allow-listed normalized CEPIO proof tables through Fabric SQL.
+    """Read allow-listed CEPIO proof tables through Fabric SQL.
 
-    The reader exposes only parameterized SELECT access and intentionally has no mutation
-    method. The calling binding controls which tables are valid for its industrial contract.
+    v0.1 deliberately maps only fixed, reviewed proof-table names to fixed SQL statements.
+    The only runtime value passed to SQL is the parameterized ``context_id``. The reader
+    exposes no mutation method.
     """
 
     def __init__(
@@ -147,9 +153,9 @@ class FabricSqlTableReader:
         allowed = frozenset(allowed_tables)
         if not allowed:
             raise ValueError("Fabric SQL reader requires at least one allowed table")
-        invalid = sorted(table for table in allowed if not _IDENTIFIER.fullmatch(table))
-        if invalid:
-            raise ValueError(f"Fabric SQL table names must be simple identifiers: {invalid}")
+        unsupported = sorted(allowed.difference(_PROOF_SELECT_STATEMENTS))
+        if unsupported:
+            raise ValueError(f"Fabric SQL table is not a supported proof table: {unsupported}")
         self.settings = settings
         self.allowed_tables = allowed
         self._connect = connect or _mssql_connect
@@ -160,16 +166,15 @@ class FabricSqlTableReader:
         if not context_id.strip():
             raise ValueError("context_id must be non-empty")
 
-        statement = (
-            f"SELECT * FROM [{self.settings.schema_name}].[{table_name}] "
-            "WHERE [context_id] = ?"
-        )
+        statement = _PROOF_SELECT_STATEMENTS[table_name]
         connection = self._connect(self.settings.connection_string)
         cursor = connection.cursor()
         try:
             cursor.execute(statement, (context_id,))
             if cursor.description is None:
-                raise RuntimeError(f"Fabric SQL query returned no result metadata for {table_name!r}")
+                raise RuntimeError(
+                    f"Fabric SQL query returned no result metadata for {table_name!r}"
+                )
             columns = [str(column[0]) for column in cursor.description]
             return [
                 {column: value for column, value in zip(columns, row, strict=True)}
