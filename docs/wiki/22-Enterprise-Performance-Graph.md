@@ -325,7 +325,7 @@ Callers may supply authorized CEPIO context object IDs. The reasoning service va
 
 It does not copy arbitrary object properties into Decision text, avoiding a secondary persistence surface with different disclosure semantics.
 
-See [ADR-0026](../adr/ADR-0026-performance-industry-iq-decision-v0.1.md).
+See [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md).
 
 ## Example
 
@@ -365,4 +365,4 @@ Reliability, drilling, refinery, subsurface and other Industry IQ packs should c
 
 After that reasoning contract is qualified, the same capability can be exposed through REST/MCP without moving semantic or policy ownership into protocol adapters.
 
-See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md) and [ADR-0026](../adr/ADR-0026-performance-industry-iq-decision-v0.1.md).
+See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md) and [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md).
