@@ -222,11 +222,15 @@ class CEPIOApplicationService:
         runtime: CEPIORuntime,
         *,
         skill_registry: SkillRegistry | None = None,
-        skill_executors: SkillExecutorRegistry | None = None,
     ) -> None:
         self.runtime = runtime
         self.skill_registry = skill_registry
-        self.skill_executors = skill_executors
+        self.skill_executors = SkillExecutorRegistry()
+
+    def register_skill_executor(self, skill_id: str, executor: SkillExecutor) -> None:
+        """Add one executable Skill binding without changing the v0.1 constructor."""
+
+        self.skill_executors.register(skill_id, executor)
 
     @staticmethod
     def _roles(context: ExecutionContext) -> set[str]:
@@ -330,16 +334,6 @@ class CEPIOApplicationService:
                 metadata=metadata,
             )
 
-        if self.skill_executors is None:
-            return SkillEvaluation(
-                skill_id=invocation.skill_id,
-                subject=invocation.subject,
-                status=SkillEvaluationStatus.blocked,
-                evidence=invocation.evidence,
-                assessment_refs=invocation.assessment_refs,
-                messages=["EXECUTABLE_SKILL_REGISTRY_UNAVAILABLE"],
-                metadata=metadata,
-            )
         try:
             executor = self.skill_executors.get(invocation.skill_id)
         except KeyError as exc:
