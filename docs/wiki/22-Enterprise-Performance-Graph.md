@@ -101,6 +101,53 @@ Objective: improve refinery profitability
 
 The individual owns the KR. The COO can be accountable for availability. Neither relationship means the individual owns refinery profitability.
 
+## Contract specialization
+
+`cepio.performance_resolution.PerformanceContractResolver` composes explicit performance-contract layers:
+
+```text
+Industry Reference
+       |
+       v
+Organization
+       |
+       v
+Role / Persona
+       |
+       v
+Individual
+```
+
+The chain is explicit through `extends_contract_id`; CEPIO never infers inheritance from similar names, KPI labels, persona similarity or organization structure.
+
+### Complete contracts versus sparse overlays
+
+A `PerformanceContract` is complete, strictly validated and directly evaluable. A `PerformanceContractOverlay` is intentionally sparse and exists only as specialization input.
+
+This separation allows a role/persona or individual layer to reference inherited subjects and performance nodes without copying the entire enterprise graph. The resolver emits a new fully validated `PerformanceContract`; unresolved overlays are never treated as authoritative enterprise truth.
+
+### Specialization is not KPI cascade
+
+Inheritance provides context, not automatic personal accountability.
+
+An enterprise `Operational Availability` KPI can remain scoped to Operations while a Reliability Engineer persona owns a `Reduce Repeat Failures` key result that explicitly `contributes_to` availability. An individual can contribute to that KR without becoming owner of the enterprise KPI.
+
+### Override rules
+
+Child layers can add entries or explicitly replace an inherited entry with the same stable identity. Subject kind and performance-node kind cannot mutate across an override.
+
+v0.1 deliberately has no implicit field patching, deletion, suppression or tombstone semantics. A child override is a whole-entry replacement so inherited meaning cannot disappear through an ambiguous partial merge.
+
+### Customer boundary and provenance
+
+Industry-reference contracts are organization-neutral. Once an organization ID appears in a specialization chain, descendants cannot cross to another organization ID.
+
+Resolution records both the ordered source-contract chain and element-level lineage for effective subjects, nodes, accountabilities, contributions and response bindings. When an organization or role overrides a reference definition, Industry IQ can therefore explain exactly which contract/version supplied the effective meaning.
+
+Effective validity is the intersection of all layers. A chain with no overlapping effective window fails closed.
+
+See [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md) for the specialization contract.
+
 ## Runtime evaluation
 
 `cepio.performance_runtime.PerformanceRuntime` evaluates observations deterministically.
@@ -163,7 +210,7 @@ policy_required = true
 The hand-off is therefore:
 
 ```text
-Performance Contract
+Performance Contract / resolved specialization
       -> Performance Runtime
       -> recommend-only Workflow Candidate
       -> Kinetic Runtime
@@ -182,32 +229,28 @@ The example contains an enterprise objective, COO KPI, individual key result, ma
 
 ## What v0.1 intentionally does not do
 
-- no automatic contract inheritance/overlay merge;
 - no formula execution inside the Performance Runtime;
 - no quantitative causal-impact calculation from graph edges;
 - no automatic workflow start;
 - no REST/MCP persistence surface yet;
+- no implicit KPI cascade;
+- no overlay deletion/tombstone semantics;
+- no cross-customer contract inheritance;
 - no performance-based personnel ranking or opaque scoring.
 
 These boundaries keep organization meaning explicit and preserve CEPIO's recommend-before-execute architecture.
 
 ## Next evolution
 
-The natural next layer is contract specialization:
+With deterministic contract specialization in place, the next capability sequence is:
 
 ```text
-CEPIO Industry Reference Performance Contract
-                 |
-                 v
-Organization Performance Contract
-                 |
-                 v
-Role / Persona Performance Contract
-                 |
-                 v
-Individual Assignment / OKR Overlay
+Durable Performance Contract Registry
+        -> Business Logic / formula execution contract
+        -> REST + MCP performance surfaces
+        -> governed performance-to-workflow activation
 ```
 
-Each layer should preserve provenance, effective dates and explicit overrides. Customer-specific logic stays tenant-scoped while reusable industry patterns remain in CEPIO Industry IQ.
+The durable registry should add version selection and lifecycle without weakening the current active-ID and customer-isolation rules. Business Logic execution should remain separate from ontology semantics so customer formulas can be governed, versioned and provenance-backed without becoming universal CEPIO definitions.
 
-See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md) for the architectural decision.
+See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md) for the base performance architecture and [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md) for specialization.
