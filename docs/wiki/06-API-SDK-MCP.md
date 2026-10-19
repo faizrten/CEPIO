@@ -17,7 +17,7 @@ The application contract is the stable semantic and behavioral promise. REST, SD
                        notebooks/data        Foundry/Copilot
 ```
 
-Current specification: [`docs/application-contract-v0.2.md`](../application-contract-v0.2.md). The v0.1 specification remains the historical envelope baseline.
+Current envelope specification: [`docs/application-contract-v0.2.md`](../application-contract-v0.2.md). Protocol convergence is specified in [`docs/protocol-convergence-v0.3.md`](../protocol-convergence-v0.3.md).
 
 ## Contract vs API
 
@@ -37,7 +37,7 @@ application contract
 
 An SDK or MCP tool must not invent new CEPIO semantics. The same rule applies to REST endpoints.
 
-## Application Contract v0.2
+## Application Contract v0.2 execution kernel
 
 v0.1 introduced protocol-neutral envelopes for industrial context, evidence references, Skill invocation/evaluation, Decision proposals, Action intents and trusted execution context.
 
@@ -74,17 +74,40 @@ actor-scoped reads   authorized Functions
 
 `SkillExecutorRegistry` binds stable Skill identity to executable procedure code, while `SkillRegistry` remains authoritative for admission. Duplicate executable bindings fail closed.
 
-Executable procedures receive `SkillExecutionHost`, not raw runtime access. In v0.2 that host exposes actor-scoped reads and policy-authorized deterministic Functions only. A procedure can propose a Decision, but the application service persists it with trusted host identity.
+Executable procedures receive `SkillExecutionHost`, not raw runtime access. That host exposes actor-scoped reads and policy-authorized deterministic Functions only. A procedure can propose a Decision, but the application service persists it with trusted host identity.
 
 The first executable reference is `cepio.skill.maintenance.assess-maintenance-deferral`. It interprets already-governed Risk evidence through `evaluateMaintenanceDeferralRisk`, may persist a maintenance-deferral Decision, and never executes `DeferWorkOrder` itself.
 
-Existing REST/MCP/SDK surfaces are still not migrated in this increment. Protocol convergence follows after the execution kernel is qualified.
+## Protocol convergence v0.3
+
+v0.3 projects the same executable Skill contract through REST, SDK and MCP without changing the envelope schema. `SkillInvocation` / `SkillEvaluation` therefore remain contract version `0.2.0`.
+
+```text
+                   SkillInvocation
+                         |
+          +--------------+--------------+
+          |              |              |
+        REST           Python SDK      MCP
+          |              |              |
+          |          REST projection    |
+          +--------------+--------------+
+                         |
+              CEPIOApplicationService
+                         |
+                   evaluate_skill
+                         |
+                  SkillEvaluation
+```
+
+The shipped composition root is `cepio.application_runtime.build_application_service(runtime)`. Protocol adapters use that builder instead of registering executable Skills independently.
+
+Cross-protocol conformance proves the same synthetic invocation through direct application-service invocation, raw REST, Python SDK over REST, and actual MCP protocol. Generated Decision IDs/timestamps may differ; material Skill, evidence, output, recommendation, Decision and actor-authority semantics must match.
 
 ## Public API v1 — implemented REST boundary
 
 CEPIO exposes a versioned public REST contract under `/api/v1` through `cepio.public_api:app`. Existing unversioned routes remain temporarily callable for compatibility, but they are deliberately excluded from the public OpenAPI document.
 
-The initial v1 surface includes:
+The v1 surface includes:
 
 ```text
 /api/v1/health
@@ -95,6 +118,7 @@ The initial v1 surface includes:
 /api/v1/objects/{object_id}/neighbors
 /api/v1/events
 /api/v1/objects/{object_id}/events
+/api/v1/skills/evaluate
 /api/v1/functions/{name}
 /api/v1/actions
 /api/v1/decisions
@@ -102,6 +126,8 @@ The initial v1 surface includes:
 /api/v1/audit
 /api/v1/graph/*
 ```
+
+`POST /api/v1/skills/evaluate` has operation ID `evaluateSkill`, accepts `SkillInvocation`, injects trusted actor context from the authenticated REST host, and returns `SkillEvaluation`.
 
 `state`, `provenance`, and `schema` are intentionally not declared as independent v1 resources yet. They should join the public REST surface only when their runtime semantics are stable enough for independent clients.
 
@@ -118,7 +144,7 @@ API v1 reuses the same secured CEPIO endpoint functions as the compatibility rou
 - governed action execution;
 - audit controls.
 
-The application-contract direction strengthens this boundary: caller-visible `SkillInvocation`, `DecisionProposal` and `ActionIntent` payloads do not contain caller-selected identity or roles. Protocol adapters inject trusted execution context separately.
+Caller-visible `SkillInvocation`, `DecisionProposal` and `ActionIntent` payloads do not contain caller-selected identity or roles. Protocol adapters inject trusted execution context separately.
 
 For executable Skills, the same actor context is re-used for READY preflight, actor-scoped object reads, Function authorization and any resulting Decision persistence.
 
@@ -152,13 +178,23 @@ Skill execution does not collapse this distinction. A Skill may return a recomme
 
 The Python SDK is the natural access path for data engineering, AI/ML workflows, notebooks, backend services, automation and ontology tooling.
 
-A TypeScript SDK is strategically important for CEPIO web applications, visualization clients and React-based industrial applications. Both SDKs should converge on the CEPIO application contract and remain synchronized with supported protocol surfaces rather than becoming separate semantic layers.
+The Python client now exposes:
 
-Future SDK Skill methods should call the same `evaluate_skill` application operation rather than reproduce Skill procedure logic client-side.
+```python
+client.evaluate_skill(invocation) -> SkillEvaluation
+```
+
+The TypeScript client now exposes:
+
+```ts
+client.evaluateSkill(invocation): Promise<SkillEvaluation>
+```
+
+Both methods project the accepted REST `evaluateSkill` operation. Neither client contains Skill procedure logic or caller-selected authority semantics.
 
 ## MCP
 
-CEPIO currently exposes seven governed MCP tools for Microsoft Foundry agents:
+CEPIO now exposes eight governed MCP tools for Microsoft Foundry agents:
 
 ```text
 cepio_get_object
@@ -166,13 +202,14 @@ cepio_query_objects
 cepio_get_state_at
 cepio_explain_property
 cepio_call_function
+cepio_evaluate_skill
 cepio_recommend_action
 cepio_execute_action
 ```
 
-Identity and roles are injected from the authenticated hosting context. They are **not model-callable arguments**.
+`cepio_evaluate_skill` accepts the same `SkillInvocation` contract as REST/SDK and delegates through the same shipped application service.
 
-Future Skill-oriented MCP tools should map onto the same `SkillInvocation` / `SkillEvaluation` application contract and `evaluate_skill` execution path used by REST and SDK clients.
+Identity and roles are injected from the authenticated hosting context. They are **not model-callable arguments**.
 
 ## Recommendation vs execution
 
@@ -189,17 +226,15 @@ Recommend action
 
 An agent can therefore be broad in reasoning context while remaining constrained in operational authority.
 
-Application Contract v0.2 proves this explicitly for maintenance deferral: the AI recommender can evaluate the Skill and propose the governed Decision, but cannot use Skill execution to transition the WorkOrder.
+Protocol convergence preserves this explicitly for maintenance deferral: the AI recommender can evaluate the Skill and propose the governed Decision through REST, SDK or MCP, but cannot use any of those surfaces to transition the WorkOrder through Skill execution.
 
 ## Remaining API production hardening
 
-The versioned REST contract is established, but API v1 is not yet production-GA. Remaining P0 hardening includes:
+The versioned REST contract is established, but API v1 is not yet production-GA. Remaining work includes:
 
-- standard public error envelope;
-- ETag / `If-Match` concurrency semantics;
-- HTTP idempotency conventions;
-- repository query pushdown;
-- cursor pagination;
 - deeper schema-level OpenAPI compatibility checks;
-- gradual routing of REST operations through the protocol-neutral application service without changing accepted v1 behavior;
-- cross-protocol Skill conformance once `evaluate_skill` is projected onto REST, MCP and SDK.
+- generic context assembly behind the application service;
+- gradual routing of Decision and ActionIntent operations through the protocol-neutral application service without changing accepted v1 behavior;
+- event-driven Skill invocation once trigger semantics are qualified;
+- cross-domain protocol qualification with a second executable Skill;
+- live Foundry and Copilot consumption proof using `cepio_evaluate_skill`.
