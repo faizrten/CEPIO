@@ -80,14 +80,18 @@ class ReliabilityReasoningContributor:
         for reference in request.context_object_refs:
             obj = host.read_object(reference)
             if obj.type in self._CONDITION_TYPES:
-                item, abnormal, normal = self._condition_evidence(obj.id, obj.type, obj.name, obj.properties)
+                item, abnormal, normal = self._condition_evidence(
+                    obj.id, obj.type, obj.name, obj.properties
+                )
                 evidence.append(item)
                 if abnormal:
                     abnormal_condition_ids.append(item.id)
                 if normal:
                     normal_condition_ids.append(item.id)
             elif obj.type in self._FAILURE_TYPES:
-                item, mode, repeated = self._failure_evidence(obj.id, obj.type, obj.name, obj.properties)
+                item, mode, repeated = self._failure_evidence(
+                    obj.id, obj.type, obj.name, obj.properties
+                )
                 evidence.append(item)
                 failure_ids.append(item.id)
                 if mode is not None:
@@ -95,7 +99,9 @@ class ReliabilityReasoningContributor:
                 if repeated:
                     repeated_failure_ids.append(item.id)
             elif obj.type in self._WORK_TYPES:
-                item, reopened, verified = self._work_evidence(obj.id, obj.type, obj.name, obj.properties)
+                item, reopened, verified = self._work_evidence(
+                    obj.id, obj.type, obj.name, obj.properties
+                )
                 evidence.append(item)
                 if reopened:
                     reopened_work_ids.append(item.id)
@@ -168,9 +174,7 @@ class ReliabilityReasoningContributor:
         mode_counts = Counter(failure_modes)
         repeated_modes = {mode for mode, count in mode_counts.items() if count >= 2}
         recurrence_support = [
-            evidence_id
-            for evidence_id in failure_ids
-            if evidence_id in repeated_failure_ids
+            evidence_id for evidence_id in failure_ids if evidence_id in repeated_failure_ids
         ]
         if repeated_modes:
             recurrence_support = list(dict.fromkeys([*recurrence_support, *failure_ids]))
@@ -187,7 +191,9 @@ class ReliabilityReasoningContributor:
                         "performance deviation."
                     ),
                     confidence=(
-                        ConfidenceBand.high if len(recurrence_support) >= 3 else ConfidenceBand.medium
+                        ConfidenceBand.high
+                        if len(recurrence_support) >= 3
+                        else ConfidenceBand.medium
                     ),
                     supporting_evidence_ids=tuple(recurrence_support),
                     assumptions=(
@@ -396,7 +402,9 @@ class ReliabilityReasoningContributor:
         properties: dict[str, Any],
     ) -> tuple[ReasoningEvidence, str | None, bool]:
         mode = cls._string(properties.get("failure_mode") or properties.get("failureMode"))
-        repeated = bool(properties.get("repeat_failure") is True or properties.get("repeat") is True)
+        repeated = bool(
+            properties.get("repeat_failure") is True or properties.get("repeat") is True
+        )
         detail = [f"event={name}"]
         if mode:
             detail.append(f"failure_mode={mode}")
