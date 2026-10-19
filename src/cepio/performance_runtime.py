@@ -48,6 +48,7 @@ class PerformanceNodeEvaluation(BaseModel):
     value: float | None = None
     observed_at: datetime | None = None
     evidence_refs: tuple[str, ...] = ()
+    source_subject_id: str | None = None
     reasons: tuple[str, ...] = ()
     risk_sources: tuple[str, ...] = ()
     influence_sources: tuple[str, ...] = ()
@@ -208,6 +209,7 @@ class PerformanceRuntime:
                 value=observation.value,
                 observed_at=observation.observed_at,
                 evidence_refs=observation.evidence_refs,
+                source_subject_id=observation.source_subject_id,
                 reasons=("Observation predates node validity window",),
             )
         if node.valid_to and observation.observed_at >= node.valid_to:
@@ -217,6 +219,7 @@ class PerformanceRuntime:
                 value=observation.value,
                 observed_at=observation.observed_at,
                 evidence_refs=observation.evidence_refs,
+                source_subject_id=observation.source_subject_id,
                 reasons=("Observation is outside node validity window",),
             )
 
@@ -229,6 +232,7 @@ class PerformanceRuntime:
                     value=observation.value,
                     observed_at=observation.observed_at,
                     evidence_refs=observation.evidence_refs,
+                    source_subject_id=observation.source_subject_id,
                     reasons=("Observation is stale for this performance node",),
                 )
 
@@ -239,6 +243,7 @@ class PerformanceRuntime:
                 value=observation.value,
                 observed_at=observation.observed_at,
                 evidence_refs=observation.evidence_refs,
+                source_subject_id=observation.source_subject_id,
                 reasons=("Observation recorded; node has no evaluable target or threshold",),
             )
 
@@ -265,6 +270,7 @@ class PerformanceRuntime:
             value=observation.value,
             observed_at=observation.observed_at,
             evidence_refs=observation.evidence_refs,
+            source_subject_id=observation.source_subject_id,
             reasons=tuple(reasons),
         )
 
