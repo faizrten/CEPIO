@@ -1,0 +1,47 @@
+id: production-technologist-v0.2
+version: "0.2"
+status: implemented
+domain: production
+persona: production_technologist
+benchmark: generalization/benchmarks/production-technologist-p118-v0.2.yaml
+
+executable_journeys:
+  PROD-01:
+    skill: cepio.skill.production.surveillance-exception-triage
+    acceptance: Distinguish material underperformance from evidence-limited wells without inventing diagnosis.
+  PROD-02:
+    skill: cepio.skill.production.deliverability-assurance
+    acceptance: Explain expected-vs-observed deliverability and stale model assumptions without recalculating nodal hydraulics.
+  PROD-03:
+    skill: cepio.skill.production.constraint-aware-optimization
+    acceptance: Rank feasible operating options only after hard constraints; classify reduced-margin and rejected options separately.
+  PROD-04:
+    skill: cepio.skill.production.artificial-lift-assurance
+    acceptance: Use external lift sensitivities and field allocation cap to identify a monitored-test candidate without changing setpoints.
+  PROD-05:
+    skill: cepio.skill.production.operating-envelope-assurance
+    acceptance: Classify options as within, review-required, or hard-limit violation without approving any exception.
+  PROD-06:
+    skill: cepio.skill.production.underperformance-diagnosis
+    acceptance: Rank competing causes with supporting/contradictory evidence and falsification tests.
+
+semantic_reuse:
+  core: [Evidence, Hypothesis, Assumption, UncertaintyAssessment, ConfidenceAssessment]
+  kinetic: [Opportunity, Option, OptionRecommendation, Constraint]
+  production: [ProductionAssuranceCase, ProductionConstraintAssessment, ArtificialLiftPerformanceAssessment, WellIntegrityAssessment, WellOperatingEnvelope, WellOperatingLimit]
+
+prohibited_shortcuts:
+  - create_cepio_nodal_solver
+  - create_cepio_gas_lift_hydraulics_solver
+  - infer_live_control_authority_from_technical_recommendation
+  - treat_highest_uplift_as_best_option_without_constraints
+  - approve_integrity_exception_autonomously
+  - silently_ignore_missing_source_version_identity
+
+coverage_gate:
+  expected_answered: 6
+  expected_blocked: 0
+  required_ready_preflights: [PROD-01, PROD-02, PROD-03, PROD-04, PROD-05, PROD-06]
+  fail_closed_cases:
+    - unauthorized_actor
+    - incomplete_external_identity
