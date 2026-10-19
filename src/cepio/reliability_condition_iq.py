@@ -274,7 +274,9 @@ def assess_condition_monitoring(
             if age_hours > signal.max_observation_age_hours:
                 raise ValueError(f"{observation.id} is stale for signal {signal.signal_key}")
             if observed_at in seen_times:
-                raise ValueError(f"Signal {signal.signal_key} has ambiguous duplicate observation time")
+                raise ValueError(
+                    f"Signal {signal.signal_key} has ambiguous duplicate observation time"
+                )
             seen_times.add(observed_at)
             records.append(
                 _ObservationRecord(
