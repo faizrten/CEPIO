@@ -150,9 +150,7 @@ def test_pack_installs_explicit_operator_capabilities_only():
     assert runtime.has_function("assessOperatorWellDelivery") is True
     assert runtime.has_decision("operator-well-delivery-intervention-recommendation") is True
     assert runtime.has_action("InitiateWellPlanRevision") is True
-    assert runtime.industry_iq_packs == {
-        "cepio.iq.drilling.operator-well-delivery": "0.1.0"
-    }
+    assert runtime.industry_iq_packs == {"cepio.iq.drilling.operator-well-delivery": "0.1.0"}
 
 
 def test_on_plan_requires_approved_plan_and_scoped_execution_evidence():
@@ -410,9 +408,7 @@ def test_plan_revision_action_preconditions_fail_closed():
         runtime.execute_action(base.model_copy(update={"parameters": {"rationale": "Reason"}}))
     with pytest.raises(PreconditionsError, match="scoped to well WELL-2"):
         runtime.execute_action(
-            base.model_copy(
-                update={"parameters": {"plan_id": "PLAN-2", "rationale": "Reason"}}
-            )
+            base.model_copy(update={"parameters": {"plan_id": "PLAN-2", "rationale": "Reason"}})
         )
 
 
