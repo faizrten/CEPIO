@@ -52,9 +52,7 @@ def organization(version: str = "1.0.0") -> PerformanceContractOverlay:
         layer="organization",
         organization_id="refinery-co",
         extends_contract_id="process-industry",
-        subjects=(
-            PerformanceSubject(id="refinery", kind="enterprise", name="Refinery Co"),
-        ),
+        subjects=(PerformanceSubject(id="refinery", kind="enterprise", name="Refinery Co"),),
     )
 
 
@@ -123,7 +121,10 @@ def test_registry_pins_parent_versions_and_historical_resolution_does_not_drift(
     second = registry.register(industry("2.0.0", target=0.97), created_at=LATER)
     registry.activate(second.contract_id, second.version, activated_at=LATER)
 
-    assert registry.get("process-industry", "1.0.0").lifecycle == PerformanceContractLifecycle.retired
+    assert (
+        registry.get("process-industry", "1.0.0").lifecycle
+        == PerformanceContractLifecycle.retired
+    )
     assert registry.get_active("process-industry").version == "2.0.0"
 
     resolved = registry.resolve("engineer-42")
@@ -151,9 +152,7 @@ def test_registry_explicit_parent_version_and_organization_listing():
 
     scoped = registry.list_for_organization("refinery-co")
     assert {item.contract_id for item in scoped} == {"refinery-co", "reliability-role"}
-    with_reference = registry.list_for_organization(
-        "refinery-co", include_industry_reference=True
-    )
+    with_reference = registry.list_for_organization("refinery-co", include_industry_reference=True)
     assert {item.contract_id for item in with_reference} == {
         "process-industry",
         "refinery-co",
