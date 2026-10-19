@@ -80,9 +80,11 @@ It supports resolved-contract reads and performance evaluation only. The routes 
 
 No REST mutation surface for contract activation, Business Logic registration or workflow execution is introduced by this ADR.
 
-### 7. MCP capability is opt-in
+### 7. MCP capability is opt-in without modifying the stable facade
 
-`MCPFacade` exposes performance tools only when a `PerformanceService` is explicitly configured. Existing MCP consumers retain their current tool set and behavior otherwise.
+The existing `MCPFacade` constructor, tool set and behavior remain unchanged. Enterprise Performance is exposed through a separate `PerformanceMCPFacade` that extends the stable facade with tenant-scoped performance tools.
+
+This avoids changing an existing public Python interface merely to add an optional capability. Consumers opt into performance MCP behavior explicitly by constructing `PerformanceMCPFacade` with a `PerformanceService` and tenant context.
 
 The performance MCP tools provide resolved-contract read and evaluation capability. They enforce the same tenant boundary and recommend-only response semantics as REST.
 
@@ -92,7 +94,7 @@ CEPIO can now expose the same Enterprise Performance intelligence through multip
 
 Industry IQ applications can consume a compact, evidence-backed deviation object instead of reimplementing KPI evaluation, provenance or tenant isolation.
 
-The stable public API remains unchanged until the experimental surface has sufficient qualification evidence.
+The stable public API and stable `MCPFacade` remain unchanged until the performance surfaces have sufficient qualification evidence.
 
 ## Non-goals
 
