@@ -180,9 +180,7 @@ class PerformanceResponseBinding(BaseModel):
 
     id: str
     node_id: str
-    statuses: frozenset[
-        Literal["watch", "at_risk", "off_track", "critical"]
-    ] = Field(min_length=1)
+    statuses: frozenset[Literal["watch", "at_risk", "off_track", "critical"]] = Field(min_length=1)
     workflow_definition_id: str
     rationale: str | None = None
 
