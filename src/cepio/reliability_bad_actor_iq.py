@@ -350,8 +350,6 @@ def assess_bad_actor_fleet_reliability(
         peer_ids = sorted(item.equipment_id for item in period.assets)
         if peer_ids != first_peer_ids:
             raise ValueError("Every period must use the same qualified peer equipment population")
-        if len(peer_ids) != len(set(peer_ids)):
-            raise ValueError("Duplicate equipment in peer population")
 
         period_records: list[_AssetPeriodRecord] = []
         for asset in period.assets:
