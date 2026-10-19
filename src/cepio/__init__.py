@@ -75,6 +75,11 @@ from .production_technology import (
     ProductionTechnologistV01CoverageResult,
     run_production_technologist_v01,
 )
+from .production_technology_v02 import (
+    ProductionTechnologistV02CoverageResult,
+    ProductionTechnologistV02Runtime,
+    run_production_technologist_v02,
+)
 from .query import ObjectQuery, ObjectQueryResult, PropertyPredicate, QueryOperator, RelationshipPredicate, SortField
 from .runtime import CEPIORuntime, DecisionDefinition
 from .skill_preflight import (
@@ -123,10 +128,13 @@ __all__ = [
     "run_pet02_formation_evaluation",
     "ProductionTechnologistRuntime",
     "ProductionTechnologistV01CoverageResult",
+    "ProductionTechnologistV02Runtime",
+    "ProductionTechnologistV02CoverageResult",
     "ProductionJourneyResult",
     "ProductionJourneyTrace",
     "ProductionJourneyBlocker",
     "run_production_technologist_v01",
+    "run_production_technologist_v02",
     "KineticRuntime",
     "ResilientKineticRuntime",
     "ExternalKineticRuntime",
