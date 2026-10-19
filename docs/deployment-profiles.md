@@ -44,6 +44,108 @@ The reference profile sets `WEBSITES_ENABLE_APP_SERVICE_STORAGE=true` because th
 
 VNet integration, private endpoints, ACR pull roles, Key Vault access, Application Insights connection and deployment slots are environment-level bindings and should be added by the target platform landing zone rather than CEPIO-Core.
 
+For a private Azure Container Registry image, grant the app's system-assigned
+identity `AcrPull` on the registry and enable `acrUseManagedIdentityCreds` in the
+app's site configuration. Do not enable registry admin credentials. Cloud builds
+can use `az acr build` when Docker is unavailable locally; review the build
+context before uploading it and exclude credentials through `.dockerignore`.
+
+The reference plan uses one paid P1v3 instance. Keep it at one instance with
+SQLite and do not enable autoscaling. The existing `cepio-demo-31d48` deployment
+uses `sqlite:////home/cepio.db`, directly in the persistent `/home` mount; this
+does not change the template's `/home/data/cepio.db` storage contract. When
+using the template default, provision a writable `/home/data` directory before
+runtime startup. Confirm `/api/v1/health` returns HTTP 200 and an unauthenticated
+request to `/api/v1/objects` returns HTTP 401 after deployment.
+
+## GitHub Actions deployment
+
+`.github/workflows/deploy-azure.yml` deploys the existing Azure demo resources
+after **CEPIO CI** succeeds for a push to `main` in this repository. Pull-request,
+fork, failed, and non-main CI runs cannot enter the deployment job. The workflow
+checks out the exact tested commit, rejects a superseded main commit after
+approval, builds in ACR with a unique commit/run/attempt tag, and configures
+App Service with the resulting immutable image digest. Deployment jobs are
+serialized and do not cancel an active rollout.
+
+This targets the already provisioned `cepio-demo-rg` app/registry, not
+[Environment A](environment-a-azure-dev.md). The separate
+`.github/workflows/deploy-dev.yml` provisions Environment A infrastructure
+and remains unchanged. Do not enable its `AZURE_DEV_ENABLED` setting or reuse
+its `dev` identity/environment to operate this existing demo. The demo workflow
+cannot provision resources and has no resource-group-wide permissions.
+
+### One-time identity and GitHub environment setup
+
+Use a dedicated Entra application/service principal, separate from the CEPIO
+API identity. Do not create client secrets or give it a CEPIO domain role.
+Configure a federated credential with:
+
+| Field | Value |
+|---|---|
+| Issuer | `https://token.actions.githubusercontent.com` |
+| Subject | `repo:faizrten/CEPIO:environment:azure-demo` |
+| Audience | `api://AzureADTokenExchange` |
+
+Grant this deployment principal **Contributor** only on the target ACR registry
+for cloud builds and **Website Contributor** only on the target web app.
+It does not need subscription-wide access or permission to assign roles.
+The web app's separate managed identity retains its `AcrPull` assignment.
+
+In repository **Settings > Environments**, create `azure-demo`, require a human
+reviewer, and allow deployments only from the `main` branch (not tags). For
+this single-maintainer demo, the maintainer may approve their own deployment;
+teams should prohibit self-review and assign an independent reviewer. Keep
+administrative bypass disabled where GitHub supports it.
+
+Set these environment **variables**, not secrets:
+
+| Variable | Purpose / demo value |
+|---|---|
+| `AZURE_CLIENT_ID` | Dedicated deployment application's client ID |
+| `AZURE_TENANT_ID` | Target Entra tenant ID |
+| `AZURE_SUBSCRIPTION_ID` | Target Azure subscription ID |
+| `AZURE_RESOURCE_GROUP` | `cepio-demo-rg` |
+| `AZURE_WEBAPP_NAME` | `cepio-demo-31d48` |
+| `AZURE_CONTAINER_REGISTRY` | `cepiodemo31d48` |
+
+Environment protection is a server-side GitHub setting, not something the
+workflow file creates. GitHub plan/repository visibility can affect which
+protection features are available. Do not relax the OIDC subject to a wildcard
+or enable privileged pull-request execution to work around missing approvals.
+
+### Operating the deployment
+
+1. Submit changes through a pull request and wait for CEPIO CI to pass.
+2. Merge to `main`; the main push runs CI again.
+3. Open **Actions > Deploy CEPIO to Azure** and approve the pending `azure-demo`
+   deployment after checking the commit.
+4. Check the run summary for the commit, image digest, health URL, and HTTP 401
+   anonymous-read check. Health must return JSON with `status: ok`.
+
+The workflow must first be merged onto the default branch before `workflow_run`
+can trigger it. If a deployment is rejected as superseded, approve the deployment
+for the latest successful main CI run instead. A failed build/rollout/check fails
+the job explicitly; there is no automatic rollback. Inspect the failure before
+redeploying a known-good digest or reverting via a new reviewed main commit.
+
+This pipeline updates an existing app; it does not provision infrastructure,
+change Entra user roles, alter storage settings, seed data, or scale the app.
+Restarts can briefly interrupt the single-instance SQLite demo. Never enable
+multi-instance rollout slots/autoscaling with this reference persistence.
+Health and anonymous rejection are smoke checks, not proof of full functional
+correctness or of the running container's commit identity.
+
+Validate the local deployment contracts with:
+
+```text
+python scripts/validate_deployment_profiles.py
+python -m pytest -q tests/test_deployment_workflow.py
+```
+
+Existing CEPIO CI runs both the deployment profile validator and the pytest
+suite. Ontology semantics and migration contracts are unchanged by deployment.
+
 ## AKS profile
 
 `deploy/aks/cepio.yaml` provides a reference namespace, service account, persistent volume, deployment, service and probes.
@@ -71,6 +173,30 @@ This is deliberate: hosting scale must not create semantic corruption.
 ## Identity boundary
 
 Human/API callers continue to authenticate through Microsoft Entra and CEPIO derives actor context from validated token claims. Azure managed identity / AKS workload identity authenticates the **workload to Azure dependencies**; it does not replace CEPIO actor identity for user or agent actions.
+
+For a dedicated Entra API registration, request v2 access tokens
+(`api.requestedAccessTokenVersion: 2`) and use the API client ID as
+`CEPIO_ENTRA_AUDIENCE`. Expose a delegated `access_as_user` scope and define
+application roles whose values match CEPIO policy roles, such as `auditor` and
+`cepio_admin`. Assign the selected role to the user on the API's enterprise
+application; defining a role alone does not grant access.
+
+For Azure CLI access, an administrator can preauthorize the Microsoft Azure CLI
+client (`04b07795-8ddb-461a-bbee-02f9e1bf7b46`) for the delegated scope.
+Authenticate to the correct tenant before requesting a token. In PowerShell:
+
+```powershell
+$apiClientId = '<API application client ID>'
+$appUrl = 'https://<app-name>.azurewebsites.net'
+$token = az account get-access-token --scope "api://$apiClientId/access_as_user" --query accessToken --output tsv
+if ($LASTEXITCODE -ne 0) { throw 'Unable to acquire a CEPIO API token' }
+Invoke-RestMethod "$appUrl/api/v1/objects" -Headers @{ Authorization = "Bearer $token" }
+Remove-Variable token
+```
+
+Do not print, persist, or commit access tokens. Token acquisition may require a
+fresh interactive sign-in or tenant administrator consent. A health check does
+not verify user authorization; test a protected route with a real token as well.
 
 ## Health and rollout
 

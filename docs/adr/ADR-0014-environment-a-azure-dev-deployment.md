@@ -103,3 +103,40 @@ Trade-offs:
 ## Follow-up
 
 The next persistence milestone is a production repository adapter, expected to target PostgreSQL first. The next environment milestone after Environment A stabilizes is Progressive Environment B: `LOCAL -> DEV -> TEST` with stronger isolation, deployment approvals and production-like persistence/networking.
+
+## Addendum: approved updates to an existing Azure demo
+
+The already provisioned `cepio-demo-rg` deployment is not the Environment A
+landing zone. Its `Deploy CEPIO to Azure` workflow only updates the existing
+app and registry; it does not provision infrastructure or enable the separate
+`CEPIO Deploy DEV` workflow. Keeping these targets separate avoids granting
+resource-group provisioning permissions or creating additional paid services
+when only an existing single-instance demo needs image updates.
+
+The demo deployment has the following controls:
+
+- only successful CEPIO CI runs for same-repository pushes to `main` qualify;
+- checkout uses the exact CI-tested SHA and rejects superseded commits;
+- the `azure-demo` environment requires the maintainer's explicit approval,
+  permits only the `main` branch, and disables administrative bypass;
+- the federated subject is exactly
+  `repo:faizrten/CEPIO:environment:azure-demo`;
+- the dedicated identity has Contributor only on the existing registry and
+  Website Contributor only on the existing app, with no client secret;
+- builds use unique SHA/run/attempt tags and deployment pins the ACR digest;
+- serialized deployments do not interrupt an active rollout;
+- health JSON and HTTP 401 anonymous object reads are verified, with failures
+  surfaced explicitly and no inferred success or automatic rollback.
+
+Existing CI, quality, governance, policy, ontology and compatibility gates
+remain unchanged. This adds no CEPIO semantic concepts or operational domain
+side effects. The live demo retains its existing `/home/cepio.db` setting;
+the template and Environment A keep their `/home/data/cepio.db` contract.
+Both remain single-writer reference deployments, not production durability
+or horizontal-scaling claims.
+
+Validation consists of workflow syntax linting, deterministic deployment
+contract tests, the existing deployment-profile validator, Bicep compilation,
+remote environment/federation/role readback, and the existing CI/quality gates.
+The first end-to-end GitHub OIDC rollout requires merging the workflow onto
+the default branch and a human approving the pending environment deployment.

@@ -29,6 +29,8 @@ def main() -> int:
         "App Service profile",
     )
     require(appservice, "sqlite:////home/data/cepio.db", "App Service profile")
+    require(appservice, "capacity: 1", "App Service profile")
+    require(appservice, "minTlsVersion: '1.2'", "App Service profile")
     require(aks_text, "/api/v1/health", "AKS profile")
     require(aks_text, "azure.workload.identity/use", "AKS profile")
     require(aks_text, "CEPIO_AUTH_MODE, value: \"entra\"", "AKS profile")

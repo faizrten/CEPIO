@@ -38,6 +38,25 @@ SQLite is a reference implementation, not the target enterprise-scale runtime.
 
 ## App Service profile — roadmap/current priority
 
+The [reference App Service template](../../deploy/appservice/main.bicep) hosts
+the REST API with Entra authentication and one paid P1v3 instance. It explicitly
+enables persistent App Service storage and uses `/home/data/cepio.db` for
+reference SQLite data. The existing Azure demo uses `/home/cepio.db` on that
+same persistent mount without changing the template default. Keep SQLite
+deployments single-instance; SQLite is not a
+horizontally scalable backend. Private ACR image pulls require an `AcrPull`
+role assignment and managed-identity registry configuration. See the
+[deployment profile](../deployment-profiles.md) for setup and health checks.
+
+The [GitHub deployment workflow](../../.github/workflows/deploy-azure.yml)
+builds and deploys the exact successful main-push CI commit after approval in
+the `azure-demo` GitHub environment. It uses environment-bound Entra OIDC
+federation rather than Azure passwords, pins the image digest, and checks health
+and anonymous-read rejection. Configure environment reviewers, main-only branch
+rules, and Azure variables using the
+[GitHub Actions setup guide](../deployment-profiles.md#github-actions-deployment).
+The workflow becomes active only after it is merged to the default branch.
+
 Intended scope:
 
 - REST and MCP endpoints;
