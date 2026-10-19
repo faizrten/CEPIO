@@ -77,14 +77,13 @@ def seed_deferral_case():
 def application_service(runtime, *, bind_executor: bool = True) -> CEPIOApplicationService:
     skills = SkillRegistry(runtime)
     skills.register(maintenance_deferral_skill_spec())
-    executors = SkillExecutorRegistry()
+    service = CEPIOApplicationService(runtime, skill_registry=skills)
     if bind_executor:
-        executors.register(MAINTENANCE_DEFERRAL_SKILL_ID, execute_maintenance_deferral)
-    return CEPIOApplicationService(
-        runtime,
-        skill_registry=skills,
-        skill_executors=executors,
-    )
+        service.register_skill_executor(
+            MAINTENANCE_DEFERRAL_SKILL_ID,
+            execute_maintenance_deferral,
+        )
+    return service
 
 
 def recommender_context() -> ExecutionContext:
