@@ -1,0 +1,112 @@
+id: reliability-industry-iq-v0.1
+version: "0.1"
+domain: reliability
+archetype: reliability-v0.1
+frozen: true
+north_star: >-
+  Convert shared industrial evidence into reliability decisions without copying source
+  schemas, inventing unsupported facts or transferring human maintenance authority to AI.
+rules:
+  canonical_ontology_changes_for_scenario_pass: prohibited
+  customer_specific_ontology_fork: prohibited
+  source_systems_remain_authoritative: true
+  evidence_bindings_are_replaceable: true
+  ai_assessment_is_enterprise_fact: false
+  customer_data_used_for_training: false
+  ai_direct_maintenance_execution: prohibited
+  synthetic_reliability_score_required: false
+scenarios:
+  - id: REL-IQ-001
+    title: Asset Reliability Intervention IQ
+    owner: reliability
+    operating_question: >-
+      Given current governed equipment-condition evidence, active failure/risk context and
+      maintenance work, is the asset reliability state acceptable; what evidence threatens
+      continued service; and which governed maintenance intervention should be considered?
+    status: executable-v0.1
+    pack_id: cepio.iq.reliability.asset-intervention
+    shared_semantics:
+      - Equipment
+      - ConditionObservation
+      - FailureEvent
+      - FailureMode
+      - WorkOrder
+      - Risk
+      - Decision
+  - id: REL-IQ-002
+    title: Failure Pattern and Recurrence IQ
+    owner: reliability
+    operating_question: >-
+      Which equipment and failure modes are recurring beyond expected behavior, and what
+      common causal evidence should change reliability strategy?
+    status: planned
+  - id: REL-IQ-003
+    title: Condition Monitoring IQ
+    owner: reliability
+    operating_question: >-
+      Which current condition observations materially deviate from accepted operating
+      condition and require inspection, maintenance or risk escalation?
+    status: planned
+  - id: REL-IQ-004
+    title: Remaining Useful Life and Maintenance Window IQ
+    owner: reliability
+    operating_question: >-
+      What governed life estimate exists for critical equipment, how current is it, and is
+      the available maintenance window compatible with the estimate and operating plan?
+    status: planned
+  - id: REL-IQ-005
+    title: Bad Actor and Fleet Reliability IQ
+    owner: reliability
+    operating_question: >-
+      Which assets are persistent reliability bad actors after normalizing service,
+      operating context and maintenance exposure, and where should engineering effort focus?
+    status: planned
+  - id: REL-IQ-006
+    title: Maintenance Strategy IQ
+    owner: reliability
+    operating_question: >-
+      Which equipment should remain time-based, move to condition-based maintenance or
+      require redesign based on governed failure, condition and consequence evidence?
+    status: planned
+  - id: REL-IQ-007
+    title: Maintenance Deferral IQ
+    owner: shared
+    operating_question: >-
+      Can a planned work order be deferred within governed risk constraints and authority?
+    status: reusable-existing-capability
+    reuses_skill: cepio.skill.maintenance.assess-maintenance-deferral
+  - id: REL-IQ-008
+    title: Critical Spares Reliability IQ
+    owner: shared
+    operating_question: >-
+      Which critical failure modes lack adequate spare coverage for the expected failure and
+      maintenance horizon, and what procurement intervention is justified?
+    status: planned
+  - id: REL-IQ-009
+    title: Inspection and Integrity IQ
+    owner: reliability
+    operating_question: >-
+      Which inspections, damage mechanisms or integrity findings materially change current
+      equipment reliability or intervention priority?
+    status: planned
+  - id: REL-IQ-010
+    title: Production and Service Consequence IQ
+    owner: shared
+    operating_question: >-
+      What production, service or availability consequence is exposed if the equipment
+      degrades or fails, and which reliability intervention best protects value?
+    status: planned
+  - id: REL-IQ-011
+    title: Turnaround Reliability Scope IQ
+    owner: shared
+    operating_question: >-
+      Which reliability risks and recurring failure modes should enter turnaround scope, and
+      which can remain online with governed evidence?
+    status: planned
+  - id: REL-IQ-012
+    title: Reliability Outcome Learning IQ
+    owner: reliability
+    operating_question: >-
+      Did the selected intervention reduce failure, downtime or risk as intended, and what
+      evidence should update future reliability decisions?
+    status: planned
