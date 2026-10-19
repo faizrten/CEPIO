@@ -374,8 +374,7 @@ def test_reliability_contribution_enriches_same_governed_decision_without_execut
         "reliability.corrective-action-effectiveness",
     }
     assert any(
-        "Reliability hypothesis (not causal proof)" in item
-        for item in result.decision.observations
+        "Reliability hypothesis (not causal proof)" in item for item in result.decision.observations
     )
     assert "information-gain checks" in result.decision.recommendation
     assert "Policy and execution authority remain separate" in result.decision.recommendation
