@@ -1,0 +1,61 @@
+id: reliability-v0.1
+version: "0.1"
+domain: reliability
+status: frozen
+north_star: >-
+  Turn governed equipment condition, failure, maintenance and risk evidence into
+  deterministic reliability intelligence and governed intervention decisions without
+  forking canonical industrial semantics.
+operating_boundary:
+  reliability_owns:
+    - equipment reliability assessment and failure interpretation
+    - reliability risk escalation and intervention recommendation
+    - failure-pattern learning and bad-actor identification
+    - condition-based inspection and maintenance recommendation
+  maintenance_owns:
+    - maintenance planning, scheduling and work execution
+    - work-order lifecycle and maintenance backlog
+    - approved maintenance deferral execution
+  operations_owns:
+    - operating context and production/service consequence
+    - operating-risk acceptance within delegated authority
+  shared_interface:
+    - equipment
+    - condition evidence
+    - failure event and failure mode
+    - work order
+    - risk
+    - inspection
+    - operational consequence
+principles:
+  canonical_semantics_first: true
+  cross_industrial_before_domain_specialization: true
+  drilling_is_initial_proving_context_not_schema_owner: true
+  customer_specific_ontology_fork: prohibited
+  source_systems_remain_authoritative: true
+  ai_assessment_is_enterprise_fact: false
+  customer_data_used_for_training: false
+  recommendation_before_execution: true
+  safety_critical_physical_autonomy: prohibited
+reused_canonical_semantics:
+  object_types:
+    - Equipment
+    - ConditionObservation
+    - FailureEvent
+    - FailureMode
+    - WorkOrder
+    - Risk
+    - Inspection
+    - Decision
+  relationships:
+    - hasConditionObservation
+    - failureOfEquipment
+    - hasFailureMode
+    - hasWorkOrder
+    - hasRisk
+  governed_actions:
+    - CreateInspection
+    - CreateWorkOrder
+    - EscalateRisk
+  existing_decisions:
+    - maintenance-intervention-recommendation
