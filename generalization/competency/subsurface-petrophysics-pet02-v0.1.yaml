@@ -1,0 +1,163 @@
+id: subsurface-petrophysics-pet02-v0.1
+version: "0.1"
+domain: subsurface
+persona_id: petrophysicist
+journey_id: PET-02
+name: Formation Evaluation Assurance
+status: experimental
+
+experience_contract:
+  trigger: Review or explain the current formation evaluation for one well interval and its downstream consequence.
+  golden_question: Show me the authoritative formation evaluation for Well A-17, Zone B. Explain why it changed, what evidence supports or contradicts it, what remains uncertain, and which current models, reserves cases, opportunities or decisions would be affected if the interpretation is wrong.
+  required_outputs:
+    - authoritative formation-evaluation case and authority state
+    - previous/superseded case or interpretation context
+    - material interpretation delta
+    - supporting evidence with source identity and version
+    - contradictory evidence
+    - active assumptions and methods
+    - material petrophysical uncertainty
+    - confidence state
+    - downstream dependency impact
+    - recommended technical-review or information-gain action
+
+semantic_boundary:
+  rules:
+    - OSDU_ADME_owns_technical_subsurface_payloads
+    - CEPIO_owns_assurance_reasoning_authority_and_dependency_context
+    - preserve_external_record_and_version_identity
+    - do_not_copy_bulk_well_log_or_sample_payloads
+  objects:
+    - id: well
+      treatment: BIND
+      canonical_source: OSDU
+      source_kind: master-data--Well
+      cepio_type: https://cepio.org/ontology/energy#Well
+    - id: wellbore
+      treatment: REUSE
+      canonical_source: OSDU_Wellbore_DDMS
+      source_kind: master-data--Wellbore
+    - id: well_log
+      treatment: REUSE
+      canonical_source: OSDU_Wellbore_DDMS
+      source_kind: work-product-component--WellLog
+    - id: marker_set
+      treatment: REUSE
+      canonical_source: OSDU_Wellbore_DDMS
+      source_kind: work-product-component--WellboreMarkerSet
+    - id: rock_fluid_sample_or_analysis
+      treatment: REUSE
+      canonical_source: OSDU_RAFS_DDMS
+    - id: petrophysical_interpretation_record
+      treatment: EXTEND
+      canonical_source: external_domain_application_or_OSDU_record
+      note: CEPIO attaches reasoning and assurance context without copying the technical interpretation payload.
+    - id: formation_evaluation_case
+      treatment: OWN
+      cepio_type: https://cepio.org/ontology/subsurface#FormationEvaluationCase
+    - id: petrophysical_characteristic
+      treatment: OWN
+      cepio_type: https://cepio.org/ontology/subsurface#PetrophysicalCharacteristic
+    - id: assumption
+      treatment: OWN
+      cepio_type: https://cepio.org/ontology/core#Assumption
+    - id: evidence
+      treatment: OWN
+      cepio_type: https://cepio.org/ontology/core#Evidence
+    - id: uncertainty_assessment
+      treatment: OWN
+      cepio_type: https://cepio.org/ontology/core#UncertaintyAssessment
+    - id: confidence_assessment
+      treatment: OWN
+      cepio_type: https://cepio.org/ontology/core#ConfidenceAssessment
+    - id: information_gain
+      treatment: OWN
+      cepio_type: https://cepio.org/ontology/core#InformationGain
+
+characteristics:
+  - {id: effective_porosity, type: "https://cepio.org/ontology/subsurface#EffectivePorosityCharacteristic", uncertainty_classes: [measurement, parameter, method, interpretation, scale]}
+  - {id: water_saturation, type: "https://cepio.org/ontology/subsurface#WaterSaturationCharacteristic", uncertainty_classes: [measurement, parameter, method, interpretation]}
+  - {id: permeability, type: "https://cepio.org/ontology/subsurface#PermeabilityCharacteristic", uncertainty_classes: [measurement, method, scale]}
+  - {id: net_reservoir, type: "https://cepio.org/ontology/subsurface#NetReservoirCharacteristic", uncertainty_classes: [parameter, method, interpretation]}
+  - {id: net_pay, type: "https://cepio.org/ontology/subsurface#NetPayCharacteristic", uncertainty_classes: [parameter, method, interpretation]}
+  - {id: fluid_contact, type: "https://cepio.org/ontology/subsurface#FluidContactCharacteristic", uncertainty_classes: [measurement, interpretation]}
+
+source_capabilities:
+  - {id: subsurface.well.master, provider: adme.osdu_core, required: true}
+  - {id: subsurface.wellbore.master, provider: adme.wellbore_ddms, required: true}
+  - {id: subsurface.wellbore.log, provider: adme.wellbore_ddms, required: true}
+  - {id: subsurface.wellbore.marker, provider: adme.wellbore_ddms, required: true}
+  - {id: subsurface.sample.analysis, provider: adme.rock_fluid_samples_ddms, required: false}
+  - {id: subsurface.pressure.evidence, provider: customer_profile_binding, required: false}
+  - {id: subsurface.interpretation.petrophysics, provider: customer_profile_binding, required: true}
+
+skills:
+  - id: cepio.skill.subsurface.petrophysics.formation-evaluation-context
+    purpose: Resolve well/interval context, authoritative case, source records and evidence inventory.
+    required_inputs: [subsurface.well.master, subsurface.wellbore.master, subsurface.wellbore.log, subsurface.wellbore.marker, subsurface.interpretation.petrophysics]
+    outputs: [formation_evaluation_context, evidence_inventory, authority_state]
+    authority: recommend_only
+
+  - id: cepio.skill.subsurface.petrophysics.interpretation-delta
+    purpose: Explain semantic and assumption changes between the current and superseded interpretation context.
+    required_inputs: [formation_evaluation_context]
+    outputs: [changed_findings, changed_assumptions, changed_methods, changed_evidence]
+    authority: recommend_only
+
+  - id: cepio.skill.subsurface.petrophysics.assumption-trace
+    purpose: Trace active Rw, saturation model, Archie parameters, cutoffs and transforms into assessed characteristics and downstream dependents.
+    required_inputs: [formation_evaluation_context]
+    outputs: [assumption_register, assumption_dependency_graph]
+    authority: recommend_only
+
+  - id: cepio.skill.subsurface.petrophysics.core-log-reconciliation
+    purpose: Identify material disagreement between log-derived interpretation and rock/fluid sample evidence.
+    required_inputs: [subsurface.wellbore.log, subsurface.sample.analysis]
+    outputs: [supporting_evidence, contradictory_evidence, confidence_impact]
+    authority: recommend_only
+
+  - id: cepio.skill.subsurface.petrophysics.downstream-impact
+    purpose: Trace the formation-evaluation case and its assumptions into current static models, reservoir models, reserves cases, opportunities and decisions.
+    required_inputs: [formation_evaluation_context]
+    outputs: [dependency_graph, impacted_models, impacted_reserves, impacted_opportunities, impacted_decisions]
+    authority: recommend_only
+
+reasoning_chain:
+  - resolve_context
+  - resolve_authority
+  - assemble_evidence
+  - compare_revisions
+  - expose_assumptions
+  - assess_support_and_contradiction
+  - expose_uncertainty_and_confidence
+  - traverse_downstream_dependencies
+  - recommend_review_or_information_gain
+
+human_authority:
+  petrophysicist:
+    may: [draft_assessment, challenge_interpretation, recommend_change]
+  senior_or_principal_petrophysicist:
+    may: [technical_endorsement, challenge_interpretation]
+  technical_authority:
+    may: [declare_authoritative, reject, supersede]
+  ai_skill:
+    may: [read, reason, compare, detect_inconsistency, draft_assessment, recommend]
+    may_not: [declare_authoritative, approve_reserves_basis, overwrite_external_record, approve_investment_decision]
+
+acceptance_criteria:
+  - id: PET02-A01
+    statement: Resolve the authoritative formation-evaluation case for the requested well interval.
+  - id: PET02-A02
+    statement: Identify the immediately superseded interpretation context.
+  - id: PET02-A03
+    statement: Explain material changes in assumptions, methods, evidence or findings.
+  - id: PET02-A04
+    statement: Preserve source-system record and version identity for external evidence.
+  - id: PET02-A05
+    statement: Separate supporting evidence from contradictory evidence.
+  - id: PET02-A06
+    statement: Expose material uncertainty for water saturation and fluid contact when present.
+  - id: PET02-A07
+    statement: Trace the case to current downstream models, reserves cases, opportunities and decisions.
+  - id: PET02-A08
+    statement: Prevent an AI skill from declaring the interpretation authoritative or overwriting external technical data.

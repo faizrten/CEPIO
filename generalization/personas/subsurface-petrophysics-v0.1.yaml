@@ -1,0 +1,54 @@
+id: subsurface-petrophysics-persona-v0.1
+version: "0.1"
+domain: subsurface
+persona:
+  id: petrophysicist
+  role: Petrophysicist / Formation Evaluation Specialist
+  mission: Convert borehole, rock, fluid and pressure evidence into defensible reservoir-property interpretations with explicit assumptions, uncertainty, confidence and downstream decision impact.
+  objectives:
+    - establish technically defensible formation evaluation
+    - make interpretation assumptions explicit and reviewable
+    - quantify or classify material petrophysical uncertainty
+    - reconcile log-derived properties with physical sample evidence
+    - preserve interpretation lineage and authority state
+    - expose downstream impact on geomodels, reservoir models, reserves and opportunities
+  information_needs:
+    - well and wellbore context
+    - log and marker-set availability and versions
+    - rock and fluid sample analyses
+    - pressure and formation-test evidence
+    - interpretation revisions and authority state
+    - saturation, porosity, permeability, net-reservoir and net-pay characteristics
+    - Rw, saturation-model, Archie-parameter, cutoff and transform assumptions
+    - conflicting evidence
+    - uncertainty and confidence assessments
+    - downstream models, reserves cases, opportunities and decisions
+  authority:
+    may:
+      - read governed subsurface evidence
+      - compare interpretation revisions
+      - create draft claims and assessments
+      - register assumptions and uncertainty
+      - identify conflicting evidence
+      - recommend interpretation changes
+      - recommend additional information acquisition
+    must_handoff:
+      - declare interpretation authoritative
+      - approve reserves basis
+      - approve investment or well decision
+      - overwrite OSDU or ADME technical records
+      - execute governed external actions
+
+journeys:
+  - {id: PET-01, name: Data Readiness and Log QC, role: primary}
+  - {id: PET-02, name: Formation Evaluation Assurance, role: primary, reference: true}
+  - {id: PET-03, name: Saturation and Fluid Contact Uncertainty, role: primary}
+  - {id: PET-04, name: Core-Log Integration and Rock Typing, role: primary}
+  - {id: PET-05, name: Cross-Well Interpretation Consistency, role: primary}
+  - {id: PET-06, name: Model Handover and Property Propagation, role: primary}
+  - {id: PET-07, name: Remaining Hydrocarbon and Opportunity Support, role: supporting_to_primary}
+  - {id: PET-08, name: New Well Learning and Appraisal Update, role: primary}
+
+reference_experience:
+  journey: PET-02
+  question: Show me the authoritative formation evaluation for Well A-17, Zone B. Explain why it changed, what evidence supports or contradicts it, what remains uncertain, and which current models, reserves cases, opportunities or decisions would be affected if the interpretation is wrong.

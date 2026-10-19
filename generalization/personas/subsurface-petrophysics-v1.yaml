@@ -1,0 +1,55 @@
+id: subsurface-petrophysics-persona-v1
+version: "1.0"
+domain: subsurface
+milestone: CEPIO Petrophysics v1 Persona Coverage
+persona_family:
+  id: petrophysics
+  primary_role: Petrophysicist / Formation Evaluation Specialist
+  mission: Convert borehole, rock, fluid and pressure evidence into defensible reservoir-property beliefs, technical assurance, learning and opportunity support with explicit provenance, assumptions, uncertainty and downstream impact.
+  authority_profiles:
+    - id: petrophysicist
+      level: practitioner
+      may: [read, interpret, compare, assess, challenge, draft, recommend]
+      must_handoff: [declare_authoritative, approve_reserves_basis, approve_investment_decision, overwrite_external_records]
+    - id: principal_petrophysicist
+      level: technical_endorsement
+      may: [read, interpret, compare, assess, challenge, endorse_technical_recommendation]
+      must_handoff: [declare_authoritative, approve_reserves_basis, approve_investment_decision, overwrite_external_records]
+    - id: petrophysics_technical_authority
+      level: technical_authority
+      may: [approve_methodology, approve_technical_exception, designate_authoritative_interpretation]
+      runtime_note: v1 models this authority contract but deliberately does not expose an autonomous approval action.
+      must_handoff: [approve_reserves_basis, approve_investment_decision, overwrite_external_records]
+
+design_rule:
+  ontology: shared reality and assurance semantics
+  journey: decision/reasoning process
+  persona: role-specific experience and authority
+  skill: role-specific intelligence
+  policy: governed permission boundary
+
+shared_semantic_spine:
+  core: [Evidence, Claim, Hypothesis, Assumption, Assessment, UncertaintyAssessment, ConfidenceAssessment, InformationGain, Dependency]
+  subsurface: [PetrophysicsAssuranceCase, FormationEvaluationCase, PetrophysicalCharacteristic, DataReadinessAssessment, SaturationContactAssessment, InterpretationConsistencyAssessment, ModelHandoverTrace, RemainingHydrocarbonAssessment, NewWellLearningAssessment]
+  kinetic: [Opportunity, Option, OptionRecommendation, Decision]
+
+journeys:
+  - {id: PET-01, name: Data Readiness and Log QC, role: horizontal, golden_question: "Is the available evidence fit for the formation-evaluation and assurance questions we need to answer, and what is missing?"}
+  - {id: PET-02, name: Formation Evaluation Assurance, role: anchor, golden_question: "Show me the authoritative formation evaluation for Well A-17, Zone B. Explain why it changed, what evidence supports or contradicts it, what remains uncertain, and which downstream decisions are exposed."}
+  - {id: PET-03, name: Saturation and Fluid Contact Uncertainty, role: primary, golden_question: "For Reservoir R3, what is our current view of fluid saturation and contacts, what assumptions drive it, where do wells disagree, and which reserves or development decisions are sensitive?"}
+  - {id: PET-04, name: Core-Log Integration and Rock Typing, role: primary, golden_question: "Which rock-property interpretations are supported by both log and core evidence, where do they disagree, and which transforms should be challenged?"}
+  - {id: PET-05, name: Cross-Well Interpretation Consistency, role: primary, golden_question: "Find wells in Reservoir R3 where materially different petrophysical methods, cutoffs or assumptions are used for equivalent intervals and show potential impact."}
+  - {id: PET-06, name: Model Handover and Property Propagation, role: primary, golden_question: "Show how authoritative petrophysical interpretations propagated into Static Model SM18 and Reservoir Model RM21, including transformations, upscaling and stale dependencies."}
+  - {id: PET-07, name: Remaining Hydrocarbon and Opportunity Support, role: supporting_to_primary, golden_question: "Where does current petrophysical evidence indicate remaining or bypassed hydrocarbons, and which recovery opportunities depend materially on that interpretation?"}
+  - {id: PET-08, name: New Well Learning and Appraisal Update, role: primary, golden_question: "What did Well A-17 teach us that we did not know before drilling it, which beliefs changed, and what should be updated downstream?"}
+
+coverage_definition:
+  complete_when:
+    - all eight journeys have frozen golden questions
+    - PET-01 and PET-03 through PET-08 execute deterministically against the v1 synthetic portfolio
+    - PET-02 remains green as the anchor journey
+    - every runtime journey passes CEPIO Skill preflight for the petrophysicist role
+    - source and version identity is preserved for external evidence
+    - contradictory evidence is surfaced rather than silently reconciled
+    - AI outputs remain recommendation-only
+    - scenario-specific semantics reuse the shared spine unless a domain abstraction is justified
