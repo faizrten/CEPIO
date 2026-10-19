@@ -32,6 +32,8 @@ Create or reuse a **non-production Fabric Warehouse** for the proof. In its SQL 
 
 For runtime access, use least privilege. The CEPIO identity needs read access to the Fabric item and `SELECT` access to the proof tables; it does not need CEPIO write authority.
 
+The v0.1 reader deliberately fixes the schema and supported table statements in code. Runtime configuration cannot supply a schema, table name or SQL statement. The only SQL value supplied at runtime is the parameterized `context_id`.
+
 ## 2. Get the Fabric SQL endpoint
 
 From the Fabric Warehouse / SQL analytics endpoint settings, copy the SQL connection details and retain only the server and database/item database name. Do not commit a connection string or credential.
@@ -43,7 +45,6 @@ python -m pip install -e '.[fabric-sql]'
 az login
 export CEPIO_FABRIC_SQL_SERVER='<fabric-sql-server>'
 export CEPIO_FABRIC_SQL_DATABASE='<database-name>'
-export CEPIO_FABRIC_SQL_SCHEMA='cepio_proof'
 export CEPIO_FABRIC_SQL_AUTH='ActiveDirectoryDefault'
 export CEPIO_FABRIC_DATASET_ID='cepio-fabric-live-proof'
 python scripts/qualify_fabric_drilling_npt_live.py
@@ -61,7 +62,6 @@ Configure `dev` environment variables:
 FABRIC_LIVE_PROOF_ENABLED=true
 CEPIO_FABRIC_SQL_SERVER=<fabric-sql-server>
 CEPIO_FABRIC_SQL_DATABASE=<database-name>
-CEPIO_FABRIC_SQL_SCHEMA=cepio_proof
 CEPIO_FABRIC_DATASET_ID=cepio-fabric-live-proof
 ```
 
@@ -71,7 +71,7 @@ Run **Actions → CEPIO Fabric Live Binding Proof → Run workflow**.
 
 ## PASS criteria
 
-The run passes only if the Fabric SQL connection authenticates with Microsoft Entra, the allow-listed tables resolve the complete evidence context, every evidence reference retains source identity/version, Binding Contract registration succeeds, and Fabric/Synthetic produce identical semantic signatures and NPT assessments.
+The run passes only if the Fabric SQL connection authenticates with Microsoft Entra, the fixed allow-listed proof tables resolve the complete evidence context, every evidence reference retains source identity/version, Binding Contract registration succeeds, and Fabric/Synthetic produce identical semantic signatures and NPT assessments.
 
 Provider provenance must remain different. That difference proves the data platform changed while the industrial interpretation did not.
 
