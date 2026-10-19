@@ -122,8 +122,7 @@ def test_registry_pins_parent_versions_and_historical_resolution_does_not_drift(
     registry.activate(second.contract_id, second.version, activated_at=LATER)
 
     assert (
-        registry.get("process-industry", "1.0.0").lifecycle
-        == PerformanceContractLifecycle.retired
+        registry.get("process-industry", "1.0.0").lifecycle == PerformanceContractLifecycle.retired
     )
     assert registry.get_active("process-industry").version == "2.0.0"
 
