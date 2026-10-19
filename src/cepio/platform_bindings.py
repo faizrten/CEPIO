@@ -18,6 +18,9 @@ from .domain_bindings import ExternalRecordReference
 from .external_actions import ExternalActionRuntime, ExternalActionStatus
 
 
+BINDING_CONTRACT_VERSION: Literal["0.1"] = "0.1"
+
+
 class BindingMode(str, Enum):
     evidence = "evidence"
     governed_action = "governed-action"
@@ -31,6 +34,12 @@ class BindingCapability(str, Enum):
     reconcile = "reconcile"
 
 
+class BindingRuntimeStatus(str, Enum):
+    ready = "ready"
+    degraded = "degraded"
+    not_configured = "not-configured"
+
+
 class UnsupportedBindingCapability(RuntimeError):
     """Raised when a binding is asked to perform an undeclared capability."""
 
@@ -40,11 +49,11 @@ class BindingConformanceError(RuntimeError):
 
 
 class PlatformBindingManifest(BaseModel):
-    """Minimal declaration for an internal CEPIO platform binding."""
+    """Invariant declaration for one CEPIO platform binding implementation."""
 
     model_config = ConfigDict(frozen=True)
 
-    schema_version: Literal["0.1"] = "0.1"
+    schema_version: Literal["0.1"] = BINDING_CONTRACT_VERSION
     binding_id: str
     provider_id: str
     source_system: str
@@ -93,6 +102,45 @@ class PlatformBindingManifest(BaseModel):
             )
 
 
+class BindingRegistration(BaseModel):
+    """Explicit runtime registration of a binding capability.
+
+    The manifest describes what an implementation guarantees. Registration records
+    which industrial capability the host intentionally exposes and its current runtime
+    status. Provider support in the repository is never sufficient to create a
+    registration by itself.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    contract_version: Literal["0.1"] = BINDING_CONTRACT_VERSION
+    manifest: PlatformBindingManifest
+    capability_id: str
+    status: BindingRuntimeStatus = BindingRuntimeStatus.ready
+
+    @model_validator(mode="after")
+    def validate_registration(self) -> "BindingRegistration":
+        if not self.capability_id.strip():
+            raise ValueError("capability_id must be non-empty")
+        return self
+
+    @property
+    def access_mode(self) -> Literal["read", "write"]:
+        if self.manifest.mode == BindingMode.evidence:
+            return "read"
+        return "write"
+
+    @property
+    def authority(self) -> Literal["observation-only", "governed-action"]:
+        if self.manifest.mode == BindingMode.evidence:
+            return "observation-only"
+        return "governed-action"
+
+    @property
+    def declared_capabilities(self) -> tuple[str, ...]:
+        return tuple(sorted(capability.value for capability in self.manifest.capabilities))
+
+
 class EvidenceEnvelope(BaseModel):
     """Normalized evidence plus the immutable source record that proves its origin.
 
@@ -124,6 +172,48 @@ class GovernedActionConformanceResult(BaseModel):
     status: ExternalActionStatus
     dispatch_attempts: int
     verification_attempts: int
+
+
+def register_evidence_binding(
+    binding: EvidenceBinding,
+    *,
+    capability_id: str,
+    status: BindingRuntimeStatus = BindingRuntimeStatus.ready,
+) -> BindingRegistration:
+    """Create an explicit registration for an evidence binding without reading data."""
+
+    manifest = binding.manifest
+    if manifest.mode != BindingMode.evidence:
+        raise BindingConformanceError("Evidence registration requires an evidence binding manifest")
+    manifest.require(BindingCapability.resolve_evidence)
+    if not callable(getattr(binding, "resolve_evidence", None)):
+        raise BindingConformanceError("Evidence binding does not implement resolve_evidence()")
+    if hasattr(binding, "write_governed"):
+        raise BindingConformanceError(
+            "Evidence-only bindings must not expose the governed write interface"
+        )
+    return BindingRegistration(
+        manifest=manifest,
+        capability_id=capability_id,
+        status=status,
+    )
+
+
+def register_governed_action_binding(
+    adapter: GovernedWriteAdapter,
+    manifest: PlatformBindingManifest,
+    *,
+    capability_id: str,
+    status: BindingRuntimeStatus = BindingRuntimeStatus.ready,
+) -> BindingRegistration:
+    """Create an explicit registration after validating the governed adapter shape."""
+
+    qualify_governed_action_adapter(adapter, manifest)
+    return BindingRegistration(
+        manifest=manifest,
+        capability_id=capability_id,
+        status=status,
+    )
 
 
 def qualify_evidence_binding(
