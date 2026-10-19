@@ -63,12 +63,18 @@ class PerformanceContractOverlay(BaseModel):
         subject_ids = [subject.id for subject in self.subjects]
         node_ids = [node.id for node in self.nodes]
         binding_ids = [binding.id for binding in self.response_bindings]
+        accountability_keys = [_accountability_key(item) for item in self.accountabilities]
+        contribution_keys = [_contribution_key(item) for item in self.contributions]
         if len(subject_ids) != len(set(subject_ids)):
             raise ValueError("performance overlay subject ids must be unique")
         if len(node_ids) != len(set(node_ids)):
             raise ValueError("performance overlay node ids must be unique")
         if len(binding_ids) != len(set(binding_ids)):
             raise ValueError("performance overlay response binding ids must be unique")
+        if len(accountability_keys) != len(set(accountability_keys)):
+            raise ValueError("performance overlay accountabilities must be unique")
+        if len(contribution_keys) != len(set(contribution_keys)):
+            raise ValueError("performance overlay contributions must be unique")
         return self
 
 
@@ -162,23 +168,23 @@ class PerformanceContractResolver:
 
         for child in chain[1:]:
             for subject in child.subjects:
-                inherited = subjects.get(subject.id)
-                if inherited is not None and inherited.kind != subject.kind:
+                inherited_subject = subjects.get(subject.id)
+                if inherited_subject is not None and inherited_subject.kind != subject.kind:
                     raise PerformanceContractResolutionError(
                         "SUBJECT_KIND_MUTATION",
                         f"Subject {subject.id} changes kind from "
-                        f"{inherited.kind.value} to {subject.kind.value}",
+                        f"{inherited_subject.kind.value} to {subject.kind.value}",
                     )
                 subjects[subject.id] = subject
                 self._record_lineage(lineage, "subject", subject.id, child)
 
             for node in child.nodes:
-                inherited = nodes.get(node.id)
-                if inherited is not None and inherited.kind != node.kind:
+                inherited_node = nodes.get(node.id)
+                if inherited_node is not None and inherited_node.kind != node.kind:
                     raise PerformanceContractResolutionError(
                         "NODE_KIND_MUTATION",
                         f"Performance node {node.id} changes kind from "
-                        f"{inherited.kind.value} to {node.kind.value}",
+                        f"{inherited_node.kind.value} to {node.kind.value}",
                     )
                 nodes[node.id] = node
                 self._record_lineage(lineage, "node", node.id, child)
@@ -214,7 +220,9 @@ class PerformanceContractResolver:
                 nodes=tuple(nodes[key] for key in sorted(nodes)),
                 accountabilities=tuple(accountabilities[key] for key in sorted(accountabilities)),
                 contributions=tuple(contributions[key] for key in sorted(contributions)),
-                response_bindings=tuple(response_bindings[key] for key in sorted(response_bindings)),
+                response_bindings=tuple(
+                    response_bindings[key] for key in sorted(response_bindings)
+                ),
             )
         except ValueError as exc:
             raise PerformanceContractResolutionError(
@@ -226,8 +234,7 @@ class PerformanceContractResolver:
             contract=resolved,
             source_contract_ids=tuple(item.id for item in chain),
             lineage=tuple(
-                lineage[key]
-                for key in sorted(lineage, key=lambda item: (item[0], item[1]))
+                lineage[key] for key in sorted(lineage, key=lambda item: (item[0], item[1]))
             ),
         )
 
@@ -272,7 +279,7 @@ class PerformanceContractResolver:
                 "Industry-reference performance contracts must be organization-neutral",
             )
 
-        prior = root
+        prior: PerformanceContractDefinition = root
         for child in chain[1:]:
             if _LAYER_ORDER[child.layer] <= _LAYER_ORDER[prior.layer]:
                 raise PerformanceContractResolutionError(
@@ -291,9 +298,7 @@ class PerformanceContractResolver:
         self._effective_organization_id(chain)
         self._effective_window(chain)
 
-    def _effective_organization_id(
-        self, chain: list[PerformanceContractDefinition]
-    ) -> str | None:
+    def _effective_organization_id(self, chain: list[PerformanceContractDefinition]) -> str | None:
         organization_id: str | None = None
         for item in chain:
             if item.organization_id is None:
