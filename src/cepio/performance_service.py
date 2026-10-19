@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -65,8 +66,8 @@ class PerformanceResponseAssessment(BaseModel):
     evaluation: PerformanceEvaluation
     deviations: tuple[PerformanceDeviationAssessment, ...]
     workflow_candidates: tuple[PerformanceWorkflowCandidate, ...]
-    authority: str = "recommend_only"
-    policy_required: bool = True
+    authority: Literal["recommend_only"] = "recommend_only"
+    policy_required: Literal[True] = True
 
 
 class PerformanceService:
