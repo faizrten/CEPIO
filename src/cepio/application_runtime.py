@@ -7,7 +7,8 @@ from .maintenance_deferral_skill import (
     maintenance_deferral_skill_spec,
 )
 from .runtime import CEPIORuntime
-from .skill_preflight import SkillPreflightSpec, SkillRegistry
+from .skill_preflight import SkillPreflightSpec
+from .skill_preflight import SkillRegistry
 
 
 def shipped_skill_specs() -> tuple[SkillPreflightSpec, ...]:
