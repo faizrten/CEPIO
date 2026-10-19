@@ -30,8 +30,12 @@ V05_PATH = Path("generalization/industry-iq/reliability-scenarios-v0.5.yaml")
 def _runtime(*, types: dict[str, str] | None = None, bare: bool = False):
     runtime = CEPIORuntime() if bare else build_runtime()
     install_industry_iq_packs(runtime, [RELIABILITY_BAD_ACTOR_FLEET_IQ_PACK])
-    for equipment_id, equipment_type in (types or {"EQ-A": "Equipment", "EQ-B": "Equipment", "EQ-C": "Equipment"}).items():
-        runtime.upsert_object(OntologyObject(id=equipment_id, type=equipment_type, name=equipment_id))
+    for equipment_id, equipment_type in (
+        types or {"EQ-A": "Equipment", "EQ-B": "Equipment", "EQ-C": "Equipment"}
+    ).items():
+        runtime.upsert_object(
+            OntologyObject(id=equipment_id, type=equipment_type, name=equipment_id)
+        )
     runtime.upsert_object(OntologyObject(id="KPI-EXPOSURE", type="KPI", name="Service exposure"))
     return runtime
 
@@ -54,7 +58,12 @@ def _exposure(
         id=observation_id,
         type=observation_type,
         name=observation_id,
-        properties={"value": value, "unitSymbol": unit, "validFrom": valid_from, "validTo": valid_to},
+        properties={
+            "value": value,
+            "unitSymbol": unit,
+            "validFrom": valid_from,
+            "validTo": valid_to,
+        },
     )
     runtime.upsert_object(obs)
     if link_entity:
@@ -251,8 +260,22 @@ def test_zero_failure_peer_population_remains_deterministic():
 
 def test_failure_only_and_downtime_only_elevation_are_distinct():
     runtime = _runtime()
-    p1 = _period(runtime, P1_START, P1_END, {"EQ-A": 3, "EQ-B": 1, "EQ-C": 1}, downtime=0.0, suffix="1")
-    p2 = _period(runtime, P2_START, P2_END, {"EQ-A": 3, "EQ-B": 1, "EQ-C": 1}, downtime=0.0, suffix="2")
+    p1 = _period(
+        runtime,
+        P1_START,
+        P1_END,
+        {"EQ-A": 3, "EQ-B": 1, "EQ-C": 1},
+        downtime=0.0,
+        suffix="1",
+    )
+    p2 = _period(
+        runtime,
+        P2_START,
+        P2_END,
+        {"EQ-A": 3, "EQ-B": 1, "EQ-C": 1},
+        downtime=0.0,
+        suffix="2",
+    )
     result = _assess(runtime, [p1, p2])
     a = next(item for item in result.assets if item.equipment_id == "EQ-A")
     assert all(item.status == PeriodBurdenStatus.elevated_failure_rate for item in a.periods)
@@ -270,7 +293,9 @@ def test_failure_only_and_downtime_only_elevation_are_distinct():
 
 
 def test_generic_and_drilling_equipment_share_the_same_contract():
-    runtime = _runtime(types={"EQ-A": "DrillingEquipment", "EQ-B": "Equipment", "EQ-C": "Equipment"})
+    runtime = _runtime(
+        types={"EQ-A": "DrillingEquipment", "EQ-B": "Equipment", "EQ-C": "Equipment"}
+    )
     result = _assess(runtime, _persistent_fixture(runtime))
     assert result.persistent_bad_actor_ids == ["EQ-A"]
 
@@ -320,7 +345,9 @@ def test_peer_population_must_be_unique_stable_and_have_at_least_three_assets():
     p1 = _period(runtime, P1_START, P1_END, {"EQ-A": 1, "EQ-B": 1, "EQ-C": 1}, suffix="1")
     p2 = _period(runtime, P2_START, P2_END, {"EQ-A": 1, "EQ-B": 1, "EQ-C": 1}, suffix="2")
     p2["assets"][2]["equipment_id"] = "EQ-B"
-    with pytest.raises(ValueError, match="same qualified peer equipment population|Duplicate equipment"):
+    with pytest.raises(
+        ValueError, match="same qualified peer equipment population|Duplicate equipment"
+    ):
         _assess(runtime, [p1, p2])
 
     runtime = _runtime()
@@ -388,7 +415,9 @@ def test_exposure_value_unit_validity_and_reuse_fail_closed():
 
     runtime = _runtime()
     periods = _persistent_fixture(runtime)
-    periods[1]["assets"][0]["exposure_observation_id"] = periods[0]["assets"][0]["exposure_observation_id"]
+    periods[1]["assets"][0]["exposure_observation_id"] = periods[0]["assets"][0][
+        "exposure_observation_id"
+    ]
     with pytest.raises(ValueError, match="reused across analysis periods"):
         _assess(runtime, periods)
 
@@ -396,7 +425,9 @@ def test_exposure_value_unit_validity_and_reuse_fail_closed():
 def test_failure_evidence_must_be_unique_scoped_in_period_and_have_nonnegative_downtime():
     runtime = _runtime()
     periods = _persistent_fixture(runtime)
-    periods[0]["assets"][0]["failure_event_ids"].append(periods[0]["assets"][0]["failure_event_ids"][0])
+    periods[0]["assets"][0]["failure_event_ids"].append(
+        periods[0]["assets"][0]["failure_event_ids"][0]
+    )
     with pytest.raises(ValueError, match="Duplicate FailureEvent evidence"):
         _assess(runtime, periods)
 
