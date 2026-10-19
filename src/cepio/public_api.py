@@ -314,11 +314,13 @@ V1_ROUTES: tuple[tuple[str, Any, list[str], Any, str, str], ...] = (
 
 
 def _install_v1_routes() -> None:
-    existing = {
-        (route.path, frozenset(route.methods or set()))
-        for route in app.routes
-        if hasattr(route, "methods")
-    }
+    existing: set[tuple[str, frozenset[str]]] = set()
+    for route in app.routes:
+        path = getattr(route, "path", None)
+        methods = getattr(route, "methods", None)
+        if isinstance(path, str) and methods is not None:
+            existing.add((path, frozenset(methods)))
+
     for path, endpoint, methods, response_model, operation_id, tag in V1_ROUTES:
         full_path = f"/api/v1{path}"
         signature = (full_path, frozenset(methods))
