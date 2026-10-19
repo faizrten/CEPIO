@@ -52,7 +52,7 @@ def test_contract_payloads_are_protocol_neutral_and_identity_free():
     assert "actor_roles" not in action_fields
     assert "created_by" not in decision_fields
     assert "actor_id" not in skill_fields
-    assert APPLICATION_CONTRACT_VERSION == "0.1.0"
+    assert APPLICATION_CONTRACT_VERSION == "0.2.0"
 
 
 def test_execution_context_is_derived_from_trusted_principal():
@@ -202,8 +202,8 @@ def test_context_and_skill_envelopes_reference_governed_objects_without_transpor
         evidence=invocation.evidence,
     )
 
-    assert context.metadata.contract_version == "0.1.0"
-    assert evaluation.metadata.contract_version == "0.1.0"
+    assert context.metadata.contract_version == "0.2.0"
+    assert evaluation.metadata.contract_version == "0.2.0"
     assert evaluation.evidence[0].object_ref.id == "OBS-101"
 
     serialized = evaluation.model_dump(mode="json")
