@@ -67,6 +67,14 @@ from .kinetic_resilience import (
     build_resilient_kinetic_runtime,
 )
 from .model import ActionRequest, Decision, OntologyObject, OperationalEvent, Relationship
+from .production_technology import (
+    ProductionJourneyBlocker,
+    ProductionJourneyResult,
+    ProductionJourneyTrace,
+    ProductionTechnologistRuntime,
+    ProductionTechnologistV01CoverageResult,
+    run_production_technologist_v01,
+)
 from .query import ObjectQuery, ObjectQueryResult, PropertyPredicate, QueryOperator, RelationshipPredicate, SortField
 from .runtime import CEPIORuntime, DecisionDefinition
 from .skill_preflight import (
@@ -113,6 +121,12 @@ __all__ = [
     "Pet02DependencyImpact",
     "Pet02RecommendedAction",
     "run_pet02_formation_evaluation",
+    "ProductionTechnologistRuntime",
+    "ProductionTechnologistV01CoverageResult",
+    "ProductionJourneyResult",
+    "ProductionJourneyTrace",
+    "ProductionJourneyBlocker",
+    "run_production_technologist_v01",
     "KineticRuntime",
     "ResilientKineticRuntime",
     "ExternalKineticRuntime",
