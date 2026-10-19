@@ -123,7 +123,3 @@ def main() -> None:
     if not 1 <= port <= 65535:
         raise RuntimeError("CEPIO_MANAGEMENT_PORT must be between 1 and 65535")
     uvicorn.run("cepio.management_api:app", host="127.0.0.1", port=port)
-
-
-if __name__ == "__main__":
-    main()
