@@ -25,6 +25,7 @@ CEPIO uses modular RDF/OWL ontologies rather than one monolithic schema.
 ### Domain
 
 - `energy`
+- `subsurface`
 - `process_industry`
 - `manufacturing`
 - `epcic`
@@ -41,24 +42,25 @@ The versions below mirror `ontology-modules.yaml` on this branch. That manifest 
 
 | Module | Namespace | Current module version | Tier | Stability |
 |---|---|---:|---|---|
-| core | `https://cepio.org/ontology/core#` | 0.2.0 | foundation | stable |
+| core | `https://cepio.org/ontology/core#` | 0.3.1 | foundation | stable |
 | lifecycle | `.../lifecycle#` | 0.2.0 | foundation | stable |
-| kinetic | `.../kinetic#` | 0.2.1 | foundation | stable |
+| kinetic | `.../kinetic#` | 0.3.0 | foundation | stable |
 | industrial | `.../industrial#` | 0.2.2 | industrial-common | stable |
 | enterprise | `.../enterprise#` | 0.2.0 | enterprise | stable |
 | energy | `.../energy#` | 0.2.0 | domain | stable |
+| subsurface | `.../subsurface#` | 0.2.0 | domain | experimental |
 | asset | `.../asset#` | 0.1.1 | industrial-common | developing |
 | work_management | `.../work#` | 0.1.1 | industrial-common | developing |
-| reliability | `.../reliability#` | 0.1.2 | industrial-common | developing |
+| reliability | `.../reliability#` | 0.1.3 | industrial-common | developing |
 | hse | `.../hse#` | 0.1.2 | industrial-common | developing |
 | supply | `.../supply#` | 0.1.1 | industrial-common | developing |
-| performance | `.../performance#` | 0.1.4 | industrial-common | developing |
+| performance | `.../performance#` | 0.1.5 | industrial-common | developing |
 | workforce | `.../workforce#` | 0.1.3 | industrial-common | developing |
 | agentic_operations | `.../agentic#` | 0.1.1 | industrial-common | developing |
 | process_industry | `.../process#` | 0.1.6 | domain | developing |
 | manufacturing | `.../manufacturing#` | 0.1.1 | domain | experimental |
 | epcic | `.../epcic#` | 0.1.0 | domain | developing |
-| drilling | `.../drilling#` | 0.1.2 | domain | developing |
+| drilling | `.../drilling#` | 0.1.3 | domain | developing |
 | commercial | `.../commercial#` | 0.1.2 | enterprise | developing |
 
 ## Common decision and optimization semantics
@@ -181,6 +183,26 @@ process:IntegrityOperatingWindow
 Integrity excursions reuse `process:ProcessDeviation` and `process:deviationAgainstEnvelope`, avoiding a parallel excursion-event hierarchy.
 
 Production assurance adds the reusable measurement `performance:ProductionCapacity`. Availability remains an instance of generic `cepio:KPI`, observed through `performance:KPIObservation`, rather than a dedicated `AvailabilityKPI` ontology class. This keeps KPI identity, formulas and external terminology in the metric/mapping layer instead of proliferating classes.
+
+## Enterprise performance semantics
+
+Performance module v0.1.5 adds the semantic grammar for the [Enterprise Performance Graph](22-Enterprise-Performance-Graph.md):
+
+```text
+performance:PerformanceContract
+performance:Outcome
+performance:KeyResult
+performance:Target
+performance:Threshold
+performance:Guardrail
+performance:Accountability
+performance:Contribution
+performance:PerformanceResponseBinding
+```
+
+The model deliberately reuses core `cepio:Objective`, `cepio:KPI`, `cepio:Measurement`, `cepio:Evidence`, `cepio:dependsOn` and `cepio:contributesTo`. Organization-specific KPI formulas, targets and conventions remain Performance Contract / Business Logic semantics instead of becoming global ontology classes.
+
+This allows CEPIO to connect enterprise objectives, role/persona accountability, individual key results, operating KPIs and evidence while preserving tenant-specific business meaning.
 
 ## IRI-first identity
 
