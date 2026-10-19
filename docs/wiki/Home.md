@@ -27,7 +27,7 @@ SAP · AVEVA PI · OSDU · P6 · MES · SQL · Fabric · other systems
 +-------------------------------------------------------+
 |                         CEPIO                          |
 | Objects · Relationships · Properties · Events · State |
-| Time · Provenance · Functions · Decisions · Actions   |
+| Time · Provenance · Performance · Decisions · Actions |
 | Policy · Audit · Versioning · Migration contracts     |
 +-----------------------------+-------------------------+
                               |
@@ -43,7 +43,7 @@ SAP · AVEVA PI · OSDU · P6 · MES · SQL · Fabric · other systems
 
 ## What CEPIO is
 
-CEPIO is an **industrial operating abstraction**. It defines the meaning and operating contract for industrial objects, relationships, state, time, logic, decisions and actions while allowing underlying technology platforms and source systems to evolve independently.
+CEPIO is an **industrial operating abstraction**. It defines the meaning and operating contract for industrial objects, relationships, state, time, logic, performance, decisions and actions while allowing underlying technology platforms and source systems to evolve independently.
 
 CEPIO is designed to answer questions such as:
 
@@ -55,6 +55,8 @@ CEPIO is designed to answer questions such as:
 - Where did each value come from?
 - Which events produced a derived state?
 - Which functions or calculations are applicable?
+- Which objectives, KPIs or key results are at risk?
+- Who is accountable for them and what contributes to them?
 - Which decision follows from the available evidence?
 - Which action is recommended?
 - Who or what is authorized to execute that action?
@@ -86,10 +88,12 @@ Current repository implementation also includes incremental Skill binding/prefli
 
 [Management Control Plane](21-Management-Control-Plane.md) defines the separate read-only Management Contract and local FastAPI projection used to inspect runtime capabilities without mixing administrative concerns into the public application API.
 
+[Enterprise Performance Graph](22-Enterprise-Performance-Graph.md) defines Performance Contract v0.1: objectives, key results, KPIs, guardrails, organization/role/persona/individual accountability, contribution relationships and a recommend-only bridge from performance deviation to governed workflows.
+
 ## Operating loop
 
 ```text
-Observe -> Understand -> Reason -> Decide -> Recommend -> Authorize -> Act -> Observe outcome
+Observe -> Understand -> Evaluate -> Decide -> Recommend -> Authorize -> Act -> Observe outcome
 ```
 
 CEPIO's purpose is not merely to describe the enterprise. It is to create a governed operational layer through which people, applications and AI systems can understand and act on the enterprise consistently.
@@ -134,6 +138,10 @@ CEPIO's purpose is not merely to describe the enterprise. It is to create a gove
 ### Control plane
 
 21. [Management Control Plane](21-Management-Control-Plane.md)
+
+### Performance plane
+
+22. [Enterprise Performance Graph](22-Enterprise-Performance-Graph.md)
 
 ## Documentation governance
 
