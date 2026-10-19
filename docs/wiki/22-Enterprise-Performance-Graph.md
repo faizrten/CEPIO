@@ -359,6 +359,8 @@ claim_status = hypothesis_only
 
 A contributor can also require an installed Industry IQ pack. The reasoning engine fails closed if that deployment capability is missing.
 
+The published `PerformanceIndustryIQService(performance_service, application_service)` constructor remains unchanged. Domain-aware composition is opt-in through `build_performance_industry_iq_service_with_reasoning(...)`, which preserves the frozen application contract while supplying a bounded contributor engine.
+
 ### Reliability is the first implementation
 
 The first domain pack is:
@@ -412,7 +414,7 @@ same governed performance-deviation-response Decision
 
 The Decision still carries `recommended_action = null`; Workflow Policy and Kinetic Runtime remain the execution boundary.
 
-See [ADR-0028](../adr/ADR-0028-reasoning-contribution-v0.1.md).
+See [ADR-0029](../adr/ADR-0029-reasoning-contribution-v0.1.md).
 
 ## Example
 
@@ -454,4 +456,4 @@ Deterministic Performance deviation
 
 That proof matters because it establishes that the contract is genuinely reusable rather than a Reliability-specific abstraction. Only after multi-domain qualification should CEPIO consider a governed contributor registry, durable hypothesis/evidence persistence and experimental REST/MCP exposure.
 
-See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md), [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md) and [ADR-0028](../adr/ADR-0028-reasoning-contribution-v0.1.md).
+See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md), [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md) and [ADR-0029](../adr/ADR-0029-reasoning-contribution-v0.1.md).
