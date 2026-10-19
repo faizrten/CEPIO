@@ -12,9 +12,8 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from .auth import ActorContext
 from .performance_business_logic import (
@@ -102,7 +101,6 @@ class PerformanceEvaluationRequest(BaseModel):
     observations: tuple[PerformanceObservation, ...] = ()
     business_logic: tuple[BusinessLogicInvocation, ...] = ()
     evaluated_at: datetime | None = None
-    stale_after_seconds: int | None = Field(default=None, gt=0)
 
 
 class PerformanceEvaluationResponse(BaseModel):
@@ -199,12 +197,17 @@ class PerformanceService:
         observations = tuple(request.observations) + tuple(
             result.observation for result in materialized
         )
-        evaluation = self.evaluator.evaluate(
-            view.contract,
-            observations,
-            evaluated_at=request.evaluated_at,
-            stale_after_seconds=request.stale_after_seconds,
-        )
+        try:
+            evaluation = self.evaluator.evaluate(
+                view.contract,
+                observations,
+                evaluated_at=request.evaluated_at,
+            )
+        except ValueError as exc:
+            raise PerformanceServiceError(
+                "PERFORMANCE_EVALUATION_INVALID",
+                str(exc),
+            ) from exc
         return PerformanceEvaluationResponse(
             contract_id=view.contract.id,
             contract_version=view.contract.version,
