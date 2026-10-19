@@ -1,0 +1,60 @@
+id: subsurface-petrophysics-v1-persona-coverage
+version: "1.0"
+milestone: CEPIO Petrophysics v1 Persona Coverage
+status: experimental
+persona_family: petrophysics
+anchor_journey: PET-02
+horizontal_journey: PET-01
+scope:
+  journeys: [PET-01, PET-02, PET-03, PET-04, PET-05, PET-06, PET-07, PET-08]
+  execution:
+    PET-01: deterministic_runtime
+    PET-02: delegated_to_pet02_v0.2_runtime
+    PET-03: deterministic_runtime
+    PET-04: deterministic_runtime
+    PET-05: deterministic_runtime
+    PET-06: deterministic_runtime
+    PET-07: deterministic_runtime
+    PET-08: deterministic_runtime
+architecture_rules:
+  - reuse Core Evidence, Claim, Hypothesis, Assumption, Assessment, Uncertainty, Confidence, InformationGain and Dependency semantics
+  - reuse Kinetic Opportunity, Option, OptionRecommendation and Decision semantics
+  - keep OSDU/ADME technical objects external and authoritative
+  - do not copy LAS, log-array, RAFS, RESQML or interpretation bulk payloads into CEPIO
+  - preserve source record and version identity in evidence references
+  - expose contradictory evidence instead of automatically reconciling it
+  - preserve pre-decision and pre-drill belief states for historical provenance
+  - keep AI authority recommendation-only
+runtime_skills:
+  PET-01: cepio.skill.subsurface.petrophysics.evidence-readiness
+  PET-03: cepio.skill.subsurface.petrophysics.saturation-contact-reasoning
+  PET-04: cepio.skill.subsurface.petrophysics.core-log-rocktype-reconciliation
+  PET-05: cepio.skill.subsurface.petrophysics.cross-well-consistency
+  PET-06: cepio.skill.subsurface.petrophysics.model-handover-trace
+  PET-07: cepio.skill.subsurface.petrophysics.remaining-hydrocarbon-opportunity
+  PET-08: cepio.skill.subsurface.petrophysics.new-well-learning
+acceptance:
+  PET-01:
+    must: [identify A-17 as the best-ready context, surface missing evidence by well, never synthesize absent source evidence]
+  PET-02:
+    must: [remain ANSWERED under the existing v0.2 executable contract, preserve authoritative/superseded interpretation lineage, preserve contradiction and downstream dependency tracing]
+  PET-03:
+    must: [expose reservoir contact consensus and uncertainty range, identify A-22 as a material outlier, trace sensitivity to reserves FDP opportunity and decision contexts]
+  PET-04:
+    must: [reconcile RT-2, surface RT-3 core/log permeability contradiction, challenge K_TRANSFORM_V5 without overwriting source evidence]
+  PET-05:
+    must: [identify interpretation-profile deviations across equivalent intervals, flag A-22 for method Rw cutoff and transform divergence, preserve downstream impact targets]
+  PET-06:
+    must: [trace FE-A17-ZB-v3 into SM18 and RM21, expose PHIE upscaling, detect A-14 stale K_TRANSFORM_V4 consumption]
+  PET-07:
+    must: [produce a RemainingHydrocarbonAssessment, link assessment to OP-R3-ZC-REMAINING, expose four options, recommend information acquisition or deferral without making the investment decision]
+  PET-08:
+    must: [compute prior-to-posterior belief deltas for A-17, expose hypothesis updates and information gain, identify downstream models reserves FDP and opportunity contexts requiring review]
+authority:
+  runtime_role: petrophysicist
+  may: [read, reason, compare, assess, detect_contradiction, trace, recommend]
+  prohibited: [declare_authoritative, approve_reserves_basis, overwrite_external_record, approve_investment_decision]
+coverage_gate:
+  required_answered: 8
+  required_blocked: 0
+  synthetic_benchmark_required: true
