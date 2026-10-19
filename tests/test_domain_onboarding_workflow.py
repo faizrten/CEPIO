@@ -47,9 +47,10 @@ def _gap_triage(**overrides: object) -> dict[str, object]:
 
 
 def _validate(path: Path, expected: set[tuple[str, str]] | None = None) -> dict[str, object]:
+    expected_gaps = {("Q-001", "urn:test:missing")} if expected is None else expected
     return _validate_gap_triage(
         path,
-        expected=expected or {("Q-001", "urn:test:missing")},
+        expected=expected_gaps,
         archetype_id="arch-v0.1",
         competency_pack_id="competency-v0.1",
         question_ids={"Q-001"},
@@ -272,4 +273,4 @@ def test_gap_triage_rejects_untriaged_current_gap(tmp_path: Path):
 def test_gap_triage_rejects_stale_coverage(tmp_path: Path):
     path = _write_yaml(tmp_path / "gaps.yaml", _gap_triage())
     with pytest.raises(ValueError, match="stale/non-current gaps"):
-        _validate(path, expected={("Q-001", "urn:test:other")})
+        _validate(path, expected=set())
