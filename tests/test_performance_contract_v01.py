@@ -242,7 +242,9 @@ def test_stale_or_missing_observation_fails_closed_to_unknown():
 def test_observation_requires_evidence_and_timezone_aware_time():
     now = datetime(2026, 10, 19, 10, 0)
     with pytest.raises(ValidationError):
-        PerformanceObservation(node_id="availability", value=0.95, observed_at=now, evidence_refs=())
+        PerformanceObservation(
+            node_id="availability", value=0.95, observed_at=now, evidence_refs=()
+        )
 
     with pytest.raises(ValueError, match="timezone-aware"):
         PerformanceRuntime().evaluate(
