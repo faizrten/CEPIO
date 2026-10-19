@@ -4,6 +4,7 @@ The workflow turns the Generalization Lab pattern into a deterministic, auditabl
 state machine over repository artifacts. It deliberately stops at the human
 Generalization Review gate in v0.1; release approval is never inferred from CI.
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -202,7 +203,9 @@ def _validate_gap_triage(
     if unknown_questions:
         raise ValueError(f"gap triage references unknown question ids: {sorted(unknown_questions)}")
     if unknown_standards:
-        raise ValueError(f"gap triage references unknown standards ids: {sorted(unknown_standards)}")
+        raise ValueError(
+            f"gap triage references unknown standards ids: {sorted(unknown_standards)}"
+        )
     if duplicates:
         raise ValueError(f"gap triage contains duplicate coverage: {sorted(duplicates)}")
 
@@ -244,9 +247,7 @@ def run_domain_onboarding(
     runtime_report: dict[str, Any] | None = None
     gap_summary: dict[str, Any] = {
         "decision_count": 0,
-        "disposition_counts": {
-            item: 0 for item in sorted(set(policy.allowed_gap_dispositions))
-        },
+        "disposition_counts": {item: 0 for item in sorted(set(policy.allowed_gap_dispositions))},
         "triage_id": None,
         "triage_version": None,
     }
@@ -337,7 +338,11 @@ def run_domain_onboarding(
     transition(
         DomainOnboardingState.BENCHMARKED,
         "benchmark_frozen",
-        {"competency_pack_id": pack.id, "question_count": len(pack.questions), "frozen": pack.frozen},
+        {
+            "competency_pack_id": pack.id,
+            "question_count": len(pack.questions),
+            "frozen": pack.frozen,
+        },
     )
 
     try:
@@ -425,7 +430,9 @@ def run_domain_onboarding(
                 "runtime coverage rate "
                 f"{runtime_rate:.3f} < {policy.qualification.minimum_runtime_coverage_rate:.3f}"
             )
-        if runtime_report["status_counts"].get("FAIL", 0) or runtime_report["status_counts"].get("ERROR", 0):
+        if runtime_report["status_counts"].get("FAIL", 0) or runtime_report[
+            "status_counts"
+        ].get("ERROR", 0):
             qualification_failures.append("runtime qualification contains FAIL/ERROR results")
     elif policy.qualification.require_runtime:
         qualification_failures.append("policy requires a runtime qualification suite")
