@@ -1,0 +1,21 @@
+id: industrial-common-regression-v0.1
+version: "0.1"
+targets:
+  - id: drilling-contractor-capability-v0.3
+    domain: drilling-contractor
+    archetype: generalization/archetypes/drilling-contractor-v0.1.yaml
+    competency: generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml
+    personas: generalization/personas/drilling-contractor-v0.2.yaml
+    standards: generalization/standards/drilling-references.yaml
+    runtime_suite: generalization/runtime/drilling-contractor-runtime-coverage-v0.5.yaml
+    minimum_semantic_pass_rate: 1.0
+    minimum_runtime_coverage_rate: 1.0
+  - id: refinery-operating-abstraction-v0.1
+    domain: refinery-process-manufacturing
+    archetype: generalization/archetypes/refinery-process-manufacturing-v0.1.yaml
+    competency: generalization/competency/refinery-operating-abstraction-v0.1.yaml
+    personas: generalization/personas/refinery-process-manufacturing-v0.2.yaml
+    standards: generalization/standards/refinery-process-references-v0.2.yaml
+    runtime_suite: generalization/runtime/refinery-operating-abstraction-v0.1.yaml
+    minimum_semantic_pass_rate: 1.0
+    minimum_runtime_coverage_rate: 1.0
