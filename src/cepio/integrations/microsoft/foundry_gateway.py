@@ -7,6 +7,8 @@ from typing import Any, Iterator, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
+from ...application_contract import ExecutionContext, SkillEvaluation, SkillInvocation
+from ...application_runtime import build_application_service
 from ...model import ActionRequest, ActionResult, ObjectRef, OntologyObject, PolicyDecision, PolicyEffect
 from ...query import ObjectQuery, ObjectQueryResult
 from ...runtime import AuthorizationError, CEPIORuntime
@@ -141,9 +143,18 @@ class CEPIOMCPGateway:
     def __init__(self, runtime: CEPIORuntime, actor_provider: ActorProvider) -> None:
         self.runtime = runtime
         self.actor_provider = actor_provider
+        self.application_service = build_application_service(runtime)
 
     def _actor(self) -> ActorContext:
         return self.actor_provider.current_actor()
+
+    @staticmethod
+    def _execution_context(actor: ActorContext) -> ExecutionContext:
+        return ExecutionContext(
+            actor_id=actor.subject_id,
+            actor_roles=frozenset(actor.roles),
+            tenant_id=actor.tenant_id,
+        )
 
     def _authorize_object(self, obj: OntologyObject, actor: ActorContext) -> OntologyObject:
         if not self.runtime.policy_engine.can_read_type(actor.roles, obj.type):
@@ -234,6 +245,13 @@ class CEPIOMCPGateway:
                 f"Actor {actor.subject_id} is not authorized to call function {function_name}"
             )
         return self.runtime.call_function(function_name, **arguments)
+
+    def evaluate_skill(self, invocation: SkillInvocation) -> SkillEvaluation:
+        actor = self._actor()
+        return self.application_service.evaluate_skill(
+            invocation,
+            self._execution_context(actor),
+        )
 
     def recommend_action(
         self,
