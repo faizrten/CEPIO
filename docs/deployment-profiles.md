@@ -86,8 +86,28 @@ Configure a federated credential with:
 | Field | Value |
 |---|---|
 | Issuer | `https://token.actions.githubusercontent.com` |
-| Subject | `repo:faizrten/CEPIO:environment:azure-demo` |
+| Subject | `repo:faizrten@102391346/CEPIO@1418774983:environment:azure-demo` |
 | Audience | `api://AzureADTokenExchange` |
+
+This repository enables GitHub's immutable OIDC subject format. Discover the
+configured prefix rather than assuming a name-only subject:
+
+```text
+GET /repos/faizrten/CEPIO/actions/oidc/customization/sub
+```
+
+For this repository, the response has `use_immutable_subject: true` and
+`sub_claim_prefix: repo:faizrten@102391346/CEPIO@1418774983`. Append
+`:environment:azure-demo` exactly, including case. Other repositories may use
+the legacy name-only format or custom subject claims; use their configured
+prefix and verify the actual assertion subject in the Azure login output.
+Keep the issuer and audience exact as well.
+
+An `AADSTS700213` failure means Entra could not match the asserted subject to
+the federated credential. Update the existing credential to the verified exact
+subject, read it back, and rerun the failed job after propagation. The retry
+requires a fresh human environment approval. Do not add wildcard trust, disable
+immutable subjects, or bypass approval to resolve an identity mismatch.
 
 Grant this deployment principal **Contributor** only on the target ACR registry
 for cloud builds and **Website Contributor** only on the target web app.
