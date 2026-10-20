@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Literal
-from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
 from uuid import uuid4
 
+import httpx
 from pydantic import BaseModel, Field, field_validator
 
 from .adapters import (
@@ -197,30 +195,31 @@ def _post_json(
     headers: dict[str, str],
     timeout_seconds: float,
 ) -> TeamsWebhookResponse:
-    request = Request(
-        url,
-        data=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
-        headers=headers,
-        method="POST",
-    )
     try:
-        with urlopen(request, timeout=timeout_seconds) as response:  # noqa: S310
-            status = int(getattr(response, "status", response.getcode()))
-            request_id = (
-                response.headers.get("x-ms-workflow-run-id")
-                or response.headers.get("x-ms-request-id")
-                or response.headers.get("request-id")
-            )
-    except HTTPError as exc:
+        response = httpx.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=timeout_seconds,
+            follow_redirects=False,
+        )
+        response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
         raise RuntimeError(
-            f"Teams Workflow webhook rejected the request with HTTP {exc.code}"
+            f"Teams Workflow webhook rejected the request with HTTP {exc.response.status_code}"
         ) from exc
-    except URLError as exc:
+    except httpx.HTTPError as exc:
         raise RuntimeError("Teams Workflow webhook transport failed") from exc
 
-    if status < 200 or status >= 300:
-        raise RuntimeError(f"Teams Workflow webhook returned HTTP {status}")
-    return TeamsWebhookResponse(status_code=status, request_id=request_id)
+    request_id = (
+        response.headers.get("x-ms-workflow-run-id")
+        or response.headers.get("x-ms-request-id")
+        or response.headers.get("request-id")
+    )
+    return TeamsWebhookResponse(
+        status_code=response.status_code,
+        request_id=request_id,
+    )
 
 
 class TeamsWorkflowWebhookAdapter:
