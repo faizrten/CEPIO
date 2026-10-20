@@ -63,8 +63,17 @@ The Azure deployment identity must have a federated credential trusting this rep
 For a GitHub Environment named `dev`, use the subject:
 
 ```text
-repo:faizrten/CEPIO:environment:dev
+repo:faizrten@102391346/CEPIO@1418774983:environment:dev
 ```
+
+This repository uses immutable OIDC subjects. Confirm the current
+`sub_claim_prefix` using
+`GET /repos/faizrten/CEPIO/actions/oidc/customization/sub`, then append
+`:environment:dev`. Do not copy a legacy name-only subject into Entra; the
+subject, issuer, and audience must match the actual GitHub assertion exactly.
+See the [OIDC deployment setup](deployment-profiles.md#one-time-identity-and-github-environment-setup)
+for discovery and `AADSTS700213` troubleshooting. This documentation does not
+create or modify the separate Environment A deployment identity.
 
 The deployment identity needs only the Azure permissions required to create/update the Environment A resource group and push images. During bootstrap, assigning `Contributor` on `rg-cepio-dev` plus `AcrPush` on the created registry is sufficient; reduce scope further once the deployment stabilizes.
 
@@ -116,7 +125,7 @@ Environment A does not authorize:
 1. Create the GitHub `dev` environment.
 2. Set `AZURE_DEV_ENABLED=false`.
 3. Configure the remaining secrets/variables above.
-4. Configure the Azure federated identity credential for `repo:faizrten/CEPIO:environment:dev`.
+4. Configure the Azure federated identity credential for `repo:faizrten@102391346/CEPIO@1418774983:environment:dev`.
 5. Grant the deployment identity permission to create/update resources in `rg-cepio-dev`.
 6. Merge the Environment A pull request.
 7. Run **CEPIO Deploy DEV** manually for the first deployment.
