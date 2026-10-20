@@ -1,12 +1,12 @@
 """Deterministic specialization for CEPIO Performance Contracts.
 
 A resolved :class:`PerformanceContract` is complete and directly evaluable. Sparse
-specialization overlays are deliberately separate types so a role or individual layer
-can reference inherited subjects/nodes without being mistaken for standalone
+specialization overlays remain separate from complete contracts so role/persona and
+individual layers can reference inherited semantics without becoming standalone
 enterprise truth.
 
-v0.2 adds explicit field patches and suppressions while preserving the v0.1 whole-entry
-overlay contract unchanged for stored-hash and payload compatibility.
+v0.2 adds explicit field patches and suppressions while keeping the v0.1 overlay
+schema unchanged.
 """
 
 from __future__ import annotations
@@ -28,8 +28,6 @@ from .performance_contract import (
     PerformanceSubject,
 )
 
-
-PERFORMANCE_OVERLAY_V2_VERSION: Literal["0.2.0"] = "0.2.0"
 
 _PATCHABLE_FIELDS: dict[str, frozenset[str]] = {
     "subject": frozenset({"name", "parent_id"}),
@@ -92,58 +90,6 @@ _CLEAR_VALUES: dict[tuple[str, str], Any] = {
 }
 
 
-class PerformanceContractOverlay(BaseModel):
-    """Sparse v0.1 child contract that becomes valid only after parent resolution.
-
-    Entries are additive by default. Reusing a subject, node, contribution, or
-    response-binding identity is an explicit whole-entry override. Deletion and
-    field-level patch semantics are intentionally not part of v0.1 specialization.
-    """
-
-    model_config = ConfigDict(frozen=True)
-
-    schema_version: Literal["0.1.0"] = PERFORMANCE_CONTRACT_VERSION
-    id: str
-    version: str
-    name: str
-    layer: PerformanceContractLayer
-    extends_contract_id: str
-    organization_id: str | None = None
-    effective_from: datetime | None = None
-    effective_to: datetime | None = None
-    subjects: tuple[PerformanceSubject, ...] = ()
-    nodes: tuple[PerformanceNode, ...] = ()
-    accountabilities: tuple[PerformanceAccountability, ...] = ()
-    contributions: tuple[PerformanceContribution, ...] = ()
-    response_bindings: tuple[PerformanceResponseBinding, ...] = ()
-
-    @model_validator(mode="after")
-    def validate_overlay(self) -> "PerformanceContractOverlay":
-        if self.effective_from and self.effective_to and self.effective_from >= self.effective_to:
-            raise ValueError("effective_from must be before effective_to")
-        if not self.extends_contract_id:
-            raise ValueError("performance overlay requires extends_contract_id")
-        if self.extends_contract_id == self.id:
-            raise ValueError("performance overlay cannot extend itself")
-
-        subject_ids = [subject.id for subject in self.subjects]
-        node_ids = [node.id for node in self.nodes]
-        binding_ids = [binding.id for binding in self.response_bindings]
-        accountability_keys = [_accountability_key(item) for item in self.accountabilities]
-        contribution_keys = [_contribution_key(item) for item in self.contributions]
-        if len(subject_ids) != len(set(subject_ids)):
-            raise ValueError("performance overlay subject ids must be unique")
-        if len(node_ids) != len(set(node_ids)):
-            raise ValueError("performance overlay node ids must be unique")
-        if len(binding_ids) != len(set(binding_ids)):
-            raise ValueError("performance overlay response binding ids must be unique")
-        if len(accountability_keys) != len(set(accountability_keys)):
-            raise ValueError("performance overlay accountabilities must be unique")
-        if len(contribution_keys) != len(set(contribution_keys)):
-            raise ValueError("performance overlay contributions must be unique")
-        return self
-
-
 class PerformanceFieldSet(BaseModel):
     """One explicit field assignment inside a v0.2 element patch."""
 
@@ -196,11 +142,7 @@ class PerformanceElementPatch(BaseModel):
 
 
 class PerformanceElementSuppression(BaseModel):
-    """Explicit removal of one inherited element from the effective child graph.
-
-    Suppression never cascades. Dependent references must also be explicitly suppressed
-    or refined, otherwise final strict contract validation fails closed.
-    """
+    """Explicit, non-cascading removal of one inherited graph element."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -215,35 +157,127 @@ class PerformanceElementSuppression(BaseModel):
     reason: str = Field(min_length=1)
 
 
-class PerformanceContractOverlayV2(PerformanceContractOverlay):
-    """v0.2 sparse overlay with explicit field patches and suppressions."""
+def _validate_overlay_common(
+    overlay_id: str,
+    extends_contract_id: str,
+    effective_from: datetime | None,
+    effective_to: datetime | None,
+    subjects: tuple[PerformanceSubject, ...],
+    nodes: tuple[PerformanceNode, ...],
+    accountabilities: tuple[PerformanceAccountability, ...],
+    contributions: tuple[PerformanceContribution, ...],
+    response_bindings: tuple[PerformanceResponseBinding, ...],
+) -> None:
+    if effective_from and effective_to and effective_from >= effective_to:
+        raise ValueError("effective_from must be before effective_to")
+    if not extends_contract_id:
+        raise ValueError("performance overlay requires extends_contract_id")
+    if extends_contract_id == overlay_id:
+        raise ValueError("performance overlay cannot extend itself")
 
-    schema_version: Literal["0.2.0"] = PERFORMANCE_OVERLAY_V2_VERSION
+    subject_ids = [subject.id for subject in subjects]
+    node_ids = [node.id for node in nodes]
+    binding_ids = [binding.id for binding in response_bindings]
+    accountability_keys = [_accountability_key(item) for item in accountabilities]
+    contribution_keys = [_contribution_key(item) for item in contributions]
+    if len(subject_ids) != len(set(subject_ids)):
+        raise ValueError("performance overlay subject ids must be unique")
+    if len(node_ids) != len(set(node_ids)):
+        raise ValueError("performance overlay node ids must be unique")
+    if len(binding_ids) != len(set(binding_ids)):
+        raise ValueError("performance overlay response binding ids must be unique")
+    if len(accountability_keys) != len(set(accountability_keys)):
+        raise ValueError("performance overlay accountabilities must be unique")
+    if len(contribution_keys) != len(set(contribution_keys)):
+        raise ValueError("performance overlay contributions must be unique")
+
+
+class PerformanceContractOverlay(BaseModel):
+    """Sparse v0.1 child contract with additive whole-entry overrides."""
+
+    model_config = ConfigDict(frozen=True)
+
+    schema_version: Literal["0.1.0"] = PERFORMANCE_CONTRACT_VERSION
+    id: str
+    version: str
+    name: str
+    layer: PerformanceContractLayer
+    extends_contract_id: str
+    organization_id: str | None = None
+    effective_from: datetime | None = None
+    effective_to: datetime | None = None
+    subjects: tuple[PerformanceSubject, ...] = ()
+    nodes: tuple[PerformanceNode, ...] = ()
+    accountabilities: tuple[PerformanceAccountability, ...] = ()
+    contributions: tuple[PerformanceContribution, ...] = ()
+    response_bindings: tuple[PerformanceResponseBinding, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_overlay(self) -> "PerformanceContractOverlay":
+        _validate_overlay_common(
+            self.id,
+            self.extends_contract_id,
+            self.effective_from,
+            self.effective_to,
+            self.subjects,
+            self.nodes,
+            self.accountabilities,
+            self.contributions,
+            self.response_bindings,
+        )
+        return self
+
+
+class PerformanceContractOverlayV2(BaseModel):
+    """Sparse v0.2 child contract with field patches and suppressions."""
+
+    model_config = ConfigDict(frozen=True)
+
+    schema_version: Literal["0.2.0"] = "0.2.0"
+    id: str
+    version: str
+    name: str
+    layer: PerformanceContractLayer
+    extends_contract_id: str
+    organization_id: str | None = None
+    effective_from: datetime | None = None
+    effective_to: datetime | None = None
+    subjects: tuple[PerformanceSubject, ...] = ()
+    nodes: tuple[PerformanceNode, ...] = ()
+    accountabilities: tuple[PerformanceAccountability, ...] = ()
+    contributions: tuple[PerformanceContribution, ...] = ()
+    response_bindings: tuple[PerformanceResponseBinding, ...] = ()
     patches: tuple[PerformanceElementPatch, ...] = ()
     suppressions: tuple[PerformanceElementSuppression, ...] = ()
 
     @model_validator(mode="after")
-    def validate_v2_operations(self) -> "PerformanceContractOverlayV2":
+    def validate_overlay(self) -> "PerformanceContractOverlayV2":
+        _validate_overlay_common(
+            self.id,
+            self.extends_contract_id,
+            self.effective_from,
+            self.effective_to,
+            self.subjects,
+            self.nodes,
+            self.accountabilities,
+            self.contributions,
+            self.response_bindings,
+        )
+
         patch_keys = [(item.element_type, item.element_key) for item in self.patches]
-        suppression_keys = [
-            (item.element_type, item.element_key) for item in self.suppressions
-        ]
+        suppression_keys = [(item.element_type, item.element_key) for item in self.suppressions]
         if len(patch_keys) != len(set(patch_keys)):
             raise ValueError("performance overlay v0.2 patches must target unique elements")
         if len(suppression_keys) != len(set(suppression_keys)):
-            raise ValueError(
-                "performance overlay v0.2 suppressions must target unique elements"
-            )
+            raise ValueError("performance overlay v0.2 suppressions must target unique elements")
 
         conflicts = set(patch_keys) & set(suppression_keys)
         if conflicts:
             rendered = ", ".join(
-                f"{element_type}:{element_key}"
-                for element_type, element_key in sorted(conflicts)
+                f"{element_type}:{element_key}" for element_type, element_key in sorted(conflicts)
             )
             raise ValueError(
-                "performance overlay v0.2 cannot patch and suppress the same element: "
-                + rendered
+                "performance overlay v0.2 cannot patch and suppress the same element: " + rendered
             )
 
         whole_entry_keys: set[tuple[str, str]] = {
@@ -267,10 +301,14 @@ class PerformanceContractOverlayV2(PerformanceContractOverlay):
             )
             raise ValueError(
                 "performance overlay v0.2 operation conflicts with a whole-entry "
-                "definition in the same overlay: "
-                + rendered
+                "definition in the same overlay: " + rendered
             )
         return self
+
+
+PerformanceContractDefinition = (
+    PerformanceContract | PerformanceContractOverlay | PerformanceContractOverlayV2
+)
 
 
 class PerformanceResolutionLineage(BaseModel):
@@ -292,7 +330,7 @@ class PerformanceResolutionLineage(BaseModel):
 
 
 class PerformanceResolutionOperation(BaseModel):
-    """Auditable specialization operation contributed by one child layer."""
+    """Auditable specialization operation supplied by a child layer."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -337,10 +375,6 @@ class PerformanceContractResolutionError(ValueError):
         self.code = code
 
 
-PerformanceContractDefinition = (
-    PerformanceContract | PerformanceContractOverlayV2 | PerformanceContractOverlay
-)
-
 _LAYER_ORDER = {
     PerformanceContractLayer.industry_reference: 0,
     PerformanceContractLayer.organization: 1,
@@ -368,7 +402,6 @@ class PerformanceContractResolver:
     def resolve(self, contract_id: str) -> ResolvedPerformanceContract:
         chain = self._inheritance_chain(contract_id)
         self._validate_chain(chain)
-
         root = chain[0]
         if not isinstance(root, PerformanceContract):
             raise PerformanceContractResolutionError(
@@ -381,10 +414,9 @@ class PerformanceContractResolver:
         accountabilities = {_accountability_key(item): item for item in root.accountabilities}
         contributions = {_contribution_key(item): item for item in root.contributions}
         response_bindings = {item.id: item for item in root.response_bindings}
-
         lineage: dict[tuple[str, str], PerformanceResolutionLineage] = {}
-        self._record_contract_lineage(root, lineage)
         operations: list[PerformanceResolutionOperation] = []
+        self._record_contract_lineage(root, lineage)
 
         for child in chain[1:]:
             if isinstance(child, PerformanceContractOverlayV2):
@@ -413,14 +445,16 @@ class PerformanceContractResolver:
                     )
 
             for subject in child.subjects:
-                inherited_subject = subjects.get(subject.id)
-                if inherited_subject is not None and inherited_subject.kind != subject.kind:
+                inherited = subjects.get(subject.id)
+                if inherited is not None and inherited.kind != subject.kind:
                     raise PerformanceContractResolutionError(
                         "SUBJECT_KIND_MUTATION",
                         f"Subject {subject.id} changes kind from "
-                        f"{inherited_subject.kind.value} to {subject.kind.value}",
+                        f"{inherited.kind.value} to {subject.kind.value}",
                     )
-                operation = "override" if inherited_subject is not None else "add"
+                operation: Literal["add", "override"] = (
+                    "override" if inherited is not None else "add"
+                )
                 subjects[subject.id] = subject
                 self._record_lineage(lineage, "subject", subject.id, child)
                 self._record_operation(operations, operation, "subject", subject.id, child)
@@ -433,38 +467,46 @@ class PerformanceContractResolver:
                         f"Performance node {node.id} changes kind from "
                         f"{inherited_node.kind.value} to {node.kind.value}",
                     )
-                operation = "override" if inherited_node is not None else "add"
+                node_operation: Literal["add", "override"] = (
+                    "override" if inherited_node is not None else "add"
+                )
                 nodes[node.id] = node
                 self._record_lineage(lineage, "node", node.id, child)
-                self._record_operation(operations, operation, "node", node.id, child)
+                self._record_operation(operations, node_operation, "node", node.id, child)
 
             for assignment in child.accountabilities:
                 key = _accountability_key(assignment)
-                operation = "override" if key in accountabilities else "add"
+                assignment_operation: Literal["add", "override"] = (
+                    "override" if key in accountabilities else "add"
+                )
                 accountabilities[key] = assignment
                 rendered = _render_key(key)
                 self._record_lineage(lineage, "accountability", rendered, child)
                 self._record_operation(
-                    operations, operation, "accountability", rendered, child
+                    operations, assignment_operation, "accountability", rendered, child
                 )
 
             for edge in child.contributions:
                 key = _contribution_key(edge)
-                operation = "override" if key in contributions else "add"
+                edge_operation: Literal["add", "override"] = (
+                    "override" if key in contributions else "add"
+                )
                 contributions[key] = edge
                 rendered = _render_key(key)
                 self._record_lineage(lineage, "contribution", rendered, child)
                 self._record_operation(
-                    operations, operation, "contribution", rendered, child
+                    operations, edge_operation, "contribution", rendered, child
                 )
 
             for binding in child.response_bindings:
-                operation = "override" if binding.id in response_bindings else "add"
+                binding_operation: Literal["add", "override"] = (
+                    "override" if binding.id in response_bindings else "add"
+                )
                 response_bindings[binding.id] = binding
                 self._record_lineage(lineage, "response_binding", binding.id, child)
                 self._record_operation(
                     operations,
-                    operation,
+                    binding_operation,
                     "response_binding",
                     binding.id,
                     child,
@@ -473,7 +515,6 @@ class PerformanceContractResolver:
         leaf = chain[-1]
         organization_id = self._effective_organization_id(chain)
         effective_from, effective_to = self._effective_window(chain)
-
         try:
             resolved = PerformanceContract(
                 id=leaf.id,
@@ -520,8 +561,8 @@ class PerformanceContractResolver:
     ) -> None:
         element_type = suppression.element_type
         element_key = suppression.element_key
-
         removed = False
+
         if element_type == "subject":
             removed = subjects.pop(element_key, None) is not None
         elif element_type == "node":
@@ -542,8 +583,7 @@ class PerformanceContractResolver:
         if not removed:
             raise PerformanceContractResolutionError(
                 "SUPPRESSION_TARGET_NOT_FOUND",
-                f"Performance suppression target is not inherited: "
-                f"{element_type}:{element_key}",
+                f"Performance suppression target is not inherited: {element_type}:{element_key}",
             )
 
         lineage.pop((element_type, element_key), None)
@@ -587,8 +627,7 @@ class PerformanceContractResolver:
         if current is None:
             raise PerformanceContractResolutionError(
                 "PATCH_TARGET_NOT_FOUND",
-                f"Performance patch target is not inherited: "
-                f"{element_type}:{element_key}",
+                f"Performance patch target is not inherited: {element_type}:{element_key}",
             )
 
         payload = current.model_dump(mode="python")
@@ -602,8 +641,7 @@ class PerformanceContractResolver:
         except ValueError as exc:
             raise PerformanceContractResolutionError(
                 "INVALID_PATCH",
-                f"Performance patch produced invalid {element_type} "
-                f"{element_key}: {exc}",
+                f"Performance patch produced invalid {element_type} {element_key}: {exc}",
             ) from exc
 
         if element_type == "subject":
@@ -639,7 +677,6 @@ class PerformanceContractResolver:
         chain: list[PerformanceContractDefinition] = []
         visiting: list[str] = []
         cursor = contract_id
-
         while True:
             if cursor in visiting:
                 cycle = visiting[visiting.index(cursor) :] + [cursor]
@@ -655,11 +692,9 @@ class PerformanceContractResolver:
                 )
             visiting.append(cursor)
             chain.append(contract)
-            parent_id = contract.extends_contract_id
-            if parent_id is None:
+            if contract.extends_contract_id is None:
                 break
-            cursor = parent_id
-
+            cursor = contract.extends_contract_id
         chain.reverse()
         return chain
 
@@ -676,7 +711,7 @@ class PerformanceContractResolver:
             if _LAYER_ORDER[child.layer] <= _LAYER_ORDER[prior.layer]:
                 raise PerformanceContractResolutionError(
                     "INVALID_LAYER_ORDER",
-                    f"Performance layer must specialize toward the individual: "
+                    "Performance layer must specialize toward the individual: "
                     f"{prior.layer.value} -> {child.layer.value}",
                 )
             prior = child
@@ -701,7 +736,7 @@ class PerformanceContractResolver:
             if item.organization_id != organization_id:
                 raise PerformanceContractResolutionError(
                     "ORGANIZATION_BOUNDARY_VIOLATION",
-                    f"Performance specialization crosses organization boundary: "
+                    "Performance specialization crosses organization boundary: "
                     f"{organization_id} -> {item.organization_id}",
                 )
         return organization_id
