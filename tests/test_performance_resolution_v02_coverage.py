@@ -131,9 +131,7 @@ def test_overlay_v02_rejects_duplicate_operations_and_whole_entry_conflict():
             name="Whole entry conflict",
             layer="role",
             extends_contract_id="parent",
-            nodes=(
-                PerformanceNode(id="a", kind="kpi", name="Local A", scope_subject_id="org"),
-            ),
+            nodes=(PerformanceNode(id="a", kind="kpi", name="Local A", scope_subject_id="org"),),
             patches=(patch,),
         )
 
@@ -230,9 +228,7 @@ def test_invalid_patch_value_fails_closed_during_effective_model_validation():
             PerformanceElementPatch(
                 element_type="node",
                 element_key="a",
-                set_fields=(
-                    PerformanceFieldSet(field="max_observation_age_seconds", value=-1),
-                ),
+                set_fields=(PerformanceFieldSet(field="max_observation_age_seconds", value=-1),),
             ),
         ),
     )
