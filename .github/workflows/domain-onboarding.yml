@@ -1,0 +1,122 @@
+name: CEPIO Domain Onboarding
+
+on:
+  pull_request:
+    paths:
+      - 'src/cepio/domain_onboarding.py'
+      - 'src/cepio/capability_registry.py'
+      - 'scripts/run_domain_onboarding.py'
+      - 'scripts/run_compounding_intelligence.py'
+      - 'workflows/domain-onboarding-v0.1.yaml'
+      - 'workflows/capability-promotion-v0.1.yaml'
+      - 'policies/domain-onboarding-v0.1.yaml'
+      - 'policies/capability-promotion-v0.1.yaml'
+      - 'generalization/domain-packs/**'
+      - 'generalization/capabilities/**'
+      - 'generalization/regression/**'
+      - 'generalization/archetypes/**'
+      - 'generalization/personas/**'
+      - 'generalization/standards/**'
+      - 'generalization/competency/**'
+      - 'generalization/gaps/**'
+      - 'generalization/runtime/**'
+      - 'ontologies/**'
+      - 'tests/test_domain_onboarding_workflow.py'
+      - 'tests/test_capability_registry.py'
+      - 'tests/test_compounding_intelligence.py'
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: Repository-relative Domain Onboarding manifest
+        required: true
+        default: generalization/domain-packs/refinery-reference-v0.1.yaml
+        type: string
+      promotion_pack:
+        description: Optional repository-relative reviewed promotion candidate pack
+        required: false
+        default: ''
+        type: string
+      promotion_decisions:
+        description: Optional repository-relative human promotion decision pack
+        required: false
+        default: ''
+        type: string
+      release_decision:
+        description: Optional repository-relative human domain release decision
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: domain-onboarding-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  domain-onboarding:
+    name: domain-onboarding-policy-gate
+    runs-on: ubuntu-latest
+    env:
+      DOMAIN_MANIFEST: ${{ inputs.manifest || 'generalization/domain-packs/refinery-reference-v0.1.yaml' }}
+      PROMOTION_PACK: ${{ inputs.promotion_pack || '' }}
+      PROMOTION_DECISIONS: ${{ inputs.promotion_decisions || '' }}
+      RELEASE_DECISION: ${{ inputs.release_decision || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install -e '.[dev]'
+      - name: Run governed Domain Onboarding workflow
+        run: >-
+          PYTHONPATH=src python scripts/run_domain_onboarding.py
+          --manifest "$DOMAIN_MANIFEST"
+          --workflow workflows/domain-onboarding-v0.1.yaml
+          --policy policies/domain-onboarding-v0.1.yaml
+          --json-out domain-onboarding-report.json
+          --fail-on-blocked
+      - name: Run compounding industrial-intelligence loop
+        shell: bash
+        run: |
+          args=(
+            --domain-manifest "$DOMAIN_MANIFEST"
+            --onboarding-report domain-onboarding-report.json
+            --registry generalization/capabilities/registry-v0.1.yaml
+            --regression-suite generalization/regression/industrial-common-v0.1.yaml
+            --promotion-policy policies/capability-promotion-v0.1.yaml
+            --promotion-workflow workflows/capability-promotion-v0.1.yaml
+            --registry-out proposed-capability-registry.yaml
+            --json-out compounding-intelligence-report.json
+            --fail-on-blocked
+          )
+          if [[ -n "$PROMOTION_PACK" ]]; then
+            args+=(--promotion-pack "$PROMOTION_PACK")
+          fi
+          if [[ -n "$PROMOTION_DECISIONS" ]]; then
+            args+=(--promotion-decisions "$PROMOTION_DECISIONS")
+          fi
+          if [[ -n "$RELEASE_DECISION" ]]; then
+            args+=(--release-decision "$RELEASE_DECISION")
+          fi
+          PYTHONPATH=src python scripts/run_compounding_intelligence.py "${args[@]}"
+      - name: Run Domain Onboarding and compounding contract tests
+        run: >-
+          pytest -q
+          tests/test_domain_onboarding_workflow.py
+          tests/test_capability_registry.py
+          tests/test_compounding_intelligence.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-domain-onboarding-${{ github.run_id }}
+          path: |
+            domain-onboarding-report.json
+            compounding-intelligence-report.json
+            proposed-capability-registry.yaml
+          if-no-files-found: warn

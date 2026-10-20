@@ -11,3 +11,7 @@ dist
 build
 coverage.xml
 htmlcov
+.env
+.env.*
+*.pem
+*.key

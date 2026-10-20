@@ -1,0 +1,44 @@
+name: CEPIO Compiled Industry IQ
+
+on:
+  pull_request:
+    paths:
+      - "src/cepio/compiled_iq.py"
+      - "src/cepio/compiled_iq_contracts.py"
+      - "src/cepio/compiled_iq_runtime.py"
+      - "tests/test_compiled_iq.py"
+      - "scripts/run_compiled_iq_qualification.py"
+      - ".github/workflows/compiled-industry-iq.yml"
+      - "generalization/capabilities/**"
+      - "docs/compiled-industry-iq.md"
+      - "docs/wiki/24-Compiled-Industry-IQ.md"
+      - "docs/adr/ADR-0031-compiled-industry-iq-hot-cache-v0.1.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compiled-industry-iq:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install CEPIO
+        run: python -m pip install -e '.[dev]'
+      - name: Run Compiled Industry IQ contracts
+        run: python -m pytest -q tests/test_compiled_iq.py
+      - name: Run compile-once/use-many canary
+        run: |
+          mkdir -p evidence
+          python scripts/run_compiled_iq_qualification.py \
+            --report evidence/compiled-industry-iq-v0.1.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compiled-industry-iq-v0.1
+          path: evidence/compiled-industry-iq-v0.1.json
+          if-no-files-found: error

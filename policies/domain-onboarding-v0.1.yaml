@@ -1,0 +1,18 @@
+id: policy.domain-onboarding.v1
+version: "0.1"
+require_frozen_benchmark: true
+allowed_gap_dispositions:
+  - CORE
+  - COMMON
+  - DOMAIN
+  - MAPPING
+  - PROFILE
+  - REJECT
+human_review_states:
+  - GENERALIZATION_REVIEW
+  - RELEASE_CANDIDATE
+qualification:
+  minimum_semantic_pass_rate: 1.0
+  maximum_critical_failures: 0
+  require_runtime: true
+  minimum_runtime_coverage_rate: 1.0

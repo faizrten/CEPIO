@@ -11,6 +11,7 @@ resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
   sku: {
     name: 'P1v3'
     tier: 'PremiumV3'
+    capacity: 1
   }
   kind: 'linux'
   properties: {
@@ -51,7 +52,7 @@ resource webConfig 'Microsoft.Web/sites/config@2023-12-01' = {
   name: 'web'
   properties: {
     ftpsState: 'Disabled'
-    minimumTlsVersion: '1.2'
+    minTlsVersion: '1.2'
     http20Enabled: true
     alwaysOn: true
   }

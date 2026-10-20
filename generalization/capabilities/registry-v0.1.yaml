@@ -1,0 +1,82 @@
+id: cepio-capability-registry
+version: "0.1"
+capabilities:
+  - id: industrial.reliability.condition-work-context
+    version: "0.1.0"
+    title: Condition-to-work reliability context
+    description: >
+      Resolve governed equipment-condition evidence into equipment, failure/work context,
+      and maintenance readiness without depending on a specific industrial vertical.
+    layer: COMMON
+    maturity: QUALIFIED
+    semantic_terms:
+      - https://cepio.org/ontology/reliability#ConditionSignal
+      - https://cepio.org/ontology/industrial#Equipment
+      - https://cepio.org/ontology/industrial#WorkOrder
+      - https://cepio.org/ontology/reliability#FailureEvent
+    semantic_relationships:
+      - https://cepio.org/ontology/reliability#observedOnEquipment
+      - https://cepio.org/ontology/industrial#hasWorkOrder
+      - https://cepio.org/ontology/reliability#failureOfEquipment
+    personas:
+      - reliability-engineer
+      - maintenance-planner
+      - chief-mechanic
+      - driller
+    competencies:
+      - drilling:DC-PC-002
+      - drilling:DC-PC-005
+      - refinery:ROA-002
+    evidence_requirements:
+      - condition evidence
+      - equipment identity
+      - work context
+      - failure context
+    reasoning_patterns:
+      - evidence-to-condition-to-work
+    skills: []
+    decisions: []
+    authority_requirements: []
+    policy_requirements:
+      - evidence provenance
+    industry_iq_packs: []
+    runtime_bindings: []
+    uncertainty_models: []
+    validated_domains:
+      - drilling-contractor
+      - refinery-process-manufacturing
+    evidence:
+      - id: drilling-condition-work-semantic
+        domain: drilling-contractor
+        kind: competency
+        artifact: generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml
+        question_ids: [DC-PC-002, DC-PC-005]
+        scope: DOMAIN
+        customer_specific: false
+      - id: drilling-condition-work-runtime
+        domain: drilling-contractor
+        kind: runtime
+        artifact: generalization/runtime/drilling-contractor-runtime-coverage-v0.5.yaml
+        question_ids: [DC-PC-002, DC-PC-005]
+        scope: DOMAIN
+        customer_specific: false
+      - id: refinery-condition-work-semantic
+        domain: refinery-process-manufacturing
+        kind: competency
+        artifact: generalization/competency/refinery-operating-abstraction-v0.1.yaml
+        question_ids: [ROA-002]
+        scope: DOMAIN
+        customer_specific: false
+      - id: refinery-condition-work-runtime
+        domain: refinery-process-manufacturing
+        kind: runtime
+        artifact: generalization/runtime/refinery-operating-abstraction-v0.1.yaml
+        question_ids: [ROA-002]
+        scope: DOMAIN
+        customer_specific: false
+    profile_validation_count: 0
+    provenance:
+      mode: qualified-backfill
+      source_ids:
+        - drilling-contractor-persona-capabilities-v0.3
+        - refinery-operating-abstraction-v0.1

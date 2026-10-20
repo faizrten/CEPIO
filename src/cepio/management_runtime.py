@@ -6,6 +6,7 @@ from .application_runtime import shipped_executable_skill_ids, shipped_skill_spe
 from .auth import AuthSettings
 from .config import RuntimeSettings
 from .management_contract import BindingDescriptor, CEPIOManagementService
+from .platform_bindings import BindingRegistration
 from .runtime import CEPIORuntime
 
 
@@ -25,4 +26,24 @@ def build_management_service(
         skill_specs=shipped_skill_specs(),
         executable_skill_ids=shipped_executable_skill_ids(),
         bindings=bindings,
+    )
+
+
+def build_management_service_from_registrations(
+    runtime: CEPIORuntime,
+    *,
+    binding_registrations: Iterable[BindingRegistration],
+    runtime_settings: RuntimeSettings | None = None,
+    auth_settings: AuthSettings | None = None,
+) -> CEPIOManagementService:
+    """Build Management from canonical Binding Contract registrations."""
+
+    return build_management_service(
+        runtime,
+        runtime_settings=runtime_settings,
+        auth_settings=auth_settings,
+        bindings=(
+            BindingDescriptor.from_registration(registration)
+            for registration in binding_registrations
+        ),
     )

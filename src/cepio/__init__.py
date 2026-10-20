@@ -69,6 +69,16 @@ from .industry_iq import (
     industry_iq_manifest,
     version_satisfies,
 )
+from .industry_iq_catalogue import (
+    IndustryIQCatalogue,
+    IndustryIQCatalogueCandidate,
+    IndustryIQCatalogueDeployment,
+    IndustryIQCatalogueError,
+    IndustryIQCatalogueRecord,
+    IndustryIQCatalogueSource,
+    IndustryIQPackProvenance,
+    IndustryIQTrustPolicy,
+)
 from .kinetic import (
     ApprovalTask,
     KineticRuntime,
@@ -149,6 +159,14 @@ __all__ = [
     "industry_iq_manifest",
     "version_satisfies",
     "install_industry_iq_packs",
+    "IndustryIQCatalogue",
+    "IndustryIQCatalogueCandidate",
+    "IndustryIQCatalogueDeployment",
+    "IndustryIQCatalogueError",
+    "IndustryIQCatalogueRecord",
+    "IndustryIQCatalogueSource",
+    "IndustryIQPackProvenance",
+    "IndustryIQTrustPolicy",
     "DRILLING_NPT_IQ_PACK",
     "DrillingNPTIndustryIQPack",
     "NPTDurationInput",
