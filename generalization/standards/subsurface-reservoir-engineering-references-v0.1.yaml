@@ -1,0 +1,48 @@
+id: subsurface-reservoir-engineering-references-v0.1
+version: "0.1"
+references:
+  - id: osdu-reservoir-ddms
+    name: OSDU / Azure Data Manager for Energy Reservoir DDMS
+    body: Microsoft Azure Energy Data Services / OSDU
+    url: https://learn.microsoft.com/en-us/azure/energy-data-services/tutorial-reservoir-ddms-apis
+    use: >
+      Authoritative technical-data-plane reference for reservoir model scenarios and
+      reservoir-domain records. CEPIO binds identity, version and provenance rather than
+      duplicating Reservoir DDMS payloads.
+    access: public-reference
+
+  - id: energistics-resqml-2.2
+    name: Energistics RESQML v2.2
+    body: Energistics
+    url: https://energistics.org/resqml-developers-users
+    use: >
+      Interoperability reference for earth and reservoir model representations. CEPIO
+      reuses or references RESQML payloads and governs the reasoning context around them.
+    access: public-reference
+
+  - id: energistics-prodml-2.3
+    name: Energistics PRODML v2.3
+    body: Energistics
+    url: https://energistics.org/prodml-developers-users
+    use: >
+      Production-data interoperability reference supporting surveillance and production
+      evidence used in reservoir performance reasoning.
+    access: public-reference
+
+  - id: spe-prms-2018
+    name: SPE Petroleum Resources Management System 2018
+    body: Society of Petroleum Engineers and sponsoring organizations
+    url: https://www.spe.org/en/industry/reserves/
+    use: >
+      Reference for reserves and resources terminology, classification and the governance
+      context in which reservoir assumptions and uncertainty affect reserves decisions.
+    access: public-reference
+
+  - id: cepio-osdu-boundary-v0.1
+    name: CEPIO Subsurface OSDU / ADME Boundary v0.1
+    body: CEPIO
+    url: docs/subsurface-osdu-boundary-v0.1.md
+    use: >
+      Repository governance contract enforcing OSDU-first, extension-not-replication and
+      the separation between technical numerical engines and CEPIO reasoning semantics.
+    access: repository-reference
