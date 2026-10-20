@@ -65,7 +65,7 @@ jobs:
           tag="cepio:${DEPLOY_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           az acr build --registry "$AZURE_CONTAINER_REGISTRY" \
             --image "$tag" --file Dockerfile \
-            --build-arg CEPIO_RUNTIME_EXTRAS=azure-search --no-logs .
+            --build-arg CEPIO_RUNTIME_EXTRAS=azure-search,mcp --no-logs .
           digest="$(az acr repository show --name "$AZURE_CONTAINER_REGISTRY" \
             --image "$tag" --query digest --output tsv)"
           if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
@@ -122,13 +122,22 @@ jobs:
             echo "::error::Expected unauthenticated management reads to return 401, got $management_status."
             exit 1
           fi
+          mcp_status="$(curl --silent --show-error --max-time 30 --output /dev/null \
+            --write-out '%{http_code}' -X POST -H 'Content-Type: application/json' \
+            --data '{}' "https://$host/mcp")"
+          if [[ "$mcp_status" != "401" ]]; then
+            echo "::error::Expected unauthenticated MCP access to return 401, got $mcp_status."
+            exit 1
+          fi
           {
             echo "### CEPIO demo deployment"
             echo "- Commit: $DEPLOY_SHA"
-            echo "- Health: https://$host/api/v1/health"
-            echo "- Management: https://$host/management/v1/health (authenticated read-only)"
+            echo "- REST: https://$host/api/v1"
+            echo "- Management: https://$host/management/v1 (authenticated read-only)"
+            echo "- MCP: https://$host/mcp (authenticated Streamable HTTP)"
             echo "- Image: ${{ steps.build.outputs.image }}"
             echo "- Azure AI Search: $CEPIO_AZURE_SEARCH_ENDPOINT / $CEPIO_AZURE_SEARCH_INDEX"
             echo "- Anonymous object access: HTTP 401"
             echo "- Anonymous management access: HTTP 401"
+            echo "- Anonymous MCP access: HTTP 401"
           } >> "$GITHUB_STEP_SUMMARY"
