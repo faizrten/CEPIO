@@ -94,9 +94,7 @@ def test_entra_mcp_auth_fails_closed_for_unmapped_role():
     provider = ContextVarActorProvider()
     app = EntraMCPAuthMiddleware(
         _app(provider),
-        token_validator=FakeValidator(
-            {"oid": "foundry-agent-456", "roles": ["Unmapped.Role"]}
-        ),
+        token_validator=FakeValidator({"oid": "foundry-agent-456", "roles": ["Unmapped.Role"]}),
         claims_mapper=EntraClaimsMapper(
             role_map={"CEPIO.Agent.Recommender": "ai_agent_recommender"}
         ),
