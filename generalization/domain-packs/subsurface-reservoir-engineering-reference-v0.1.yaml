@@ -1,0 +1,18 @@
+id: subsurface-reservoir-engineering-reference-onboarding-v0.1
+version: "0.1"
+domain: subsurface-reservoir-engineering
+name: Subsurface Reservoir Engineering reference onboarding
+mode: new-domain
+persona_id: reservoir-engineer
+persona_binding: generalization/persona-bindings/subsurface-reservoir-engineer-v0.1.yaml
+adjacent_domains:
+  - subsurface-petrophysics
+  - drilling-operator
+  - production-operations
+  - industrial-common
+artifacts:
+  archetype: generalization/archetypes/subsurface-reservoir-engineering-v0.1.yaml
+  personas: generalization/personas/subsurface-reservoir-engineering-v0.1.yaml
+  standards: generalization/standards/subsurface-reservoir-engineering-references-v0.1.yaml
+  competency: generalization/competency/subsurface-reservoir-engineering-v0.1.yaml
+  runtime_suite: generalization/runtime/subsurface-reservoir-engineering-runtime-v0.1.yaml
