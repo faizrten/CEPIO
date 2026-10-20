@@ -16,6 +16,10 @@ from cepio.performance_contract import (
     PerformanceTarget,
     PerformanceThreshold,
 )
+from cepio.performance_registry import (
+    PerformanceContractRegistry,
+    SQLitePerformanceContractStore,
+)
 from cepio.performance_resolution import (
     PerformanceContractOverlay,
     PerformanceContractOverlayV2,
@@ -34,9 +38,7 @@ def _root() -> PerformanceContract:
         version="0.2.0",
         name="Process industry reference",
         layer="industry_reference",
-        subjects=(
-            PerformanceSubject(id="industry", kind="enterprise", name="Industry reference"),
-        ),
+        subjects=(PerformanceSubject(id="industry", kind="enterprise", name="Industry reference"),),
         nodes=(
             PerformanceNode(
                 id="availability",
@@ -96,8 +98,7 @@ def _organization() -> PerformanceContractOverlayV2:
                         field="formula_ref", value="logic://refinery-co/availability/v7"
                     ),
                     PerformanceFieldSet(
-                        field="target",
-                        value={"operator": "gte", "value": 0.97},
+                        field="target", value={"operator": "gte", "value": 0.97}
                     ),
                 ),
                 reason="Specialize the reference KPI to the organization's operating policy",
@@ -200,7 +201,6 @@ def test_v01_overlay_payload_shape_is_unchanged():
         layer="role",
         extends_contract_id="parent",
     )
-
     payload = overlay.model_dump(mode="json")
     assert payload["schema_version"] == "0.1.0"
     assert "patches" not in payload
@@ -209,8 +209,7 @@ def test_v01_overlay_payload_shape_is_unchanged():
 
 def test_field_patch_specializes_kpi_without_copying_whole_node():
     result = _resolver().resolve(_individual().id)
-    nodes = {node.id: node for node in result.contract.nodes}
-    availability = nodes["availability"]
+    availability = {node.id: node for node in result.contract.nodes}["availability"]
 
     assert result.contract.organization_id == "refinery-co"
     assert availability.kind.value == "kpi"
@@ -257,7 +256,6 @@ def test_role_and_individual_add_only_their_local_accountability():
 def test_runtime_uses_effective_patched_target_and_org_response_binding():
     contract = _resolver().resolve(_individual().id).contract
     now = datetime(2026, 10, 20, 6, 0, tzinfo=timezone.utc)
-
     evaluation = PerformanceRuntime().evaluate(
         contract,
         (
@@ -280,9 +278,9 @@ def test_runtime_uses_effective_patched_target_and_org_response_binding():
 def test_suppression_removes_inherited_response_binding_and_is_audited():
     result = _resolver().resolve(_individual().id)
     binding_ids = {binding.id for binding in result.contract.response_bindings}
-
     assert "generic-availability-response" not in binding_ids
     assert "refinery-availability-response" in binding_ids
+
     suppression = next(
         operation
         for operation in result.operations
@@ -310,7 +308,6 @@ def test_patch_can_clear_inherited_optional_kpi_semantics():
             ),
         ),
     )
-
     availability = next(
         node
         for node in PerformanceContractResolver((root, org)).resolve(org.id).contract.nodes
@@ -356,13 +353,9 @@ def test_contribution_metadata_can_be_refined_field_by_field():
             ),
         ),
     )
-
     resolved = PerformanceContractResolver((root, role)).resolve(role.id)
     assert resolved.contract.contributions[0].confidence == 0.85
-    assert (
-        resolved.source_for("contribution", "a|b|contributes_to").source_contract_id
-        == role.id
-    )
+    assert resolved.source_for("contribution", "a|b|contributes_to").source_contract_id == role.id
 
 
 @pytest.mark.parametrize("operation", ["patch", "suppress"])
@@ -398,7 +391,6 @@ def test_unknown_operation_target_fails_closed(operation: str):
         extends_contract_id=root.id,
         **kwargs,
     )
-
     with pytest.raises(PerformanceContractResolutionError) as exc_info:
         PerformanceContractResolver((root, overlay)).resolve(overlay.id)
     assert exc_info.value.code == (
@@ -440,7 +432,6 @@ def test_suppression_is_non_cascading_and_final_graph_validation_still_fails_clo
             ),
         ),
     )
-
     with pytest.raises(PerformanceContractResolutionError) as exc_info:
         PerformanceContractResolver((root, role)).resolve(role.id)
     assert exc_info.value.code == "INVALID_RESOLVED_CONTRACT"
@@ -475,3 +466,28 @@ def test_patch_rejects_identity_mutation_and_same_overlay_conflicts():
             patches=(patch,),
             suppressions=(suppression,),
         )
+
+
+def test_sqlite_registry_round_trip_preserves_v02_operations(tmp_path):
+    db_path = tmp_path / "performance-v02.db"
+    store = SQLitePerformanceContractStore(db_path)
+    registry = PerformanceContractRegistry(store)
+    registry.register(_root(), activate=True)
+    registry.register(_organization(), activate=True)
+    store.close()
+
+    reopened_store = SQLitePerformanceContractStore(db_path)
+    reopened_registry = PerformanceContractRegistry(reopened_store)
+    revision = reopened_registry.get_active(_organization().id)
+    assert isinstance(revision.definition, PerformanceContractOverlayV2)
+    assert revision.definition.patches[0].element_key == "availability"
+    assert revision.definition.suppressions[0].element_key == "generic-availability-response"
+
+    resolved = reopened_registry.resolve(_organization().id).resolved
+    availability = {node.id: node for node in resolved.contract.nodes}["availability"]
+    assert availability.target is not None
+    assert availability.target.value == 0.97
+    assert "generic-availability-response" not in {
+        binding.id for binding in resolved.contract.response_bindings
+    }
+    reopened_store.close()
