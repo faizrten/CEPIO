@@ -16,10 +16,8 @@ from cepio.performance_contract import (
     PerformanceTarget,
     PerformanceThreshold,
 )
-from cepio.performance_registry import (
-    PerformanceContractRegistry,
-    SQLitePerformanceContractStore,
-)
+from cepio.performance_registry import PerformanceContractRegistry
+from cepio.performance_registry_v02 import SQLitePerformanceContractStoreV2
 from cepio.performance_resolution import (
     PerformanceContractOverlay,
     PerformanceContractOverlayV2,
@@ -97,9 +95,7 @@ def _organization() -> PerformanceContractOverlayV2:
                     PerformanceFieldSet(
                         field="formula_ref", value="logic://refinery-co/availability/v7"
                     ),
-                    PerformanceFieldSet(
-                        field="target", value={"operator": "gte", "value": 0.97}
-                    ),
+                    PerformanceFieldSet(field="target", value={"operator": "gte", "value": 0.97}),
                 ),
                 reason="Specialize the reference KPI to the organization's operating policy",
             ),
@@ -470,13 +466,13 @@ def test_patch_rejects_identity_mutation_and_same_overlay_conflicts():
 
 def test_sqlite_registry_round_trip_preserves_v02_operations(tmp_path):
     db_path = tmp_path / "performance-v02.db"
-    store = SQLitePerformanceContractStore(db_path)
+    store = SQLitePerformanceContractStoreV2(db_path)
     registry = PerformanceContractRegistry(store)
     registry.register(_root(), activate=True)
     registry.register(_organization(), activate=True)
     store.close()
 
-    reopened_store = SQLitePerformanceContractStore(db_path)
+    reopened_store = SQLitePerformanceContractStoreV2(db_path)
     reopened_registry = PerformanceContractRegistry(reopened_store)
     revision = reopened_registry.get_active(_organization().id)
     assert isinstance(revision.definition, PerformanceContractOverlayV2)
