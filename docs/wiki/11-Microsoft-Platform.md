@@ -1,161 +1,183 @@
-# Microsoft Platform Extension
+# Microsoft Platform
 
 ## Principle
 
-CEPIO is Microsoft-native in implementation direction while remaining portable in canonical semantics.
+CEPIO is Microsoft-native in reference implementation while remaining portable in canonical industrial contracts.
+
+> **Microsoft owns generic agent execution. CEPIO owns industrial agency.**
+
+Microsoft services may implement data, identity, hosting, retrieval and model/agent execution capabilities. They do not define CEPIO industrial semantics, evidence contracts, authority or Industry IQ.
 
 ```text
                     MICROSOFT DATA + AI
                             |
-            +---------------+---------------+
-            |               |               |
-          DATA           AI / AGENTS     IDENTITY
-            |               |               |
-     Fabric / OneLake    Foundry           Entra
-     Warehouse           Agents
-     Lakehouse           MCP
-     Eventhouse
-            |               |
-            +-------+-------+
-                    |
-                    v
-                   CEPIO
-      +-----------------------------+
-      | Objects                     |
-      | Relationships               |
-      | State + Time                |
-      | Provenance                  |
-      | Functions                   |
-      | Decisions                   |
-      | Governed Actions            |
-      | Policy                      |
-      +--------------+--------------+
-                     |
-             Application runtime
+      +---------------------+----------------------+
+      |                     |                      |
+    DATA                AI / AGENTS             IDENTITY
+      |                     |                      |
+Fabric / OneLake         Foundry / Copilot       Entra
+RTI / Warehouse          model + agent runtime
+Azure AI Search          MCP client/host
+      |                     |                      |
+      +---------------------+----------------------+
+                            |
+                            v
+                           CEPIO
+         +----------------------------------------+
+         | semantics · state · evidence · time    |
+         | Industry IQ · Skills · Decisions       |
+         | policy · authority · Actions · Outcomes|
+         +--------------------+-------------------+
+                              |
+             REST · Management · hosted MCP
 ```
 
 ## Platform responsibilities
 
 | Microsoft capability | CEPIO role |
 |---|---|
-| Fabric / OneLake / RTI | enterprise data foundation and source bindings |
+| Fabric / OneLake / RTI | authoritative enterprise context and replaceable source binding |
 | Fabric IQ / Ontology / Graph | Microsoft-native materialization of CEPIO semantic objects/relationships |
-| Microsoft Foundry | model and agent execution grounded through CEPIO tools |
-| Entra | authenticated human, app and agent identity |
-| Azure App Service | planned managed REST/MCP hosting profile |
-| AKS | planned scale-out runtime/adapters/projectors profile |
-| Purview | future/deferred catalogue, governance and lineage bridge |
+| Microsoft Foundry | generic model/agent execution consuming CEPIO contracts/tools |
+| Copilot experiences | persona-adaptive experience/runtime above CEPIO contracts |
+| Entra | authenticated human, application and agent identity |
+| Azure App Service | current hosted reference composition for REST + Management + MCP |
+| AKS | reference scale-out deployment direction/profile |
+| Azure AI Search | optional rebuildable retrieval projection behind CEPIO retrieval contracts |
+| Purview | future/deferred governance/catalog/lineage bridge |
 
-## Fabric IQ binding
+## Fabric and Binding Contract
 
-CEPIO can generate a Microsoft-native semantic deployment bundle:
+CEPIO separates semantic materialization from operational provider bindings.
 
-```text
-CEPIO canonical modules
-          |
-          v
-FabricIQBindingGenerator
-          |
-     +----+----+
-     v         v
-ontology.ttl   binding-manifest.json
-     |         |
-     +----+----+
-          v
-      Fabric IQ
-```
-
-The binding preserves:
-
-- canonical IRIs;
-- module ownership/version;
-- source mappings;
-- entity keys;
-- contract hashes;
-- graph eligibility metadata.
-
-Supported reference source types include:
-
-- Lakehouse;
-- Warehouse;
-- Eventhouse/KQL;
-- SQL Database;
-- Mirrored Database;
-- Semantic Model.
-
-## Live Fabric provider proof
-
-Binding Contract v0.1 adds a separate operational proof over a Fabric Warehouse or SQL analytics endpoint:
+Fabric/Fabric IQ can materialize canonical CEPIO objects/relationships while Binding Contract v0.1 provides a source-neutral operational evidence/action boundary.
 
 ```text
-Fabric SQL endpoint
-       |
- Entra identity
-       |
-FabricSqlTableReader
-       |
-FabricDrillingNPTBinding
-       |
-Binding Contract
-       |
-Drilling NPT Industry IQ
+Fabric / OneLake / SQL endpoint
+          |
+          v
+Microsoft-specific reader/transport
+          |
+          v
+CEPIO Binding Contract
+          |
+          v
+provider-neutral Industry IQ / Skill / Decision
 ```
 
-The transport is Microsoft-specific and optional; Drilling semantics remain provider-neutral. The first proof uses a dedicated synthetic `cepio_proof` schema and compares the live Fabric semantic signature to the Synthetic provider. See [Microsoft Fabric Live Binding Proof v0.1](../integrations/microsoft-fabric-live-binding-proof.md).
+The transport is Microsoft-specific; the industrial capability is not.
 
-## Foundry + MCP
+The current Fabric live-proof path uses a dedicated synthetic proof schema and compares semantic/behavioral results to a source-neutral provider baseline. A merged transport path is not automatically a live production qualification.
 
-Foundry agents interact through the governed CEPIO MCP gateway rather than directly with raw enterprise data sources.
+See [Microsoft Fabric Live Binding Proof](../integrations/microsoft-fabric-live-binding-proof.md).
 
-Identity originates from Entra/hosting context and is mapped to CEPIO actor context.
+## Foundry + CEPIO industrial agency
+
+Foundry agents should interact through authenticated CEPIO Application/MCP contracts rather than direct access to raw enterprise sources, repositories or credentials.
+
+```text
+Foundry-hosted agent
+        |
+generic reasoning / agent lifecycle
+        |
+        v
+CEPIO MCP / Application Contract
+        |
+        +--> governed evidence reads
+        +--> authorized Functions
+        +--> READY Skill evaluation
+        +--> Decision/recommendation
+        +--> separately authorized Action path
+```
+
+CEPIO retains authority over:
+
+- capability identity;
+- evidence requirements;
+- Skill admission/readiness;
+- Decision semantics;
+- policy/authority;
+- governed Actions;
+- verified Outcomes.
+
+The Reliability Agent Lighthouse formalizes this boundary. A G1 qualification path exists on main, with a least-privilege tool profile that excludes Action execution for the initial Decision-only proof. Repository implementation does not itself claim a successful live Foundry run.
+
+See [Reliability Agent Lighthouse](../reliability-agent-lighthouse.md) and [Foundry Reliability G1](../foundry-reliability-g1.md).
 
 ## Entra
 
-Entra should establish authenticated actor identity for:
+Entra establishes authenticated actor/workload identity for:
 
 - humans;
 - service principals;
 - applications;
 - AI/agent workloads.
 
-The model must not be allowed to claim arbitrary roles through tool parameters.
+Caller-visible CEPIO requests and MCP tools do not allow a model/client to self-assert CEPIO roles. Hosting middleware maps verified identity into CEPIO actor context.
 
-## App Service
+## Hosted App Service composition
 
-Current roadmap target for lightweight managed hosting:
+The hosted CEPIO target composition now includes three separated surfaces:
 
-- REST + MCP APIs;
-- managed identity boundary;
-- VNet/private connectivity;
-- health/readiness endpoints;
-- deployment slots;
-- autoscale;
-- secretless configuration patterns.
+```text
+/api/v1/*          REST Application Contract
+/management/v1/*   authenticated read-only Management projection
+/mcp               authenticated Streamable HTTP MCP gateway
+```
+
+The container host composes these surfaces while preserving their distinct authority contracts.
+
+- Application REST remains the normal governed application boundary.
+- Management is read-only observation/control-plane projection.
+- MCP reuses CEPIO authentication/policy and host-injected identity.
+
+See [Remote Management Read Projection](../remote-management-read-projection.md) and [Foundry + MCP](../foundry-mcp.md).
+
+## Azure AI Search
+
+Azure AI Search is an optional physical backend behind CEPIO Retrieval & Indexing.
+
+It is explicitly a **rebuildable retrieval projection**:
+
+- Capability Registry / MemoryStore remain authoritative;
+- tenant and expiry constraints are pushed into Search and rechecked after retrieval;
+- customer/source raw data is not automatically copied into the index;
+- Search ranking never grants authority or bypasses ContextAssembler budgets.
+
+See [Azure AI Search Adapter](../azure-ai-search-adapter.md).
 
 ## AKS
 
-Current roadmap target for scale-out deployment:
+AKS remains the reference direction for scale-out/runtime qualification involving:
 
-- runtime services;
-- adapters;
-- projectors;
-- event workers;
+- services and distributed workers;
+- adapters/projectors;
+- event processing;
 - workload identity;
 - private networking;
-- Key Vault integration;
 - probes/autoscaling;
 - workload isolation;
-- auditable rollout patterns.
+- controlled rollout/recovery.
+
+Enterprise HA/SLO/DR and distributed persistence/queue qualification remain later OPERATE release-gate work.
 
 ## Purview
 
-Purview is useful but intentionally non-blocking for v0.4.
+Purview remains useful but non-blocking.
 
-Potential later integration:
+Potential integration includes:
 
-- Purview asset to CEPIO `SourceReference` mapping;
-- governance/classification context;
+- Purview asset -> CEPIO `SourceReference` mapping;
+- classification/governance context;
 - lineage publication;
-- domain/catalog links.
+- catalog/domain links.
 
-CEPIO remains authoritative for runtime operational provenance.
+CEPIO remains authoritative for runtime industrial provenance/decision/action lineage even when Purview is used as an enterprise catalog/governance service.
+
+## Portability test
+
+Microsoft-native must not become Microsoft-dependent.
+
+A strategic success criterion is that the same CEPIO competency/Skill/Decision contract can operate when enterprise context is supplied through different underlying providers such as Fabric, Cognite or OSDU-based environments.
+
+The platform changes; the industrial operating contract should not.
