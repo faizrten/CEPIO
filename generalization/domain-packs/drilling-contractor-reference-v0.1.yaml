@@ -1,0 +1,14 @@
+id: drilling-contractor-reference-domain-onboarding-v0.1
+version: "0.1"
+domain: drilling-contractor
+name: Drilling Contractor reference onboarding
+mode: backfill-reference
+adjacent_domains:
+  - industrial-common
+  - upstream-oil-and-gas
+artifacts:
+  archetype: generalization/archetypes/drilling-contractor-v0.1.yaml
+  personas: generalization/personas/drilling-contractor-v0.3.yaml
+  standards: generalization/standards/drilling-references.yaml
+  competency: generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml
+  runtime_suite: generalization/runtime/drilling-contractor-runtime-coverage-v0.5.yaml
