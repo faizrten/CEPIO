@@ -2,50 +2,249 @@
 
 ## Who CEPIO is for
 
-CEPIO targets people responsible for industrial operating decisions and the teams building governed applications for them. The strongest near-term product focus is asset reliability and maintenance, followed by wider refinery/process and drilling-contractor operations. This prioritization is a product interpretation of the repository's lighthouse application roadmap and persona artifacts; it is not evidence of deployed adoption.
+CEPIO is built for **industrial engineers, planners and operational leaders who need trusted cross-system intelligence to make and execute decisions**, and for the digital, data, integration and AI teams building the applications and agents that support them.
 
-The roadmap identifies the **Asset Reliability / Maintenance Command Center** as the lighthouse application, with Reliability Engineer, Maintenance Planner, Operations Engineer, Maintenance Manager and Plant Manager as primary personas. Its intended job is to connect degradation detection, consequence assessment, intervention options, recommendation, authorization, work execution and verified outcome. That complete application remains a roadmap objective.
+The current North Star sharpens this distinction:
 
-## Industrial end users
+> **CEPIO is not primarily a UI product or generic infrastructure platform. It is reusable Industry IQ behind persona-specific experiences.**
 
-The checked-in v0.2 persona catalogs contain **24 drilling-contractor personas** and **26 refinery/process-manufacturing personas**. These are role definitions with objectives and information needs. Their presence establishes modeled demand, not a delivered application or complete runtime coverage for every role.
+A Reliability Engineer may never use a product screen labelled "CEPIO." A reliability application, Studio experience, copilot or agent consumes CEPIO's governed industrial operating contract and Industry IQ on that user's behalf.
 
-| User group | Representative catalog roles | Decisions and information needs |
-|---|---|---|
-| Operations and shift execution | Rig Manager, Toolpusher, Driller, Assistant Driller; Operations Manager, Console Operator, Field Operator, Shift Supervisor | Current state, operating limits, abnormal situations, readiness, handover and unresolved work |
-| Reliability and maintenance | Reliability Engineer, Maintenance Planner, Chief Mechanic, Chief Electrician; Asset Management Lead | Failure prevention, condition-based intervention, backlog, availability, criticality and lifecycle tradeoffs |
-| Safety, integrity and authority | HSE Manager, Offshore Installation Manager, Subsea / Well Control Engineer; Process Safety Manager, Inspection / Corrosion Engineer | Barriers, permits, isolations, test evidence, degradation risk and bounded authorization |
-| Process and technical engineering | Drilling Superintendent, Directional Drilling Service Lead, Drilling Fluids Engineer, Cementing Supervisor; Process Engineer, APC Engineer, Electrical / Power Systems Engineer, Instrumentation / Analyzer Engineer | Program execution, process constraints, equipment or measurement integrity, technical deviations and acceptance evidence |
-| Planning and logistics | Marine / Rig Move Manager, Procurement / Category Manager, Supply Chain Manager; Refinery Economist, Production Scheduler / Blend Planner, Tank Farm / Product Movements Manager, Turnaround Manager | Executable schedules, materials, inventory, suppliers, movements, constraints and readiness |
-| Workforce readiness | Competency and Training Manager, Crewing / HR Manager | Assignments, role requirements, assessment evidence, valid certifications, rotations and mobilization readiness |
-| Commercial and leadership | Commercial Manager, Finance Controller, Fleet Executive, Operator Company Man; Plant Manager, Contractor and Services Manager | Contract obligations, acceptance, production loss, margin, value leakage, capital allocation and accountability |
-| Specialist assurance and information | Quality Manager, Environmental Manager, Energy Manager, Production Assurance Engineer, Engineering Information Manager, OT / Automation Engineer | Specifications, emissions, utilities, production exposure, engineering topology, provenance and safe automation interfaces |
+## Primary user classes
 
-The two catalogs overlap in roles such as Reliability Engineer and Finance Controller. The counts describe domain catalog entries, not 50 unique occupations or 50 complete products.
+### 1. Industrial decision-makers
 
-## Platform users and sponsors
+These users realize the operational value. Their work crosses multiple systems and requires semantics, evidence, time, uncertainty, risk, performance/economic context and authority.
 
-Application developers, integration engineers, ontology/domain engineers, agent developers and platform/security administrators are enabling users. They configure profiles, bind source data, build experiences, define governed procedures and maintain identity, policy and audit boundaries. This grouping is a proposed product taxonomy derived from existing API, SDK, profile, integration and governance capabilities; it is separate from the two industrial persona catalogs.
+Representative roles include:
 
-Operations, asset, engineering and digital leadership are plausible sponsors. Buyer segmentation, purchasing authority, willingness to pay and adoption have not been established by the persona artifacts.
+- Reliability Engineer;
+- Maintenance Engineer / Planner;
+- Operations Engineer;
+- Production Engineer;
+- Process Engineer;
+- Asset Integrity Engineer;
+- Process Safety Engineer;
+- Planning / Scheduling Engineer;
+- Drilling Engineer / Superintendent;
+- Reservoir / subsurface roles where applicable;
+- Asset / Operations / Plant / Rig leadership.
 
-AI agents are software consumers acting under authenticated authority. Persona context can guide questions and presentation; authorization comes from runtime identity and policy. A role label does not grant execution rights or create a separate version of enterprise truth.
+Their interaction is normally through a CEPIO-powered application, copilot, workflow or agent rather than the runtime directly.
 
-## Persona-to-capability contract
+### 2. Industrial application and AI builders
 
-The design direction is to connect each persona's responsibilities and decisions to frozen competency questions, required capabilities, CEPIO evidence, Functions, Decisions, Actions and assurance results.
+These users build directly on CEPIO contracts:
 
-For example, a Reliability Engineer needs to determine whether increasing vibration warrants intervention, considering failure history, production exposure, outstanding work and supporting evidence. This requires more than the existence of a `FailureMode` class. The catalog, semantic pack, runtime fixture and eventual application must each make their own coverage explicit.
+- AI Engineer;
+- Agent Developer;
+- Data Scientist;
+- Application Developer;
+- Digital Product Team;
+- Solution Architect.
 
-## Source artifacts
+They use CEPIO APIs, SDKs, MCP, Skills, competency contracts, Performance Contracts and governed runtime capabilities instead of rebuilding industrial context separately for every application.
 
-- [Drilling persona catalog](../../generalization/personas/drilling-contractor-v0.2.yaml)
-- [Refinery persona catalog](../../generalization/personas/refinery-process-manufacturing-v0.2.yaml)
-- [Lighthouse application roadmap](../roadmap.md#lighthouse-application--asset-reliability--maintenance-command-center)
+### 3. Industrial platform and integration teams
 
+These users connect enterprise reality to CEPIO:
+
+- Industrial Data Architect;
+- Enterprise Architect;
+- Ontology / Domain Engineer;
+- Data Engineer;
+- Integration Engineer;
+- OT / IT Platform Engineer.
+
+Their job is to bind SAP, PI, OSDU, Fabric, Cognite, MES, engineering systems and other authoritative providers into CEPIO while preserving source ownership, canonical identity, provenance and write/verify/reconcile boundaries.
+
+### 4. Governance and assurance users
+
+These users define or inspect the trust boundary:
+
+- Technical Authority;
+- Operations / Asset Manager;
+- Risk and Compliance;
+- Data Steward;
+- Security / Identity Administrator;
+- HSE / Process Safety authority;
+- assurance / audit roles.
+
+They care about evidence requirements, policy, authority, approvals, provenance, temporal correctness, audit, pack trust and outcome verification.
+
+### 5. AI agents as software consumers
+
+AI agents are first-class CEPIO consumers, but they are not autonomous sources of industrial authority.
+
+An agent may:
+
+- discover governed industrial context;
+- retrieve authorized evidence;
+- invoke permitted Functions;
+- evaluate a READY Skill;
+- create/evaluate a Decision;
+- recommend an Action.
+
+Execution authority remains a separate policy decision.
+
+```text
+Knowledge != Authority
+Recommendation != Execution
+Model Output != Evidence
+```
+
+For Microsoft-hosted workloads:
+
+> **Microsoft owns generic agent execution. CEPIO owns industrial agency.**
+
+## Economic buyers and sponsors
+
+Likely sponsor roles include:
+
+- CIO / CTO / CDO;
+- Chief AI / Digital Officer;
+- VP / EVP Digital;
+- Head of Industrial Digitalization;
+- COO / EVP Operations;
+- Asset / Manufacturing leadership.
+
+This remains a product/GTM hypothesis rather than proof of established purchasing behavior.
+
+Buyer and daily user are often different:
+
+```text
+CIO / CDO / CTO / COO
+      economic sponsor
+             |
+             v
+Industrial AI / digital platform
+             |
+      +------+------+
+      |             |
+platform builders   domain teams
+      |             |
+      |       engineers / planners / leaders
+      |             |
+      +-------> CEPIO-powered decisions
+```
+
+## Primary persona design anchor
+
+The initial product-design center of gravity remains **engineers, planners and operational managers whose decisions span multiple systems**.
+
+This is where CEPIO's differentiation is strongest:
+
+- cross-system semantic context;
+- evidence and provenance;
+- uncertainty;
+- failure/risk/constraint patterns;
+- performance/KPI/economic logic;
+- governed Decision/Action patterns;
+- reusable Skills and competencies.
+
+Frontline operators and technicians can consume CEPIO-powered experiences, but they should not force CEPIO Core toward a monolithic frontline UI.
+
+## Domain persona families
+
+### Asset / reliability / maintenance
+
+- Reliability Engineer;
+- Maintenance Engineer;
+- Maintenance Planner;
+- Asset Integrity Engineer;
+- Rotating Equipment Engineer;
+- Maintenance Manager.
+
+### Operations / process manufacturing
+
+- Operations Engineer;
+- Production Engineer;
+- Process Engineer;
+- Shift Supervisor;
+- Operations Manager;
+- Optimization / APC Engineer;
+- Production Scheduler;
+- Energy / Quality Engineer.
+
+### Safety / integrity
+
+- HSE Engineer / Manager;
+- Process Safety Engineer;
+- Inspection / Corrosion Engineer;
+- Technical Authority.
+
+### Upstream / subsurface
+
+- Reservoir Engineer;
+- Geologist;
+- Geophysicist;
+- Petrophysicist;
+- Production Technologist;
+- Well Engineer;
+- Field Development Planner.
+
+### Drilling contractor
+
+- Drilling Engineer;
+- Rig Manager / Toolpusher;
+- Drilling Superintendent;
+- Maintenance Superintendent;
+- HSE Superintendent;
+- Well Control Authority;
+- Performance Engineer;
+- Commercial Manager.
+
+## Persona-to-Industry-IQ contract
+
+Personas should map to concrete industrial decisions and competency requirements rather than remain role catalogs.
+
+```text
+Persona
+  -> Jobs / responsibilities
+  -> Decisions
+  -> Competency questions
+  -> Required evidence
+  -> Required Industry IQ
+     - semantics
+     - Skills
+     - performance/risk/failure patterns
+     - constraints
+     - KPI/economic logic
+     - authority/action patterns
+  -> Assurance result
+```
+
+Example — Maintenance Planner:
+
+> Which currently degraded critical assets require intervention within the next seven days, and which work orders are constrained by spare-part availability, permits or production windows?
+
+That competency requires integrated asset criticality, condition evidence, failure context, work state, inventory, permits, production constraints, temporal state and provenance — not merely a `WorkOrder` class.
+
+## Performance/accountability context
+
+Performance Contracts add a governed way to express objectives, KRs, KPIs, guardrails and accountability across organization, role/persona and individual specialization.
+
+Persona/individual accountability must not be confused with universal enterprise ownership or employee-scoring semantics. Industry reference accountability is a reusable operating-model hypothesis that customer organizations explicitly specialize or suppress.
+
+## Persona-adaptive experience principle
+
+CEPIO is **headless at its core and adaptive at its surface**.
+
+> **Same industrial reality. Different experience for every decision-maker.**
+
+A Reliability Engineer, Plant Manager, CFO and AI agent may receive different representations of the same operational reality while reasoning against the same underlying governed evidence, Performance Contracts and authority model.
+
+## Current persona evidence
+
+The repository contains broad drilling-contractor and refinery/process-manufacturing persona catalogs. Their presence establishes modeled demand and competency targets, not delivered applications or complete runtime coverage for every role.
+
+The strongest current product/application lighthouse remains Reliability / Maintenance. Drilling and refinery/process work provide broader generalization, Industry IQ and performance-reference evidence.
 
 ## Related documentation
 
-- [Wiki home](Home.md)
-- [Target Users / Personas](19-Target-Users-Personas.md)
+- [CEPIO Overview](01-Overview.md)
 - [Competency & Assurance](20-Competency-Assurance.md)
+- [Enterprise Performance Graph](22-Enterprise-Performance-Graph.md)
+- [Industry Performance Packs](25-Industry-Performance-Packs.md)
+- [Current State](../current-state.md)
+- [Roadmap](17-Roadmap.md)
