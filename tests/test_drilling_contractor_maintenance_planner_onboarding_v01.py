@@ -6,8 +6,7 @@ from cepio.icc_qualification import run_icc_persona_qualification
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = (
-    ROOT
-    / "generalization/domain-packs/drilling-contractor-maintenance-planner-reference-v0.1.yaml"
+    ROOT / "generalization/domain-packs/drilling-contractor-maintenance-planner-reference-v0.1.yaml"
 )
 WORKFLOW = ROOT / "workflows/domain-onboarding-v0.1.yaml"
 POLICY = ROOT / "policies/domain-onboarding-v0.1.yaml"
