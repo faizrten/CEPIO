@@ -4,6 +4,8 @@ param containerImage string
 param tenantId string
 param apiAudience string
 param profiles string = ''
+param azureSearchEndpoint string = ''
+param azureSearchIndex string = 'cepio-memory-v1'
 
 resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: '${appName}-plan'
@@ -42,6 +44,8 @@ resource app 'Microsoft.Web/sites@2023-12-01' = {
         { name: 'CEPIO_ENTRA_TENANT_ID', value: tenantId }
         { name: 'CEPIO_ENTRA_AUDIENCE', value: apiAudience }
         { name: 'CEPIO_PROFILES', value: profiles }
+        { name: 'CEPIO_AZURE_SEARCH_ENDPOINT', value: azureSearchEndpoint }
+        { name: 'CEPIO_AZURE_SEARCH_INDEX', value: azureSearchIndex }
       ]
     }
   }
