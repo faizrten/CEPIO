@@ -50,6 +50,51 @@ Index creation or schema changes are deployment/admin operations and require `Se
 
 The synthetic scale-qualification workflow uses the existing `azure-demo` GitHub OIDC identity. That identity needs `Search Service Contributor` and `Search Index Data Contributor` scoped only to the development Search service while the qualification workflow is being used.
 
+### Repairing a qualification HTTP 403
+
+Run `39438130878`, job `118680526046`, authenticated successfully through OIDC
+but received HTTP 403 at `SearchIndexClient.delete_index`, before uploading
+any synthetic data. The demo deployment identity's web-app and registry roles
+do not grant Search access. A successful `azure/login` is not evidence of
+Search authorization.
+
+An Azure administrator authorized to assign roles must run the following once,
+using the `AZURE_CLIENT_ID` and subscription configured in the `azure-demo`
+environment (not the web app's managed identity or the application API identity):
+
+```bash
+set -euo pipefail
+az account set --subscription "<AZURE_SUBSCRIPTION_ID>"
+principal_id="$(az ad sp show --id "<AZURE_CLIENT_ID>" --query id --output tsv)"
+search_scope="$(az search service show \
+  --resource-group cepio-demo-rg --name cepio-search-dev-31d48 \
+  --query id --output tsv)"
+test -n "$principal_id" && test -n "$search_scope" || exit 1
+for role in "Search Service Contributor" "Search Index Data Contributor"; do
+  az role assignment create --assignee-object-id "$principal_id" \
+    --assignee-principal-type ServicePrincipal --role "$role" \
+    --scope "$search_scope" --output none || exit 1
+done
+az role assignment list --scope "$search_scope" --include-inherited \
+  --query "[?principalId=='$principal_id'].{role:roleDefinitionName,scope:scope}" \
+  --output table
+```
+
+Do not grant the workflow Owner, User Access Administrator, or subscription-wide
+roles, and do not use admin keys as a fallback. Keep index-management permissions
+out of the normal application runtime.
+
+Verify that the Search service's **Settings > Keys > API access control** enables
+role-based access control (RBAC or Both), and that its network rules permit the
+qualification runner. A 403 can also indicate disabled RBAC or blocked network
+access; do not bypass network restrictions to make the job pass.
+
+Allow role assignments to propagate, then rerun **CEPIO Azure AI Search Scale
+Qualification** with a fresh environment approval. Require the qualification
+artifact to report `PASS`; neither OIDC login nor role assignment alone proves
+the live qualification passed. This is external Azure configuration: merging
+the diagnostic/runbook change does not itself repair existing role assignments.
+
 ## Package boundary
 
 Azure dependencies are optional:

@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from azure.core.exceptions import ResourceNotFoundError
+from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
@@ -130,12 +130,25 @@ def _noise(start: int, stop: int) -> list[MemoryRecord]:
 
 
 def _ensure_index(index_client: SearchIndexClient, *, index_name: str, reset: bool) -> None:
-    if reset:
-        try:
-            index_client.delete_index(index_name)
-        except ResourceNotFoundError:
-            pass
-    index_client.create_or_update_index(_index(index_name))
+    try:
+        if reset:
+            try:
+                index_client.delete_index(index_name)
+            except ResourceNotFoundError:
+                pass
+        index_client.create_or_update_index(_index(index_name))
+    except HttpResponseError as exc:
+        if exc.status_code != 403:
+            raise
+        raise RuntimeError(
+            "Azure AI Search denied index management (HTTP 403). Azure login alone "
+            "does not grant Search access: the azure-demo OIDC principal needs "
+            "'Search Service Contributor' and 'Search Index Data Contributor' "
+            "on the development Search service. An administrator must provision "
+            "these roles; the workflow must not grant itself permissions. Also "
+            "check service RBAC authentication and network access. See "
+            "docs/azure-ai-search-adapter.md#repairing-a-qualification-http-403."
+        ) from exc
 
 
 def _query(backend: AzureSearchMemoryBackend, *, corpus_size: int) -> dict[str, object]:
