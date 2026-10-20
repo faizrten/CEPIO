@@ -18,6 +18,7 @@ from .performance_contract import PerformanceContract
 from .performance_resolution import (
     PerformanceContractDefinition,
     PerformanceContractOverlay,
+    PerformanceContractOverlayV2,
     PerformanceContractResolutionError,
     PerformanceContractResolver,
     ResolvedPerformanceContract,
@@ -218,9 +219,12 @@ class SQLitePerformanceContractStore(PerformanceContractStore):
             self._conn.commit()
 
     def create(self, revision: PerformanceContractRevision) -> None:
-        definition_type = (
-            "overlay" if isinstance(revision.definition, PerformanceContractOverlay) else "complete"
-        )
+        if isinstance(revision.definition, PerformanceContractOverlayV2):
+            definition_type = "overlay_v2"
+        elif isinstance(revision.definition, PerformanceContractOverlay):
+            definition_type = "overlay"
+        else:
+            definition_type = "complete"
         parent = revision.parent_revision
         with self._lock, self._conn:
             try:
@@ -345,7 +349,9 @@ class SQLitePerformanceContractStore(PerformanceContractStore):
     def _from_row(row: sqlite3.Row) -> PerformanceContractRevision:
         payload = json.loads(row["definition_json"])
         definition: PerformanceContractDefinition
-        if row["definition_type"] == "overlay":
+        if row["definition_type"] == "overlay_v2":
+            definition = PerformanceContractOverlayV2.model_validate(payload)
+        elif row["definition_type"] == "overlay":
             definition = PerformanceContractOverlay.model_validate(payload)
         else:
             definition = PerformanceContract.model_validate(payload)
@@ -539,13 +545,13 @@ class PerformanceContractRegistry:
             if parent is None:
                 raise PerformanceContractRegistryError(
                     "PINNED_PARENT_NOT_FOUND",
-                    f"Pinned parent revision not found: "
+                    "Pinned parent revision not found: "
                     f"{parent_ref.contract_id}@{parent_ref.version}",
                 )
             if parent.definition_hash != parent_ref.definition_hash:
                 raise PerformanceContractRegistryError(
                     "PINNED_PARENT_HASH_MISMATCH",
-                    f"Pinned parent revision hash changed: "
+                    "Pinned parent revision hash changed: "
                     f"{parent_ref.contract_id}@{parent_ref.version}",
                 )
             seen.add(parent.contract_id)
