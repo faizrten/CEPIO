@@ -37,9 +37,7 @@ def main() -> int:
     agent_name = _required_env("CEPIO_FOUNDRY_AGENT_NAME")
     prompt = _required_env("CEPIO_FOUNDRY_G1_PROMPT")
     required_skill_id = os.getenv("CEPIO_FOUNDRY_G1_SKILL_ID", "").strip() or None
-    report_path = Path(
-        os.getenv("CEPIO_FOUNDRY_G1_REPORT", "foundry-g1-qualification.json")
-    )
+    report_path = Path(os.getenv("CEPIO_FOUNDRY_G1_REPORT", "foundry-g1-qualification.json"))
 
     project = AIProjectClient(
         endpoint=endpoint,
