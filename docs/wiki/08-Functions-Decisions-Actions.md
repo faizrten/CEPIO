@@ -1,132 +1,165 @@
-# Functions, Decisions and Actions
+# Functions, Decisions, Actions and Workflows
 
 ## Why CEPIO models kinetics
 
-A useful industrial ontology must represent not only what things **are**, but what the enterprise can **calculate, decide and do**.
+A useful Industrial Operating Intelligence layer must represent not only what the enterprise **is**, but what it can **calculate, decide, authorize, do and verify**.
 
 This is the kinetic dimension of CEPIO.
 
+The governing chain is:
+
+```text
+Evidence
+ -> Function / Skill reasoning
+ -> Recommendation
+ -> Decision
+ -> Authorization
+ -> Action
+ -> External execution
+ -> Verification / reconciliation
+ -> Outcome
+```
+
+The boundaries in that chain are deliberate:
+
+```text
+Knowledge != Authority
+Recommendation != Execution
+Source acknowledgement != Verified Outcome
+```
+
 ## Function
 
-A function is a typed operation that derives information.
+A Function is a typed operation that derives information without itself implying an external side effect.
 
 Examples:
 
-- calculate expected production loss from compressor downtime;
-- evaluate remaining margin exposure;
-- calculate reliability risk score;
-- identify dependencies within N hops;
-- determine material shortage impact.
+- calculate production exposure;
+- evaluate maintenance-deferral risk;
+- compute performance variance;
+- identify dependencies/blast radius;
+- quantify information gain;
+- determine material-shortage impact.
 
-Functions should have explicit contracts:
+Function contracts should define:
 
 ```text
 Function
-  - name
+  - stable identity
   - input types
   - output type
-  - allowed target types
+  - applicable target types
   - authorization policy
   - implementation binding
+  - deterministic/evidence expectations
 ```
+
+## Skill
+
+A Skill packages a bounded industrial procedure rather than one calculation.
+
+```text
+Skill dependencies
+ -> runtime binding
+ -> actor-aware preflight
+ -> READY / BLOCKED
+ -> restricted SkillExecutionHost
+ -> governed reads / Functions
+ -> optional Decision proposal
+ -> SkillEvaluation
+```
+
+Important boundaries:
+
+- declaration does not create missing capability;
+- only READY Skills dispatch;
+- Skills do not receive raw runtime/source-client access by default;
+- Skill-generated Decision capability does not grant Action authority;
+- a host can expose recommendation/Decision-only Skill behavior without execution tools.
+
+See [Skill Runtime Capability Contracts](../skill-runtime-capabilities.md) and [Skill Runtime Preflight](../skill-runtime-preflight.md).
 
 ## Decision
 
-A decision links evidence and reasoning to a recommendation or selected course of action.
+A Decision connects governed evidence/reasoning to a selected conclusion or course of action.
 
-A decision record can capture:
+A Decision can capture:
 
-- target object;
+- target/subject;
 - evidence references;
-- relevant state and time context;
-- function outputs;
-- recommended action;
-- actor/agent;
-- confidence or rationale;
-- approval state.
+- temporal context;
+- Function/Skill outputs;
+- recommendation;
+- selected option;
+- actor/agent identity;
+- confidence/rationale;
+- authority/approval context.
 
-### Named decision capability contracts
+### Named Decision capability contracts
 
-CEPIO can register a `DecisionDefinition` separately from persisted `Decision` records. A definition gives a stable runtime capability name plus allowed subject types and allowed governed actions. A typed Decision that violates that contract fails closed before persistence.
+`DecisionDefinition` gives a stable capability name plus allowed subject types and governed Action vocabulary.
 
-This does **not** make Decision types ontology classes and does not grant action authority. Existing Decisions without `decision_type` remain backward-compatible. The first registered capability is `maintenance-intervention-recommendation`, constrained to `Equipment` subjects and the governed `CreateWorkOrder`, `CreateInspection` and `EscalateRisk` action vocabulary.
+A typed Decision violating the registered capability fails closed before persistence.
 
-See [Skill-facing runtime capability contracts](../skill-runtime-capabilities.md) for the first end-to-end binding slice.
+Decision type does **not** create an ontology class and does **not** grant execution authority.
+
+The reliability slice includes `maintenance-intervention-recommendation` over `Equipment` with bounded Action vocabulary such as `CreateWorkOrder`, `CreateInspection` and `EscalateRisk`.
 
 ## Action
 
-An action changes CEPIO state or invokes an external effect.
+An Action changes CEPIO state or invokes an external effect.
 
 Examples:
 
-- create work order;
+- create a work order;
 - request inspection;
-- approve maintenance scope;
-- issue a procurement request;
-- trigger a schedule change;
-- acknowledge an alarm workflow.
+- issue procurement request;
+- change an approved schedule;
+- perform a governed source-system transaction.
 
 ## Action execution boundary
 
 ```text
-Request action
-   |
-Resolve actor + target + action
-   |
-Policy evaluation
-   |
-Authorized?
-   +-- no -> deny + audit
-   |
-   v
-Idempotency check
-   |
-Preconditions
-   |
-Execute CEPIO effect
-   |
-External adapter if applicable
-   |
-Record acknowledgement/reconciliation
-   |
-Immutable audit
+Action intent / request
+ -> resolve authenticated actor
+ -> resolve target + Action definition
+ -> policy / authority
+ -> authorized idempotency replay check
+ -> preconditions
+ -> CEPIO Action audit/effect
+ -> external-action binding if applicable
+ -> source acknowledgement/read-back
+ -> verification
+ -> reconciliation
+ -> Outcome
 ```
+
+Policy occurs before replay so an old successful idempotent result cannot become an authorization bypass.
 
 ## Preconditions
 
 Actions may require conditions such as:
 
-- object is in a specific state;
-- actor has specific role;
-- an approval exists;
-- expected object version matches;
-- related work item exists;
-- maintenance window is active;
-- risk threshold is satisfied.
+- target state;
+- actor role/authority;
+- Decision linkage;
+- explicit approval;
+- expected version;
+- maintenance/production window;
+- required evidence;
+- allowed risk/guardrail state.
 
 ## Idempotency
 
-External enterprise actions must be safe against retries.
+Side effects must be safe against retry/replay.
 
-Idempotency keys are scoped so one actor cannot reuse another actor's prior successful result to bypass authorization.
+CEPIO scopes idempotency to the appropriate actor/Action/target/external operation context and uses deterministic workflow/external-action keys where appropriate.
 
-## Compensation and reconciliation
+Idempotency does not substitute for source verification.
 
-Enterprise actions are not always atomic across systems.
+## Durable workflow runtime
 
-CEPIO therefore needs explicit metadata for:
-
-- external acknowledgement;
-- retry state;
-- reconciliation status;
-- compensation guidance where applicable;
-- dead-letter handling in production integrations.
-
-## Workflow and orchestration layer
-
-Individual Functions, Decisions and Actions are execution primitives. The kinetic runtime adds durable process state around those primitives.
-
-The first workflow kernel introduces:
+Current mainline workflow capability is materially beyond the original kernel.
 
 ```text
 WorkflowDefinition
@@ -135,102 +168,135 @@ WorkflowDefinition
 WorkflowInstance
         |
         +--> Function
-        |
         +--> Decision
-        |
-        +--> ApprovalTask -- pause / durable wait
-        |
-        +--> Action -- existing CEPIO policy + idempotency + audit
+        +--> ApprovalTask -- durable pause / resume
+        +--> Action
+        +--> external verification wait
         |
         v
-Completed / Failed
+WorkflowOutcome
 ```
 
-Workflow state is deliberately separate from canonical industrial semantic state. A workflow may operate on a Compressor or WorkOrder, but its execution cursor, approval state and step history are runtime process records rather than properties of that industrial object.
+Current foundations include:
 
-The reference implementation provides in-memory and SQLite workflow repositories. SQLite can restore a workflow that is paused for approval and resume it through a new runtime process.
+- durable/versioned workflow definitions and instances;
+- Function, Decision, Approval and Action steps;
+- restart-safe state;
+- human pause/resume;
+- trigger-key deduplication foundations;
+- bounded Function retry/timeout;
+- workflow cancellation;
+- supported reverse compensation;
+- async external Action lifecycle;
+- identity revalidation;
+- external verification wait;
+- exact workflow policy-version lineage;
+- immutable terminal Outcome.
 
-Agent authority does not flow through the workflow implicitly. An agent may run authorized functions and persist a recommendation, but a human approval task can transfer active execution identity to an authenticated human before the subsequent governed Action executes.
-
-Workflow trigger keys deduplicate repeated starts, while Action steps receive deterministic workflow-step idempotency keys. This gives the first kernel replay protection at both process-start and side-effect boundaries.
-
-See [Kinetic Runtime](../kinetic-runtime.md) for the focused contract and current non-goals.
+Workflow execution state remains distinct from canonical industrial object state.
 
 ## Execution resilience
 
-The next kinetic slice adds durable execution-resilience state around the workflow kernel:
+Side-effect-free Function steps may use bounded retries/timeouts.
+
+Governed Action retries require stronger proof because a transport error can occur after the external source already committed the write.
+
+For unknown external write state:
 
 ```text
-Function
-  +-- success -> next
-  +-- transient failure -> bounded retry
-  +-- timeout -> retry / terminal failure
-
-terminal failure or cancellation
-  -> reverse completed compensatable Actions
-  -> policy check
-  -> compensation handler
-  -> Action audit
+transport uncertainty
+ -> UNKNOWN
+ -> no blind redispatch
+ -> reconcile authoritative source truth
+ -> verified / failed / still unresolved
 ```
 
-Retries and synchronous timeout guards are deliberately limited to side-effect-free Function steps. CEPIO does **not** automatically retry governed Action steps until the live-integration layer can prove source-system idempotency and reconciliation. A transport failure after creating a work order, for example, must not cause CEPIO to blindly create a second work order.
+Cancellation and compensation remain governed operations. Compensation does not erase the historical failure/cancellation; the original terminal state remains auditable while compensation status is recorded separately.
 
-Workflow cancellation is an explicit governed control operation. The workflow initiator or a role declared in the workflow control policy can cancel, subject to normal visibility of the workflow subject. Cancellation may reverse earlier compensatable Actions in reverse execution order.
+See [Kinetic Execution Resilience](../kinetic-execution-resilience.md).
 
-Compensation does not bypass Action governance. The compensating actor is evaluated against the same Action definition, and successful compensation is written through the immutable Action audit path with a deterministic compensation idempotency key.
+## External Action lifecycle
 
-The original terminal state remains authoritative: a failed workflow stays `failed` even if rollback succeeds, and a cancelled workflow stays `cancelled`. Compensation status is tracked separately as `not_required`, `pending`, `completed` or `failed`.
-
-See [Kinetic Execution Resilience v0.2](../kinetic-execution-resilience.md) for the detailed retry, timeout, cancellation, persistence and compensation contract.
-
-## Governed external action lifecycle
-
-External enterprise writes are now modeled separately from the synchronous CEPIO Action result. A successfully authorized and audited CEPIO Action can be queued into the external-action control plane by its immutable `action_id`.
+The external action control plane recovers trusted source system/operation/identity from CEPIO-owned binding configuration and Action audit rather than accepting arbitrary client write payload authority.
 
 ```text
-CEPIO Action executed
-        |
-        v
+CEPIO Action
+    |
 resolve canonical -> external identity
-        |
-        v
+    |
 PENDING_EXECUTION
-        |
-        v
-adapter write
-        |
-        v
+    |
+source write
+    |
 ACKNOWLEDGED
-        |
-        v
+    |
 PENDING_VERIFICATION
-        |
-        +--> VERIFIED
-        +--> FAILED
-        +--> UNKNOWN -> reconcile source truth
+    |
+    +--> VERIFIED
+    +--> FAILED
+    +--> UNKNOWN -> reconcile
 ```
 
-The calling application does not provide the source system, source operation, actor, decision or arbitrary write payload. Those values are recovered from the CEPIO Action audit and from CEPIO-owned `ExternalActionBinding` configuration. This keeps adapters behind the same identity, policy and audit boundary as the original Action.
+Canonical-to-source identity is explicit and fail-closed. Missing, stale, conflicting or ambiguous identities do not reach source execution.
 
-Canonical-to-source identity is explicit and fail-closed. A write requires exactly one usable mapping for the required source system and identity type; missing, stale, conflicting or ambiguous mappings never reach the adapter write call.
+A source acknowledgement is not proof of business completion. `verify_write(...)` checks the expected source state; `reconcile_write(...)` resolves uncertain outcomes.
 
-A source acknowledgement is not treated as proof of business completion. CEPIO persists `pending_verification` until `verify_write(...)` confirms the expected source state. If a transport failure makes the write outcome uncertain, CEPIO records `unknown` and forbids blind redispatch. `reconcile_write(...)` must resolve source truth first.
+See [Governed External Action Runtime](../external-action-runtime.md) and [Kinetic External Verification Gate](../kinetic-external-verification-v0.4.md).
 
-The adapter idempotency key is derived from source system, source operation and CEPIO `action_id`, preserving the causal chain from Decision -> Action -> Action audit -> adapter request -> verification/reconciliation.
+## Outcome
 
-See [Governed External Action Runtime](../external-action-runtime.md) for the focused writeback contract and current limitations.
+`WorkflowOutcome` records verified terminal meaning rather than treating dispatch success as the end of the industrial loop.
+
+Outcomes support:
+
+- execution result;
+- verification/reconciliation status;
+- workflow/Decision/Action lineage;
+- policy evidence;
+- future evaluation of whether the intervention actually worked.
+
+This completes the current conceptual loop:
+
+```text
+Observe -> Understand -> Reason -> Decide
+ -> Authorize -> Act -> Verify -> Learn
+```
+
+"Learn" means generating governed outcome/evaluation evidence. It does **not** mean silently training global CEPIO from customer operational data.
+
+## Performance-triggered response
+
+Performance Contracts can identify KPI/KR/guardrail deviation and bind a **recommend-only** response pathway toward a governed workflow/Decision.
+
+A performance deviation does not automatically execute an operational Action. Normal authority/policy still applies.
 
 ## Human and AI operating model
 
-A useful pattern is progressively increasing authority:
+A useful authority ladder is:
 
 ```text
 Observe
  -> Explain
+ -> Evaluate Skill / Function
  -> Recommend
+ -> Persist Decision
  -> Request approval
- -> Execute bounded action
- -> Observe outcome
+ -> Execute bounded Action
+ -> Verify source Outcome
 ```
 
-AI agents should earn operational authority through explicit policy rather than obtain it implicitly because they can access an MCP tool.
+AI agents gain operational authority only through explicit authenticated policy, not because an MCP tool exists or a model can generate a plausible Action request.
+
+For Microsoft-hosted agents:
+
+> **Microsoft owns generic agent execution. CEPIO owns industrial agency.**
+
+The initial Reliability Foundry G1 path deliberately exposes Decision-oriented tools while excluding Action execution at the host profile level.
+
+## Current product claim boundary
+
+The workflow/Action foundation is substantial on `main`, but **v0.5 CONNECT is still open** until real SAP/PI + third-source context and one governed verified/reconciled writeback complete the release gate.
+
+Likewise, **v0.6 EXECUTE** remains a future product gate until a serious reference application demonstrates the full loop over qualified live integrations.
+
+See [Current State](../current-state.md) and [Roadmap](17-Roadmap.md).
