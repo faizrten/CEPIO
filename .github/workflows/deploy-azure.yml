@@ -31,6 +31,8 @@ jobs:
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
       AZURE_CONTAINER_REGISTRY: ${{ vars.AZURE_CONTAINER_REGISTRY }}
+      CEPIO_AZURE_SEARCH_ENDPOINT: https://cepio-search-dev-31d48.search.windows.net
+      CEPIO_AZURE_SEARCH_INDEX: cepio-memory-v1
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,7 +64,8 @@ jobs:
           set -euo pipefail
           tag="cepio:${DEPLOY_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           az acr build --registry "$AZURE_CONTAINER_REGISTRY" \
-            --image "$tag" --file Dockerfile --no-logs .
+            --image "$tag" --file Dockerfile \
+            --build-arg CEPIO_RUNTIME_EXTRAS=azure-search --no-logs .
           digest="$(az acr repository show --name "$AZURE_CONTAINER_REGISTRY" \
             --image "$tag" --query digest --output tsv)"
           if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
@@ -84,6 +87,12 @@ jobs:
             --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" \
             --container-image-name "$IMAGE" \
             --container-registry-url "https://$REGISTRY_SERVER" --output none
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" \
+            --settings \
+              CEPIO_AZURE_SEARCH_ENDPOINT="$CEPIO_AZURE_SEARCH_ENDPOINT" \
+              CEPIO_AZURE_SEARCH_INDEX="$CEPIO_AZURE_SEARCH_INDEX" \
+            --output none
           az webapp restart --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME"
           configured="$(az webapp config show --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_WEBAPP_NAME" --query linuxFxVersion --output tsv)"
@@ -107,10 +116,19 @@ jobs:
             echo "::error::Expected unauthenticated object reads to return 401, got $status."
             exit 1
           fi
+          management_status="$(curl --silent --show-error --max-time 30 --output /dev/null \
+            --write-out '%{http_code}' "https://$host/management/v1/health")"
+          if [[ "$management_status" != "401" ]]; then
+            echo "::error::Expected unauthenticated management reads to return 401, got $management_status."
+            exit 1
+          fi
           {
             echo "### CEPIO demo deployment"
             echo "- Commit: $DEPLOY_SHA"
             echo "- Health: https://$host/api/v1/health"
+            echo "- Management: https://$host/management/v1/health (authenticated read-only)"
             echo "- Image: ${{ steps.build.outputs.image }}"
+            echo "- Azure AI Search: $CEPIO_AZURE_SEARCH_ENDPOINT / $CEPIO_AZURE_SEARCH_INDEX"
             echo "- Anonymous object access: HTTP 401"
+            echo "- Anonymous management access: HTTP 401"
           } >> "$GITHUB_STEP_SUMMARY"

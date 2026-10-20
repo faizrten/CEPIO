@@ -1,0 +1,119 @@
+# Synthetic, organization-neutral example of CEPIO Performance Contract specialization v0.2.
+# This illustrates intent and inheritance; customer-specific formulas/targets remain tenant-owned.
+
+industry_reference:
+  id: process-industry-reference
+  version: "1.0.0"
+  layer: industry_reference
+  subjects:
+    - id: industry
+      kind: enterprise
+      name: Process Industry Reference
+  nodes:
+    - id: operational-availability
+      kind: kpi
+      name: Operational Availability
+      scope_subject_id: industry
+      unit: ratio
+      definition: Reference operational availability definition
+      formula_ref: logic://industry/availability/v1
+      target:
+        operator: gte
+        value: 0.95
+  response_bindings:
+    - id: generic-availability-response
+      node_id: operational-availability
+      statuses: [off_track, critical]
+      workflow_definition_id: generic-availability-investigation
+
+organization_overlay_v02:
+  schema_version: "0.2.0"
+  id: refinery-co-performance
+  version: "2.0.0"
+  layer: organization
+  organization_id: refinery-co
+  extends_contract_id: process-industry-reference
+  subjects:
+    - id: refinery-co
+      kind: enterprise
+      name: Refinery Co
+    - id: operations
+      kind: function
+      name: Operations
+      parent_id: refinery-co
+  patches:
+    - element_type: node
+      element_key: operational-availability
+      reason: Apply the organization's governed KPI definition and target
+      set_fields:
+        - field: scope_subject_id
+          value: operations
+        - field: definition
+          value: Refinery Co operational availability
+        - field: formula_ref
+          value: logic://refinery-co/availability/v7
+        - field: target
+          value:
+            operator: gte
+            value: 0.97
+  suppressions:
+    - element_type: response_binding
+      element_key: generic-availability-response
+      reason: Organization uses a governed local reliability workflow
+  response_bindings:
+    - id: refinery-availability-response
+      node_id: operational-availability
+      statuses: [off_track, critical]
+      workflow_definition_id: refinery-availability-investigation
+
+role_persona_overlay_v02:
+  schema_version: "0.2.0"
+  id: reliability-engineer-performance
+  version: "2.0.0"
+  layer: role
+  extends_contract_id: refinery-co-performance
+  subjects:
+    - id: reliability-engineer
+      kind: persona
+      name: Reliability Engineer
+      parent_id: operations
+  nodes:
+    - id: reduce-repeat-failures
+      kind: key_result
+      name: Reduce Repeat Compressor Failures
+      scope_subject_id: reliability-engineer
+      target:
+        operator: lte
+        value: 5
+  accountabilities:
+    - subject_id: reliability-engineer
+      node_id: reduce-repeat-failures
+      relation: owns
+  contributions:
+    - source_node_id: reduce-repeat-failures
+      target_node_id: operational-availability
+      relation: contributes_to
+      rationale: Repeat failures erode operational availability
+
+individual_overlay_v02:
+  schema_version: "0.2.0"
+  id: engineer-42-performance
+  version: "2026.10.0"
+  layer: individual
+  extends_contract_id: reliability-engineer-performance
+  subjects:
+    - id: engineer-42
+      kind: individual
+      name: Engineer 42
+      parent_id: reliability-engineer
+  accountabilities:
+    - subject_id: engineer-42
+      node_id: reduce-repeat-failures
+      relation: contributes_to
+
+# Effective interpretation:
+# - Operational Availability remains one stable KPI identity.
+# - Refinery Co owns its formula/definition/target specialization.
+# - Reliability Engineer owns a role-level Key Result that contributes to Availability.
+# - Engineer 42 contributes to the Key Result; the individual does not inherit ownership
+#   of the enterprise KPI merely because it is present in the effective graph.

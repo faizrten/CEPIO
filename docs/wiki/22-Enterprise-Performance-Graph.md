@@ -122,7 +122,7 @@ The chain is explicit through `extends_contract_id`; CEPIO never infers inherita
 
 ### Complete contracts versus sparse overlays
 
-A `PerformanceContract` is complete, strictly validated and directly evaluable. A `PerformanceContractOverlay` is intentionally sparse and exists only as specialization input.
+A `PerformanceContract` is complete, strictly validated and directly evaluable. Sparse overlay contracts exist only as specialization input.
 
 This separation allows a role/persona or individual layer to reference inherited subjects and performance nodes without copying the entire enterprise graph. The resolver emits a new fully validated `PerformanceContract`; unresolved overlays are never treated as authoritative enterprise truth.
 
@@ -132,21 +132,85 @@ Inheritance provides context, not automatic personal accountability.
 
 An enterprise `Operational Availability` KPI can remain scoped to Operations while a Reliability Engineer persona owns a `Reduce Repeat Failures` key result that explicitly `contributes_to` availability. An individual can contribute to that KR without becoming owner of the enterprise KPI.
 
-### Override rules
+### v0.1 whole-entry specialization
 
-Child layers can add entries or explicitly replace an inherited entry with the same stable identity. Subject kind and performance-node kind cannot mutate across an override.
+`PerformanceContractOverlay` is the original v0.1 sparse overlay. Child layers can add entries or explicitly replace an inherited entry with the same stable identity. Subject kind and performance-node kind cannot mutate across an override.
 
-v0.1 deliberately has no implicit field patching, deletion, suppression or tombstone semantics. A child override is a whole-entry replacement so inherited meaning cannot disappear through an ambiguous partial merge.
+v0.1 deliberately has no implicit field patching or deletion semantics. A child override is a whole-entry replacement so inherited meaning cannot disappear through an ambiguous partial merge.
 
-### Customer boundary and provenance
+### v0.2 field specialization
+
+`PerformanceContractOverlayV2` adds explicit field-level specialization for the common case where an organization owns only part of an inherited KPI definition.
+
+Example:
+
+```text
+Industry reference KPI
+  Operational Availability
+  target      >= 95%
+  formula_ref logic://industry/availability/v1
+
+Organization patch
+  target      >= 97%
+  formula_ref logic://refinery-co/availability/v7
+
+Effective KPI
+  same KPI identity
+  same KPI kind
+  organization-specific target and formula
+```
+
+A field patch names the inherited element and explicitly lists fields to set or clear. Patchable fields are allowlisted; identity-bearing fields are not patchable.
+
+Supported patch surfaces are deliberately bounded:
+
+- subject: `name`, `parent_id`;
+- performance node: descriptive fields, scope, unit, formula/reference, target, thresholds, freshness and validity;
+- contribution: `weight`, `confidence`, `rationale`;
+- response binding: statuses, workflow definition and rationale.
+
+Node ID/kind, subject ID/kind and relationship endpoints/relation remain immutable. A change to those fields represents a new semantic identity rather than specialization.
+
+### Explicit clearing versus inheritance
+
+For optional fields, CEPIO distinguishes omission from clearing:
+
+```text
+field omitted from child   -> inherit parent value
+field explicitly cleared   -> remove inherited value
+```
+
+This lets an organization intentionally remove a generic target, threshold or formula reference without restating the full node.
+
+### Explicit suppression
+
+v0.2 also adds explicit suppression for inherited subjects, nodes, accountabilities, contributions and response bindings.
+
+Suppression is **non-cascading** and requires a reason. If a child suppresses a KPI but leaves an accountability, contribution or response binding that still points to it, final strict `PerformanceContract` validation fails closed. CEPIO never guesses which related enterprise semantics should disappear.
+
+This is an important governance distinction:
+
+> omission means inherit; suppression means intentionally remove.
+
+### Operation conflicts
+
+Within one v0.2 overlay, an element cannot simultaneously be patched and suppressed. It also cannot be supplied as a whole-entry definition and patched/suppressed in the same overlay. These conflicts are rejected before graph composition.
+
+### Customer boundary, lineage and operation audit
 
 Industry-reference contracts are organization-neutral. Once an organization ID appears in a specialization chain, descendants cannot cross to another organization ID.
 
-Resolution records both the ordered source-contract chain and element-level lineage for effective subjects, nodes, accountabilities, contributions and response bindings. When an organization or role overrides a reference definition, Industry IQ can therefore explain exactly which contract/version supplied the effective meaning.
+Resolution records:
 
-Effective validity is the intersection of all layers. A chain with no overlapping effective window fails closed.
+- the ordered source-contract chain;
+- element-level final lineage; and
+- the specialization operation trail: add, override, patch and suppress.
 
-See [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md) for the specialization contract.
+Patch operations also record which fields changed and may carry an explicit reason. Industry IQ can therefore explain not only **which contract supplied the effective KPI**, but also **what the organization/persona deliberately changed**.
+
+Effective validity remains the intersection of all layers. A chain with no overlapping effective window fails closed.
+
+See [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md) and [ADR-0030](../adr/ADR-0030-performance-contract-specialization-v0.2.md).
 
 ## Durable Performance Contract Registry
 
@@ -160,9 +224,10 @@ It provides:
 - version-pinned parent selection for specialized contracts;
 - durable source-revision hashes;
 - in-memory and SQLite reference stores;
-- exact organization-scope validation.
+- exact organization-scope validation;
+- version-aware persistence of v0.1 and v0.2 sparse overlays.
 
-The effective contract is resolved from pinned revisions. Changing which revision is active later does not rewrite historical contract lineage.
+The effective contract is resolved from pinned revisions. Changing which revision is active later does not rewrite historical contract lineage. A v0.2 overlay survives SQLite restart with its patches and suppressions intact.
 
 See [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md).
 
@@ -260,7 +325,7 @@ authority = recommend_only
 policy_required = true
 ```
 
-CEPIO now adds a separate Industry IQ reasoning bridge in `cepio.performance_industry_iq`.
+CEPIO adds a separate Industry IQ reasoning bridge in `cepio.performance_industry_iq`.
 
 The versioned capability pack is:
 
@@ -416,11 +481,10 @@ The Decision still carries `recommended_action = null`; Workflow Policy and Kine
 
 See [ADR-0029](../adr/ADR-0029-reasoning-contribution-v0.1.md).
 
-## Example
+## Examples
 
-See [`examples/performance_contract_refinery.yaml`](../../examples/performance_contract_refinery.yaml).
-
-The example contains an enterprise objective, COO KPI, individual key result, maintenance-cost guardrail, explicit contribution graph and a governed availability-investigation response binding.
+- [`examples/performance_contract_refinery.yaml`](../../examples/performance_contract_refinery.yaml) — enterprise objective, COO KPI, individual key result, guardrail, contribution graph and governed response binding.
+- [`examples/performance_contract_specialization_v02.yaml`](../../examples/performance_contract_specialization_v02.yaml) — Industry Reference -> Organization -> Role/Persona -> Individual specialization using field patches and explicit suppression.
 
 ## Current safety boundaries
 
@@ -435,6 +499,7 @@ Enterprise Performance intentionally does **not**:
 - automatically persist Decisions merely because a KPI is red;
 - create a Decision for propagated-only risk with no concrete source subject;
 - implicitly cascade enterprise KPIs into personal accountability;
+- automatically cascade suppressions to dependent semantics;
 - permit cross-customer contract inheritance or reasoning;
 - rank personnel from KPI/OKR performance;
 - make experimental Performance REST routes part of the stable `/api/v1` contract.
@@ -456,4 +521,6 @@ Deterministic Performance deviation
 
 That proof matters because it establishes that the contract is genuinely reusable rather than a Reliability-specific abstraction. Only after multi-domain qualification should CEPIO consider a governed contributor registry, durable hypothesis/evidence persistence and experimental REST/MCP exposure.
 
-See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md), [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md) and [ADR-0029](../adr/ADR-0029-reasoning-contribution-v0.1.md).
+After that reasoning contract is qualified, the same capability can be exposed through REST/MCP without moving semantic or policy ownership into protocol adapters.
+
+See [ADR-0021](../adr/ADR-0021-enterprise-performance-graph-v0.1.md), [ADR-0022](../adr/ADR-0022-performance-contract-specialization-v0.1.md), [ADR-0023](../adr/ADR-0023-performance-contract-registry-v0.1.md), [ADR-0024](../adr/ADR-0024-performance-business-logic-v0.1.md), [ADR-0025](../adr/ADR-0025-performance-surfaces-response-v0.1.md), [ADR-0027](../adr/ADR-0027-performance-industry-iq-decision-v0.1.md), [ADR-0029](../adr/ADR-0029-reasoning-contribution-v0.1.md) and [ADR-0030](../adr/ADR-0030-performance-contract-specialization-v0.2.md).
