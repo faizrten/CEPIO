@@ -79,6 +79,14 @@ from .industry_iq_catalogue import (
     IndustryIQPackProvenance,
     IndustryIQTrustPolicy,
 )
+from .industry_iq_supply_chain import (
+    IndustryIQPublisherAttestation,
+    IndustryIQSBOMEvidence,
+    IndustryIQSupplyChainError,
+    IndustryIQSupplyChainEvidence,
+    IndustryIQSupplyChainPolicy,
+    IndustryIQVulnerabilityScan,
+)
 from .kinetic import (
     ApprovalTask,
     KineticRuntime,
@@ -167,6 +175,12 @@ __all__ = [
     "IndustryIQCatalogueSource",
     "IndustryIQPackProvenance",
     "IndustryIQTrustPolicy",
+    "IndustryIQPublisherAttestation",
+    "IndustryIQSBOMEvidence",
+    "IndustryIQSupplyChainError",
+    "IndustryIQSupplyChainEvidence",
+    "IndustryIQSupplyChainPolicy",
+    "IndustryIQVulnerabilityScan",
     "DRILLING_NPT_IQ_PACK",
     "DrillingNPTIndustryIQPack",
     "NPTDurationInput",
