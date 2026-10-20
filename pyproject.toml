@@ -20,6 +20,9 @@ dependencies = [
   "scipy>=1.13"
 ]
 
+[project.scripts]
+cepio-management = "cepio.management_api:main"
+
 [project.optional-dependencies]
 mcp = ["mcp>=2.0,<3"]
 otel = ["opentelemetry-api>=1.27,<2"]
