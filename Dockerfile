@@ -21,7 +21,9 @@ RUN python -m build --wheel
 
 FROM python:3.11-slim
 
-ARG CEPIO_RUNTIME_EXTRAS=""
+# The hosted CEPIO process always serves /mcp, so MCP is part of the default host
+# runtime. Deployments can add provider extras (for example azure-search,mcp).
+ARG CEPIO_RUNTIME_EXTRAS="mcp"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
