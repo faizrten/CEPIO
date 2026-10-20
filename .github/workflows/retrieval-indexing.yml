@@ -1,0 +1,50 @@
+name: CEPIO Retrieval Indexing
+
+on:
+  pull_request:
+    paths:
+      - "src/cepio/retrieval.py"
+      - "src/cepio/retrieval_contracts.py"
+      - "src/cepio/capability_routing.py"
+      - "src/cepio/retrieval_index.py"
+      - "src/cepio/retrieval_runtime.py"
+      - "tests/test_retrieval_routing_indexing.py"
+      - "tests/test_retrieval_runtime.py"
+      - "tests/test_retrieval_defensive_edges.py"
+      - "scripts/run_retrieval_qualification.py"
+      - "docs/retrieval-indexing-architecture.md"
+      - "docs/wiki/23-Retrieval-and-Indexing.md"
+      - "docs/adr/ADR-0030-retrieval-indexing-v0.1.md"
+      - ".github/workflows/retrieval-indexing.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  retrieval-indexing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install CEPIO
+        run: python -m pip install -e '.[dev]'
+      - name: Run Retrieval & Indexing contracts
+        run: |
+          pytest -q \
+            tests/test_retrieval_routing_indexing.py \
+            tests/test_retrieval_runtime.py \
+            tests/test_retrieval_defensive_edges.py
+      - name: Run bounded retrieval canary
+        run: |
+          mkdir -p evidence
+          python scripts/run_retrieval_qualification.py \
+            --report evidence/retrieval-indexing-v0.1.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: retrieval-indexing-v0.1
+          path: evidence/retrieval-indexing-v0.1.json
