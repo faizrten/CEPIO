@@ -1,22 +1,50 @@
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
 import cepio.icc_qualification as icc
 from cepio.domain_onboarding import run_domain_onboarding
 from cepio.generalization import load_pack
+from cepio.persona_binding import (
+    PersonaCapabilityBinding,
+    PersonaQuestionBinding,
+    load_persona_binding,
+    resolve_persona_questions,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "generalization/domain-packs/drilling-contractor-reference-v0.1.yaml"
 WORKFLOW = ROOT / "workflows/domain-onboarding-v0.1.yaml"
 POLICY = ROOT / "policies/domain-onboarding-v0.1.yaml"
+COMPETENCY = ROOT / "generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml"
 
 
 def _rig_manager_question_id() -> str:
-    pack = load_pack(
-        ROOT / "generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml"
-    )
+    pack = load_pack(COMPETENCY)
     return next(question.id for question in pack.questions if "rig-manager" in question.personas)
+
+
+def _binding(**overrides):
+    pack = load_pack(COMPETENCY)
+    values = {
+        "id": "test-binding-v0.1",
+        "version": "0.1",
+        "domain": "drilling-contractor",
+        "persona_id": "rig-manager",
+        "competency_pack_id": pack.id,
+        "minimum_question_count": 1,
+        "questions": [
+            PersonaQuestionBinding(
+                question_id=pack.questions[0].id,
+                mode="primary",
+                rationale="test coverage",
+            )
+        ],
+    }
+    values.update(overrides)
+    return PersonaCapabilityBinding(**values)
 
 
 def test_rig_manager_icc_is_persona_scoped_and_reuses_existing_capabilities():
@@ -47,6 +75,73 @@ def test_rig_manager_icc_is_persona_scoped_and_reuses_existing_capabilities():
     assert len(report["provenance"]["manifest_sha256"]) == 64
     assert len(report["provenance"]["persona_binding_sha256"]) == 64
     assert len(report["provenance"]["persona_scope_hash"]) == 64
+
+
+def test_persona_binding_loader_and_validation_fail_closed(tmp_path):
+    invalid = tmp_path / "invalid-binding.yaml"
+    invalid.write_text("- not\n- a\n- mapping\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="must contain a YAML mapping"):
+        load_persona_binding(invalid)
+
+    pack = load_pack(COMPETENCY)
+
+    with pytest.raises(ValueError, match="does not match manifest domain"):
+        resolve_persona_questions(
+            _binding(domain="wrong-domain"),
+            pack,
+            domain="drilling-contractor",
+            persona_id="rig-manager",
+        )
+
+    with pytest.raises(ValueError, match="does not match requested persona"):
+        resolve_persona_questions(
+            _binding(persona_id="wrong-persona"),
+            pack,
+            domain="drilling-contractor",
+            persona_id="rig-manager",
+        )
+
+    with pytest.raises(ValueError, match="competency_pack_id does not match"):
+        resolve_persona_questions(
+            _binding(competency_pack_id="wrong-pack"),
+            pack,
+            domain="drilling-contractor",
+            persona_id="rig-manager",
+        )
+
+    duplicate = PersonaQuestionBinding(
+        question_id=pack.questions[0].id,
+        mode="oversight",
+        rationale="duplicate",
+    )
+    with pytest.raises(ValueError, match="duplicate question IDs"):
+        resolve_persona_questions(
+            _binding(questions=[duplicate, duplicate]),
+            pack,
+            domain="drilling-contractor",
+            persona_id="rig-manager",
+        )
+
+    unknown = PersonaQuestionBinding(
+        question_id="UNKNOWN-QUESTION",
+        mode="support",
+        rationale="unknown",
+    )
+    with pytest.raises(ValueError, match="unknown competency questions"):
+        resolve_persona_questions(
+            _binding(questions=[unknown]),
+            pack,
+            domain="drilling-contractor",
+            persona_id="rig-manager",
+        )
+
+    with pytest.raises(ValueError, match="requires at least 2"):
+        resolve_persona_questions(
+            _binding(minimum_question_count=2),
+            pack,
+            domain="drilling-contractor",
+            persona_id="rig-manager",
+        )
 
 
 def test_icc_persona_qualification_fails_closed_for_unknown_persona():
