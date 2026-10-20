@@ -3,6 +3,7 @@ version: "0.1"
 domain: drilling-contractor
 name: Drilling Contractor reference onboarding
 mode: backfill-reference
+persona_id: rig-manager
 adjacent_domains:
   - industrial-common
   - upstream-oil-and-gas
