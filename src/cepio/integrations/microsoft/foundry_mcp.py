@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
+from typing import Literal
 
 from ...application_contract import SkillInvocation
 from ...query import ObjectQuery
@@ -12,13 +13,18 @@ from .foundry_gateway import ActorProvider, CEPIOMCPGateway
 MCPToolProfile = Literal["full", "recommendation-only"]
 
 
-def build_mcp_server(
+def build_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
+    """Build the backward-compatible full CEPIO MCP server."""
+    return build_mcp_server_with_profile(runtime, actor_provider, tool_profile="full")
+
+
+def build_mcp_server_with_profile(
     runtime: CEPIORuntime,
     actor_provider: ActorProvider,
     *,
-    tool_profile: MCPToolProfile = "full",
+    tool_profile: MCPToolProfile,
 ):
-    """Build the CEPIO MCP server using the official MCP Python SDK.
+    """Build the CEPIO MCP server using the requested governed tool profile.
 
     ``full`` preserves the complete governed CEPIO MCP surface.
     ``recommendation-only`` removes external action execution from tool discovery while
