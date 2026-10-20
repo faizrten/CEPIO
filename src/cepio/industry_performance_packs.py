@@ -139,44 +139,211 @@ def refinery_performance_pack() -> PerformanceContract:
                 PerformanceNodeKind.objective,
                 "Deliver safe, resilient and profitable refinery operations",
                 plant_manager,
-                "Reference enterprise objective. Each organization owns its exact objective wording, weighting and evaluation period.",
+                "Reference enterprise objective. Each organization owns its exact objective "
+                "wording, weighting and evaluation period.",
             ),
-            _node(margin, PerformanceNodeKind.kpi, "Operating margin", finance_controller, "Reference economic-performance identity. Margin convention, price basis, transfer pricing, normalization and target are organization-specific.", unit="currency_per_throughput"),
-            _node(availability, PerformanceNodeKind.kpi, "Operational availability", operations_manager, "Reference availability identity. Formula, exclusions, denominator, aggregation and target remain external organization policy.", unit="ratio"),
-            _node(throughput, PerformanceNodeKind.kpi, "Production throughput", operations_manager, "Reference delivered-throughput identity; material basis, normalization, scope and plan comparison are organization-specific.", unit="volume_per_time"),
-            _node(production_loss, PerformanceNodeKind.kpi, "Production loss", production_assurance_engineer, "Reference lost-production identity; counterfactual capacity, attribution rules and economic conversion are organization-specific.", unit="volume"),
-            _node(energy_intensity, PerformanceNodeKind.kpi, "Energy intensity", energy_manager, "Reference energy-intensity identity. Denominator, unit, baseline, normalization and target remain contextual.", unit="energy_per_throughput"),
-            _node(quality_conformance, PerformanceNodeKind.kpi, "Product specification conformance", quality_manager, "Reference product-conformance identity; product slate, specification basis, disposition rules and target remain organization-specific.", unit="ratio"),
-            _node(unplanned_downtime, PerformanceNodeKind.metric, "Unplanned downtime", operations_manager, "Reference unplanned-downtime measure; event classification, clock basis and exclusions remain organization-specific.", unit="duration"),
-            _node(repeat_failures, PerformanceNodeKind.metric, "Repeat equipment failures", reliability_engineer, "Reference repeat-failure measure; recurrence window, failure taxonomy and asset scope remain organization-specific.", unit="count"),
-            _node(process_safety_events, PerformanceNodeKind.guardrail, "Process safety events", process_safety_manager, "Reference process-safety guardrail identity; event taxonomy, severity and reporting basis remain organization policy.", unit="count"),
-            _node(environmental_exceedances, PerformanceNodeKind.guardrail, "Environmental limit exceedances", environmental_manager, "Reference environmental-compliance guardrail; legal limits, averaging periods and reportability remain jurisdiction and organization specific.", unit="count"),
+            _node(
+                margin,
+                PerformanceNodeKind.kpi,
+                "Operating margin",
+                finance_controller,
+                "Reference economic-performance identity. Margin convention, price basis, "
+                "transfer pricing, normalization and target are organization-specific.",
+                unit="currency_per_throughput",
+            ),
+            _node(
+                availability,
+                PerformanceNodeKind.kpi,
+                "Operational availability",
+                operations_manager,
+                "Reference availability identity. Formula, exclusions, denominator, aggregation "
+                "and target remain external organization policy.",
+                unit="ratio",
+            ),
+            _node(
+                throughput,
+                PerformanceNodeKind.kpi,
+                "Production throughput",
+                operations_manager,
+                "Reference delivered-throughput identity; material basis, normalization, scope "
+                "and plan comparison are organization-specific.",
+                unit="volume_per_time",
+            ),
+            _node(
+                production_loss,
+                PerformanceNodeKind.kpi,
+                "Production loss",
+                production_assurance_engineer,
+                "Reference lost-production identity; counterfactual capacity, attribution rules "
+                "and economic conversion are organization-specific.",
+                unit="volume",
+            ),
+            _node(
+                energy_intensity,
+                PerformanceNodeKind.kpi,
+                "Energy intensity",
+                energy_manager,
+                "Reference energy-intensity identity. Denominator, unit, baseline, normalization "
+                "and target remain contextual.",
+                unit="energy_per_throughput",
+            ),
+            _node(
+                quality_conformance,
+                PerformanceNodeKind.kpi,
+                "Product specification conformance",
+                quality_manager,
+                "Reference product-conformance identity; product slate, specification basis, "
+                "disposition rules and target remain organization-specific.",
+                unit="ratio",
+            ),
+            _node(
+                unplanned_downtime,
+                PerformanceNodeKind.metric,
+                "Unplanned downtime",
+                operations_manager,
+                "Reference unplanned-downtime measure; event classification, clock basis and "
+                "exclusions remain organization-specific.",
+                unit="duration",
+            ),
+            _node(
+                repeat_failures,
+                PerformanceNodeKind.metric,
+                "Repeat equipment failures",
+                reliability_engineer,
+                "Reference repeat-failure measure; recurrence window, failure taxonomy and asset "
+                "scope remain organization-specific.",
+                unit="count",
+            ),
+            _node(
+                process_safety_events,
+                PerformanceNodeKind.guardrail,
+                "Process safety events",
+                process_safety_manager,
+                "Reference process-safety guardrail identity; event taxonomy, severity and "
+                "reporting basis remain organization policy.",
+                unit="count",
+            ),
+            _node(
+                environmental_exceedances,
+                PerformanceNodeKind.guardrail,
+                "Environmental limit exceedances",
+                environmental_manager,
+                "Reference environmental-compliance guardrail; legal limits, averaging periods "
+                "and reportability remain jurisdiction and organization specific.",
+                unit="count",
+            ),
         ),
         accountabilities=(
-            _accountability(plant_manager, objective, AccountabilityRelation.accountable_for),
-            _accountability(operations_manager, availability, AccountabilityRelation.accountable_for),
-            _accountability(operations_manager, throughput, AccountabilityRelation.accountable_for),
+            _accountability(
+                plant_manager,
+                objective,
+                AccountabilityRelation.accountable_for,
+            ),
+            _accountability(
+                operations_manager,
+                availability,
+                AccountabilityRelation.accountable_for,
+            ),
+            _accountability(
+                operations_manager,
+                throughput,
+                AccountabilityRelation.accountable_for,
+            ),
             _accountability(reliability_engineer, repeat_failures, AccountabilityRelation.owns),
-            _accountability(reliability_engineer, availability, AccountabilityRelation.contributes_to),
-            _accountability(process_engineer, throughput, AccountabilityRelation.contributes_to),
+            _accountability(
+                reliability_engineer,
+                availability,
+                AccountabilityRelation.contributes_to,
+            ),
+            _accountability(
+                process_engineer,
+                throughput,
+                AccountabilityRelation.contributes_to,
+            ),
             _accountability(energy_manager, energy_intensity, AccountabilityRelation.owns),
             _accountability(quality_manager, quality_conformance, AccountabilityRelation.owns),
-            _accountability(process_safety_manager, process_safety_events, AccountabilityRelation.owns),
-            _accountability(environmental_manager, environmental_exceedances, AccountabilityRelation.owns),
-            _accountability(finance_controller, margin, AccountabilityRelation.accountable_for),
-            _accountability(production_assurance_engineer, production_loss, AccountabilityRelation.owns),
+            _accountability(
+                process_safety_manager,
+                process_safety_events,
+                AccountabilityRelation.owns,
+            ),
+            _accountability(
+                environmental_manager,
+                environmental_exceedances,
+                AccountabilityRelation.owns,
+            ),
+            _accountability(
+                finance_controller,
+                margin,
+                AccountabilityRelation.accountable_for,
+            ),
+            _accountability(
+                production_assurance_engineer,
+                production_loss,
+                AccountabilityRelation.owns,
+            ),
         ),
         contributions=(
-            _contribution(repeat_failures, unplanned_downtime, ContributionRelation.contributes_to, "Repeat equipment failures can create unplanned downtime."),
-            _contribution(unplanned_downtime, availability, ContributionRelation.contributes_to, "Unplanned downtime is a driver of operational availability loss."),
-            _contribution(availability, production_loss, ContributionRelation.contributes_to, "Availability loss can contribute to production loss."),
-            _contribution(production_loss, margin, ContributionRelation.contributes_to, "Lost production can create economic margin exposure."),
-            _contribution(throughput, margin, ContributionRelation.contributes_to, "Delivered throughput is a driver of refinery economic performance."),
-            _contribution(energy_intensity, margin, ContributionRelation.contributes_to, "Energy performance can affect operating cost and margin."),
-            _contribution(quality_conformance, margin, ContributionRelation.contributes_to, "Off-spec production can reduce realized product value."),
-            _contribution(margin, objective, ContributionRelation.contributes_to, "Economic performance contributes to the enterprise objective."),
-            _contribution(process_safety_events, objective, ContributionRelation.constrains, "Process safety is a non-negotiable operating guardrail."),
-            _contribution(environmental_exceedances, objective, ContributionRelation.constrains, "Environmental compliance constrains acceptable performance."),
+            _contribution(
+                repeat_failures,
+                unplanned_downtime,
+                ContributionRelation.contributes_to,
+                "Repeat equipment failures can create unplanned downtime.",
+            ),
+            _contribution(
+                unplanned_downtime,
+                availability,
+                ContributionRelation.contributes_to,
+                "Unplanned downtime is a driver of operational availability loss.",
+            ),
+            _contribution(
+                availability,
+                production_loss,
+                ContributionRelation.contributes_to,
+                "Availability loss can contribute to production loss.",
+            ),
+            _contribution(
+                production_loss,
+                margin,
+                ContributionRelation.contributes_to,
+                "Lost production can create economic margin exposure.",
+            ),
+            _contribution(
+                throughput,
+                margin,
+                ContributionRelation.contributes_to,
+                "Delivered throughput is a driver of refinery economic performance.",
+            ),
+            _contribution(
+                energy_intensity,
+                margin,
+                ContributionRelation.contributes_to,
+                "Energy performance can affect operating cost and margin.",
+            ),
+            _contribution(
+                quality_conformance,
+                margin,
+                ContributionRelation.contributes_to,
+                "Off-spec production can reduce realized product value.",
+            ),
+            _contribution(
+                margin,
+                objective,
+                ContributionRelation.contributes_to,
+                "Economic performance contributes to the enterprise objective.",
+            ),
+            _contribution(
+                process_safety_events,
+                objective,
+                ContributionRelation.constrains,
+                "Process safety is a non-negotiable operating guardrail.",
+            ),
+            _contribution(
+                environmental_exceedances,
+                objective,
+                ContributionRelation.constrains,
+                "Environmental compliance constrains acceptable performance.",
+            ),
         ),
     )
 
@@ -209,7 +376,9 @@ def drilling_contractor_performance_pack() -> PerformanceContract:
     invisible_lost_time = "cepio.reference.drilling-contractor.metric.invisible-lost-time"
     revenue_leakage = "cepio.reference.drilling-contractor.metric.revenue-leakage"
     safety_events = "cepio.reference.drilling-contractor.guardrail.serious-safety-events"
-    well_control_failures = "cepio.reference.drilling-contractor.guardrail.well-control-barrier-failures"
+    well_control_failures = (
+        "cepio.reference.drilling-contractor.guardrail.well-control-barrier-failures"
+    )
 
     return PerformanceContract(
         id=DRILLING_CONTRACTOR_PERFORMANCE_PACK_ID,
@@ -217,78 +386,288 @@ def drilling_contractor_performance_pack() -> PerformanceContract:
         name="Drilling contractor reference performance pack",
         layer=PerformanceContractLayer.industry_reference,
         subjects=(
-            PerformanceSubject(id=enterprise, kind=PerformanceSubjectKind.enterprise, name="Drilling contractor reference"),
-            _persona(chief_executive, "Chief Executive Officer / President", enterprise),
+            PerformanceSubject(
+                id=enterprise,
+                kind=PerformanceSubjectKind.enterprise,
+                name="Drilling contractor reference",
+            ),
+            _persona(
+                chief_executive,
+                "Chief Executive Officer / President",
+                enterprise,
+            ),
             _persona(chief_operating_officer, "Chief Operating Officer", chief_executive),
             _persona(chief_financial_officer, "Chief Financial Officer", chief_executive),
-            _persona(vp_operations, "VP / Director Drilling Operations", chief_operating_officer),
+            _persona(
+                vp_operations,
+                "VP / Director Drilling Operations",
+                chief_operating_officer,
+            ),
             _persona(rig_manager, "Rig Manager", vp_operations),
             _persona(drilling_superintendent, "Drilling Superintendent", vp_operations),
             _persona(reliability_engineer, "Reliability Engineer", vp_operations),
-            _persona(drilling_performance_engineer, "Drilling Performance / Optimization Engineer", vp_operations),
+            _persona(
+                drilling_performance_engineer,
+                "Drilling Performance / Optimization Engineer",
+                vp_operations,
+            ),
             _persona(commercial_manager, "Commercial Manager", chief_financial_officer),
             _persona(hse_manager, "HSE Manager", chief_operating_officer),
             _persona(well_control_engineer, "Subsea / Well Control Engineer", vp_operations),
         ),
         nodes=(
-            _node(objective, PerformanceNodeKind.objective, "Deliver safe, resilient and economically valuable drilling services", chief_executive, "Reference drilling-contractor enterprise objective; exact strategic objectives, weights and evaluation periods are organization-specific."),
-            _node(contract_margin, PerformanceNodeKind.kpi, "Contract margin", chief_financial_officer, "Reference contract-margin identity; recognized revenue, cost basis, allocation, currency and target remain organization policy.", unit="currency_per_period"),
-            _node(fleet_utilization, PerformanceNodeKind.kpi, "Fleet utilization", chief_operating_officer, "Reference fleet-utilization identity; marketed-fleet denominator, contract state, stacked-rig treatment and target remain contextual.", unit="ratio"),
-            _node(operational_uptime, PerformanceNodeKind.kpi, "Operational uptime", rig_manager, "Reference operational-uptime identity; planned exclusions, contractual clock, attributable downtime and target remain organization-specific.", unit="ratio"),
-            _node(npt_ratio, PerformanceNodeKind.kpi, "Non-productive-time ratio", drilling_superintendent, "Reference NPT-ratio identity; activity taxonomy, attribution, denominator and contractual treatment remain organization-specific.", unit="ratio"),
-            _node(dayrate_realization, PerformanceNodeKind.kpi, "Dayrate realization", commercial_manager, "Reference dayrate-realization identity; contractual earning rules, deductions, bonus/penalty logic and target remain organization-specific.", unit="ratio"),
-            _node(backlog_coverage, PerformanceNodeKind.metric, "Backlog coverage", commercial_manager, "Reference backlog-coverage measure; contracted backlog, firm-option treatment and time horizon remain organization-specific.", unit="duration"),
-            _node(npt_duration, PerformanceNodeKind.metric, "Non-productive time duration", drilling_superintendent, "Reference NPT-duration measure; taxonomy, attribution and clock basis remain organization-specific.", unit="duration"),
-            _node(maintenance_downtime, PerformanceNodeKind.metric, "Maintenance downtime", reliability_engineer, "Reference maintenance-downtime measure; planned/unplanned classification and responsibility split remain organization-specific.", unit="duration"),
-            _node(invisible_lost_time, PerformanceNodeKind.metric, "Invisible lost time", drilling_performance_engineer, "Reference invisible-lost-time measure; baseline activity model and classification convention remain organization-specific.", unit="duration"),
-            _node(revenue_leakage, PerformanceNodeKind.metric, "Revenue leakage", commercial_manager, "Reference revenue-leakage measure; contractual entitlement, disputed time and commercial treatment remain organization-specific.", unit="currency_per_period"),
-            _node(safety_events, PerformanceNodeKind.guardrail, "Serious safety events", hse_manager, "Reference serious-safety guardrail; taxonomy, severity and reporting basis remain organization/jurisdiction specific.", unit="count"),
-            _node(well_control_failures, PerformanceNodeKind.guardrail, "Well-control barrier failures", well_control_engineer, "Reference well-control barrier guardrail; barrier schema, failure classification and reporting basis remain organization policy.", unit="count"),
+            _node(
+                objective,
+                PerformanceNodeKind.objective,
+                "Deliver safe, resilient and economically valuable drilling services",
+                chief_executive,
+                "Reference drilling-contractor enterprise objective; exact strategic objectives, "
+                "weights and evaluation periods are organization-specific.",
+            ),
+            _node(
+                contract_margin,
+                PerformanceNodeKind.kpi,
+                "Contract margin",
+                chief_financial_officer,
+                "Reference contract-margin identity; recognized revenue, cost basis, allocation, "
+                "currency and target remain organization policy.",
+                unit="currency_per_period",
+            ),
+            _node(
+                fleet_utilization,
+                PerformanceNodeKind.kpi,
+                "Fleet utilization",
+                chief_operating_officer,
+                "Reference fleet-utilization identity; marketed-fleet denominator, contract state, "
+                "stacked-rig treatment and target remain contextual.",
+                unit="ratio",
+            ),
+            _node(
+                operational_uptime,
+                PerformanceNodeKind.kpi,
+                "Operational uptime",
+                rig_manager,
+                "Reference operational-uptime identity; planned exclusions, contractual clock, "
+                "attributable downtime and target remain organization-specific.",
+                unit="ratio",
+            ),
+            _node(
+                npt_ratio,
+                PerformanceNodeKind.kpi,
+                "Non-productive-time ratio",
+                drilling_superintendent,
+                "Reference NPT-ratio identity; activity taxonomy, attribution, denominator and "
+                "contractual treatment remain organization-specific.",
+                unit="ratio",
+            ),
+            _node(
+                dayrate_realization,
+                PerformanceNodeKind.kpi,
+                "Dayrate realization",
+                commercial_manager,
+                "Reference dayrate-realization identity; eligible time, rate basis, deductions, "
+                "bonuses, penalties and target remain contract-specific.",
+                unit="ratio",
+            ),
+            _node(
+                backlog_coverage,
+                PerformanceNodeKind.metric,
+                "Contract backlog coverage",
+                chief_executive,
+                "Reference forward-coverage measure; backlog recognition, probability weighting "
+                "and fleet denominator remain organization-specific.",
+                unit="duration",
+            ),
+            _node(
+                npt_duration,
+                PerformanceNodeKind.metric,
+                "Non-productive-time duration",
+                drilling_superintendent,
+                "Reference NPT duration; event classification, attribution and clock basis remain "
+                "organization-specific.",
+                unit="duration",
+            ),
+            _node(
+                maintenance_downtime,
+                PerformanceNodeKind.metric,
+                "Maintenance downtime",
+                reliability_engineer,
+                "Reference maintenance-downtime measure; failure, planned-work and contractual "
+                "classifications remain organization-specific.",
+                unit="duration",
+            ),
+            _node(
+                invisible_lost_time,
+                PerformanceNodeKind.metric,
+                "Invisible lost time",
+                drilling_performance_engineer,
+                "Reference drilling-efficiency loss measure; benchmark method, activity "
+                "segmentation and comparison basis remain organization-specific.",
+                unit="duration",
+            ),
+            _node(
+                revenue_leakage,
+                PerformanceNodeKind.metric,
+                "Revenue leakage",
+                commercial_manager,
+                "Reference commercial leakage measure; contract entitlement, downtime attribution, "
+                "deductions and claim status remain contract-specific.",
+                unit="currency",
+            ),
+            _node(
+                safety_events,
+                PerformanceNodeKind.guardrail,
+                "Serious safety events",
+                hse_manager,
+                "Reference safety guardrail identity; classification, severity, reporting basis and "
+                "legal treatment remain organization/jurisdiction specific.",
+                unit="count",
+            ),
+            _node(
+                well_control_failures,
+                PerformanceNodeKind.guardrail,
+                "Well-control barrier failures",
+                well_control_engineer,
+                "Reference well-control barrier guardrail; barrier model, test validity, failure "
+                "classification and reporting basis remain governed locally.",
+                unit="count",
+            ),
         ),
         accountabilities=(
-            _accountability(chief_executive, objective, AccountabilityRelation.accountable_for),
-            _accountability(chief_operating_officer, fleet_utilization, AccountabilityRelation.accountable_for),
-            _accountability(chief_financial_officer, contract_margin, AccountabilityRelation.accountable_for),
-            _accountability(vp_operations, operational_uptime, AccountabilityRelation.accountable_for),
-            _accountability(rig_manager, operational_uptime, AccountabilityRelation.owns),
-            _accountability(drilling_superintendent, npt_ratio, AccountabilityRelation.owns),
-            _accountability(reliability_engineer, maintenance_downtime, AccountabilityRelation.owns),
-            _accountability(drilling_performance_engineer, invisible_lost_time, AccountabilityRelation.owns),
+            _accountability(
+                chief_executive,
+                objective,
+                AccountabilityRelation.accountable_for,
+            ),
+            _accountability(
+                chief_operating_officer,
+                fleet_utilization,
+                AccountabilityRelation.accountable_for,
+            ),
+            _accountability(
+                chief_financial_officer,
+                contract_margin,
+                AccountabilityRelation.accountable_for,
+            ),
+            _accountability(
+                vp_operations,
+                npt_ratio,
+                AccountabilityRelation.accountable_for,
+            ),
+            _accountability(
+                rig_manager,
+                operational_uptime,
+                AccountabilityRelation.accountable_for,
+            ),
+            _accountability(drilling_superintendent, npt_duration, AccountabilityRelation.owns),
+            _accountability(
+                reliability_engineer, maintenance_downtime, AccountabilityRelation.owns
+            ),
+            _accountability(
+                drilling_performance_engineer,
+                invisible_lost_time,
+                AccountabilityRelation.owns,
+            ),
             _accountability(commercial_manager, dayrate_realization, AccountabilityRelation.owns),
-            _accountability(commercial_manager, backlog_coverage, AccountabilityRelation.owns),
+            _accountability(commercial_manager, revenue_leakage, AccountabilityRelation.owns),
             _accountability(hse_manager, safety_events, AccountabilityRelation.owns),
-            _accountability(well_control_engineer, well_control_failures, AccountabilityRelation.owns),
+            _accountability(
+                well_control_engineer, well_control_failures, AccountabilityRelation.owns
+            ),
         ),
         contributions=(
-            _contribution(maintenance_downtime, operational_uptime, ContributionRelation.contributes_to, "Maintenance downtime can reduce operational uptime."),
-            _contribution(npt_duration, npt_ratio, ContributionRelation.contributes_to, "NPT duration contributes to the NPT ratio under the organization's selected clock basis."),
-            _contribution(npt_ratio, operational_uptime, ContributionRelation.contributes_to, "NPT is a driver of operational uptime loss."),
-            _contribution(operational_uptime, fleet_utilization, ContributionRelation.contributes_to, "Operational uptime contributes to productive fleet utilization."),
-            _contribution(dayrate_realization, contract_margin, ContributionRelation.contributes_to, "Dayrate realization contributes to contract economics."),
-            _contribution(revenue_leakage, contract_margin, ContributionRelation.contributes_to, "Revenue leakage can reduce contract margin."),
-            _contribution(fleet_utilization, contract_margin, ContributionRelation.contributes_to, "Fleet utilization influences revenue generation and margin."),
-            _contribution(backlog_coverage, objective, ContributionRelation.influences, "Backlog coverage influences enterprise resilience and value delivery."),
-            _contribution(invisible_lost_time, npt_ratio, ContributionRelation.influences, "Invisible lost time may or may not be classified as formal NPT under local activity taxonomy."),
-            _contribution(contract_margin, objective, ContributionRelation.contributes_to, "Contract economics contribute to enterprise value delivery."),
-            _contribution(safety_events, objective, ContributionRelation.constrains, "Safety is a non-negotiable drilling-service guardrail."),
-            _contribution(well_control_failures, objective, ContributionRelation.constrains, "Well-control integrity constrains acceptable drilling performance."),
+            _contribution(
+                maintenance_downtime,
+                operational_uptime,
+                ContributionRelation.contributes_to,
+                "Maintenance downtime is a driver of operational uptime loss.",
+            ),
+            _contribution(
+                npt_duration,
+                npt_ratio,
+                ContributionRelation.contributes_to,
+                "NPT duration is an input driver of the NPT ratio.",
+            ),
+            _contribution(
+                npt_ratio,
+                operational_uptime,
+                ContributionRelation.contributes_to,
+                "Material NPT can reduce productive operational uptime.",
+            ),
+            _contribution(
+                operational_uptime,
+                fleet_utilization,
+                ContributionRelation.contributes_to,
+                "Rig uptime supports delivered fleet utilization.",
+            ),
+            _contribution(
+                invisible_lost_time,
+                npt_ratio,
+                ContributionRelation.influences,
+                "Invisible lost time is relevant performance context but is not asserted as NPT "
+                "without the organization's classification rules.",
+            ),
+            _contribution(
+                fleet_utilization,
+                contract_margin,
+                ContributionRelation.contributes_to,
+                "Fleet utilization is a driver of contractor economic performance.",
+            ),
+            _contribution(
+                dayrate_realization,
+                contract_margin,
+                ContributionRelation.contributes_to,
+                "Rate realization directly affects recognized contract economics.",
+            ),
+            _contribution(
+                revenue_leakage,
+                contract_margin,
+                ContributionRelation.contributes_to,
+                "Commercial leakage can reduce realized contract margin.",
+            ),
+            _contribution(
+                backlog_coverage,
+                objective,
+                ContributionRelation.influences,
+                "Backlog coverage informs resilience and capital allocation but is not treated as "
+                "a deterministic causal driver in the reference graph.",
+            ),
+            _contribution(
+                contract_margin,
+                objective,
+                ContributionRelation.contributes_to,
+                "Economic performance contributes to enterprise value delivery.",
+            ),
+            _contribution(
+                safety_events,
+                objective,
+                ContributionRelation.constrains,
+                "Safety performance is a non-negotiable operating guardrail.",
+            ),
+            _contribution(
+                well_control_failures,
+                objective,
+                ContributionRelation.constrains,
+                "Well-control barrier integrity constrains acceptable performance.",
+            ),
         ),
     )
 
 
 def industry_performance_packs() -> tuple[PerformanceContract, ...]:
-    """Return CEPIO's built-in industry performance reference packs."""
+    """Return the currently qualified built-in industry performance reference packs."""
 
     return (refinery_performance_pack(), drilling_contractor_performance_pack())
 
 
-def industry_performance_pack(contract_id: str) -> PerformanceContract:
-    """Return a built-in performance pack by stable contract identity."""
+def industry_performance_pack(pack_id: str) -> PerformanceContract:
+    """Return one built-in reference pack by stable contract identity."""
 
-    for pack in industry_performance_packs():
-        if pack.id == contract_id:
-            return pack
-    raise KeyError(f"Unknown industry performance pack: {contract_id}")
+    packs = {pack.id: pack for pack in industry_performance_packs()}
+    try:
+        return packs[pack_id]
+    except KeyError as exc:
+        raise KeyError(f"Unknown industry performance pack: {pack_id}") from exc
 
 
 __all__ = [
