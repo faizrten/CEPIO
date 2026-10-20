@@ -111,12 +111,14 @@ def test_deployed_host_keeps_rest_openapi_and_mcp_out_of_rest_contract(monkeypat
 
     from cepio.host_api import app
 
-    client = TestClient(app)
-    assert client.get("/api/v1/health").status_code == 200
+    # Enter TestClient as a context so the deployed host lifespan starts the
+    # restart-safe MCP transport/session manager before `/mcp` is exercised.
+    with TestClient(app) as client:
+        assert client.get("/api/v1/health").status_code == 200
 
-    anonymous_mcp = client.post("/mcp", json={})
-    assert anonymous_mcp.status_code == 403
+        anonymous_mcp = client.post("/mcp", json={})
+        assert anonymous_mcp.status_code == 403
 
-    public_paths = client.get("/openapi.json").json()["paths"]
-    assert "/api/v1/health" in public_paths
-    assert "/mcp" not in public_paths
+        public_paths = client.get("/openapi.json").json()["paths"]
+        assert "/api/v1/health" in public_paths
+        assert "/mcp" not in public_paths
