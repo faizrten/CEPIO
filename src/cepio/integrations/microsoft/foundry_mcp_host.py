@@ -16,7 +16,7 @@ from ...auth import AuthSettings, EntraTokenValidator
 from ...bootstrap import build_runtime_from_settings
 from ...runtime import AuthorizationError, CEPIORuntime
 from .foundry_gateway import ContextVarActorProvider, EntraClaimsMapper
-from .foundry_mcp import MCPToolProfile, build_mcp_server
+from .foundry_mcp import MCPToolProfile, build_mcp_server_with_profile
 
 
 class TokenValidator(Protocol):
@@ -152,8 +152,10 @@ def create_foundry_mcp_app(
         raise RuntimeError("Install CEPIO with the 'mcp' extra to host the MCP server") from exc
 
     runtime = runtime or build_runtime_from_settings()
-    role_map = dict(role_map) if role_map is not None else _json_map(
-        "CEPIO_MCP_ENTRA_ROLE_MAP", required=True
+    role_map = (
+        dict(role_map)
+        if role_map is not None
+        else _json_map("CEPIO_MCP_ENTRA_ROLE_MAP", required=True)
     )
     group_role_map = (
         dict(group_role_map)
@@ -162,12 +164,17 @@ def create_foundry_mcp_app(
     )
     allowed_hosts = allowed_hosts or _csv("CEPIO_MCP_ALLOWED_HOSTS", required=True)
     allowed_origins = allowed_origins or _csv("CEPIO_MCP_ALLOWED_ORIGINS")
-    tool_profile = tool_profile or os.getenv(
-        "CEPIO_MCP_TOOL_PROFILE", "recommendation-only"
-    ).strip()
 
-    if tool_profile not in {"full", "recommendation-only"}:
-        raise RuntimeError(f"Unsupported CEPIO_MCP_TOOL_PROFILE: {tool_profile}")
+    if tool_profile is None:
+        raw_profile = os.getenv("CEPIO_MCP_TOOL_PROFILE", "recommendation-only").strip()
+        if raw_profile == "full":
+            selected_profile: MCPToolProfile = "full"
+        elif raw_profile == "recommendation-only":
+            selected_profile = "recommendation-only"
+        else:
+            raise RuntimeError(f"Unsupported CEPIO_MCP_TOOL_PROFILE: {raw_profile}")
+    else:
+        selected_profile = tool_profile
 
     actor_provider = ContextVarActorProvider()
     mapper = EntraClaimsMapper(
@@ -175,10 +182,10 @@ def create_foundry_mcp_app(
         group_role_map=group_role_map,
     )
     validator = token_validator or EntraTokenValidator(AuthSettings.from_env())
-    mcp = build_mcp_server(
+    mcp = build_mcp_server_with_profile(
         runtime,
         actor_provider,
-        tool_profile=tool_profile,
+        tool_profile=selected_profile,
     )
     security = TransportSecuritySettings(
         allowed_hosts=allowed_hosts,
@@ -199,8 +206,9 @@ def create_foundry_mcp_app(
 
 def main() -> None:
     port = int(os.getenv("PORT", os.getenv("CEPIO_MCP_PORT", "8000")))
+    bind_host = os.getenv("CEPIO_MCP_BIND_HOST", "127.0.0.1").strip() or "127.0.0.1"
     app = create_foundry_mcp_app()
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host=bind_host, port=port)
 
 
 if __name__ == "__main__":
