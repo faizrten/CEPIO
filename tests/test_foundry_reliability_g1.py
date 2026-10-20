@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
-import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -11,6 +11,7 @@ SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "run_foundry_reliabil
 SPEC = importlib.util.spec_from_file_location("run_foundry_reliability_g1", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 module = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = module
 SPEC.loader.exec_module(module)
 
 
