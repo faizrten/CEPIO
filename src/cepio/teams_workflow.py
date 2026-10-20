@@ -72,9 +72,7 @@ class TeamsWebhookResponse:
     request_id: str | None = None
 
 
-TeamsWebhookTransport = Callable[
-    [str, dict[str, Any], dict[str, str], float], TeamsWebhookResponse
-]
+TeamsWebhookTransport = Callable[[str, dict[str, Any], dict[str, str], float], TeamsWebhookResponse]
 
 
 def _severity_label(severity: TeamsAttentionSeverity) -> str:
@@ -251,9 +249,7 @@ class TeamsWorkflowWebhookAdapter:
                 f"Teams adapter cannot handle system {request.system!r}; expected {self.system_name!r}"
             )
         if request.operation != TEAMS_ATTENTION_OPERATION:
-            raise ValueError(
-                f"Teams adapter does not support operation {request.operation!r}"
-            )
+            raise ValueError(f"Teams adapter does not support operation {request.operation!r}")
 
         prior = self._receipts.get(request.idempotency_key)
         if prior is not None:
@@ -282,8 +278,7 @@ class TeamsWorkflowWebhookAdapter:
         )
         receipt = GovernedWriteReceipt(
             accepted=True,
-            source_request_id=response.request_id
-            or f"TEAMS-{uuid4().hex[:12].upper()}",
+            source_request_id=response.request_id or f"TEAMS-{uuid4().hex[:12].upper()}",
             message="Teams Workflow webhook accepted the attention event",
             source_payload={
                 "http_status": response.status_code,
@@ -293,9 +288,7 @@ class TeamsWorkflowWebhookAdapter:
         self._receipts[request.idempotency_key] = receipt.model_copy(deep=True)
         return receipt
 
-    def verify_write(
-        self, request: GovernedVerificationRequest
-    ) -> GovernedVerificationResult:
+    def verify_write(self, request: GovernedVerificationRequest) -> GovernedVerificationResult:
         if request.idempotency_key not in self._receipts:
             return GovernedVerificationResult(
                 status=AdapterVerificationStatus.not_applied,
@@ -310,7 +303,5 @@ class TeamsWorkflowWebhookAdapter:
             source_payload={"source_request_id": request.source_request_id},
         )
 
-    def reconcile_write(
-        self, request: GovernedVerificationRequest
-    ) -> GovernedVerificationResult:
+    def reconcile_write(self, request: GovernedVerificationRequest) -> GovernedVerificationResult:
         return self.verify_write(request)
