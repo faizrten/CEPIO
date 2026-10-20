@@ -1,9 +1,9 @@
 # CEPIO Current State
 
 **Snapshot date:** 2026-10-20  
-**Repository baseline:** `main` at `85d9b6ead10038a74c141799b682b845d49ce24b`
+**Capability snapshot baseline (pre-reconciliation `main`):** `85d9b6ead10038a74c141799b682b845d49ce24b`
 
-This page is the narrative current-state snapshot for CEPIO. It distinguishes three things that must not be conflated:
+This page is the narrative current-state snapshot for CEPIO. The pinned SHA identifies the implementation/capability baseline reviewed for this documentation pass; merging documentation-only reconciliation commits does not make that capability snapshot stale. It distinguishes three things that must not be conflated:
 
 1. **published product release** — the qualified external product boundary;
 2. **repository mainline capability** — merged implementation that may be ahead of the published release;
