@@ -183,3 +183,40 @@ def test_same_pack_version_with_conflicting_provenance_is_rejected():
     assert exc.value.code == "CATALOGUE_PACK_PROVENANCE_CONFLICT"
     assert len(catalogue.records()) == 1
     assert catalogue.records()[0].provenance.artifact_digest == DIGEST_A
+
+
+def test_empty_catalogue_source_id_fails_closed_before_discovery():
+    catalogue = IndustryIQCatalogue(trusted_policy(), core_version="0.4.0")
+
+    with pytest.raises(IndustryIQCatalogueError) as exc:
+        catalogue.ingest(StaticSource("", []))
+
+    assert exc.value.code == "CATALOGUE_SOURCE_ID_INVALID"
+    assert catalogue.records() == []
+
+
+def test_builtin_verification_cannot_be_claimed_by_external_source():
+    catalogue = IndustryIQCatalogue(trusted_policy(), core_version="0.4.0")
+    candidate = IndustryIQCatalogueCandidate(
+        DRILLING_NPT_IQ_PACK,
+        provenance(verification="builtin"),
+    )
+
+    with pytest.raises(IndustryIQCatalogueError) as exc:
+        catalogue.ingest(StaticSource("repo:industry-iq", [candidate]))
+
+    assert exc.value.code == "PACK_PROVENANCE_INVALID"
+    assert catalogue.records() == []
+
+
+def test_identical_pack_and_provenance_cannot_be_silently_readmitted():
+    catalogue = IndustryIQCatalogue(trusted_policy(), core_version="0.4.0")
+    candidate = IndustryIQCatalogueCandidate(DRILLING_NPT_IQ_PACK, provenance())
+    source = StaticSource("repo:industry-iq", [candidate])
+    catalogue.ingest(source)
+
+    with pytest.raises(IndustryIQCatalogueError) as exc:
+        catalogue.ingest(source)
+
+    assert exc.value.code == "CATALOGUE_PACK_ALREADY_PRESENT"
+    assert len(catalogue.records()) == 1
