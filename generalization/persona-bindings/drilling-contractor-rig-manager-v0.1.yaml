@@ -1,0 +1,49 @@
+id: drilling-contractor-rig-manager-binding-v0.1
+version: "0.1"
+domain: drilling-contractor
+persona_id: rig-manager
+competency_pack_id: drilling-contractor-persona-capabilities-v0.3
+minimum_question_count: 14
+questions:
+  - question_id: DC-PC-001
+    mode: oversight
+    rationale: Rig Manager must understand offshore command authority, permit and safety-case boundaries without displacing OIM authority.
+  - question_id: DC-PC-002
+    mode: primary
+    rationale: Rig Manager requires current drilling activity, rig/well context and immediate operational deviation awareness.
+  - question_id: DC-PC-003
+    mode: oversight
+    rationale: Rig Manager is accountable for continuity across tours and unresolved handover work.
+  - question_id: DC-PC-004
+    mode: primary
+    rationale: BOP and subsea readiness are critical rig-readiness and well-control obligations.
+  - question_id: DC-PC-005
+    mode: primary
+    rationale: Mechanical defects, work ownership and availability exposure directly affect rig readiness.
+  - question_id: DC-PC-006
+    mode: oversight
+    rationale: Electrical isolation and power constraints can block planned work and require management visibility.
+  - question_id: DC-PC-007
+    mode: oversight
+    rationale: Service-company accountability and acceptance obligations can affect execution and contractor performance.
+  - question_id: DC-PC-008
+    mode: support
+    rationale: Drilling-fluid excursions and material availability can create operational delay or well-quality risk.
+  - question_id: DC-PC-009
+    mode: support
+    rationale: Cementing readiness is a campaign-critical dependency requiring integrated rig readiness awareness.
+  - question_id: DC-PC-010
+    mode: oversight
+    rationale: Program deviations, operator acceptance and contractual obligations require accountable management visibility.
+  - question_id: DC-PC-011
+    mode: oversight
+    rationale: Rig margin and cash exposure connect downtime and operating execution to commercial performance.
+  - question_id: DC-PC-012
+    mode: primary
+    rationale: Crew rotation, competency and certification readiness are direct Rig Manager responsibilities.
+  - question_id: DC-PC-013
+    mode: primary
+    rationale: Rig-move executability integrates asset, marine, location, weather and approval readiness.
+  - question_id: DC-PC-014
+    mode: primary
+    rationale: Critical material and service exposure can directly block rig work and campaign milestones.
