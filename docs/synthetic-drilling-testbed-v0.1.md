@@ -1,5 +1,9 @@
 # Synthetic Drilling Testbed v0.1
 
+> Historical design. The generators, fixture files and acceptance harness now live
+> in CEPIO Labs. See [migration and contributor instructions](scenario-lab-migration.md).
+> Paths below describe the original disclosed layout, not this checkout.
+
 ## Purpose
 
 The CEPIO Synthetic Industrial Dataset — Drilling v0.1 is a reference conformance fixture for the CEPIO MVP. It is not a sample customer dataset. Its purpose is to provide deterministic ground truth for testing identity resolution, ontology mapping, graph traversal, temporal reasoning, provenance, API behavior and agent-facing semantic queries.
@@ -20,7 +24,9 @@ The v0.1 fixture proves the data-to-semantics boundary. It does not yet claim pr
 
 The twenty golden questions in `mvp/datasets/drilling-v0.1/tests/golden-questions.json` form the initial semantic acceptance gate. MVP progression should require at least 90% correct answers, with 100% provenance for returned facts and zero need for the consumer to know the originating source-system schema.
 
-These deterministic fixture answers are intentionally public because they validate the conformance harness itself. They are not the private evaluator for a live Agent Challenge.
+These deterministic fixture answers were previously disclosed to validate the
+conformance harness itself. Their maintained copies are now in Labs. They are not
+the private evaluator for a live Agent Challenge.
 
 ## Next step
 
