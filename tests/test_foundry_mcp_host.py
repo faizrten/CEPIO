@@ -174,9 +174,7 @@ def test_host_config_helpers_parse_and_fail_closed(monkeypatch):
 def test_create_foundry_mcp_app_with_explicit_components():
     app = host.create_foundry_mcp_app(
         build_runtime(),
-        token_validator=FakeValidator(
-            {"oid": "agent-1", "roles": ["CEPIO.Agent.Recommender"]}
-        ),
+        token_validator=FakeValidator({"oid": "agent-1", "roles": ["CEPIO.Agent.Recommender"]}),
         role_map={"CEPIO.Agent.Recommender": "ai_agent_recommender"},
         group_role_map={},
         allowed_hosts=["testserver"],
@@ -199,9 +197,7 @@ def test_create_foundry_mcp_app_reads_environment_profile(monkeypatch):
 
     app = host.create_foundry_mcp_app(
         build_runtime(),
-        token_validator=FakeValidator(
-            {"oid": "agent-1", "roles": ["CEPIO.Agent.Recommender"]}
-        ),
+        token_validator=FakeValidator({"oid": "agent-1", "roles": ["CEPIO.Agent.Recommender"]}),
     )
 
     assert isinstance(app, EntraMCPAuthMiddleware)
@@ -218,9 +214,7 @@ def test_create_foundry_mcp_app_rejects_unknown_environment_profile(monkeypatch)
     with pytest.raises(RuntimeError, match="Unsupported CEPIO_MCP_TOOL_PROFILE"):
         host.create_foundry_mcp_app(
             build_runtime(),
-            token_validator=FakeValidator(
-                {"oid": "agent-1", "roles": ["CEPIO.Agent.Recommender"]}
-            ),
+            token_validator=FakeValidator({"oid": "agent-1", "roles": ["CEPIO.Agent.Recommender"]}),
         )
 
 
