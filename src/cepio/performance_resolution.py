@@ -13,9 +13,11 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import Field
 
 from .performance_contract import (
     PERFORMANCE_CONTRACT_VERSION,
@@ -494,9 +496,7 @@ class PerformanceContractResolver:
                 contributions[key] = edge
                 rendered = _render_key(key)
                 self._record_lineage(lineage, "contribution", rendered, child)
-                self._record_operation(
-                    operations, edge_operation, "contribution", rendered, child
-                )
+                self._record_operation(operations, edge_operation, "contribution", rendered, child)
 
             for binding in child.response_bindings:
                 binding_operation: Literal["add", "override"] = (
