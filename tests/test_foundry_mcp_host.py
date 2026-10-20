@@ -28,6 +28,15 @@ class FakeValidator:
 
 def _app(provider: ContextVarActorProvider):
     async def downstream(scope, receive, send):
+        if scope["type"] == "lifespan":
+            while True:
+                message = await receive()
+                if message["type"] == "lifespan.startup":
+                    await send({"type": "lifespan.startup.complete"})
+                elif message["type"] == "lifespan.shutdown":
+                    await send({"type": "lifespan.shutdown.complete"})
+                    return
+
         actor = provider.current_actor()
         response = JSONResponse(
             {
