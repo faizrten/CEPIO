@@ -560,7 +560,9 @@ def drilling_contractor_performance_pack() -> PerformanceContract:
                 AccountabilityRelation.accountable_for,
             ),
             _accountability(drilling_superintendent, npt_duration, AccountabilityRelation.owns),
-            _accountability(reliability_engineer, maintenance_downtime, AccountabilityRelation.owns),
+            _accountability(
+                reliability_engineer, maintenance_downtime, AccountabilityRelation.owns
+            ),
             _accountability(
                 drilling_performance_engineer,
                 invisible_lost_time,
@@ -569,7 +571,9 @@ def drilling_contractor_performance_pack() -> PerformanceContract:
             _accountability(commercial_manager, dayrate_realization, AccountabilityRelation.owns),
             _accountability(commercial_manager, revenue_leakage, AccountabilityRelation.owns),
             _accountability(hse_manager, safety_events, AccountabilityRelation.owns),
-            _accountability(well_control_engineer, well_control_failures, AccountabilityRelation.owns),
+            _accountability(
+                well_control_engineer, well_control_failures, AccountabilityRelation.owns
+            ),
         ),
         contributions=(
             _contribution(
