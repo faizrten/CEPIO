@@ -18,14 +18,14 @@ CEPIO product releases use a capability label that states the proof required fro
 
 The capability label is part of product-roadmap language. It is **not** another semantic-version axis and must not be copied onto unrelated component, Lab, ontology or pack versions.
 
-Canonical display forms:
+Canonical display forms mirror the live roadmap epics:
 
 - `CEPIO v0.4 FOUNDATION — Developer Preview`
 - `CEPIO v0.5 CONNECT — Live Industrial Integration`
-- `CEPIO v0.6 EXECUTE — Governed Industrial Outcomes`
+- `CEPIO v0.6 EXECUTE — Kinetic Runtime + Reference Industrial Applications`
 - `CEPIO v0.7 EXTEND — Industrial Developer Platform`
 - `CEPIO v0.8 OPERATE — Enterprise Runtime`
-- `CEPIO v0.9 GENERALIZE — Multi-Enterprise Portability`
+- `CEPIO v0.9 GENERALIZE — Portability + Second-Enterprise Adoption`
 - `CEPIO v1.0 GUARANTEE — Production Guarantees`
 
 ## Version scopes
@@ -74,13 +74,13 @@ See [`current-state.md`](current-state.md) for the dated mainline snapshot.
 
 ## GitHub issue-title convention
 
-Product roadmap epics:
+Product roadmap epics use the exact current titles:
 
 - `[Roadmap][CEPIO v0.5 CONNECT] Live Industrial Integration`
-- `[Roadmap][CEPIO v0.6 EXECUTE] Governed Industrial Outcomes`
+- `[Roadmap][CEPIO v0.6 EXECUTE] Kinetic Runtime + Reference Industrial Applications`
 - `[Roadmap][CEPIO v0.7 EXTEND] Industrial Developer Platform`
 - `[Roadmap][CEPIO v0.8 OPERATE] Enterprise Runtime`
-- `[Roadmap][CEPIO v0.9 GENERALIZE] Multi-Enterprise Portability`
+- `[Roadmap][CEPIO v0.9 GENERALIZE] Portability + Second-Enterprise Adoption`
 - `[Roadmap][CEPIO v1.0 GUARANTEE] Production Guarantees`
 
 Product-scoped work may use:
