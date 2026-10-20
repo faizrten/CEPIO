@@ -90,6 +90,8 @@ Current repository implementation also includes incremental Skill binding/prefli
 
 [Enterprise Performance Graph](22-Enterprise-Performance-Graph.md) defines Performance Contract v0.1: objectives, key results, KPIs, guardrails, organization/role/persona/individual accountability, contribution relationships and a recommend-only bridge from performance deviation to governed workflows.
 
+[Industry Performance Packs](25-Industry-Performance-Packs.md) provide reusable refinery and drilling-contractor performance reference contracts that organizations explicitly specialize with their own formulas, targets, scopes and accountability.
+
 ## Operating loop
 
 ```text
@@ -142,6 +144,7 @@ CEPIO's purpose is not merely to describe the enterprise. It is to create a gove
 ### Performance plane
 
 22. [Enterprise Performance Graph](22-Enterprise-Performance-Graph.md)
+25. [Industry Performance Packs](25-Industry-Performance-Packs.md)
 
 ## Documentation governance
 
