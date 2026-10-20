@@ -3,6 +3,8 @@ version: "0.1"
 domain: drilling-contractor
 name: Drilling Contractor reference onboarding
 mode: backfill-reference
+persona_id: rig-manager
+persona_binding: generalization/persona-bindings/drilling-contractor-rig-manager-v0.1.yaml
 adjacent_domains:
   - industrial-common
   - upstream-oil-and-gas
