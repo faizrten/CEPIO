@@ -14,6 +14,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
 - **[Management Control Plane](wiki/21-Management-Control-Plane.md)** — protocol-neutral Management Contract v0.1 and local read-only FastAPI projection.
 - **[Binding Contract v0.1](developer/platform-bindings.md)** — provider-neutral manifest, runtime registration, conformance and Management projection for replaceable industrial platforms.
+- **[Industry Performance Packs v0.1](industry-performance-packs.md)** — reusable refinery and drilling-contractor objectives, KPI identities, driver graphs, guardrails and reference accountability built on Performance Contracts.
 - **[Architecture](architecture.md)** — authoritative runtime architecture notes.
 - **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
 - **[Kinetic Runtime](kinetic-runtime.md)** — durable workflow kernel over CEPIO Functions, Decisions, approvals and governed Actions.
@@ -53,6 +54,8 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - [Binding Contract v0.1](developer/platform-bindings.md)
 - [ADR-0026 — Binding Contract v0.1](adr/ADR-0026-binding-contract-v0.1.md)
 - [ADR-0028 — Fabric Live Binding Proof v0.1](adr/ADR-0028-fabric-live-binding-proof-v0.1.md)
+- [Industry Performance Packs v0.1](industry-performance-packs.md)
+- [ADR-0034 — Industry Performance Reference Packs v0.1](adr/ADR-0034-industry-performance-reference-packs-v0.1.md)
 - [Kinetic runtime](kinetic-runtime.md)
 - [Kinetic execution resilience v0.2](kinetic-execution-resilience.md)
 - [Governed external action runtime](external-action-runtime.md)
