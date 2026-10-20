@@ -32,11 +32,15 @@ def test_reservoir_engineer_icc_qualifies_all_frozen_questions_without_semantic_
     assert report["persona_binding"]["selection_source"] == "explicit-persona-binding"
     assert report["persona_binding"]["binding_id"] == "subsurface-reservoir-engineer-binding-v0.1"
     assert report["persona_binding"]["question_count"] == 8
-    assert report["icc_delta"]["required_question_ids"] == [f"RE-{index:03d}" for index in range(1, 9)]
+    assert report["icc_delta"]["required_question_ids"] == [
+        f"RE-{index:03d}" for index in range(1, 9)
+    ]
     assert report["qualification"]["semantic_pass_rate"] == 1.0
     assert report["qualification"]["runtime_coverage_rate"] == 1.0
     assert report["icc_delta"]["required_capabilities"]
-    assert len(report["icc_delta"]["reused_capabilities"]) == len(report["icc_delta"]["required_capabilities"])
+    assert len(report["icc_delta"]["reused_capabilities"]) == len(
+        report["icc_delta"]["required_capabilities"]
+    )
     assert report["icc_delta"]["missing_capabilities"] == []
     assert report["icc_delta"]["new_semantic_candidates"] == []
     assert report["icc_delta"]["runtime_gaps"] == []
