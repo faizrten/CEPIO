@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/cepio/domain_onboarding.py'
       - 'src/cepio/icc_qualification.py'
+      - 'src/cepio/persona_binding.py'
       - 'src/cepio/capability_registry.py'
       - 'scripts/run_domain_onboarding.py'
       - 'scripts/run_icc_persona_qualification.py'
@@ -14,6 +15,7 @@ on:
       - 'policies/domain-onboarding-v0.1.yaml'
       - 'policies/capability-promotion-v0.1.yaml'
       - 'generalization/domain-packs/**'
+      - 'generalization/persona-bindings/**'
       - 'generalization/capabilities/**'
       - 'generalization/regression/**'
       - 'generalization/archetypes/**'
