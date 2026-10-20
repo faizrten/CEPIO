@@ -1,0 +1,177 @@
+id: drilling-contractor-coo-runtime-v0.1
+version: "0.1"
+archetype_id: drilling-contractor-v0.1
+competency_pack: generalization/competency/drilling-contractor-coo-v0.1.yaml
+description: >
+  Deterministic source-neutral runtime evidence for the frozen Drilling Contractor COO
+  capability contract. KPI formulas, predictive models and source-system calculations remain
+  external; CEPIO binds their evidence to fleet operating context, risk, accountability and decisions.
+questions:
+  - question_id: COO-001
+    claim: Resolve fleet performance contract, targets and rig-level KPI observations for executive readiness review.
+    capabilities: [fleet-performance-contract, fleet-performance-observation]
+    objects:
+      - {id: COO1-PC, type: "https://cepio.org/ontology/performance#PerformanceContract", name: Fleet delivery performance contract}
+      - {id: COO1-KPI, type: "https://cepio.org/ontology/core#KPI", name: Fleet utilization KPI}
+      - {id: COO1-TARGET, type: "https://cepio.org/ontology/performance#Target", name: Fleet utilization target}
+      - {id: COO1-RIG-A, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Rig A}
+      - {id: COO1-RIG-B, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Rig B}
+      - {id: COO1-OBS-A, type: "https://cepio.org/ontology/performance#KPIObservation", name: Rig A utilization observation, properties: {value: 0.91}}
+      - {id: COO1-OBS-B, type: "https://cepio.org/ontology/performance#KPIObservation", name: Rig B utilization observation, properties: {value: 0.73}}
+    relationships:
+      - {id: coo1-pc-kpi, type: "https://cepio.org/ontology/performance#hasPerformanceNode", source: COO1-PC, target: COO1-KPI}
+      - {id: coo1-kpi-target, type: "https://cepio.org/ontology/performance#hasTarget", source: COO1-KPI, target: COO1-TARGET}
+      - {id: coo1-obs-a-kpi, type: "https://cepio.org/ontology/performance#observationOfKPI", source: COO1-OBS-A, target: COO1-KPI}
+      - {id: coo1-obs-b-kpi, type: "https://cepio.org/ontology/performance#observationOfKPI", source: COO1-OBS-B, target: COO1-KPI}
+      - {id: coo1-obs-a-rig, type: "https://cepio.org/ontology/performance#observationForEntity", source: COO1-OBS-A, target: COO1-RIG-A}
+      - {id: coo1-obs-b-rig, type: "https://cepio.org/ontology/performance#observationForEntity", source: COO1-OBS-B, target: COO1-RIG-B}
+    probes:
+      - {id: fleet-kpi, kind: relationship, start_id: COO1-PC, relationship_type: "https://cepio.org/ontology/performance#hasPerformanceNode", expected_ids: [COO1-KPI]}
+      - {id: rig-b-performance, kind: relationship, start_id: COO1-RIG-B, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [COO1-OBS-B]}
+
+  - question_id: COO-002
+    claim: Resolve a recurring cross-rig loss pattern and the accountable enterprise intervention.
+    capabilities: [cross-rig-loss-pattern, accountable-enterprise-intervention]
+    objects:
+      - {id: COO2-RIG-A, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Rig A}
+      - {id: COO2-RIG-B, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Rig B}
+      - {id: COO2-FAIL-A, type: "https://cepio.org/ontology/reliability#FailureEvent", name: Top drive failure A}
+      - {id: COO2-FAIL-B, type: "https://cepio.org/ontology/reliability#FailureEvent", name: Top drive failure B}
+      - {id: COO2-MODE, type: "https://cepio.org/ontology/reliability#FailureMode", name: Recurrent cooling failure mode}
+      - {id: COO2-DT-A, type: "https://cepio.org/ontology/reliability#DowntimeEvent", name: Downtime A}
+      - {id: COO2-DT-B, type: "https://cepio.org/ontology/reliability#DowntimeEvent", name: Downtime B}
+      - {id: COO2-WORK, type: "https://cepio.org/ontology/core#WorkItem", name: Fleet cooling-system intervention}
+      - {id: COO2-RESP, type: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", name: Fleet intervention accountability}
+      - {id: COO2-OWNER, type: "https://cepio.org/ontology/core#Person", name: Fleet reliability owner}
+    relationships:
+      - {id: coo2-fail-a-mode, type: "https://cepio.org/ontology/reliability#hasFailureMode", source: COO2-FAIL-A, target: COO2-MODE}
+      - {id: coo2-fail-b-mode, type: "https://cepio.org/ontology/reliability#hasFailureMode", source: COO2-FAIL-B, target: COO2-MODE}
+      - {id: coo2-fail-a-dt, type: "https://cepio.org/ontology/reliability#causesDowntime", source: COO2-FAIL-A, target: COO2-DT-A}
+      - {id: coo2-fail-b-dt, type: "https://cepio.org/ontology/reliability#causesDowntime", source: COO2-FAIL-B, target: COO2-DT-B}
+      - {id: coo2-fail-a-rig, type: "https://cepio.org/ontology/hse#eventAtAsset", source: COO2-FAIL-A, target: COO2-RIG-A}
+      - {id: coo2-fail-b-rig, type: "https://cepio.org/ontology/hse#eventAtAsset", source: COO2-FAIL-B, target: COO2-RIG-B}
+      - {id: coo2-resp-work, type: "https://cepio.org/ontology/workforce#responsibilityForWork", source: COO2-RESP, target: COO2-WORK}
+      - {id: coo2-resp-owner, type: "https://cepio.org/ontology/workforce#responsibilityHolder", source: COO2-RESP, target: COO2-OWNER}
+    probes:
+      - {id: recurring-mode-a, kind: relationship, start_id: COO2-FAIL-A, relationship_type: "https://cepio.org/ontology/reliability#hasFailureMode", expected_ids: [COO2-MODE]}
+      - {id: recurring-mode-b, kind: relationship, start_id: COO2-FAIL-B, relationship_type: "https://cepio.org/ontology/reliability#hasFailureMode", expected_ids: [COO2-MODE]}
+      - {id: intervention-owner, kind: relationship, start_id: COO2-RESP, relationship_type: "https://cepio.org/ontology/workforce#responsibilityHolder", expected_ids: [COO2-OWNER]}
+
+  - question_id: COO-003
+    claim: Resolve maintenance exposure from rig through equipment, failure, work order and performance evidence.
+    capabilities: [equipment-work-failure-context, equipment-performance-evidence]
+    objects:
+      - {id: COO3-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Maintenance exposure rig}
+      - {id: COO3-EQ, type: "https://cepio.org/ontology/drilling#DrillingEquipment", name: Top drive}
+      - {id: COO3-WO, type: "https://cepio.org/ontology/industrial#WorkOrder", name: Top drive corrective work}
+      - {id: COO3-FAIL, type: "https://cepio.org/ontology/reliability#FailureEvent", name: Top drive failure}
+      - {id: COO3-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: Equipment availability observation, properties: {value: 0.88}}
+    relationships:
+      - {id: coo3-rig-eq, type: "https://cepio.org/ontology/drilling#hasRigEquipment", source: COO3-RIG, target: COO3-EQ}
+      - {id: coo3-eq-work, type: "https://cepio.org/ontology/industrial#hasWorkOrder", source: COO3-EQ, target: COO3-WO}
+      - {id: coo3-fail-eq, type: "https://cepio.org/ontology/reliability#failureOfEquipment", source: COO3-FAIL, target: COO3-EQ}
+      - {id: coo3-kpi-eq, type: "https://cepio.org/ontology/performance#observationForEntity", source: COO3-KPI, target: COO3-EQ}
+    probes:
+      - {id: affected-equipment, kind: relationship, start_id: COO3-RIG, relationship_type: "https://cepio.org/ontology/drilling#hasRigEquipment", expected_ids: [COO3-EQ]}
+      - {id: open-work, kind: relationship, start_id: COO3-EQ, relationship_type: "https://cepio.org/ontology/industrial#hasWorkOrder", expected_ids: [COO3-WO]}
+      - {id: availability-evidence, kind: relationship, start_id: COO3-EQ, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [COO3-KPI]}
+
+  - question_id: COO-004
+    claim: Resolve rig workforce readiness through assignment, competency requirement and certification evidence.
+    capabilities: [workforce-readiness-chain]
+    objects:
+      - {id: COO4-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Workforce readiness rig}
+      - {id: COO4-MEMBER, type: "https://cepio.org/ontology/workforce#CrewMember", name: Incoming driller}
+      - {id: COO4-ASSIGN, type: "https://cepio.org/ontology/workforce#CrewAssignment", name: Incoming driller assignment}
+      - {id: COO4-COMP, type: "https://cepio.org/ontology/workforce#CompetencyRequirement", name: Well control competency}
+      - {id: COO4-CERT, type: "https://cepio.org/ontology/workforce#Certification", name: Well control certification}
+    relationships:
+      - {id: coo4-assignment-member, type: "https://cepio.org/ontology/workforce#assignmentOf", source: COO4-ASSIGN, target: COO4-MEMBER}
+      - {id: coo4-assignment-rig, type: "https://cepio.org/ontology/workforce#assignedToAsset", source: COO4-ASSIGN, target: COO4-RIG}
+      - {id: coo4-assignment-comp, type: "https://cepio.org/ontology/workforce#assignmentRequiresCompetency", source: COO4-ASSIGN, target: COO4-COMP}
+      - {id: coo4-member-cert, type: "https://cepio.org/ontology/workforce#hasCertification", source: COO4-MEMBER, target: COO4-CERT}
+    probes:
+      - {id: exposed-rig, kind: relationship, start_id: COO4-ASSIGN, relationship_type: "https://cepio.org/ontology/workforce#assignedToAsset", expected_ids: [COO4-RIG]}
+      - {id: competency-requirement, kind: relationship, start_id: COO4-ASSIGN, relationship_type: "https://cepio.org/ontology/workforce#assignmentRequiresCompetency", expected_ids: [COO4-COMP]}
+      - {id: certification-evidence, kind: relationship, start_id: COO4-MEMBER, relationship_type: "https://cepio.org/ontology/workforce#hasCertification", expected_ids: [COO4-CERT]}
+
+  - question_id: COO-005
+    claim: Resolve rig contract delivery from assigned contract through obligation and operating-performance evidence.
+    capabilities: [rig-contract-delivery-context]
+    objects:
+      - {id: COO5-RIG, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Contract delivery rig}
+      - {id: COO5-CONTRACT, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Reference drilling contract}
+      - {id: COO5-OBL, type: "https://cepio.org/ontology/commercial#ContractObligation", name: Availability obligation}
+      - {id: COO5-KPI, type: "https://cepio.org/ontology/performance#KPIObservation", name: Contract availability observation, properties: {value: 0.94}}
+    relationships:
+      - {id: coo5-rig-contract, type: "https://cepio.org/ontology/drilling#assignedContract", source: COO5-RIG, target: COO5-CONTRACT}
+      - {id: coo5-obligation-contract, type: "https://cepio.org/ontology/commercial#obligationOfContract", source: COO5-OBL, target: COO5-CONTRACT}
+      - {id: coo5-kpi-contract, type: "https://cepio.org/ontology/performance#observationForEntity", source: COO5-KPI, target: COO5-CONTRACT}
+    probes:
+      - {id: assigned-contract, kind: relationship, start_id: COO5-RIG, relationship_type: "https://cepio.org/ontology/drilling#assignedContract", expected_ids: [COO5-CONTRACT]}
+      - {id: delivery-obligation, kind: relationship, start_id: COO5-CONTRACT, relationship_type: "https://cepio.org/ontology/commercial#obligationOfContract", direction: in, expected_ids: [COO5-OBL]}
+      - {id: delivery-performance, kind: relationship, start_id: COO5-CONTRACT, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", direction: in, expected_ids: [COO5-KPI]}
+
+  - question_id: COO-006
+    claim: Resolve emerging operating risk, supporting evidence and preventive operating options without promoting prediction to fact.
+    capabilities: [evidence-grounded-operational-risk, preventive-operating-options]
+    objects:
+      - {id: COO6-ACT, type: "https://cepio.org/ontology/drilling#ActivityInterval", name: Next drilling interval}
+      - {id: COO6-RISK, type: "https://cepio.org/ontology/core#Risk", name: Predicted NPT risk}
+      - {id: COO6-EVID, type: "https://cepio.org/ontology/core#Evidence", name: Condition and history evidence}
+      - {id: COO6-OBJ, type: "https://cepio.org/ontology/core#Objective", name: Protect safe fleet delivery}
+      - {id: COO6-OPP, type: "https://cepio.org/ontology/kinetic#Opportunity", name: Prevent likely NPT}
+      - {id: COO6-OPT-A, type: "https://cepio.org/ontology/kinetic#Option", name: Planned intervention option}
+      - {id: COO6-OPT-B, type: "https://cepio.org/ontology/kinetic#Option", name: Continue and monitor option}
+      - {id: COO6-REC, type: "https://cepio.org/ontology/kinetic#OptionRecommendation", name: Preventive intervention recommendation}
+    relationships:
+      - {id: coo6-activity-risk, type: "https://cepio.org/ontology/core#hasRisk", source: COO6-ACT, target: COO6-RISK}
+      - {id: coo6-risk-evidence, type: "https://cepio.org/ontology/core#hasEvidence", source: COO6-RISK, target: COO6-EVID}
+      - {id: coo6-opp-objective, type: "https://cepio.org/ontology/kinetic#opportunityForObjective", source: COO6-OPP, target: COO6-OBJ}
+      - {id: coo6-opp-option-a, type: "https://cepio.org/ontology/kinetic#hasOption", source: COO6-OPP, target: COO6-OPT-A}
+      - {id: coo6-opp-option-b, type: "https://cepio.org/ontology/kinetic#hasOption", source: COO6-OPP, target: COO6-OPT-B}
+      - {id: coo6-opp-rec, type: "https://cepio.org/ontology/kinetic#hasRecommendation", source: COO6-OPP, target: COO6-REC}
+      - {id: coo6-rec-option, type: "https://cepio.org/ontology/kinetic#recommendsOption", source: COO6-REC, target: COO6-OPT-A}
+    probes:
+      - {id: risk-evidence, kind: relationship, start_id: COO6-RISK, relationship_type: "https://cepio.org/ontology/core#hasEvidence", expected_ids: [COO6-EVID]}
+      - {id: preventive-options, kind: relationship, start_id: COO6-OPP, relationship_type: "https://cepio.org/ontology/kinetic#hasOption", expected_ids: [COO6-OPT-A, COO6-OPT-B]}
+      - {id: recommended-option, kind: relationship, start_id: COO6-REC, relationship_type: "https://cepio.org/ontology/kinetic#recommendsOption", expected_ids: [COO6-OPT-A]}
+
+  - question_id: COO-007
+    claim: Resolve the authoritative operating-intervention decision separately from the recommendation and selected option.
+    capabilities: [operating-intervention-decision]
+    objects:
+      - {id: COO7-OPP, type: "https://cepio.org/ontology/kinetic#Opportunity", name: Fleet intervention opportunity}
+      - {id: COO7-OPT, type: "https://cepio.org/ontology/kinetic#Option", name: Fleet reliability intervention}
+      - {id: COO7-REC, type: "https://cepio.org/ontology/kinetic#OptionRecommendation", name: Intervention recommendation}
+      - {id: COO7-DEC, type: "https://cepio.org/ontology/kinetic#Decision", name: COO intervention decision}
+    relationships:
+      - {id: coo7-decision-opportunity, type: "https://cepio.org/ontology/kinetic#addressesOpportunity", source: COO7-DEC, target: COO7-OPP}
+      - {id: coo7-decision-recommendation, type: "https://cepio.org/ontology/kinetic#basedOnRecommendation", source: COO7-DEC, target: COO7-REC}
+      - {id: coo7-decision-option, type: "https://cepio.org/ontology/kinetic#selectedOption", source: COO7-DEC, target: COO7-OPT}
+    probes:
+      - {id: decision-opportunity, kind: relationship, start_id: COO7-DEC, relationship_type: "https://cepio.org/ontology/kinetic#addressesOpportunity", expected_ids: [COO7-OPP]}
+      - {id: decision-basis, kind: relationship, start_id: COO7-DEC, relationship_type: "https://cepio.org/ontology/kinetic#basedOnRecommendation", expected_ids: [COO7-REC]}
+      - {id: selected-option, kind: relationship, start_id: COO7-DEC, relationship_type: "https://cepio.org/ontology/kinetic#selectedOption", expected_ids: [COO7-OPT]}
+
+  - question_id: COO-008
+    claim: Resolve operating outcome assurance, guardrail risk and COO performance accountability after an intervention decision.
+    capabilities: [governed-operating-outcome, coo-performance-accountability]
+    objects:
+      - {id: COO8-DEC, type: "https://cepio.org/ontology/kinetic#Decision", name: Fleet intervention decision}
+      - {id: COO8-ASSESS, type: "https://cepio.org/ontology/performance#OutcomeAssessment", name: Intervention outcome assessment}
+      - {id: COO8-OBS, type: "https://cepio.org/ontology/performance#KPIObservation", name: Post-intervention uptime observation, properties: {value: 0.97}}
+      - {id: COO8-RISK, type: "https://cepio.org/ontology/core#Risk", name: Safety guardrail risk}
+      - {id: COO8-PC, type: "https://cepio.org/ontology/performance#PerformanceContract", name: COO performance contract}
+      - {id: COO8-ACC, type: "https://cepio.org/ontology/performance#Accountability", name: COO fleet utilization accountability}
+      - {id: COO8-KPI, type: "https://cepio.org/ontology/core#KPI", name: Fleet utilization KPI}
+    relationships:
+      - {id: coo8-assessment-decision, type: "https://cepio.org/ontology/performance#assessmentOfDecision", source: COO8-ASSESS, target: COO8-DEC}
+      - {id: coo8-assessment-outcome, type: "https://cepio.org/ontology/performance#observedOutcome", source: COO8-ASSESS, target: COO8-OBS}
+      - {id: coo8-assessment-risk, type: "https://cepio.org/ontology/performance#considersRisk", source: COO8-ASSESS, target: COO8-RISK}
+      - {id: coo8-pc-accountability, type: "https://cepio.org/ontology/performance#hasAccountability", source: COO8-PC, target: COO8-ACC}
+      - {id: coo8-accountability-kpi, type: "https://cepio.org/ontology/performance#accountabilityFor", source: COO8-ACC, target: COO8-KPI}
+    probes:
+      - {id: assessed-decision, kind: relationship, start_id: COO8-ASSESS, relationship_type: "https://cepio.org/ontology/performance#assessmentOfDecision", expected_ids: [COO8-DEC]}
+      - {id: observed-outcome, kind: relationship, start_id: COO8-ASSESS, relationship_type: "https://cepio.org/ontology/performance#observedOutcome", expected_ids: [COO8-OBS]}
+      - {id: accountability, kind: relationship, start_id: COO8-PC, relationship_type: "https://cepio.org/ontology/performance#hasAccountability", expected_ids: [COO8-ACC]}

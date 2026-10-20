@@ -1,0 +1,16 @@
+id: drilling-contractor-coo-reference-onboarding-v0.1
+version: "0.1"
+domain: drilling-contractor
+name: Drilling Contractor COO reference onboarding
+mode: backfill-reference
+persona_id: chief-operating-officer
+persona_binding: generalization/persona-bindings/drilling-contractor-coo-v0.1.yaml
+adjacent_domains:
+  - industrial-common
+  - upstream-oil-and-gas
+artifacts:
+  archetype: generalization/archetypes/drilling-contractor-v0.1.yaml
+  personas: generalization/personas/drilling-contractor-v0.3.yaml
+  standards: generalization/standards/drilling-references.yaml
+  competency: generalization/competency/drilling-contractor-coo-v0.1.yaml
+  runtime_suite: generalization/runtime/drilling-contractor-coo-runtime-v0.1.yaml

@@ -1,0 +1,31 @@
+id: drilling-contractor-coo-binding-v0.1
+version: "0.1"
+domain: drilling-contractor
+persona_id: chief-operating-officer
+competency_pack_id: drilling-contractor-coo-v0.1
+minimum_question_count: 8
+questions:
+  - question_id: COO-001
+    mode: primary
+    rationale: COO owns the integrated fleet-delivery view and must explain utilization and readiness from governed performance evidence.
+  - question_id: COO-002
+    mode: primary
+    rationale: Detecting recurring cross-rig operating loss and assigning accountable enterprise intervention is a core COO responsibility.
+  - question_id: COO-003
+    mode: primary
+    rationale: Maintenance and equipment exposure must be prioritized by fleet-delivery consequence rather than isolated work-order volume.
+  - question_id: COO-004
+    mode: oversight
+    rationale: COO requires visibility of workforce readiness constraints while detailed competency and certification administration remains with workforce owners.
+  - question_id: COO-005
+    mode: oversight
+    rationale: COO must understand operational contribution to contract delivery while Commercial retains detailed contract administration authority.
+  - question_id: COO-006
+    mode: primary
+    rationale: COO should act on evidence-grounded emerging operating risk and compare preventive options without converting predictions into facts.
+  - question_id: COO-007
+    mode: primary
+    rationale: COO prioritizes enterprise operating interventions while recommendation and authoritative decision remain explicitly distinct.
+  - question_id: COO-008
+    mode: primary
+    rationale: COO is accountable for proving interventions improved operating outcomes without breaching safety or other performance guardrails.

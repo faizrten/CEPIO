@@ -1,0 +1,256 @@
+id: drilling-contractor-coo-v0.1
+version: "0.1"
+archetype_id: drilling-contractor-v0.1
+frozen: true
+questions:
+  - id: COO-001
+    question: >
+      Across the active fleet, which rigs are most at risk of missing safe delivery or utilization expectations,
+      and what KPI evidence explains the current readiness position?
+    scope: domain
+    priority: critical
+    personas: [chief-operating-officer]
+    standards: [iadc-ddr-plus-v2, spe-dsats]
+    capability_tags: [fleet-readiness, utilization, performance-contract, kpi]
+    capabilities:
+      - id: fleet-performance-contract
+        description: Bind fleet operating KPIs and targets through the reusable Performance Contract rather than COO-specific ontology terms.
+        alternatives:
+          - id: performance-contract-kpi-target
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#PerformanceContract", kind: class}
+              - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#Target", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#PerformanceContract", predicate: "https://cepio.org/ontology/performance#hasPerformanceNode", target: "https://cepio.org/ontology/core#KPI"}
+              - {source: "https://cepio.org/ontology/core#KPI", predicate: "https://cepio.org/ontology/performance#hasTarget", target: "https://cepio.org/ontology/performance#Target"}
+      - id: fleet-performance-observation
+        description: Observe fleet operating performance on individual rigs so executive roll-up remains a contract/runtime concern.
+        alternatives:
+          - id: rig-kpi-observation
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationOfKPI", target: "https://cepio.org/ontology/core#KPI"}
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+    runtime: {provenance: true}
+
+  - id: COO-002
+    question: >
+      Which failure or downtime patterns are recurring across rigs, what systemic operating loss do they create,
+      and which enterprise intervention has an accountable owner?
+    scope: domain
+    priority: critical
+    personas: [chief-operating-officer]
+    standards: [iadc-ddr-plus-v2, iadc-drilling-manual-13]
+    capability_tags: [systemic-loss, cross-rig, downtime, intervention, accountability]
+    capabilities:
+      - id: cross-rig-loss-pattern
+        description: Resolve recurring failure modes and downtime across multiple rigs without creating fleet-specific event classes.
+        alternatives:
+          - id: failure-mode-downtime-rig
+            terms:
+              - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#FailureMode", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#DowntimeEvent", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/reliability#hasFailureMode", target: "https://cepio.org/ontology/reliability#FailureMode"}
+              - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/reliability#causesDowntime", target: "https://cepio.org/ontology/reliability#DowntimeEvent"}
+              - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/hse#eventAtAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - id: accountable-enterprise-intervention
+        description: Represent a corrective intervention and its accountable owner through reusable work and responsibility semantics.
+        alternatives:
+          - id: work-responsibility
+            terms:
+              - {iri: "https://cepio.org/ontology/core#WorkItem", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Party", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", predicate: "https://cepio.org/ontology/workforce#responsibilityForWork", target: "https://cepio.org/ontology/core#WorkItem"}
+              - {source: "https://cepio.org/ontology/workforce#ResponsibilityAssignment", predicate: "https://cepio.org/ontology/workforce#responsibilityHolder", target: "https://cepio.org/ontology/core#Party"}
+    runtime: {provenance: true}
+
+  - id: COO-003
+    question: >
+      Which maintenance and equipment exposures threaten fleet availability or campaign delivery,
+      what work is open, and what performance evidence supports prioritization?
+    scope: domain
+    priority: critical
+    personas: [chief-operating-officer]
+    standards: [iadc-drilling-manual-13]
+    capability_tags: [maintenance, equipment, availability, work-priority]
+    capabilities:
+      - id: equipment-work-failure-context
+        description: Connect rig equipment to maintenance work and failure evidence using the common reliability and work-order spine.
+        alternatives:
+          - id: rig-equipment-work-failure
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingEquipment", kind: class}
+              - {iri: "https://cepio.org/ontology/industrial#WorkOrder", kind: class}
+              - {iri: "https://cepio.org/ontology/reliability#FailureEvent", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/drilling#hasRigEquipment", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+              - {source: "https://cepio.org/ontology/drilling#DrillingEquipment", predicate: "https://cepio.org/ontology/industrial#hasWorkOrder", target: "https://cepio.org/ontology/industrial#WorkOrder"}
+              - {source: "https://cepio.org/ontology/reliability#FailureEvent", predicate: "https://cepio.org/ontology/reliability#failureOfEquipment", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+      - id: equipment-performance-evidence
+        description: Bind observed performance to the affected equipment instead of embedding an executive availability formula in the ontology.
+        alternatives:
+          - id: equipment-kpi
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/drilling#DrillingEquipment"}
+    runtime: {provenance: true}
+
+  - id: COO-004
+    question: >
+      Which crew, competency or certification constraint could make a rig non-ready,
+      and which assignment or role is exposed to the gap?
+    scope: domain
+    priority: critical
+    personas: [chief-operating-officer]
+    standards: [iadc-ksa]
+    capability_tags: [workforce, competency, certification, readiness]
+    capabilities:
+      - id: workforce-readiness-chain
+        description: Resolve rig staffing through assignments, competency requirements and certification evidence rather than executive-only workforce fields.
+        alternatives:
+          - id: assignment-competency-certification
+            terms:
+              - {iri: "https://cepio.org/ontology/workforce#CrewAssignment", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CrewMember", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#CompetencyRequirement", kind: class}
+              - {iri: "https://cepio.org/ontology/workforce#Certification", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignmentOf", target: "https://cepio.org/ontology/workforce#CrewMember"}
+              - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignedToAsset", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+              - {source: "https://cepio.org/ontology/workforce#CrewAssignment", predicate: "https://cepio.org/ontology/workforce#assignmentRequiresCompetency", target: "https://cepio.org/ontology/workforce#CompetencyRequirement"}
+              - {source: "https://cepio.org/ontology/workforce#CrewMember", predicate: "https://cepio.org/ontology/workforce#hasCertification", target: "https://cepio.org/ontology/workforce#Certification"}
+    runtime: {provenance: true}
+
+  - id: COO-005
+    question: >
+      Which rig or contract delivery obligation is underperforming, what operating KPI evidence explains it,
+      and where does the exposure threaten customer or campaign delivery?
+    scope: domain
+    priority: required
+    personas: [chief-operating-officer]
+    standards: [iadc-model-contracts]
+    capability_tags: [contract-delivery, obligation, operating-performance, exposure]
+    capabilities:
+      - id: rig-contract-delivery-context
+        description: Join rig, contract obligation and operating performance without collapsing Commercial and Operations authority boundaries.
+        alternatives:
+          - id: rig-contract-obligation-kpi
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#OperatingRig", predicate: "https://cepio.org/ontology/drilling#assignedContract", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+              - {source: "https://cepio.org/ontology/commercial#ContractObligation", predicate: "https://cepio.org/ontology/commercial#obligationOfContract", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+    runtime: {provenance: true}
+
+  - id: COO-006
+    question: >
+      What material operating risk is emerging in the next delivery window, what evidence supports it,
+      and which preventive operating option should management consider?
+    scope: domain
+    priority: critical
+    personas: [chief-operating-officer]
+    standards: [iadc-ddr-plus-v2, spe-dsats]
+    capability_tags: [predictive-risk, evidence, preventive-action, option]
+    capabilities:
+      - id: evidence-grounded-operational-risk
+        description: Preserve predicted operating risk as an evidence-backed risk rather than promote model output to enterprise fact.
+        alternatives:
+          - id: activity-risk-evidence
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#ActivityInterval", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Risk", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Evidence", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#ActivityInterval", predicate: "https://cepio.org/ontology/core#hasRisk", target: "https://cepio.org/ontology/core#Risk"}
+              - {source: "https://cepio.org/ontology/core#Risk", predicate: "https://cepio.org/ontology/core#hasEvidence", target: "https://cepio.org/ontology/core#Evidence"}
+      - id: preventive-operating-options
+        description: Structure preventive options and recommendations against an operating objective while preserving decision authority.
+        alternatives:
+          - id: kinetic-prevention-chain
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Objective", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Opportunity", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Option", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#OptionRecommendation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#opportunityForObjective", target: "https://cepio.org/ontology/core#Objective"}
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#hasOption", target: "https://cepio.org/ontology/kinetic#Option"}
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#hasRecommendation", target: "https://cepio.org/ontology/kinetic#OptionRecommendation"}
+              - {source: "https://cepio.org/ontology/kinetic#OptionRecommendation", predicate: "https://cepio.org/ontology/kinetic#recommendsOption", target: "https://cepio.org/ontology/kinetic#Option"}
+    runtime: {provenance: true, kinetic: true}
+
+  - id: COO-007
+    question: >
+      Given competing enterprise interventions, which option is recommended, which authoritative decision has been made,
+      and what intervention remains unapproved or unowned?
+    scope: domain
+    priority: critical
+    personas: [chief-operating-officer]
+    standards: []
+    capability_tags: [intervention-priority, recommendation, decision, authority]
+    capabilities:
+      - id: operating-intervention-decision
+        description: Separate the recommended operating intervention from the authoritative management decision.
+        alternatives:
+          - id: kinetic-intervention-decision
+            terms:
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Opportunity", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Option", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#OptionRecommendation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#addressesOpportunity", target: "https://cepio.org/ontology/kinetic#Opportunity"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#basedOnRecommendation", target: "https://cepio.org/ontology/kinetic#OptionRecommendation"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#selectedOption", target: "https://cepio.org/ontology/kinetic#Option"}
+    runtime: {provenance: true, kinetic: true}
+
+  - id: COO-008
+    question: >
+      Did the selected operating intervention improve the intended outcome without breaching safety or other guardrails,
+      and who remains accountable for the resulting performance?
+    scope: domain
+    priority: critical
+    personas: [chief-operating-officer]
+    standards: [api-rp54-4, spe-dsats]
+    capability_tags: [outcome-assurance, guardrail, accountability, value-realization]
+    capabilities:
+      - id: governed-operating-outcome
+        description: Assess a management decision against observed operating outcome and risk without equating correlation with causal proof.
+        alternatives:
+          - id: decision-outcome-risk
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#OutcomeAssessment", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Risk", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#OutcomeAssessment", predicate: "https://cepio.org/ontology/performance#assessmentOfDecision", target: "https://cepio.org/ontology/kinetic#Decision"}
+              - {source: "https://cepio.org/ontology/performance#OutcomeAssessment", predicate: "https://cepio.org/ontology/performance#observedOutcome", target: "https://cepio.org/ontology/performance#KPIObservation"}
+              - {source: "https://cepio.org/ontology/performance#OutcomeAssessment", predicate: "https://cepio.org/ontology/performance#considersRisk", target: "https://cepio.org/ontology/core#Risk"}
+      - id: coo-performance-accountability
+        description: Bind COO accountability to governed performance nodes through the reusable Performance Contract.
+        alternatives:
+          - id: performance-accountability
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#PerformanceContract", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#Accountability", kind: class}
+              - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#PerformanceContract", predicate: "https://cepio.org/ontology/performance#hasAccountability", target: "https://cepio.org/ontology/performance#Accountability"}
+              - {source: "https://cepio.org/ontology/performance#Accountability", predicate: "https://cepio.org/ontology/performance#accountabilityFor", target: "https://cepio.org/ontology/core#KPI"}
+    runtime: {provenance: true, kinetic: true}
