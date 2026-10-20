@@ -188,8 +188,7 @@ def _runtime_scope(runtime_report: dict[str, Any] | None, question_ids: set[str]
     ]
     missing = sorted(question_ids - {str(result.get("question_id")) for result in results})
     runtime_gaps.extend(
-        {"question_id": question_id, "status": "MISSING_RUNTIME_CASE"}
-        for question_id in missing
+        {"question_id": question_id, "status": "MISSING_RUNTIME_CASE"} for question_id in missing
     )
 
     denominator = len(question_ids)
@@ -390,9 +389,7 @@ def run_icc_persona_qualification(
         "ontology_sha256": domain_report["semantic_baseline"].get("ontology_hash"),
         "semantic_batch_hash": domain_report["semantic_baseline"].get("batch_hash"),
         "runtime_suite_id": (domain_report.get("runtime_qualification") or {}).get("suite_id"),
-        "runtime_suite_hash": (domain_report.get("runtime_qualification") or {}).get(
-            "suite_hash"
-        ),
+        "runtime_suite_hash": (domain_report.get("runtime_qualification") or {}).get("suite_hash"),
         "persona_binding_id": binding_id,
         "persona_binding_version": binding_version,
         "persona_scope_hash": _scope_hash(selected_persona_id, questions),
