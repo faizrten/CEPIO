@@ -18,7 +18,7 @@ def main() -> int:
     appservice = (ROOT / "deploy/appservice/main.bicep").read_text()
     aks_text = (ROOT / "deploy/aks/cepio.yaml").read_text()
 
-    require(dockerfile, "cepio.public_api:app", "Dockerfile")
+    require(dockerfile, "cepio.host_api:app", "Dockerfile")
     require(dockerfile, "USER cepio", "Dockerfile")
     require(appservice, "/api/v1/health", "App Service profile")
     require(appservice, "SystemAssigned", "App Service profile")
