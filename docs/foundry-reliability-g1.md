@@ -57,11 +57,14 @@ The connection authenticates the Foundry agent to the MCP endpoint. CEPIO still 
 
 ## Install the live proof dependencies
 
+Keep the Foundry client dependencies outside the CEPIO package itself:
+
 ```bash
-pip install -e '.[foundry-agent]'
+pip install -e .
+pip install 'azure-ai-projects>=2.3,<3' 'azure-identity>=1.20,<2' 'openai>=3,<4'
 ```
 
-The proof uses the stable Microsoft Foundry Projects SDK (`azure-ai-projects>=2.3`) and Entra authentication through `DefaultAzureCredential`.
+The proof uses the stable Microsoft Foundry Projects SDK (`azure-ai-projects>=2.3`) and Entra authentication through `DefaultAzureCredential`. These are host/qualification dependencies, not CEPIO runtime dependencies.
 
 ## Environment
 
