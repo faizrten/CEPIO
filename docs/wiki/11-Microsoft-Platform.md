@@ -40,6 +40,7 @@ CEPIO is Microsoft-native in implementation direction while remaining portable i
 |---|---|
 | Fabric / OneLake / RTI | enterprise data foundation and source bindings |
 | Fabric IQ / Ontology / Graph | Microsoft-native materialization of CEPIO semantic objects/relationships |
+| Azure AI Search | optional, replaceable retrieval backend for lexical/vector/hybrid search |
 | Microsoft Foundry | model and agent execution grounded through CEPIO tools |
 | Entra | authenticated human, app and agent identity |
 | Azure App Service | planned managed REST/MCP hosting profile |
@@ -131,6 +132,11 @@ Current roadmap target for lightweight managed hosting:
 - deployment slots;
 - autoscale;
 - secretless configuration patterns.
+
+An optional Basic Azure AI Search service can be provisioned for the existing
+demo with Entra/RBAC-only access and the App Service managed identity. It is a
+reference proof resource, not a mandatory CEPIO dependency. See
+[Azure AI Search reference setup](../azure-ai-search-setup.md).
 
 ## AKS
 

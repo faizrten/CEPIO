@@ -11,6 +11,7 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 - **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality gates, security, compatibility evidence, release qualification and required check names.
 
 - **[CEPIO v0.4 Developer Preview](developer-preview.md)** — clean-environment install, startup, qualification and release boundary.
+- **[Azure AI Search reference setup](azure-ai-search-setup.md)** — optional Basic Search service, managed-identity RBAC and endpoint output for the existing demo.
 - **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
 - **[Management Control Plane](wiki/21-Management-Control-Plane.md)** — protocol-neutral Management Contract v0.1 and local read-only FastAPI projection.
 - **[Binding Contract v0.1](developer/platform-bindings.md)** — provider-neutral manifest, runtime registration, conformance and Management projection for replaceable industrial platforms.

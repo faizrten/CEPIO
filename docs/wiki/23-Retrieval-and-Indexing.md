@@ -42,6 +42,11 @@ The lexical index is a projection, not a source of truth. Durable `MemoryStore` 
 
 Vector search is an implementation choice. Azure AI Search, pgvector, a customer-owned service or another engine can implement the same retrieval backend contract. CEPIO semantics, tenancy and capability governance stay above the product layer.
 
+The existing App Service demo has no Search service by default. An optional
+Entra/RBAC-only Basic Azure AI Search reference resource can be provisioned by
+following [the Azure setup guide](../azure-ai-search-setup.md); provisioning it
+does not itself add or enable a retrieval adapter.
+
 ## Safety
 
 A backend is not trusted to enforce the final security boundary. CEPIO checks tenant visibility and expiry again before fusion. Required evidence that cannot be retrieved or cannot fit in working context blocks the request rather than silently disappearing.

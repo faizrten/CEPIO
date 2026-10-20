@@ -138,6 +138,15 @@ multi-instance rollout slots/autoscaling with this reference persistence.
 Health and anonymous rejection are smoke checks, not proof of full functional
 correctness or of the running container's commit identity.
 
+### Optional Azure AI Search proof resource
+
+The App Service deployment does not include a search service. To provision the
+separate Basic Azure AI Search proof service and assign the existing app's
+managed identity Search RBAC roles, follow
+[Azure AI Search reference setup](azure-ai-search-setup.md). The setup disables
+local/API-key authentication and outputs the Search endpoint; it does not
+configure or deploy a CEPIO retrieval adapter.
+
 Validate the local deployment contracts with:
 
 ```text
