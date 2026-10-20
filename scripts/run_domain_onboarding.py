@@ -15,11 +15,7 @@ def main() -> int:
         description="Run the governed CEPIO Domain Onboarding workflow"
     )
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument(
-        "--manifest",
-        type=Path,
-        default=Path("generalization/domain-packs/refinery-reference-v0.1.yaml"),
-    )
+    parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument(
         "--workflow",
         type=Path,
