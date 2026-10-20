@@ -74,9 +74,7 @@ def actor_from_headers(headers: Headers) -> ActorContext:
     if settings.mode == "dev":
         actor_id = headers.get("X-CEPIO-Dev-Actor", "dev-user")
         roles = {
-            role.strip()
-            for role in headers.get("X-CEPIO-Dev-Roles", "").split(",")
-            if role.strip()
+            role.strip() for role in headers.get("X-CEPIO-Dev-Roles", "").split(",") if role.strip()
         }
         if not roles:
             raise _http_exception(
@@ -166,7 +164,6 @@ def build_hosted_mcp(runtime: CEPIORuntime):
         streamable_http_path="/mcp",
         stateless_http=True,
         json_response=True,
-        host="0.0.0.0",
         transport_security=_transport_security(),
     )
     return server, MCPActorBindingMiddleware(http_app, actor_provider)
