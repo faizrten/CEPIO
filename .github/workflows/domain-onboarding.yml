@@ -4,8 +4,10 @@ on:
   pull_request:
     paths:
       - 'src/cepio/domain_onboarding.py'
+      - 'src/cepio/icc_qualification.py'
       - 'src/cepio/capability_registry.py'
       - 'scripts/run_domain_onboarding.py'
+      - 'scripts/run_icc_persona_qualification.py'
       - 'scripts/run_compounding_intelligence.py'
       - 'workflows/domain-onboarding-v0.1.yaml'
       - 'workflows/capability-promotion-v0.1.yaml'
@@ -22,6 +24,7 @@ on:
       - 'generalization/runtime/**'
       - 'ontologies/**'
       - 'tests/test_domain_onboarding_workflow.py'
+      - 'tests/test_icc_persona_qualification.py'
       - 'tests/test_capability_registry.py'
       - 'tests/test_compounding_intelligence.py'
   workflow_dispatch:
@@ -29,7 +32,11 @@ on:
       manifest:
         description: Repository-relative Domain Onboarding manifest
         required: true
-        default: generalization/domain-packs/refinery-reference-v0.1.yaml
+        type: string
+      persona_id:
+        description: Optional persona override; otherwise use persona_id declared in the manifest
+        required: false
+        default: ''
         type: string
       promotion_pack:
         description: Optional repository-relative reviewed promotion candidate pack
@@ -59,13 +66,15 @@ jobs:
     name: domain-onboarding-policy-gate
     runs-on: ubuntu-latest
     env:
-      DOMAIN_MANIFEST: ${{ inputs.manifest || 'generalization/domain-packs/refinery-reference-v0.1.yaml' }}
+      DOMAIN_MANIFEST: ${{ inputs.manifest || '' }}
+      PERSONA_ID: ${{ inputs.persona_id || '' }}
       PROMOTION_PACK: ${{ inputs.promotion_pack || '' }}
       PROMOTION_DECISIONS: ${{ inputs.promotion_decisions || '' }}
       RELEASE_DECISION: ${{ inputs.release_decision || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v7
         with:
@@ -73,6 +82,42 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
       - run: python -m pip install -e '.[dev]'
+      - name: Resolve explicit onboarding target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            mapfile -t manifests < <(
+              git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- 'generalization/domain-packs/*.yaml'
+            )
+            if [[ ${#manifests[@]} -ne 1 ]]; then
+              echo "::error::PR-triggered Domain Onboarding requires exactly one changed domain-pack manifest; found ${#manifests[@]}."
+              printf 'candidate manifest: %s\n' "${manifests[@]}"
+              exit 2
+            fi
+            DOMAIN_MANIFEST="${manifests[0]}"
+          fi
+
+          if [[ -z "${DOMAIN_MANIFEST:-}" ]]; then
+            echo "::error::Domain Onboarding requires an explicit manifest; implicit domain defaults are forbidden."
+            exit 2
+          fi
+          if [[ ! -f "$DOMAIN_MANIFEST" ]]; then
+            echo "::error::Domain Onboarding manifest not found: $DOMAIN_MANIFEST"
+            exit 2
+          fi
+
+          if [[ -z "${PERSONA_ID:-}" ]]; then
+            PERSONA_ID=$(python -c 'import sys,yaml; value=yaml.safe_load(open(sys.argv[1], encoding="utf-8")) or {}; print(value.get("persona_id", ""))' "$DOMAIN_MANIFEST")
+          fi
+
+          echo "DOMAIN_MANIFEST=$DOMAIN_MANIFEST" >> "$GITHUB_ENV"
+          echo "PERSONA_ID=$PERSONA_ID" >> "$GITHUB_ENV"
+          echo "Resolved manifest: $DOMAIN_MANIFEST"
+          echo "Resolved persona: ${PERSONA_ID:-<domain-wide>}"
       - name: Run governed Domain Onboarding workflow
         run: >-
           PYTHONPATH=src python scripts/run_domain_onboarding.py
@@ -80,6 +125,16 @@ jobs:
           --workflow workflows/domain-onboarding-v0.1.yaml
           --policy policies/domain-onboarding-v0.1.yaml
           --json-out domain-onboarding-report.json
+          --fail-on-blocked
+      - name: Run persona-scoped ICC qualification
+        if: ${{ env.PERSONA_ID != '' }}
+        run: >-
+          PYTHONPATH=src python scripts/run_icc_persona_qualification.py
+          --manifest "$DOMAIN_MANIFEST"
+          --persona-id "$PERSONA_ID"
+          --workflow workflows/domain-onboarding-v0.1.yaml
+          --policy policies/domain-onboarding-v0.1.yaml
+          --json-out icc-qualification-report.json
           --fail-on-blocked
       - name: Run compounding industrial-intelligence loop
         shell: bash
@@ -105,10 +160,11 @@ jobs:
             args+=(--release-decision "$RELEASE_DECISION")
           fi
           PYTHONPATH=src python scripts/run_compounding_intelligence.py "${args[@]}"
-      - name: Run Domain Onboarding and compounding contract tests
+      - name: Run Domain Onboarding, ICC and compounding contract tests
         run: >-
           pytest -q
           tests/test_domain_onboarding_workflow.py
+          tests/test_icc_persona_qualification.py
           tests/test_capability_registry.py
           tests/test_compounding_intelligence.py
       - uses: actions/upload-artifact@v4
@@ -117,6 +173,7 @@ jobs:
           name: cepio-domain-onboarding-${{ github.run_id }}
           path: |
             domain-onboarding-report.json
+            icc-qualification-report.json
             compounding-intelligence-report.json
             proposed-capability-registry.yaml
           if-no-files-found: warn
