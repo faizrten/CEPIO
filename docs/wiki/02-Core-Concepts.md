@@ -1,8 +1,28 @@
 # Core Concepts
 
+## Core vs Industry IQ
+
+CEPIO now distinguishes between a deliberately **thin operating Core** and the **thick Industry IQ** built above it.
+
+Core answers questions such as:
+
+- What industrial object/relationship/state does this mean?
+- What evidence supports it?
+- When was it true and when was it known?
+- What uncertainty/confidence exists?
+- What Decision/Action/authority semantics apply?
+
+Industry IQ packages reusable industrial competence such as Skills, competency questions, failure/risk patterns, performance logic, decision patterns, workflows and assurance contracts.
+
+Runtime control-plane mechanisms such as the Capability Registry, Memory, Retrieval & Indexing and Compiled Industry IQ govern how that competence is admitted/selected/activated; they are **not automatically new ontology primitives**.
+
+The governing product rule is:
+
+> **Thin infrastructure. Thick Industry IQ.**
+
 ## The CEPIO operating model
 
-CEPIO combines three dimensions:
+CEPIO combines three semantic/runtime dimensions:
 
 ```text
                            CEPIO
@@ -36,6 +56,8 @@ Evidence
    -> Outcome
    -> New Evidence
 ```
+
+"New Evidence" supports evaluation and future governed learning. It does **not** mean customer operational data silently trains or mutates global CEPIO Industry IQ.
 
 ## Object
 
@@ -73,13 +95,13 @@ WorkOrder --requires--> SparePart
 Supplier --supplies--> SparePart
 ```
 
-Relationships may also carry temporal history.
+Relationships may carry temporal history.
 
 ## Property
 
 A **Property** is a typed attribute with canonical meaning.
 
-Properties are not simply copied source columns. Each source field is classified into the canonical property contract, an observation, a relationship key, provenance metadata or a customer-specific extension.
+Properties are not simply copied source columns. Each source field is classified into the canonical property contract, an observation, a relationship key, provenance metadata or a customer/profile-specific extension.
 
 ## Evidence
 
@@ -97,19 +119,25 @@ Examples include:
 - a commercial forecast;
 - a validated engineering calculation.
 
+Evidence must remain distinct from generated prose/model output.
+
+```text
+Model Output != Evidence
+```
+
 ## Claim, Hypothesis and Assumption
 
 A **Claim** is an assertion about the enterprise or industrial system.
 
 A **Hypothesis** is a claim that remains subject to evaluation against evidence.
 
-An **Assumption** is a claim explicitly adopted as an input to reasoning, analysis or a decision.
+An **Assumption** is a claim explicitly adopted as an input to reasoning, analysis or a Decision.
 
-CEPIO keeps these distinct from the underlying physical or business object. For example, a fault interpretation may remain an OSDU object while the claim that the fault is sealing is represented as a CEPIO hypothesis supported or contradicted by evidence.
+CEPIO keeps these distinct from the underlying physical/business object. For example, a fault interpretation may remain an OSDU object while the claim that the fault is sealing is represented as a CEPIO hypothesis supported/contradicted by evidence.
 
 ## Assessment
 
-An **Assessment** is a first-class evaluation about another CEPIO entity. Core 0.3.0 defines three generic assessment types relevant to decision intelligence:
+An **Assessment** is a first-class evaluation about another CEPIO entity. Current Core includes generic assessment types relevant to decision intelligence:
 
 - `UncertaintyAssessment`;
 - `ConfidenceAssessment`;
@@ -121,7 +149,7 @@ Assessments inherit normal CEPIO identity, provenance, versioning and bitemporal
 
 An **UncertaintyAssessment** describes incomplete knowledge or variability associated with a subject. CEPIO Core defines the semantic abstraction, not the domain-specific probability model.
 
-Examples of domain characteristics that may be assessed include:
+Examples:
 
 ```text
 Subsurface -> fault transmissibility, OWC, permeability
@@ -132,48 +160,48 @@ Commercial -> price, demand, schedule
 
 The domain defines what is uncertain. Specialized analytical engines may define how it is quantified.
 
-CEPIO therefore does **not** require every uncertainty to be represented as a probability distribution or P10/P50/P90 values. A domain profile may use ranges, categorical alternatives, ensembles, distributions or qualitative states as appropriate.
+CEPIO does not require every uncertainty to be represented as a probability distribution or P10/P50/P90 values. Profiles/domain models may use ranges, categorical alternatives, ensembles, distributions or qualitative states.
 
 ## Confidence
 
-A **ConfidenceAssessment** describes the strength of belief in an assertion or assessment.
+A **ConfidenceAssessment** describes the strength of belief in an assertion/assessment.
 
-Confidence and uncertainty are related but not interchangeable. A team may have moderate confidence in the claim that a fault is sealing while fault transmissibility itself remains materially uncertain.
+Confidence and uncertainty are related but not interchangeable. A team may have moderate confidence that a fault is sealing while fault transmissibility itself remains materially uncertain.
 
 ## Dependency and correlation
 
-A simple dependency may use the canonical `dependsOn` relationship.
+A simple dependency may use canonical `dependsOn`.
 
-When a dependency must itself carry richer semantics, CEPIO Core provides a reified `Dependency` object with explicit source and target endpoints. This allows later domain profiles or runtimes to attach dependency kind, sensitivity, model provenance or other governed metadata without changing the universal Core.
+When a dependency must itself carry richer semantics, CEPIO Core provides a reified `Dependency` object with explicit source/target endpoints, enabling domain/runtime attachment of dependency kind, sensitivity/model provenance or other governed metadata without changing universal Core.
 
 `correlatedWith` provides a symmetric relationship between uncertainty assessments. CEPIO records correlation semantics; it does not become the numerical sampling engine.
 
 ## Information gain
 
-**InformationGain** is the Core semantic anchor for evaluating whether additional information would materially reduce an uncertainty.
+**InformationGain** is the Core anchor for evaluating whether additional information would materially reduce uncertainty.
 
-A domain Function or external analytical engine may calculate EVPI, EVSI, entropy reduction or another metric and attach the result to the InformationGain assessment.
+A domain Function/external analytical engine may calculate EVPI, EVSI, entropy reduction or another metric and attach the result to the assessment.
 
-This supports questions such as:
+Examples:
 
 ```text
-Would another pressure test materially change the drilling decision?
+Would another pressure test materially change the drilling Decision?
 Would an inspection reduce enough uncertainty to justify its cost?
 Would new seismic information change the preferred development option?
 ```
 
 ## Risk versus uncertainty
 
-**Risk** and **uncertainty** are deliberately separate Core concepts.
+**Risk** and **uncertainty** are deliberately separate.
 
 ```text
 Uncertainty
-    -> creates exposure in a context
+    -> creates exposure in context
     -> may contribute to Risk
     -> may lead to Consequence
 ```
 
-Uncertainty describes what is not fully known or what may vary. Risk describes the possibility and consequence of an outcome under uncertain conditions.
+Uncertainty describes incomplete knowledge/variability. Risk describes possibility and consequence of an outcome under uncertain conditions.
 
 ## Event
 
@@ -189,13 +217,13 @@ Examples:
 - work-order completion;
 - material receipt;
 - approval;
-- action execution.
+- Action execution.
 
-Events can be used to deterministically derive operational state.
+Events can deterministically contribute to derived operational state.
 
 ## State
 
-**State** is the current or historical condition of an object derived from authoritative facts and/or events.
+**State** is the current/historical condition of an object derived from authoritative facts and/or events.
 
 Example:
 
@@ -209,28 +237,28 @@ RecoveryEvent
    -> operatingState = "running"
 ```
 
+State is temporally governed: valid time and transaction time must remain distinguishable.
+
 ## Function
 
-A **Function** performs typed calculation, reasoning or transformation without being treated as an externally consequential action.
+A **Function** performs typed calculation, reasoning or transformation without being treated as an externally consequential Action.
 
 Examples:
 
-- calculate production-loss exposure;
+- calculate production exposure;
 - estimate equipment risk;
 - compute remaining margin opportunity;
 - identify blast radius;
-- recommend maintenance priority;
-- evaluate or propagate uncertainty using a bound analytical engine.
+- evaluate maintenance priority;
+- evaluate/propagate uncertainty through a bound analytical engine.
 
 ## Opportunity, Option and Recommendation
 
-An **Opportunity** is a Kinetic object representing a prospective, actionable situation in which one or more possible courses of action could advance an objective or avoid loss.
+An **Opportunity** is a Kinetic object representing a prospective actionable situation in which one or more courses of action could advance an Objective or avoid loss.
 
-An **Option** is one possible course of action evaluated within an opportunity or decision context.
+An **Option** is one possible course of action evaluated within an Opportunity/Decision context.
 
-A **Recommendation** is a reasoned proposal favoring one or more options. It is deliberately not a Decision: an AI agent, engineer or analytical workflow may recommend an option without possessing the authority to select it.
-
-The universal pattern is:
+A **Recommendation** is a reasoned proposal favoring one or more Options. It is deliberately not a Decision: an AI agent, engineer or analytical workflow may recommend without possessing selection/execution authority.
 
 ```text
 Objective
@@ -250,27 +278,25 @@ Decision
    -- basedOnRecommendation -> Recommendation
 ```
 
-Opportunity belongs in Kinetic rather than Core because it is prospective and action-oriented. Core describes what the enterprise knows, assumes and assesses; Kinetic describes what the enterprise may choose to pursue or change.
+Opportunity belongs in Kinetic rather than generic Core because it is prospective/action-oriented. Domains specialize what an Opportunity concerns and may attach domain-specific maturity/value/feasibility/ranking semantics through domain modules, profiles or bound analytical models.
 
-Domains should not redefine their own incompatible opportunity lifecycle. They specialize what an opportunity concerns and may attach domain-specific maturity, value, feasibility or ranking semantics in domain modules, profiles or bound analytical models.
-
-Examples include:
+Examples:
 
 ```text
 Subsurface  -> infill-well opportunity
 Refinery    -> margin-improvement opportunity
 Reliability -> intervention opportunity
 Drilling    -> performance-improvement opportunity
-Commercial  -> contracting or portfolio opportunity
+Commercial  -> contracting / portfolio opportunity
 ```
 
 ## Decision
 
-A **Decision** records the evidence, logic and conclusion connecting observed state to a selected course of action.
+A **Decision** records the evidence, logic, authority context and conclusion connecting observed state to a selected course of action.
 
-Decision remains a Kinetic concept rather than a Core concept so the Core ontology remains the dependency root. Decisions can reference Core evidence, claims, assumptions, uncertainty assessments and confidence assessments, and can explicitly address an Opportunity and select an Option.
+Decision remains a Kinetic concept. Decisions can reference Evidence, claims, assumptions, uncertainty/confidence assessments, Opportunities, Options and Recommendations.
 
-Decision records are useful because industrial AI should be able to explain not only *what* it recommends, but *why*, under what information state, and who had authority to select the option.
+Industrial AI should be able to explain not only *what* it recommends, but *why*, under what information state and who had authority to select the option.
 
 ## Action
 
@@ -282,53 +308,133 @@ Examples:
 - approve inspection plan;
 - reschedule a task;
 - issue procurement request;
-- publish an operating recommendation;
 - execute an authorized external workflow.
 
-Actions are subject to authorization, policy, preconditions, idempotency and audit.
+Actions are subject to authenticated authority, policy, preconditions, idempotency, audit and — for external effects — verification/reconciliation.
 
-## Policy
+## Outcome
 
-**Policy** determines what an actor may read, reason over, recommend and execute.
+An **Outcome** represents the verified terminal result/consequence of a governed intervention rather than assuming that dispatch equals success.
 
-The actor can be a human, application, service identity or AI agent.
+A workflow/external Action may therefore preserve:
+
+```text
+Decision -> Action -> source execution -> verification/reconciliation -> Outcome
+```
+
+Outcome evidence can be used for assurance and subsequent evaluation while remaining separate from customer-data training/global knowledge promotion.
+
+## Policy and authority
+
+**Policy** determines what an actor may read, reason over, recommend, decide and execute.
+
+The actor can be a human, application, service workload or AI agent.
+
+The core boundary is:
+
+```text
+Knowledge != Authority
+Recommendation != Execution
+```
 
 ## Provenance
 
-**Provenance** explains how CEPIO arrived at a fact or property value.
+**Provenance** explains how CEPIO arrived at a fact/property/state/evidence assertion.
 
-Typical provenance elements include:
+Typical elements include:
 
 - source system;
-- source entity;
-- source field;
-- source record;
-- source-value hash;
+- source entity/record;
+- source field/value hash;
 - mapping version;
 - transformation run;
 - observed time;
-- ingestion time.
+- ingestion/transaction time.
 
-Because uncertainty, confidence, opportunity and recommendation are first-class entities, CEPIO can preserve what evidence and assumptions were available when a recommendation or historical decision was made.
+Because uncertainty, confidence, Opportunity, Recommendation, Decision and Outcome are explicit entities/contracts, CEPIO can preserve what evidence and assumptions existed when an intervention was selected and what happened afterward.
 
 ## Profile
 
-A **Profile** specializes canonical CEPIO semantics for a customer, asset, site or use case without redefining the universal core.
+A **Profile** specializes CEPIO semantics/operating knowledge for a customer, asset, site or deployment without redefining universal Core.
 
-Examples in the repository include profile directions for SATORP/SEO and ARO/AD.
-
-Domain-specific uncertainty characteristics, opportunity categories, quantitative representations and ranking models belong in domain modules or profiles rather than CEPIO Core.
+Customer-specific uncertainty models, thresholds, formulas, procedures, target definitions and source bindings belong in domain/profile/private Industry IQ unless independent evidence justifies reusable promotion.
 
 ## Binding
 
-A **Binding** maps canonical CEPIO semantics to a technology platform, data product, analytical engine or source system.
+A **Binding** maps CEPIO industrial contracts to a technology platform, source system, analytical engine or data product while preserving authoritative source ownership.
 
 Examples:
 
-- Fabric IQ binding;
-- SAP adapter mapping;
-- PI tag mapping;
-- OSDU semantic projection;
-- reservoir simulator binding;
-- uncertainty propagation service;
-- future spatial/3D bindings.
+- Fabric/Fabric IQ binding;
+- SAP EAM binding;
+- PI/historian mapping;
+- OSDU semantic/evidence projection;
+- Cognite provider binding;
+- reservoir-simulator/uncertainty-engine binding;
+- spatial/3D binding.
+
+The Binding Contract should preserve CEPIO identity, evidence/provenance and governed external-action verification rather than exposing provider schemas as application truth.
+
+## Runtime control-plane concepts
+
+Some current CEPIO capabilities are product/runtime contracts rather than canonical ontology classes.
+
+### Capability Registry
+
+Records evidence-backed claims about what CEPIO can support and where that capability has been qualified.
+
+### Industry IQ Pack Registry
+
+Resolves reusable deployable Industry IQ packages/version/dependencies.
+
+### Skill Registry
+
+Admits/binds procedures and determines whether a Skill is READY in a concrete runtime/actor context.
+
+### Memory
+
+Stores durable reusable or tenant/profile-scoped knowledge/evidence references separately from per-task working context.
+
+### Retrieval & Indexing
+
+Selects bounded task-relevant candidate evidence/memory through governed capability routing. Indexes are projections, not truth.
+
+### Compiled Industry IQ
+
+Deterministically compiles reusable capability records into bounded runtime bundles/cache acceleration. Cache state is not authority.
+
+### Management Contract
+
+Provides a separate read-oriented control-plane projection over sanitized runtime capabilities/health; it is not a domain ontology primitive or Action authority surface.
+
+## Performance Contracts
+
+Performance intelligence spans semantic concepts and contract/runtime specialization.
+
+Reusable ontology semantics provide generic Objective, KPI, Evidence, Outcome and relationship vocabulary. Performance Contracts define organization-neutral/reference or customer-specialized structures such as:
+
+- objectives / KRs / KPIs;
+- targets/thresholds/guardrails;
+- accountability;
+- contribution/driver relationships;
+- governed response bindings.
+
+Industry Performance Reference Packs can provide reusable operating-model hypotheses while customer formulas/targets/scopes remain customer-owned specialization.
+
+## Final Core design rule
+
+A useful concept is not automatically a Core ontology concept.
+
+When new industrial knowledge appears, decide explicitly whether it belongs in:
+
+```text
+CORE
+DOMAIN
+MAPPING
+PROFILE
+REJECT
+```
+
+or in a runtime/Industry-IQ contract rather than the ontology at all.
+
+The success criterion is not class count. It is **reusable industrial competency with stable semantics and governed evidence/actionability**.
