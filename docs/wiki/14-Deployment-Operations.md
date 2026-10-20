@@ -55,6 +55,9 @@ federation rather than Azure passwords, pins the image digest, and checks health
 and anonymous-read rejection. Configure environment reviewers, main-only branch
 rules, and Azure variables using the
 [GitHub Actions setup guide](../deployment-profiles.md#github-actions-deployment).
+Use the repository's configured immutable OIDC subject prefix when creating
+Azure federation; a name-only subject causes `AADSTS700213`. The setup guide
+documents exact subject discovery and retry without relaxing approvals.
 The workflow becomes active only after it is merged to the default branch.
 
 Intended scope:

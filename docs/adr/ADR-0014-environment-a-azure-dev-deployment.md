@@ -32,7 +32,7 @@ The Azure web app receives a system-assigned managed identity. ACR admin credent
 GitHub Actions authenticates to Azure with OpenID Connect. No Azure client secret is stored in the repository or workflow. The federated identity is scoped to the GitHub `dev` environment, using the subject:
 
 ```text
-repo:faizrten/CEPIO:environment:dev
+repo:faizrten@102391346/CEPIO@1418774983:environment:dev
 ```
 
 The deployment workflow reuses the existing full CEPIO CI through `workflow_call`; Azure deployment is blocked if that qualification job fails. The deployed image is the immutable `GITHUB_SHA` image. The moving `:dev` tag is convenience-only and is not the deployment identity.
@@ -122,7 +122,7 @@ The demo deployment has the following controls:
 - the `azure-demo` environment requires the maintainer's explicit approval,
   permits only the `main` branch, and disables administrative bypass;
 - the federated subject is exactly
-  `repo:faizrten/CEPIO:environment:azure-demo`;
+  `repo:faizrten@102391346/CEPIO@1418774983:environment:azure-demo`;
 - the dedicated identity has Contributor only on the existing registry and
   Website Contributor only on the existing app, with no client secret;
 - builds use unique SHA/run/attempt tags and deployment pins the ACR digest;
@@ -142,3 +142,12 @@ contract tests, the existing deployment-profile validator, Bicep compilation,
 remote environment/federation/role readback, and the existing CI/quality gates.
 The first end-to-end GitHub OIDC rollout requires merging the workflow onto
 the default branch and a human approving the pending environment deployment.
+
+The first approved demo run exposed an `AADSTS700213` trust mismatch because
+the repository uses immutable GitHub OIDC subjects. Azure trust must match the
+repository's `sub_claim_prefix` plus the environment context, not an assumed
+name-only subject. The demo credential was corrected to the ID-bound subject
+above without changing its issuer, audience, Azure role scopes, repository
+OIDC settings, or human approval boundary. Future setup must discover the
+prefix through the repository OIDC customization API and verify the actual
+assertion subject in the login output.
