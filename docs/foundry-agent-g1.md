@@ -55,6 +55,10 @@ export CEPIO_MCP_ALLOWED_HOSTS='cepio-mcp.example.com,cepio-mcp.example.com:*'
 
 # G1 deliberately does not publish cepio_execute_action.
 export CEPIO_MCP_TOOL_PROFILE='recommendation-only'
+
+# The host is loopback-only by default. Set this explicitly only when the
+# deployment ingress/container must accept external connections.
+export CEPIO_MCP_BIND_HOST='0.0.0.0'
 ```
 
 Start the remote MCP service:
@@ -68,6 +72,8 @@ The endpoint is:
 ```text
 https://<cepio-mcp-host>/mcp
 ```
+
+`CEPIO_MCP_BIND_HOST` defaults to `127.0.0.1`. Production platform configuration must deliberately opt into a broader bind address when the ingress model requires it; external exposure must still be protected by TLS, Entra authentication, and the MCP host/origin allowlists.
 
 The hosting layer validates the bearer token with CEPIO's existing Entra token validator, maps only configured Entra roles/groups into CEPIO roles, and binds the result through `ContextVarActorProvider`. Tool arguments cannot supply actor identity or roles.
 
