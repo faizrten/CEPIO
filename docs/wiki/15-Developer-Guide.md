@@ -1,28 +1,69 @@
 # Developer Guide
 
+## Engineering North Star
+
+> **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
+
+When deciding whether to build something inside CEPIO, ask:
+
+1. Is this reusable industrial operating intelligence?
+2. Is it a stable CEPIO contract or generic infrastructure another platform already provides?
+3. Can CEPIO bind the capability rather than own/rebuild it?
+4. Does the change belong in Core, DOMAIN, PROFILE, MAPPING or should it be REJECTED?
+5. What evidence/competency proves the change is needed?
+
+Use:
+
+> **Reuse -> Bind -> Extend -> Own only where CEPIO adds reusable industrial operating intelligence.**
+
+For Microsoft-hosted agent workloads:
+
+> **Microsoft owns generic agent execution. CEPIO owns industrial agency.**
+
+Do not build a second generic agent/model/session framework inside CEPIO merely because an agent use case exists.
+
 ## Repository orientation
 
-Major repository areas include:
+Major areas include:
 
 ```text
 ontologies/             Canonical RDF/OWL modules
 ontology-modules.yaml   Module catalogue and dependencies
 mappings/               Source mappings + property contract
 shapes/                 SHACL validation
-src/cepio/              Runtime implementation
-generalization/         Archetypes, personas, competency packs, standards benchmarks and accepted gap triage
-examples/               Executable examples/reference scenarios
+src/cepio/              Runtime/application/control-plane implementation
+generalization/         Archetypes, personas, competency/eval assets
 actions/                Action definitions/contracts
+policies/               Policy assets
 integrations/           Integration implementation assets
-deploy/                  Deployment assets
-deployments/             Platform deployment contracts
-docs/                    Architecture/technical documentation
-docs/wiki/               Reader-oriented explanatory wiki
-compatibility/           Semantic compatibility baselines/contracts
-policies/                Policy-related assets
+deploy/                  Reference infrastructure/deployment assets
+deployments/             Platform/tool deployment contracts
+compatibility/           Semantic/interface compatibility baselines
+docs/                    Focused technical/architecture documentation
+docs/wiki/               Reader-oriented narrative Wiki
+config/                  Governed product/configuration contracts incl. v1 scorecard
 ```
 
+## Current product status
+
+Do not infer product release state from the code tree.
+
+- v0.4 FOUNDATION — qualified published Developer Preview;
+- v0.5 CONNECT — current / partial product gate;
+- later release foundations are intentionally pulled forward on main;
+- v1 scorecard currently remains 69/100 at its governed snapshot.
+
+Before making release/product claims, read:
+
+- [Current State](../current-state.md)
+- [Execution Roadmap](../roadmap.md)
+- [Version Naming](../version-naming.md)
+- [v1 Completion Scorecard](../v1-completion-scorecard.md)
+- `RELEASE.md`
+
 ## Development workflow
+
+Typical local validation:
 
 ```bash
 python -m pip install -e '.[dev]'
@@ -31,176 +72,308 @@ make validate
 PYTHONPATH=src python scripts/run_generalization_harness.py
 ```
 
-The validation path should be treated as part of the semantic product, not only code quality.
+Use focused qualification scripts/workflows for the capability being changed; the full repository CI/governance gates remain authoritative.
+
+Validation is part of the product contract, not merely code quality.
+
+## Architecture boundaries developers must preserve
+
+### Thin Core
+
+Core should contain only broad reusable operating abstractions such as:
+
+- canonical identity;
+- objects/relationships/state;
+- time;
+- evidence/provenance;
+- uncertainty/confidence;
+- Functions/Decisions/Actions;
+- policy/authority/audit;
+- compatibility/migration.
+
+Do not promote source/customer vocabulary merely for convenience.
+
+### Thick Industry IQ
+
+Prefer reusable capabilities/packs containing:
+
+- domain semantic compositions;
+- personas/competency questions;
+- evidence requirements;
+- Skills/procedures;
+- failure/risk/decision patterns;
+- performance/KPI/economic logic;
+- constraints/authority;
+- workflows;
+- evaluation/assurance contracts.
+
+### Replaceable bindings
+
+Source/provider integrations belong behind the Binding Contract. Provider-specific transport must not define domain semantics.
+
+### Derived runtime projections
+
+Memory indexes, Azure AI Search and compiled caches are projections/acceleration mechanisms.
+
+```text
+Index != Source of Truth
+Cache != Authority
+```
 
 ## Generalization and competency testing
 
-The Generalization Lab tests whether CEPIO's canonical/domain semantics can support materially different Energy & Process Industry operating questions without silently relying on LLM world knowledge or customer-specific concepts.
+Generalization tests whether CEPIO remains reusable across materially different industrial operating questions without relying on hidden model world knowledge or customer-specific concepts.
 
-Harness v0.1 provides a frozen drilling-contractor competency pack and deterministic semantic-readiness evaluator. A result is tied to a frozen-batch hash, the ontology-module hash and, when supplied, an accepted gap-triage hash. `PASS` means the required ontology terms and edge contracts exist; it does not yet prove runtime data or answer correctness.
+Competency/assurance asks whether CEPIO can support the industrial decision through explicit semantics, runtime evidence, Skills and governed execution.
 
-When a valid competency exposes a gap, do not immediately add vocabulary. Classify each missing semantic first as:
+When a valid competency exposes a gap, classify it before adding vocabulary:
 
 ```text
 CORE | DOMAIN | PROFILE | MAPPING | REJECT
 ```
 
-- `CORE` means reusable canonical semantics across Energy & Process Industry archetypes; ownership may sit in a common module such as `workforce` or `commercial`, not necessarily `core.ttl`.
-- `DOMAIN` means source-neutral drilling/domain specialization.
-- `PROFILE` means customer, fleet or deployment-specific semantics.
-- `MAPPING` means an external taxonomy, codeset or source vocabulary that CEPIO should federate rather than copy.
-- `REJECT` means the literal missing term or relationship is the wrong abstraction; the decision may name a better `replacement_layer`.
+- `CORE` — broadly reusable industrial operating semantics;
+- `DOMAIN` — source-neutral domain specialization;
+- `PROFILE` — customer/site/deployment specialization;
+- `MAPPING` — external taxonomy/source vocabulary to federate;
+- `REJECT` — literal requested concept is the wrong abstraction.
 
-Accepted triage is executable. CI requires every current `PARTIAL/FAIL` missing semantic to be covered exactly once, rejects duplicate coverage and rejects stale entries after the ontology changes. An ontology remediation therefore updates its gap decision in the same PR.
+Accepted triage should remain executable/regression-tested.
 
-Future live challenger/operator/judge agents remain evidence-constrained: model output alone is not enterprise truth and no harness agent may autonomously promote a gap into canonical CEPIO Core.
+No agent/harness may autonomously promote a gap into canonical Core.
 
-See [Generalization & Competency Harness](../generalization-harness.md).
+See [Generalization & Competency Harness](../generalization-harness.md) and [Competency & Assurance](20-Competency-Assurance.md).
 
-## Documentation is part of the definition of done
+## Capability Registry, packs and Skills
 
-A material CEPIO capability change is incomplete until the corresponding documentation is updated in the **same pull request**.
-
-Changes that normally require documentation updates include:
-
-- ontology modules, classes, properties, relationships and profiles;
-- REST API, Python SDK, CLI, MCP tools and query behavior;
-- runtime, persistence, temporal/provenance, graph and policy behavior;
-- functions, decisions, actions and authorization semantics;
-- Microsoft/NVIDIA integrations and industrial source adapters;
-- deployment, security, observability and governance;
-- migration/versioning/compatibility contracts;
-- standards federation and supported mappings;
-- examples, reference scenarios and applications;
-- generalization-harness competency packs and accepted gap decisions;
-- release status and roadmap milestones.
-
-CEPIO documentation has two complementary layers:
-
-1. **Authoritative technical contracts** — ontology files, code, mappings, SHACL shapes and focused technical docs.
-2. **`docs/wiki/`** — the navigable explanatory layer for developers, architects and users.
-
-Both must remain consistent.
-
-When no documentation update is necessary, the pull request must explicitly select **No documentation impact** and explain why. The repository pull-request template requires this declaration.
-
-### PR definition-of-done checklist
+Keep three responsibilities distinct:
 
 ```text
-[ ] implementation is tested
-[ ] semantic validation passes where applicable
-[ ] compatibility is preserved or migration is declared
-[ ] authorization boundaries remain intact
-[ ] examples/reference scenarios are updated where needed
-[ ] relevant focused technical docs are updated
-[ ] relevant docs/wiki page(s) are updated
-[ ] README/docs navigation is updated when discoverability changes
-[ ] roadmap/release status reflects reality when implementation status changes
+Capability Registry
+= what CEPIO can legitimately claim it knows how to do
+
+Industry IQ Pack Registry
+= reusable industrial intelligence deployed into a runtime
+
+Skill Registry
+= procedures admitted/bound/READY for execution
 ```
+
+A capability claim requires evidence. A pack being available does not make every Skill READY. A READY Skill does not grant Action authority.
+
+## Memory / retrieval development discipline
+
+Durable Industry IQ may grow continuously, but per-task working context must remain bounded.
+
+When adding memory/retrieval functionality:
+
+- preserve tenant/profile ownership;
+- reject cross-tenant leakage;
+- ensure global memory excludes customer-specific content;
+- keep indexes rebuildable;
+- recheck tenant/expiry after backend retrieval;
+- require actual evidence for required capabilities;
+- keep ContextAssembler budgets fail-closed;
+- prohibit PROFILE/customer context from shared compiled caches.
+
+## Performance Contract discipline
+
+Industry reference performance semantics should remain organization-neutral.
+
+Customer-specific values such as:
+
+- formulas;
+- targets;
+- thresholds;
+- organizational scope;
+- individual accountability;
+- source bindings;
+
+belong in explicit specialization rather than canonical reference packs.
+
+Do not turn reference accountability into employee-scoring truth.
 
 ## Adding a canonical ontology concept
 
-Before adding a new class or property, ask:
+Before adding a class/property/relationship, ask:
 
-1. Is the concept already represented in CEPIO?
-2. Does an external standard provide authoritative semantics?
-3. Is it generic enough for canonical CEPIO or should it be a profile extension?
-4. Which module owns it?
-5. What relationships connect it to existing CEPIO primitives?
-6. Does it require a migration/version change?
-7. Does the Generalization Harness expose the same need in more than one archetype, or is there another independent reason for canonicalization?
+1. Is the concept already represented?
+2. Can a composition of existing concepts satisfy the capability?
+3. Does an external standard already provide authoritative semantics?
+4. Is the concept generic enough for Core/common semantics?
+5. Should it be DOMAIN, PROFILE or MAPPING instead?
+6. Which module owns it?
+7. What competency/evidence demonstrates the need?
+8. What compatibility/migration impact follows?
+
+Ontology growth is not itself a success metric.
 
 ## Adding a property
 
-A property should define:
+Define:
 
 - canonical IRI;
 - datatype/range;
-- owning module;
+- owner module;
 - semantic meaning;
 - authority expectations;
 - mapping behavior;
-- provenance requirements.
+- provenance requirements;
+- temporal behavior where relevant.
 
-Avoid domain-only scalar properties when the concept is naturally a reusable value object with units, currency, validity or provenance.
+Avoid domain-only scalars when the concept is naturally a reusable value object with units, currency, validity or provenance.
 
 ## Adding a relationship
 
 Define:
 
 - canonical IRI;
-- domain;
-- range;
+- domain/range;
 - cardinality where meaningful;
 - inverse relationship if appropriate;
 - temporal behavior;
-- intended traversal semantics.
+- intended traversal semantics;
+- evidence strength.
 
-Do not strengthen evidence into a stronger assertion without justification. For example, a certification may support competency evidence but should not automatically assert demonstrated competence.
+Do not strengthen weak evidence into stronger assertions without justification.
 
-## Adding a function
+## Adding a Function
 
 Define:
 
-- stable function identity;
-- typed inputs;
-- typed output;
-- applicable target type(s);
+- stable identity;
+- typed inputs/output;
+- applicable target types;
 - authorization requirements;
-- deterministic behavior expectations;
-- test cases.
+- deterministic expectations;
+- provenance/evidence assumptions;
+- tests.
 
-## Adding an action
+## Adding a Skill
 
-In addition to function metadata, define:
+Define:
 
-- side effects;
+- stable Skill identity/version;
+- required object/relationship/evidence capabilities;
+- Functions/Decisions/Actions required;
+- runtime bindings;
+- authority assumptions;
+- preflight behavior;
+- allowed side-effect posture;
+- competency/evaluation fixture;
+- pack/version dependencies.
+
+Skills execute through restricted governed hosts, not raw runtime/source clients.
+
+## Adding an Action
+
+Define:
+
+- side effect;
+- target identity;
 - preconditions;
-- policy requirements;
-- idempotency behavior;
-- expected object version behavior;
-- audit fields;
-- external adapter binding;
-- acknowledgement/reconciliation semantics.
+- policy/authority;
+- idempotency;
+- concurrency expectations;
+- audit;
+- source binding;
+- acknowledgement/read-back;
+- verification/reconciliation;
+- compensation semantics if supported.
 
-## Adding a source-system adapter
+External local success must not be interpreted as source success until verified/reconciled.
 
-Keep the adapter below the canonical contract.
+## Adding a provider/source binding
 
-Do not expose source-specific fields directly to applications unless they are explicitly represented as profile/source extensions.
+Implement provider-specific transport below the CEPIO Binding Contract.
+
+Preserve:
+
+- canonical identity;
+- evidence/provenance;
+- event/observation time;
+- error/failure semantics;
+- authenticated Action boundary;
+- source verification/reconciliation.
+
+Do not expose provider-specific fields directly to applications unless they are explicit source/profile extensions.
+
+## Adding an agent integration
+
+Prefer host-platform execution and CEPIO industrial agency.
+
+Agent integrations should:
+
+- use authenticated host identity;
+- expose least-privilege tool profiles;
+- consume CEPIO Application/MCP contracts;
+- avoid raw repositories/source clients/credentials;
+- separate Decision/recommendation from Action execution;
+- produce explicit live qualification evidence before claiming a real environment PASS.
 
 ## Compatibility discipline
 
-Ontology evolution requires semantic version discipline and, when breaking, migration manifests.
+Do not renumber artifacts merely to align them with product roadmap versions.
 
-Typical policy:
+Product, runtime component, Lab benchmark, pack, Skill, ontology module and API versions are independent.
+
+Breaking semantic/interface changes require the appropriate migration/version contract.
+
+See [Version Naming](../version-naming.md).
+
+## Documentation is part of definition of done
+
+A material CEPIO capability change is incomplete until documentation is updated in the **same PR**.
+
+Changes that normally require documentation updates include:
+
+- product positioning / architecture boundaries;
+- ontology/modules/profiles;
+- Application Contract, REST, SDK, MCP or Management;
+- runtime / workflow / policy / Skills;
+- Industry IQ / Capability Registry / pack trust;
+- Memory / Retrieval / Compiled IQ;
+- Performance Contracts/packs;
+- source/provider integrations;
+- deployment/security/observability;
+- compatibility/versioning;
+- competency/generalization/evaluation;
+- release/roadmap/scorecard status.
+
+### Documentation surfaces to consider
 
 ```text
-Additive semantic change
- -> patch or higher
-
-Breaking pre-1.0 module change
- -> minor/major + migration manifest
-
-Breaking 1.x+ module change
- -> major + migration manifest
+[ ] focused technical doc / ADR updated
+[ ] tests/qualification describe actual claim boundary
+[ ] docs/current-state.md updated if mainline story changed materially
+[ ] root README updated if major product/interface capability changed
+[ ] docs/README.md index updated if discoverability changed
+[ ] Wiki Home/navigation updated if a page/capability was added
+[ ] Wiki architecture/runtime/security/integration page updated where relevant
+[ ] roadmap updated only if release-gate state/scope changed
+[ ] version-naming updated only if taxonomy changed
+[ ] RELEASE.md changed only if published release boundary changed
+[ ] scorecard changed only through governed scorecard evidence
 ```
 
-## API discipline
+When no documentation update is needed, the PR should explicitly explain why.
 
-New public interfaces should converge on the stable CEPIO resource model rather than proliferating one-off endpoints.
+## Product-claim discipline
 
-Prefer:
+Never turn one of these into another without evidence:
 
 ```text
-objects
-relationships
-query
-state
-provenance
-functions
-actions
-schema
+merged code
+    != product release qualification
+
+synthetic/reference proof
+    != live environment proof
+
+semantic PASS
+    != runtime/agent/operational PASS
+
+open PR
+    != canonical v1 score
 ```
 
-over domain-specific endpoint duplication.
+This discipline is part of CEPIO's product quality, not administrative overhead.
