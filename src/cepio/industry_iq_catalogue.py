@@ -52,7 +52,7 @@ class IndustryIQTrustPolicy(BaseModel):
     trusted_publishers: set[str] = Field(default_factory=set)
     require_digest_for_external: bool = True
 
-    def validate(self, provenance: IndustryIQPackProvenance) -> None:
+    def enforce(self, provenance: IndustryIQPackProvenance) -> None:
         if provenance.source_id not in self.trusted_source_ids:
             raise IndustryIQCatalogueError(
                 "PACK_SOURCE_UNTRUSTED",
@@ -70,12 +70,11 @@ class IndustryIQTrustPolicy(BaseModel):
                 "Only builtin catalogue sources may use builtin provenance verification.",
             )
 
-        if self.trusted_publishers:
-            if provenance.publisher not in self.trusted_publishers:
-                raise IndustryIQCatalogueError(
-                    "PACK_PUBLISHER_UNTRUSTED",
-                    f"Industry IQ publisher is not trusted: {provenance.publisher!r}",
-                )
+        if self.trusted_publishers and provenance.publisher not in self.trusted_publishers:
+            raise IndustryIQCatalogueError(
+                "PACK_PUBLISHER_UNTRUSTED",
+                f"Industry IQ publisher is not trusted: {provenance.publisher!r}",
+            )
 
         external = provenance.source_kind != "builtin"
         if self.require_digest_for_external and external and provenance.artifact_digest is None:
@@ -161,7 +160,7 @@ class IndustryIQCatalogue:
                         f"adapter source {source.source_id}."
                     ),
                 )
-            self.trust_policy.validate(provenance)
+            self.trust_policy.enforce(provenance)
             manifest = industry_iq_manifest(candidate.pack)
             key = (manifest.pack_id, manifest.version)
             record = IndustryIQCatalogueRecord(manifest=manifest, provenance=provenance)
