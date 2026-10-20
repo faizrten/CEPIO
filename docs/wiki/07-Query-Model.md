@@ -4,7 +4,35 @@
 
 Applications should query **industrial semantics**, not storage schemas.
 
-A CEPIO consumer should not need to know whether the implementation underneath uses SQLite, Fabric, graph storage or an in-memory test repository.
+A CEPIO consumer should not need to know whether the implementation underneath uses an in-memory reference store, SQLite, a future enterprise persistence backend or provider-bound evidence source.
+
+The stable principle is:
+
+> **Typed industrial query, backend-neutral execution.**
+
+## Query vs retrieval
+
+CEPIO now has two deliberately separate concepts:
+
+### Object / relationship query
+
+Used when the caller needs an exact governed set of CEPIO objects/relationships satisfying typed conditions.
+
+### Retrieval & Indexing
+
+Used when a reasoning/agent task needs a **small bounded candidate set** of relevant memory/evidence chosen through capability routing and one or more retrieval backends.
+
+```text
+Object Query
+= exact governed object-set semantics
+
+Retrieval
+= bounded evidence/memory candidate selection for a reasoning task
+```
+
+Do not turn search ranking into object-query truth or bypass ContextAssembler/evidence requirements with raw retrieval results.
+
+See [Retrieval and Indexing](23-Retrieval-and-Indexing.md).
 
 ## Typed object-set query
 
@@ -16,7 +44,8 @@ The current query contract supports:
 - valid-time filters;
 - transaction-time filters;
 - deterministic sorting;
-- pagination.
+- pagination;
+- actor/property authorization inherited from the application/runtime boundary.
 
 ## Conceptual query
 
@@ -34,7 +63,7 @@ The current query contract supports:
 }
 ```
 
-The exact public v1 JSON contract should remain versioned and documented, but the semantic principle is stable: **typed industrial query, backend-neutral execution**.
+The exact public JSON/API contract remains versioned; the semantic intent remains backend-neutral.
 
 ## Relationship traversal
 
@@ -47,45 +76,84 @@ Asset -> ProcessUnit
 WorkOrder -> SparePart
 SparePart -> Supplier
 ProcessUnit -> KPI
+Decision -> Action
+Action -> Outcome
 ```
 
-Multi-hop traversal enables cross-domain reasoning without exposing source-system join logic to the caller.
+Multi-hop/reverse traversal supports cross-domain reasoning without exposing source-system joins to the caller.
+
+Traversal remains governed by actor/object/property policy and declared relationship semantics.
 
 ## Temporal query
 
-CEPIO supports two independent time dimensions.
+CEPIO supports valid-time and transaction-time questions separately.
 
-Example conceptual questions:
+Examples:
 
 - What was K-201's actual operating state at 10:15?
-- What did CEPIO believe K-201's state was at 10:20?
+- What did CEPIO know about K-201's state at 10:20?
 - Which work orders were related to K-201 at that valid time?
+- Which evidence was available when a Decision was made?
 
 ## Deterministic behavior
 
-Queries should provide deterministic sorting and pagination so applications and agents receive stable results across backends.
+Queries should provide deterministic sorting, pagination and bounded execution so applications, tests and agents receive stable behavior across logical backends.
 
-## Backend translation
+Opaque cursor semantics and query budgets prevent callers from depending on physical database offsets/implementation details.
 
-The query contract can be translated into different execution systems:
+## Backend boundary
+
+The logical query contract is isolated from physical storage:
 
 ```text
 CEPIO Query Contract
        |
-       +-- In-memory evaluator
-       +-- SQLite translator
-       +-- future Fabric translator
-       +-- future graph execution
+       +-- in-memory evaluator
+       +-- SQLite repository/query implementation
+       +-- future enterprise persistence/query adapters
 ```
 
-The backend may change; the application contract should not.
+Fabric, OSDU, Cognite, SAP or PI are normally integrated through CEPIO bindings/evidence contracts rather than assumed to be direct implementations of the CEPIO object-query engine.
 
-## Graph analytics vs object query
+A future backend may push query execution into a provider where semantics can be preserved, but provider syntax must not become the public CEPIO query language.
 
-Object-set query and graph analytics serve different purposes.
+## Retrieval backend boundary
 
-**Object query:** find or filter industrial objects according to typed conditions.
+Retrieval has its own replaceable backend contract:
 
-**Graph analytics:** calculate structural properties such as centrality, dependency reach, communities or blast radius.
+```text
+RetrievalIntent
+ -> CapabilityRouter
+ -> RetrievalPlan
+ -> structured MemoryStore
+ -> lexical index
+ -> optional vector / graph / Azure AI Search adapters
+ -> deterministic rank fusion
+ -> tenant/expiry re-check
+ -> ContextAssembler
+```
 
-Both operate over CEPIO semantics but should remain distinct interfaces.
+Azure AI Search is therefore a **retrieval projection**, not an object-query or semantic authority layer.
+
+## Graph analytics vs object query vs retrieval
+
+These interfaces serve different purposes:
+
+- **Object query** — find/filter exact governed CEPIO object sets.
+- **Relationship traversal** — navigate typed semantic edges.
+- **Graph analytics** — calculate structural properties such as centrality, communities or blast radius.
+- **Retrieval** — select bounded task-relevant evidence/memory candidates.
+
+They can cooperate, but one should not silently substitute for another.
+
+## Security invariant
+
+Query/retrieval behavior must preserve:
+
+```text
+physical backend capability
+        !=
+permission to expose data
+```
+
+Authorization, tenant scope, evidence requirements and CEPIO semantic validation remain authoritative regardless of backend pushdown or retrieval ranking.

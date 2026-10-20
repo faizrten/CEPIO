@@ -1,155 +1,312 @@
-# CEPIO Codex Engineering Brief — v0.4
+# CEPIO Engineering Brief — Current Mainline
 
 ## Mission
 
-Build CEPIO into an operational ontology platform for Energy & Process Industries with parity-oriented capabilities against Palantir Ontology while remaining Microsoft/Fabric-native and source-system-neutral.
+Build CEPIO as the **portable Industrial Operating Intelligence layer for Energy & Process Industries**.
 
-## Current baseline: v0.3
+> **Thin infrastructure. Thick Industry IQ.**
 
-Do not regress these capabilities:
+CEPIO should own reusable industrial operating competence while binding — not recreating — authoritative enterprise systems, data platforms, generic agent runtimes and frontier-model infrastructure.
 
-- canonical modular CEPIO domain architecture;
-- SEO/SATORP and AD/ARO normalization rules;
-- IRI-first identity for classes, relationships and datatype properties;
-- ambiguity fail-closed behavior;
-- semantic module versions, dependencies and compatibility snapshots;
-- canonical datatype-property registry with semantic/write authority;
-- property-level provenance, source references and transformation runs;
-- `explain_property(...)` lineage path;
-- immutable object-version history;
-- bitemporal object and relationship queries;
-- deterministic event ordering and projector contract;
-- compressor operating-state reference projector;
-- independent projection checkpoints and replay;
-- SQLite + in-memory reference persistence;
-- optimistic concurrency;
-- immutable action audit;
-- policy evaluated before idempotent replay;
+Palantir Ontology remains a useful capability benchmark, not CEPIO's product identity.
+
+For the Microsoft reference ecosystem:
+
+> **Microsoft owns generic agent execution. CEPIO owns industrial agency.**
+
+Microsoft Foundry, Copilot, Fabric, Entra and Azure supply generic platform/runtime capabilities. CEPIO supplies industrial semantics, evidence, competence, Decisions, authority, governed Actions and Outcomes.
+
+## Current product posture
+
+- **Published release:** CEPIO v0.4 FOUNDATION — Developer Preview.
+- **Current release gate:** CEPIO v0.5 CONNECT — Live Industrial Integration, open / partial.
+- **Canonical v1 maturity score:** 69/100 at the governed scorecard snapshot; do not infer a new score from later merges.
+- **Repository mainline:** intentionally contains foundations pulled forward from later releases. Component completion is not release qualification.
+
+Before changing release status, consult:
+
+- `docs/current-state.md`;
+- `docs/roadmap.md`;
+- `config/v1-scorecard.yaml`;
+- `docs/governance/v1-scorecard-governance.md`;
+- `RELEASE.md`.
+
+## Architecture invariant
+
+```text
+Authoritative enterprise context
+        |
+        v
+Replaceable bindings
+        |
+        v
+Thin CEPIO operating core
+        |
+        v
+Thick Industry IQ
+        |
+        v
+Governed capability / memory / retrieval / execution runtime
+        |
+        v
+REST · Management · MCP
+        |
+        v
+Apps · Studio · copilots · agents
+```
+
+Use the rule:
+
+> **Reuse -> Bind -> Extend -> Own only where CEPIO adds reusable industrial operating intelligence.**
+
+### CEPIO Core should remain thin
+
+Core-level abstractions include only broadly reusable operating contracts such as:
+
+- canonical identity, objects and relationships;
+- events and operational state;
+- valid time and transaction time;
+- evidence and provenance;
+- uncertainty/confidence;
+- Functions and Decisions;
+- governed Actions;
+- policy, authority and audit;
+- compatibility/migration contracts.
+
+Do not add a canonical Core concept merely because a source system, customer schema, standard or one scenario contains that field/term.
+
+### Industry IQ is where differentiated product value should accumulate
+
+Prefer reusable capability packages containing:
+
+- domain semantic compositions;
+- personas and competency questions;
+- evidence requirements;
+- Skills/procedures;
+- failure/degradation/risk patterns;
+- decision/intervention patterns;
+- constraints;
+- KPI/performance/economic logic;
+- governed workflows;
+- evaluation and assurance contracts.
+
+The success signal is **rising industrial competency with decreasing Core churn**.
+
+## Current mainline foundations — do not regress
+
+### Semantic, temporal and evidence contracts
+
+- canonical modular CEPIO ontology architecture;
+- IRI-first identity and fail-closed ambiguity handling;
+- canonical datatype/property registry and authority metadata;
+- property-level provenance and source references;
+- valid-time and transaction-time history;
+- deterministic event ordering/projection;
+- governed uncertainty, confidence and information-gain semantics.
+
+### Kinetic / governance contracts
+
+- typed Functions;
+- first-class Decision records;
+- governed Actions;
+- preconditions and approval metadata;
 - actor/action/target-scoped idempotency;
-- action preconditions and approval metadata;
-- AI recommend-but-not-execute boundary;
-- typed functions;
-- graph traversal including inverse paths;
-- MCP-ready governed facade;
-- thin Python SDK;
-- dry-run external adapter contracts;
-- SHACL validation path;
-- all tests passing.
+- policy evaluation before external side effects and replay;
+- durable workflow definitions/instances;
+- human approval, retries/timeouts/cancellation and supported compensation;
+- external Action verification/reconciliation;
+- immutable `WorkflowOutcome`;
+- exact policy-version pinning and trusted policy-evaluation lineage.
 
-## Documentation policy
+### Skills and application contracts
 
-Documentation is part of the product contract, not an afterthought.
+- Skill Registry and dependency contracts;
+- runtime binding and READY preflight;
+- READY-only host dispatch;
+- executable Skill boundary through restricted governed host capabilities;
+- application-contract/protocol convergence across REST, SDK and MCP;
+- recommendation remains separate from execution authority.
 
-Any PR that changes a user-visible or developer-visible CEPIO capability MUST update the corresponding documentation in the same PR, or explicitly state why there is no documentation impact.
+### Platform and binding contracts
 
-Changes that normally require documentation updates include:
+- provider-neutral Binding Contract;
+- Fabric/Fabric IQ semantic binding and live-proof transport path;
+- OSDU-first subsurface boundary;
+- external identity/write/verify/reconcile foundation;
+- Azure AI Search as optional rebuildable retrieval projection, never semantic authority.
 
-- ontology modules, classes, properties, relationships or profiles;
-- API, SDK, CLI, MCP tools or query behavior;
-- runtime architecture, persistence, policy, action or decision behavior;
-- source-system adapters and platform integrations;
-- deployment, identity, security, observability or governance behavior;
-- compatibility, migration or versioning rules;
-- supported standards and federation mappings;
-- reference applications, examples, scenarios or release status;
-- roadmap milestones when implementation status changes.
+### Industry IQ control plane
 
-Documentation hierarchy:
+- Industry IQ Pack Registry;
+- Capability Registry;
+- governed Domain Onboarding and Compounding Industrial Intelligence;
+- trusted catalogue/provenance;
+- supply-chain attestation/SBOM/security policy;
+- explicit global/domain/profile knowledge boundaries.
 
-1. implementation contracts, code, ontology files, mappings, shapes and focused technical docs are authoritative;
-2. `docs/wiki/` is the explanatory and navigation layer and must accurately reflect those contracts;
-3. `README.md` and `docs/README.md` provide repository-level orientation and must remain consistent with the wiki.
+### Memory / retrieval / acceleration
 
-A feature is not complete when its implementation lands but its public explanation remains stale.
+- durable Semantic / Procedural / Episodic / Profile memory contracts;
+- tenant-safe MemoryStore boundary;
+- bounded ContextAssembler;
+- capability-routed Retrieval & Indexing;
+- deterministic rank fusion and required-evidence checks;
+- Compiled Industry IQ deterministic bundles and bounded cache;
+- PROFILE/customer context prohibited from shared compiled cache.
 
-## Next sprint: v0.4 — Operational Query + Platform Integration
+### Performance intelligence
 
-### P0 — Typed temporal query contract
+- Performance Contract and runtime;
+- industry -> organization -> role/persona -> individual specialization;
+- explicit patches/suppressions with fail-closed dependency validation;
+- objectives, KRs, KPIs, guardrails, accountability and contribution relationships;
+- recommendation-only workflow response bridge;
+- organization-neutral Refinery and Drilling Contractor Industry Performance Reference Packs.
 
-- Implement a backend-neutral query model for object type, property predicates, relationships and time.
-- Support transaction-time and valid-time filters explicitly.
-- Support bounded graph traversal without introducing a proprietary query language.
-- Add deterministic pagination and ordering.
-- Expose the query contract through Python SDK, REST and MCP.
+### Hosted surfaces
 
-### P0 — Ontology migration manifests
+The production-host composition is intentionally separated:
 
-- Define explicit migration manifests for intentional class/property/relationship changes.
-- Support rename, replacement/deprecation and compatible datatype transformations.
-- Require breaking semantic-contract changes to include an approved migration declaration.
-- Add CI validation for migration coverage.
-- Keep migration execution deterministic and auditable.
+```text
+/api/v1/*          REST Application Contract
+/management/v1/*   authenticated read-only Management projection
+/mcp               authenticated Streamable HTTP MCP gateway
+```
 
-### P1 — Projection provenance and causal state
+Do not merge Management mutation or credential/configuration surfaces into the public application contract without an explicit architecture/governance decision.
 
-- Link each derived projected property to the source event IDs that produced it.
-- Add projector version and replay/run IDs to provenance.
-- Support multi-object projections without mutating source events.
-- Add causal lineage from Event → State → Decision → Action.
+## Microsoft-native industrial agency boundary
 
-### P1 — Runtime observability
+Do not build a second generic agent framework inside CEPIO.
 
-- Emit structured runtime telemetry for repository latency, query execution, function invocation, policy decision, action execution and projection rebuild.
-- Add an OpenTelemetry-compatible hook interface without forcing one exporter/backend.
-- Ensure telemetry cannot leak properties the actor was not authorized to read.
+Foundry/Copilot or other host runtimes may own:
 
-### P1 — Event ingestion contracts
+- generic model invocation;
+- agent lifecycle/session execution;
+- generic orchestration infrastructure;
+- generic tool transport.
 
-- Define source-neutral event-ingestion adapter contracts.
-- Add dry-run/reference adapters for Fabric Real-Time Intelligence / Eventstreams and AVEVA PI.
-- Require idempotent ingestion keys and event-time preservation.
-- Preserve source references and ingestion provenance.
+CEPIO owns:
 
-### P1 — Microsoft platform mapping
+- industrial capability identity;
+- evidence requirements;
+- Skills;
+- Decisions;
+- industrial policy/authority;
+- governed Actions;
+- Outcomes and industrial assurance.
 
-Add explicit mapping contracts for:
+Agent/tool callers must never receive raw repositories, source-system clients or customer credentials merely for convenience.
 
-- OneLake / Fabric data stores;
-- Fabric IQ / Ontology / Graph;
-- Fabric Real-Time Intelligence;
-- Microsoft Purview lineage/governance;
-- Entra identity/policy boundaries;
-- Microsoft Foundry agents;
-- Copilot Studio;
-- Power Automate / governed action adapters.
+## Current critical path — v0.5 CONNECT
 
-Keep Microsoft-specific mappings outside CEPIO-Core/domain ontology semantics.
+The release gate requires real industrial proof, not more semantic breadth.
 
-### P2 — Agent-facing temporal tools
+Critical sequence:
 
-Add MCP tools such as:
+```text
+live PI / historian evidence
+    -> CEPIO asset/state/provenance
+    -> Reliability Industry IQ / Skill
+    -> consequence + uncertainty
+    -> Decision
+    -> policy / approval
+    -> governed workflow
+    -> SAP Action
+    -> source read-back
+    -> verification / reconciliation
+    -> Outcome
+```
 
-- `cepio_get_object_at`;
-- `cepio_get_object_valid_at`;
-- `cepio_query`;
-- `cepio_explain_property`;
-- `cepio_explain_state`;
-- `cepio_rebuild_projection` with governed authorization.
+Priority open proof areas:
 
-Agents must receive only authorized temporal/property views.
+- live SAP S/4HANA/EAM qualification;
+- live PI/historian qualification;
+- third authoritative source domain;
+- K-201 three-source end-to-end proof;
+- authorized/idempotent writeback;
+- read-back, verification and reconciliation.
+
+Do not declare v0.5 complete because workflow, Binding Contract, Fabric, Reliability semantics or external-action foundations exist independently.
+
+## Product roadmap taxonomy
+
+Use these capability labels consistently for **product releases**:
+
+- **v0.4 FOUNDATION** — coherent developer/runtime foundation;
+- **v0.5 CONNECT** — authoritative live industrial context and governed writeback;
+- **v0.6 EXECUTE** — governed verified industrial outcomes/reference applications;
+- **v0.7 EXTEND** — independent teams can safely add Industry IQ;
+- **v0.8 OPERATE** — enterprise runtime dependability;
+- **v0.9 GENERALIZE** — real cross-enterprise/platform portability;
+- **v1.0 GUARANTEE** — stable production guarantees.
+
+Component, Skill, Lab, ontology-module, pack and API versions remain independent. Never rename historical versioned artifacts merely to match product-release labels.
+
+## Scorecard boundary
+
+`config/v1-scorecard.yaml` is authoritative for the numeric v1 completion percentage.
+
+Rules:
+
+- never derive a new percentage from intuition;
+- open PRs do not earn score;
+- merged implementation does not automatically earn score;
+- qualified/merged/main evidence must satisfy the scorecard's governed evidence contract;
+- score drift should be surfaced and corrected through a governed PR.
+
+Roadmap release gates and the v1 maturity score are separate systems.
+
+## Customer-data / learning boundary
+
+Customer operational data and profile knowledge must not silently train or mutate global CEPIO Industry IQ.
+
+- tenant/profile memory remains scoped;
+- customer-specific mappings, thresholds, formulas, procedures and policies remain customer-owned unless intentionally generalized through governed evidence;
+- PROFILE capabilities cannot justify global CORE/COMMON promotion by themselves;
+- protected Industry IQ/evaluation assets remain outside the public repository where publication would expose differentiated IP.
 
 ## Security invariants
 
-1. Policy evaluation precedes every external side effect and idempotent replay.
-2. Agents receive only authorized objects, properties and tools.
-3. Human approval cannot be represented by an AI role claiming a string flag.
-4. Audit and historical records remain append-only through ordinary APIs.
-5. Provenance must not be writable by ordinary domain action handlers.
-6. Adapter failures must reconcile explicitly; never infer external success from local CEPIO success.
-7. Temporal/history queries must enforce the same property/object authorization as current-state queries.
-8. Observability and lineage outputs must not bypass authorization controls.
-9. Projection rebuilds may alter derived state only; they must never mutate source events.
-10. Breaking ontology changes must fail CI without a migration declaration.
+1. Policy evaluation precedes external side effects and authorized replay.
+2. Agents receive only authorized objects, properties, capabilities and tools.
+3. Human approval cannot be represented by an AI role asserting a flag.
+4. Audit, source evidence and historical records remain append-only through ordinary APIs.
+5. Provenance cannot be fabricated by normal domain Action handlers.
+6. Adapter failures reconcile explicitly; local success never implies external success.
+7. Temporal/history access enforces the same actor/property authorization as current-state reads.
+8. Observability, retrieval, compiled cache and management surfaces must not bypass tenant/actor authorization.
+9. Derived/rebuildable projections must never become semantic or source-of-truth authority.
+10. Breaking ontology/application/API contracts require explicit migration/versioning evidence.
 
-## Definition of done for v0.4
+## Documentation policy
 
-- all v0.3 tests pass;
-- query contract supports type/property/relationship + transaction/valid-time filtering;
-- REST, SDK and MCP expose the same query semantics;
-- deliberate breaking ontology change is rejected without a migration manifest;
-- projection provenance identifies source event IDs and projector version;
-- event ingestion is deterministic/idempotent in reference adapters;
-- OpenTelemetry-compatible hooks exist and are authorization-safe;
-- Microsoft mapping contracts are documented/testable without contaminating CEPIO-Core;
-- no live production side effect is introduced unless explicitly opt-in and policy-gated;
-- relevant `docs/wiki/` pages and focused technical documentation are updated in the same PR for every material capability change, or the PR explicitly documents why there is no documentation impact.
+Documentation is part of the product contract.
+
+A PR that materially changes user/developer-visible capability, architecture, semantics, protocols, platform integration, security/governance, deployment, product positioning, release status or roadmap state must update documentation in the same PR.
+
+At minimum consider:
+
+- `docs/current-state.md` — when the mainline capability narrative changes materially;
+- `README.md` — when product positioning, primary interfaces or major capability families change;
+- `docs/README.md` — when a new focused document or Wiki page is added;
+- `docs/wiki/Home.md` — when navigation or product-level narrative changes;
+- `docs/architecture.md` / `docs/wiki/03-Architecture.md` — when architecture boundaries change;
+- `docs/roadmap.md` / `docs/wiki/17-Roadmap.md` — when release-gate state changes;
+- `docs/version-naming.md` — when version taxonomy changes;
+- `RELEASE.md` — only when the published release boundary itself changes; do not rewrite historical release guarantees simply because `main` moved ahead.
+
+Focused technical docs and ADRs remain authoritative for their bounded contracts.
+
+Historical benchmark files should remain historical evidence. If their framing is superseded, add context or links rather than falsifying the historical result.
+
+## Definition of done for engineering changes
+
+A change is not complete until:
+
+- relevant automated tests/qualification pass;
+- source-neutral and customer/IP boundaries remain intact;
+- security/policy/authority invariants remain intact;
+- compatibility/migration obligations are satisfied;
+- documentation is updated or an explicit no-documentation-impact rationale is recorded;
+- product-release or scorecard claims are changed only through their own governed evidence gates.

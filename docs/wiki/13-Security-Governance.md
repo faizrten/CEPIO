@@ -2,9 +2,9 @@
 
 ## Security objective
 
-CEPIO is intended to become an operating abstraction capable of invoking enterprise actions. Security therefore cannot be added only at the UI layer.
+CEPIO can influence enterprise Decisions and invoke governed external Actions. Security, identity and authority therefore belong inside the operating contract, not only in UI or platform configuration.
 
-Authorization must exist inside the runtime contract.
+Current security design must cover not only reads/actions, but also Skills, workflows, hosted MCP, Management, memory/retrieval, Industry IQ pack admission and customer/global knowledge boundaries.
 
 ## Actor context
 
@@ -13,12 +13,34 @@ An actor may represent:
 - human user;
 - application;
 - service principal;
-- integration service;
+- integration workload;
 - AI agent.
 
-Actor context should be derived from authenticated identity and mapped to CEPIO roles/capabilities.
+Actor identity must originate from authenticated hosting context and be mapped into CEPIO roles/authority.
 
-## Read policy
+Identity/roles are not caller- or model-selectable business parameters.
+
+```text
+BAD
+cepio_execute_action(actor_role="admin", ...)
+
+GOOD
+Verified host identity -> CEPIO actor context -> policy / authority
+```
+
+## Core authority invariants
+
+```text
+Knowledge != Authority
+Recommendation != Execution
+Model Output != Evidence
+Index != Source of Truth
+Cache != Authority
+```
+
+A user/agent can be permitted to understand evidence or propose a Decision while remaining unable to execute the resulting Action.
+
+## Read and evidence policy
 
 Read authorization may apply to:
 
@@ -26,83 +48,192 @@ Read authorization may apply to:
 - specific objects;
 - properties;
 - relationship classes;
-- provenance details;
-- temporal history.
+- provenance/evidence detail;
+- temporal history;
+- tenant/profile memory;
+- retrieval results;
+- Management descriptors.
 
-## Function authorization
+Authorization should occur before sensitive result counts, cursor positions, evidence bundles or model context are exposed.
 
-A user or agent may be authorized to run some calculations but not others, especially when functions reveal sensitive commercial or operational information.
+## Function and Skill authorization
+
+Functions and Skills are separate governed capability surfaces.
+
+A Skill must pass runtime/actor-aware READY preflight before execution. Skill procedures receive restricted governed host capabilities rather than raw repository/source-system clients.
+
+Function permission, Skill permission, Decision authority and Action authority remain separable.
 
 ## Action authorization
 
-Actions receive stronger controls:
+Actions require stronger controls:
 
-- role/permission checks;
+- authenticated actor context;
+- policy/role/authority checks;
 - target constraints;
 - state preconditions;
-- approval metadata;
-- optimistic concurrency;
-- idempotency;
-- audit.
+- approval requirements;
+- optimistic concurrency where relevant;
+- actor/action/target-scoped idempotency;
+- immutable audit;
+- external verification/reconciliation for source writes.
 
-## AI safety boundary
+Policy is evaluated before replaying idempotent results so idempotency cannot become an authorization bypass.
 
-Identity and roles must not be model-callable fields.
+## Workflow governance
 
-```text
-BAD
-cepio_execute_action(actor_role="admin", ...)
+Durable workflow instances pin trusted policy/version context and preserve approval/execution lineage.
 
-GOOD
-Authenticated host identity -> actor context -> CEPIO policy
-```
+Governance includes:
 
-## Property filtering
+- exact policy version binding;
+- trusted canonical context derivation;
+- human pause/resume;
+- deny-dominant composition where applicable;
+- Action authorization at execution time;
+- compensation only for supported governed Actions;
+- external verification before final successful Outcome where required.
 
-An agent may be allowed to access an object while certain properties are filtered according to policy.
+## Hosted MCP boundary
 
-This enables broad structural reasoning without exposing restricted fields.
+The hosted `/mcp` gateway is authenticated and binds verified request identity into CEPIO actor context.
+
+Important rules:
+
+- MCP tool schemas do not contain caller-selected roles;
+- actors without mapped CEPIO authority fail closed;
+- normal CEPIO policy remains authoritative for Functions, Skills, recommendations and Actions;
+- host/origin protections apply to Streamable HTTP transport;
+- a least-privilege host profile can remove Action tools entirely for qualification scenarios.
+
+For Microsoft-hosted agents:
+
+> **Microsoft owns generic agent execution. CEPIO owns industrial agency.**
+
+## Management boundary
+
+`/management/v1/*` is a separate authenticated **read-only** projection.
+
+It must not expose:
+
+- mutation commands;
+- policy/authority modification;
+- credentials/secrets;
+- raw environment variables;
+- customer/source payloads;
+- package installation authority;
+- runtime back doors around the Application Contract.
+
+Least-privilege management-reader identity is preferred over broad admin where supported.
+
+## Memory and tenant governance
+
+Durable memory distinguishes global and customer/profile scopes.
+
+Rules include:
+
+- global memory must not contain tenant/customer-specific knowledge;
+- tenant/profile memory has explicit ownership;
+- cross-tenant access fails closed;
+- customer operational memory does not silently become global Industry IQ;
+- PROFILE/customer context is prohibited from shared Compiled Industry IQ cache.
+
+## Retrieval and cache governance
+
+Retrieval/index services are derived projections and must not become authority.
+
+- tenant/expiry constraints are enforced during planning and rechecked after backend retrieval;
+- required evidence must actually be present, not inferred from rank score;
+- optional search/vector/graph backends cannot bypass final ContextAssembler budgets;
+- cache/index loss must be recoverable from authoritative contracts/data;
+- cache contents must not grant maturity, policy or execution authority.
+
+Azure AI Search follows these same boundaries.
+
+## Industry IQ pack trust
+
+External/reusable Industry IQ pack admission is host-controlled.
+
+The trusted-catalogue and supply-chain model can enforce:
+
+- trusted source/publisher;
+- artifact SHA-256 binding;
+- host-verified publisher attestations;
+- SBOM evidence;
+- vulnerability scan evidence;
+- atomic admission;
+- deployment provenance.
+
+A signature reference alone is not treated as cryptographic verification. Skills/agents do not gain discovery/install/upgrade/trust-policy authority.
+
+## Customer-data / IP boundary
+
+Customer-specific data, mappings, formulas, targets, thresholds, procedures, policies and learned operational behavior remain customer/profile-owned unless an explicit governed generalization process approves a safe reusable abstraction.
+
+Protected CEPIO Industry IQ/evaluation assets may remain outside the public repository when publication would expose differentiated intelligence.
+
+## Performance governance
+
+Industry Performance Reference Packs are organization-neutral hypotheses, not universal company truth.
+
+Customer organizations explicitly specialize:
+
+- formulas;
+- targets/thresholds;
+- scopes;
+- accountability;
+- response bindings.
+
+Reference persona accountability must not be interpreted as automatic employee scoring or individual ownership.
 
 ## Audit
 
-High-value runtime operations should produce immutable audit records, particularly:
+High-value operations should retain immutable/auditable records for:
 
-- action requests;
 - policy outcomes;
+- Skill readiness/execution;
+- Decision creation;
 - approvals;
-- execution result;
+- Action request/dispatch;
 - external acknowledgement;
-- reconciliation;
+- verification/reconciliation;
+- workflow Outcomes;
 - actor identity;
 - timestamps;
-- relevant object version.
+- relevant object/workflow versions;
+- source/pack provenance where relevant.
 
-## Ontology governance
+## Ontology and compatibility governance
 
 Semantic governance includes:
 
-- module ownership;
-- module versions;
+- module ownership/versioning;
 - namespace stability;
 - migration manifests;
 - compatibility gates;
 - SHACL validation;
 - explicit acceptance of breaking changes.
 
-## Data governance
+No customer/source field should enter canonical Core solely because one system exposes it.
 
-CEPIO provenance and policy complement—not replace—enterprise governance capabilities such as Purview, data classification and source-system access controls.
+## Enterprise defense in depth
 
-A future deployment should maintain defense in depth across:
+CEPIO policy complements rather than replaces source/platform security:
 
 ```text
-Source system controls
- -> data platform controls
- -> CEPIO policy
+Source-system controls
+ -> platform/data controls
+ -> CEPIO identity / evidence / policy
  -> application/agent permissions
- -> external execution controls
+ -> governed external execution
+ -> source verification/reconciliation
 ```
 
-## Workflow policy v0.5.1
+## Product-governance boundaries
 
-[Workflow policy integration](../workflow-policy-v0.5.1.md) binds exact policy versions to durable workflow instances, derives trusted canonical context, pauses governed actions for human approval, and persists policy evidence through Action, external execution and Outcome.
+- `docs/roadmap.md` controls release-gate narrative.
+- `config/v1-scorecard.yaml` controls numeric v1 maturity.
+- `RELEASE.md` controls the published v0.4 guarantee.
+- merged component capability does not automatically change any of those claims.
+
+See [Current State](../current-state.md), [Code Quality & Governance v2](../governance/code-quality-governance-v2.md) and [IP Publication Policy](../governance/ip-publication-policy.md).
