@@ -154,6 +154,28 @@ def test_reliability_handles_count_conflict_recurrence_and_confidence_edges():
     assert condition_high.confidence.value == "high"
 
 
+@pytest.mark.parametrize("reopen_count", [None, "2", 1.5, -1, -2.0, True])
+def test_reliability_ignores_invalid_or_negative_reopen_counts(reopen_count: object):
+    context = (
+        OntologyObject(
+            id="WO-INVALID",
+            type="WorkOrder",
+            name="Work without a valid reopen count",
+            properties={"status": "planned", "reopen_count": reopen_count},
+        ),
+    )
+
+    contribution = ReliabilityReasoningContributor().contribute(
+        reasoning_request(context),
+        BoundedReasoningHost(context),
+    )
+
+    assert len(contribution.evidence) == 1
+    assert contribution.evidence[0].reference.role == EvidenceRole.contextual
+    assert "reopen_count=" not in contribution.evidence[0].summary
+    assert contribution.hypotheses == ()
+
+
 def test_performance_reasoning_translates_missing_domain_pack_fail_closed():
     runtime = build_runtime()
     runtime.upsert_object(
@@ -180,9 +202,7 @@ def test_performance_reasoning_translates_missing_domain_pack_fail_closed():
         name="Edge performance",
         layer="organization",
         organization_id="org-edge",
-        subjects=(
-            PerformanceSubject(id="operations", kind="function", name="Operations"),
-        ),
+        subjects=(PerformanceSubject(id="operations", kind="function", name="Operations"),),
         nodes=(
             PerformanceNode(
                 id="availability",
