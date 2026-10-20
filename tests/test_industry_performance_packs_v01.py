@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from cepio.industry_performance_packs import (
     DRILLING_CONTRACTOR_PERFORMANCE_PACK_ID,
     REFINERY_PERFORMANCE_PACK_ID,
@@ -248,3 +250,8 @@ def test_pack_lookup_uses_stable_contract_identity():
 
     assert refinery.id == REFINERY_PERFORMANCE_PACK_ID
     assert drilling.id == DRILLING_CONTRACTOR_PERFORMANCE_PACK_ID
+
+
+def test_pack_lookup_rejects_unknown_contract_identity():
+    with pytest.raises(KeyError, match="Unknown industry performance pack: missing"):
+        industry_performance_pack("missing")
