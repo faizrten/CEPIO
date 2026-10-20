@@ -1,0 +1,567 @@
+schema_version: "1.0"
+scorecard_version: "1.0.0"
+product: CEPIO
+target_release: v1.0
+canonical: true
+north_star: >-
+  CEPIO is the portable industrial operating intelligence layer for Energy & Process
+  Industries: thin in infrastructure, thick in industrial intelligence.
+scoring:
+  total_points: 100
+  baseline_date: "2026-10-20"
+  baseline_commit: "a179e9cfc0dbf5e866a6a6aa143eb4290e79918d"
+  baseline_points: 69
+  governance_document: "docs/governance/v1-scorecard-governance.md"
+  rules:
+    - id: exact-100
+      text: The scorecard always contains exactly 100 available points.
+    - id: evidence-required
+      text: Every earned point requires explicit independently verifiable evidence.
+    - id: merged-evidence-only
+      text: Open pull requests may be referenced as progress evidence but cannot contribute earned points.
+    - id: partial-credit
+      text: Partial credit is allowed only for independently verifiable sub-capabilities with an explicit credit basis.
+    - id: release-gate-independence
+      text: Product release qualification remains independent of this maturity score.
+    - id: no-infrastructure-padding
+      text: Generic infrastructure earns points only when required by a concrete CEPIO operating-intelligence contract or enterprise proof.
+    - id: score-regression
+      text: Invalidated or regressed evidence must reduce the score through a governed pull request.
+    - id: public-boundary
+      text: Customer-confidential and protected Industry IQ details must not be copied into the public scorecard.
+stages:
+  - id: foundation
+    name: Foundation / Core
+    release_scope: v0.1-v0.4
+    points: 30
+    earned: 30
+    gates:
+      - id: F1
+        title: Semantic scaffold and canonical operating concepts
+        points: 5
+        earned: 5
+        status: qualified
+        evidence:
+          - kind: repository
+            ref: docs/roadmap.md
+            state: main
+            counts_toward_score: true
+            claim: v0.1 Semantic Scaffold is recorded as completed.
+      - id: F2
+        title: Operational kernel, policy, actions, persistence and SDK foundations
+        points: 5
+        earned: 5
+        status: qualified
+        evidence:
+          - kind: repository
+            ref: docs/roadmap.md
+            state: main
+            counts_toward_score: true
+            claim: v0.2 Operational Kernel is recorded as completed.
+      - id: F3
+        title: Temporal, provenance and replayable event-to-state kernel
+        points: 5
+        earned: 5
+        status: qualified
+        evidence:
+          - kind: repository
+            ref: docs/roadmap.md
+            state: main
+            counts_toward_score: true
+            claim: v0.3 Temporal and Provenance Kernel is recorded as completed.
+      - id: F4
+        title: Developer Preview API, identity, deployment and observability baseline
+        points: 6
+        earned: 6
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #69"
+            state: merged
+            counts_toward_score: true
+            claim: CEPIO v0.4 Developer Preview release gate qualified.
+      - id: F5
+        title: Governance, compatibility, security and quality ratchets
+        points: 5
+        earned: 5
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #142"
+            state: merged
+            counts_toward_score: true
+            claim: Code Quality and Governance v2 established architecture, compatibility, security and release-evidence gates.
+          - kind: pull_request
+            ref: "PR #178"
+            state: merged
+            counts_toward_score: true
+            claim: Unexpected-warning budget is fail-closed.
+          - kind: pull_request
+            ref: "PR #224"
+            state: merged
+            counts_toward_score: true
+            claim: Strict typing ratchet protects stable runtime and binding boundaries.
+      - id: F6
+        title: Pulled-forward workflow, policy, Skill and governed-outcome foundations
+        points: 4
+        earned: 4
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #150"
+            state: merged
+            counts_toward_score: true
+            claim: READY-only Skill dispatch is enforced.
+          - kind: pull_request
+            ref: "PR #203"
+            state: merged
+            counts_toward_score: true
+            claim: One executable Skill contract is converged across REST, SDK and MCP without bypassing authority.
+
+  - id: v0.5
+    name: Platform Portability
+    release_scope: v0.5
+    points: 15
+    earned: 8
+    gates:
+      - id: P1
+        title: Provider-neutral evidence and action binding contract
+        points: 3
+        earned: 3
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #205"
+            state: merged
+            counts_toward_score: true
+            claim: Thin provider-neutral platform-binding scaffold and conformance contract landed on main.
+          - kind: pull_request
+            ref: "PR #233"
+            state: merged
+            counts_toward_score: true
+            claim: Binding Contract v0.1 made provider registration and management projection canonical.
+      - id: P2
+        title: Fabric-native observation/evidence plane with preserved provenance
+        points: 3
+        earned: 2
+        status: in_progress
+        credit_basis: >-
+          Fabric-shaped provider parity and the real Entra-authenticated SQL transport path are merged,
+          but a successful live environment qualification is not yet a product release claim.
+        evidence:
+          - kind: pull_request
+            ref: "PR #219"
+            state: merged
+            counts_toward_score: true
+            claim: Drilling NPT produces the same semantic result over Synthetic and Fabric-shaped evidence.
+          - kind: pull_request
+            ref: "PR #236"
+            state: merged
+            counts_toward_score: true
+            claim: Secretless Fabric SQL live-proof transport path is available; merge does not itself claim a live PASS.
+      - id: P3
+        title: Cognite-native evidence binding without graph duplication
+        points: 3
+        earned: 0
+        status: planned
+        evidence: []
+      - id: P4
+        title: Cross-platform identity and same-Skill Fabric/Cognite parity
+        points: 3
+        earned: 1
+        status: in_progress
+        credit_basis: >-
+          Provider-neutral identity/provenance and same-capability Synthetic/Fabric parity are qualified,
+          while Cognite parity remains unproven.
+        evidence:
+          - kind: pull_request
+            ref: "PR #219"
+            state: merged
+            counts_toward_score: true
+            claim: Same Drilling NPT Industry IQ capability preserves semantic signature across two evidence providers.
+      - id: P5
+        title: Source-authoritative governed action with write, verify and reconcile
+        points: 3
+        earned: 2
+        status: in_progress
+        credit_basis: >-
+          Governed external write, idempotent dispatch, verification and reconciliation are qualified
+          through the generic runtime and conformance harness; real SAP source qualification remains open.
+        evidence:
+          - kind: pull_request
+            ref: "PR #205"
+            state: merged
+            counts_toward_score: true
+            claim: Governed-action conformance reuses the existing Action Runtime write/verify/reconcile path.
+
+  - id: v0.6
+    name: Industry IQ v1
+    release_scope: v0.6
+    points: 15
+    earned: 13
+    gates:
+      - id: I1
+        title: Versioned Industry IQ pack registry and deterministic composition
+        points: 3
+        earned: 3
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #188"
+            state: merged
+            counts_toward_score: true
+            claim: Versioned Industry IQ pack registry and deterministic composition are on main.
+          - kind: pull_request
+            ref: "PR #204"
+            state: merged
+            counts_toward_score: true
+            claim: Skill-to-pack semantic-version compatibility fails closed before dispatch.
+      - id: I2
+        title: Reliability / Maintenance Industry IQ capability depth
+        points: 3
+        earned: 2
+        status: in_progress
+        credit_basis: >-
+          Maintenance-deferral reasoning is executable through the Application Contract and converged
+          protocols, but a coherent release-qualified Reliability/Maintenance v1 pack remains open.
+        evidence:
+          - kind: pull_request
+            ref: "PR #181"
+            state: merged
+            counts_toward_score: true
+            claim: Maintenance-deferral runtime capability, decision and governed action boundary are on main.
+          - kind: pull_request
+            ref: "PR #203"
+            state: merged
+            counts_toward_score: true
+            claim: Maintenance Skill evaluation is protocol-converged without implicit action execution.
+      - id: I3
+        title: Drilling Industry IQ capability depth and portability pressure test
+        points: 3
+        earned: 3
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #184"
+            state: merged
+            counts_toward_score: true
+            claim: Drilling NPT Industry IQ pack established the thin-Core/thick-IQ boundary.
+          - kind: pull_request
+            ref: "PR #222"
+            state: merged
+            counts_toward_score: true
+            claim: Rig Readiness Industry IQ composes cross-functional evidence and governed human action.
+          - kind: pull_request
+            ref: "PR #223"
+            state: merged
+            counts_toward_score: true
+            claim: Operator Well Delivery Industry IQ adds a distinct governed operator accountability model.
+      - id: I4
+        title: At least 10 high-value capabilities, including 5 end-to-end governed capabilities
+        points: 3
+        earned: 2
+        status: in_progress
+        credit_basis: >-
+          The repository now contains substantial Petrophysics, Drilling, Maintenance and Enterprise
+          Performance capability depth, but the aggregate five-end-to-end-capability release gate has not
+          yet been frozen and qualified as one portfolio.
+        evidence:
+          - kind: pull_request
+            ref: "PR #185"
+            state: merged
+            counts_toward_score: true
+            claim: Petrophysics v1 covers eight persona journeys on the shared semantic/runtime spine.
+          - kind: pull_request
+            ref: "PR #222"
+            state: merged
+            counts_toward_score: true
+            claim: Rig Readiness provides a governed cross-functional Industry IQ capability.
+          - kind: pull_request
+            ref: "PR #223"
+            state: merged
+            counts_toward_score: true
+            claim: Operator Well Delivery provides a governed operator-side Industry IQ capability.
+          - kind: pull_request
+            ref: "PR #234"
+            state: merged
+            counts_toward_score: true
+            claim: Enterprise Performance can reason from evidence-backed deviation into a governed Decision proposal.
+      - id: I5
+        title: Same Industry IQ capability definition runs across at least two provider configurations
+        points: 3
+        earned: 3
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #219"
+            state: merged
+            counts_toward_score: true
+            claim: The same Drilling NPT capability produces provider-independent semantics across Synthetic and Fabric evidence bindings.
+
+  - id: v0.7
+    name: Assurance + Generalization
+    release_scope: v0.7
+    points: 12
+    earned: 8
+    gates:
+      - id: A1
+        title: Governed domain-onboarding and reusable-capability promotion discipline
+        points: 3
+        earned: 3
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #225"
+            state: merged
+            counts_toward_score: true
+            claim: Domain onboarding is a governed, fail-closed workflow with semantic/runtime qualification and human promotion review.
+      - id: A2
+        title: Protected assurance corpus spans Reliability/Maintenance and Drilling
+        points: 3
+        earned: 2
+        status: in_progress
+        credit_basis: >-
+          Protected benchmark and Skill qualification assets exist for the target domains, while the
+          two-domain production-assurance release gate is not yet frozen and qualified.
+        evidence:
+          - kind: protected_reference
+            ref: CEPIO-Labs/Agent-Challenge-v0.2
+            state: qualified
+            counts_toward_score: true
+            claim: Private unseen model qualification is separated from public deterministic conformance.
+          - kind: protected_reference
+            ref: CEPIO-Labs/maintenance-deferral-skill
+            state: qualified
+            counts_toward_score: true
+            claim: Maintenance Skill qualification remains protected while public runtime contracts stay source-neutral.
+      - id: A3
+        title: Model x platform evaluation matrix separates model quality from binding quality
+        points: 2
+        earned: 1
+        status: in_progress
+        credit_basis: >-
+          Model qualification and provider-parity mechanisms are separated, but a systematic multi-model
+          by multi-platform matrix is not yet a release-qualified artifact.
+        evidence:
+          - kind: protected_reference
+            ref: CEPIO-Labs/Agent-Challenge-v0.2
+            state: qualified
+            counts_toward_score: true
+            claim: Model qualification has a private unseen benchmark boundary.
+          - kind: pull_request
+            ref: "PR #219"
+            state: merged
+            counts_toward_score: true
+            claim: Provider parity is independently qualified at the binding layer.
+      - id: A4
+        title: Portability scoring and provider ablation are measured
+        points: 2
+        earned: 1
+        status: in_progress
+        credit_basis: >-
+          Provider parity is deterministically measured for the Drilling NPT proof, while broader
+          platform/provider ablation and normalized portability scoring remain open.
+        evidence:
+          - kind: pull_request
+            ref: "PR #219"
+            state: merged
+            counts_toward_score: true
+            claim: Synthetic/Fabric semantic-signature parity is a deterministic provider-replacement measurement.
+          - kind: pull_request
+            ref: "PR #236"
+            state: merged
+            counts_toward_score: true
+            claim: The same parity contract now has a live Fabric transport path available for manual qualification.
+      - id: A5
+        title: At least one shared capability promoted using documented generalization evidence
+        points: 2
+        earned: 1
+        status: in_progress
+        credit_basis: >-
+          Cross-customer drilling evidence and governed onboarding establish the promotion discipline,
+          but the canonical capability-registry promotion proof is not yet merged.
+        evidence:
+          - kind: repository
+            ref: generalization/
+            state: main
+            counts_toward_score: true
+            claim: Frozen cross-customer drilling qualification demonstrates reuse without customer-specific semantic overrides.
+          - kind: pull_request
+            ref: "PR #238"
+            state: open
+            counts_toward_score: false
+            claim: Governed compounding/capability-registry promotion is active work and does not contribute points until merged.
+
+  - id: v0.8
+    name: Enterprise Profiles + Native Deployment
+    release_scope: v0.8
+    points: 10
+    earned: 4
+    gates:
+      - id: E1
+        title: Stable enterprise PROFILE packaging and customer-IP boundary
+        points: 3
+        earned: 2
+        status: in_progress
+        credit_basis: >-
+          First-class profile packaging and IP publication controls exist, but qualification against a
+          real enterprise specialization remains open.
+        evidence:
+          - kind: pull_request
+            ref: "PR #46"
+            state: merged
+            counts_toward_score: true
+            claim: First-class customer profile architecture is on main.
+          - kind: repository
+            ref: docs/governance/ip-publication-policy.md
+            state: main
+            counts_toward_score: true
+            claim: Public, protected and customer-confidential publication boundaries are explicit.
+      - id: E2
+        title: One real enterprise profile and native deployment
+        points: 3
+        earned: 0
+        status: planned
+        evidence:
+          - kind: pull_request
+            ref: "PR #235"
+            state: merged
+            counts_toward_score: false
+            claim: Secretless Azure demo deployment automation exists, but it is explicitly non-production and not a real enterprise-profile qualification.
+      - id: E3
+        title: Governed actions, security, telemetry and SLO evidence in the deployed enterprise
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: E4
+        title: Enterprise specialization without forking shared Core/Industry IQ contracts
+        points: 2
+        earned: 2
+        status: qualified
+        evidence:
+          - kind: pull_request
+            ref: "PR #229"
+            state: merged
+            counts_toward_score: true
+            claim: Performance Contracts specialize deterministically from industry reference through organization, role/persona and individual without mutating shared semantics.
+
+  - id: v0.9
+    name: Multi-Enterprise Portability
+    release_scope: v0.9
+    points: 8
+    earned: 1
+    gates:
+      - id: M1
+        title: Enterprise #1 real production-context deployment
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: M2
+        title: Enterprise #2 materially different real production-context deployment
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: M3
+        title: Measured cross-enterprise reuse and portability evidence
+        points: 2
+        earned: 1
+        status: in_progress
+        credit_basis: >-
+          Synthetic cross-customer drilling qualification demonstrates reuse across materially different
+          operating models, but two real enterprise deployments remain required.
+        evidence:
+          - kind: repository
+            ref: generalization/
+            state: main
+            counts_toward_score: true
+            claim: The frozen drilling contract has cross-customer qualification without customer-specific semantic overrides.
+      - id: M4
+        title: Enterprise #1 remains stable when enterprise #2 is introduced
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+
+  - id: v1.0
+    name: Production Guarantees
+    release_scope: v1.0
+    points: 10
+    earned: 5
+    gates:
+      - id: V1
+        title: Stable semantic/API/Skill contracts with explicit compatibility and migration rules
+        points: 2
+        earned: 2
+        status: qualified
+        evidence:
+          - kind: repository
+            ref: openapi/cepio-v1.yaml
+            state: main
+            counts_toward_score: true
+            claim: Stable versioned public API contract is qualification-gated.
+          - kind: pull_request
+            ref: "PR #204"
+            state: merged
+            counts_toward_score: true
+            claim: Skill-to-Industry-IQ compatibility is explicitly version-constrained.
+      - id: V2
+        title: Production-qualified Fabric plus second platform binding and authoritative action binding
+        points: 2
+        earned: 0
+        status: planned
+        evidence: []
+      - id: V3
+        title: Multi-model assurance against the same CEPIO capability corpus
+        points: 2
+        earned: 1
+        status: in_progress
+        credit_basis: >-
+          Model-agnostic contracts and protected unseen evaluation exist, while production multi-model
+          qualification against a frozen v1 corpus remains open.
+        evidence:
+          - kind: protected_reference
+            ref: CEPIO-Labs/Agent-Challenge-v0.2
+            state: qualified
+            counts_toward_score: true
+            claim: Unseen model qualification is isolated from the answering process and public conformance fixtures.
+      - id: V4
+        title: Clean-room implementation from documented Core + Industry IQ + binding contracts
+        points: 2
+        earned: 1
+        status: in_progress
+        credit_basis: >-
+          Developer Preview packaging, protocol contracts, binding documentation and local preflight
+          materially de-risk clean-room adoption; independent clean-room qualification remains open.
+        evidence:
+          - kind: pull_request
+            ref: "PR #186"
+            state: merged
+            counts_toward_score: true
+            claim: Fast/full local preflight provides repeatable developer qualification aligned with hosted CI.
+          - kind: pull_request
+            ref: "PR #233"
+            state: merged
+            counts_toward_score: true
+            claim: Binding Contract v0.1 provides a documented provider-neutral extension boundary.
+      - id: V5
+        title: Security, operations and release guarantees frozen and qualified for CEPIO-owned runtime components
+        points: 2
+        earned: 1
+        status: in_progress
+        credit_basis: >-
+          Governance, security, secretless deployment, observability and release-evidence foundations exist,
+          while production SLO, HA, DR and penetration guarantees remain open.
+        evidence:
+          - kind: pull_request
+            ref: "PR #142"
+            state: merged
+            counts_toward_score: true
+            claim: Governance v2 added security, compatibility and release evidence controls.
+          - kind: pull_request
+            ref: "PR #235"
+            state: merged
+            counts_toward_score: true
+            claim: Approved Azure demo deployments use GitHub OIDC, immutable image digests and environment approval without client secrets.
