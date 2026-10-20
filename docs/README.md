@@ -5,6 +5,8 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 ## Start here
 
 - **[Version naming and delivery status](version-naming.md)** — distinguish CEPIO releases, runtime components, Lab benchmarks and API versions.
+- **[Canonical v1.0 completion scorecard](v1-completion-scorecard.md)** — evidence-backed 100-point product-maturity model and current canonical baseline.
+- **[v1.0 scorecard governance](governance/v1-scorecard-governance.md)** — scoring authority, evidence rules, partial-credit discipline, regression and change control.
 
 - **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality gates, security, compatibility evidence, release qualification and required check names.
 
@@ -44,6 +46,9 @@ This directory contains CEPIO's technical documentation and the curated CEPIO Wi
 
 ## Key technical contracts
 
+- [Canonical v1.0 completion scorecard](v1-completion-scorecard.md)
+- [v1.0 scorecard schema](v1-completion-scorecard.schema.md)
+- [v1.0 scorecard governance](governance/v1-scorecard-governance.md)
 - [Management Control Plane](wiki/21-Management-Control-Plane.md)
 - [ADR-0020 — Management Control Plane v0.1](adr/ADR-0020-management-control-plane-v0.1.md)
 - [Enterprise Performance Graph](wiki/22-Enterprise-Performance-Graph.md)
