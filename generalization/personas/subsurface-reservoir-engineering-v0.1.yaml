@@ -1,0 +1,18 @@
+id: subsurface-reservoir-engineering-personas-v0.1
+version: "0.1"
+personas:
+  - id: reservoir-engineer
+    role: Reservoir Engineer
+    objectives:
+      - maintain a defensible current view of reservoir performance and uncertainty
+      - evaluate development and surveillance options against evidence and model scenarios
+      - protect reserves and field-development decisions from stale or weak assumptions
+      - identify technically credible recovery opportunities without exceeding decision authority
+    information_needs:
+      - authoritative reservoir-model scenario and version lineage
+      - production, pressure, PVT, petrophysical, seismic and core evidence
+      - assumptions, hypotheses, uncertainty and confidence assessments
+      - history-match and forecast evidence with scenario provenance
+      - reserves and field-development-plan dependencies and sensitivities
+      - opportunity, option, recommendation and decision lineage
+      - cross-discipline model-handover and stale-dependency signals
