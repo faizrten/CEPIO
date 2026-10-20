@@ -1,0 +1,275 @@
+id: drilling-contractor-cfo-v0.1
+version: "0.1"
+archetype_id: drilling-contractor-v0.1
+frozen: true
+questions:
+  - id: CFO-001
+    question: >
+      Across the active rig fleet, which rigs and contracts are creating or eroding margin,
+      and what revenue, cost and KPI evidence explains the current position?
+    scope: domain
+    priority: critical
+    personas: [chief-financial-officer]
+    standards: [iadc-model-contracts]
+    capability_tags: [rig-economics, margin, revenue, cost, kpi]
+    capabilities:
+      - id: rig-margin-evidence
+        description: Resolve revenue and cost evidence against the rig or contract without creating a drilling-specific margin ontology.
+        alternatives:
+          - id: commercial-actuals
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#RevenueRecord", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#CostRecord", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#RevenueRecord", predicate: "https://cepio.org/ontology/commercial#revenueFor", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+              - {source: "https://cepio.org/ontology/commercial#CostRecord", predicate: "https://cepio.org/ontology/commercial#costFor", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - id: margin-kpi-observation
+        description: Treat margin as an organization-defined KPI observed for the rig rather than a new canonical class.
+        alternatives:
+          - id: performance-kpi
+            terms:
+              - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationOfKPI", target: "https://cepio.org/ontology/core#KPI"}
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+    runtime: {provenance: true}
+
+  - id: CFO-002
+    question: >
+      How much revenue and cash exposure is at risk from downtime, rate-basis changes,
+      contract obligations and commercial leakage, and which contracts drive the exposure?
+    scope: domain
+    priority: critical
+    personas: [chief-financial-officer]
+    standards: [iadc-model-contracts]
+    capability_tags: [contract-economics, revenue-leakage, cash-exposure, value-at-risk]
+    capabilities:
+      - id: contract-rate-obligation-economics
+        description: Connect contract rate and rate basis to the governed drilling contract and its obligations.
+        alternatives:
+          - id: reusable-contract-economics
+            terms:
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractRate", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#RateBasis", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ContractRate", predicate: "https://cepio.org/ontology/commercial#rateForContract", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+              - {source: "https://cepio.org/ontology/commercial#ContractRate", predicate: "https://cepio.org/ontology/commercial#hasRateBasis", target: "https://cepio.org/ontology/commercial#RateBasis"}
+              - {source: "https://cepio.org/ontology/commercial#ContractObligation", predicate: "https://cepio.org/ontology/commercial#obligationOfContract", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+      - id: commercial-value-at-risk
+        description: Represent prospective financial exposure as a reusable risk object attached to the affected contract.
+        alternatives:
+          - id: contract-risk
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/drilling#DrillingContract", predicate: "https://cepio.org/ontology/core#hasRisk", target: "https://cepio.org/ontology/commercial#ValueAtRisk"}
+    runtime: {provenance: true}
+
+  - id: CFO-003
+    question: >
+      What is the current cash-conversion and working-capital position versus target,
+      which operating entities drive the variance, and where is management response required?
+    scope: domain
+    priority: critical
+    personas: [chief-financial-officer]
+    standards: []
+    capability_tags: [cash-conversion, working-capital, performance-contract, target]
+    capabilities:
+      - id: finance-performance-contract
+        description: Bind organization-specific finance KPIs and targets through the reusable Performance Contract.
+        alternatives:
+          - id: performance-contract-kpi-target
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#PerformanceContract", kind: class}
+              - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#Target", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#PerformanceContract", predicate: "https://cepio.org/ontology/performance#hasPerformanceNode", target: "https://cepio.org/ontology/core#KPI"}
+              - {source: "https://cepio.org/ontology/core#KPI", predicate: "https://cepio.org/ontology/performance#hasTarget", target: "https://cepio.org/ontology/performance#Target"}
+      - id: finance-kpi-variance-context
+        description: Observe the finance KPI for the affected entity so local formulas remain contract/configuration semantics.
+        alternatives:
+          - id: kpi-observation-entity
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationOfKPI", target: "https://cepio.org/ontology/core#KPI"}
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/core#Entity"}
+    runtime: {provenance: true}
+
+  - id: CFO-004
+    question: >
+      Which fleet capex commitments or proposals have the greatest return-on-capital exposure,
+      which rigs do they support, and what performance evidence should constrain approval?
+    scope: domain
+    priority: critical
+    personas: [chief-financial-officer]
+    standards: []
+    capability_tags: [capex, return-on-capital, fleet, investment]
+    capabilities:
+      - id: capital-item-rig-scope
+        description: Attach capital items to the affected rig without creating finance-specific asset identities.
+        alternatives:
+          - id: capital-for-rig
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#CapitalItem", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#OperatingRig", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#CapitalItem", predicate: "https://cepio.org/ontology/commercial#capitalItemFor", target: "https://cepio.org/ontology/drilling#OperatingRig"}
+      - id: return-kpi-evidence
+        description: Express return on capital as an organization-defined KPI with observed performance evidence.
+        alternatives:
+          - id: capital-return-kpi
+            terms:
+              - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#KPIObservation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationOfKPI", target: "https://cepio.org/ontology/core#KPI"}
+              - {source: "https://cepio.org/ontology/performance#KPIObservation", predicate: "https://cepio.org/ontology/performance#observationForEntity", target: "https://cepio.org/ontology/commercial#CapitalItem"}
+    runtime: {provenance: true, kinetic: true}
+
+  - id: CFO-005
+    question: >
+      Under the current downside case, which assumptions and uncertainties drive the largest
+      financial exposure across the fleet, and which management decisions are sensitive to them?
+    scope: domain
+    priority: critical
+    personas: [chief-financial-officer]
+    standards: []
+    capability_tags: [downside-scenario, uncertainty, value-at-risk, decision-exposure]
+    capabilities:
+      - id: economic-scenario-uncertainty
+        description: Keep economic scenario assumptions and uncertainty explicit without embedding the financial model in CEPIO.
+        alternatives:
+          - id: scenario-epistemic-context
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#EconomicScenario", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Assumption", kind: class}
+              - {iri: "https://cepio.org/ontology/core#UncertaintyAssessment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#EconomicScenario", predicate: "https://cepio.org/ontology/core#hasAssumption", target: "https://cepio.org/ontology/core#Assumption"}
+              - {source: "https://cepio.org/ontology/commercial#EconomicScenario", predicate: "https://cepio.org/ontology/core#hasUncertaintyAssessment", target: "https://cepio.org/ontology/core#UncertaintyAssessment"}
+      - id: downside-decision-exposure
+        description: Trace scenario financial risk and uncertainty into the decisions they constrain.
+        alternatives:
+          - id: scenario-risk-decision
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ValueAtRisk", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#EconomicScenario", predicate: "https://cepio.org/ontology/core#hasRisk", target: "https://cepio.org/ontology/commercial#ValueAtRisk"}
+              - {source: "https://cepio.org/ontology/core#UncertaintyAssessment", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/kinetic#Decision"}
+    runtime: {provenance: true, kinetic: true}
+
+  - id: CFO-006
+    question: >
+      Which drilling contracts have the greatest value leakage or acceptance exposure,
+      what obligation or service-delivery evidence explains it, and what revenue is affected?
+    scope: domain
+    priority: required
+    personas: [chief-financial-officer]
+    standards: [iadc-model-contracts]
+    capability_tags: [contract-leakage, obligations, acceptance, revenue]
+    capabilities:
+      - id: service-contract-evidence-chain
+        description: Trace contracted service execution through obligation, delivery evidence and customer acceptance.
+        alternatives:
+          - id: service-evidence-acceptance
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#ServiceExecution", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ContractObligation", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", kind: class}
+              - {iri: "https://cepio.org/ontology/commercial#ServiceAcceptance", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#governedByObligation", target: "https://cepio.org/ontology/commercial#ContractObligation"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceExecution", predicate: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", target: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence"}
+              - {source: "https://cepio.org/ontology/commercial#ServiceAcceptance", predicate: "https://cepio.org/ontology/commercial#acceptanceOfService", target: "https://cepio.org/ontology/commercial#ServiceExecution"}
+      - id: contract-revenue-impact
+        description: Relate revenue evidence to the drilling contract affected by acceptance or obligation performance.
+        alternatives:
+          - id: revenue-contract
+            terms:
+              - {iri: "https://cepio.org/ontology/commercial#RevenueRecord", kind: class}
+              - {iri: "https://cepio.org/ontology/drilling#DrillingContract", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/commercial#RevenueRecord", predicate: "https://cepio.org/ontology/commercial#revenueFor", target: "https://cepio.org/ontology/drilling#DrillingContract"}
+    runtime: {provenance: true}
+
+  - id: CFO-007
+    question: >
+      Given competing fleet investment opportunities, what options are available, what is recommended,
+      and which authoritative capital-allocation decision has or has not been made?
+    scope: domain
+    priority: critical
+    personas: [chief-financial-officer]
+    standards: []
+    capability_tags: [capital-allocation, opportunity, option, recommendation, decision]
+    capabilities:
+      - id: capital-allocation-options
+        description: Structure fleet investment opportunities and options against the enterprise objective.
+        alternatives:
+          - id: kinetic-investment-chain
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Objective", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Opportunity", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Option", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#OptionRecommendation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#opportunityForObjective", target: "https://cepio.org/ontology/core#Objective"}
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#hasOption", target: "https://cepio.org/ontology/kinetic#Option"}
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#hasRecommendation", target: "https://cepio.org/ontology/kinetic#OptionRecommendation"}
+              - {source: "https://cepio.org/ontology/kinetic#OptionRecommendation", predicate: "https://cepio.org/ontology/kinetic#recommendsOption", target: "https://cepio.org/ontology/kinetic#Option"}
+      - id: capital-allocation-decision
+        description: Separate finance recommendation from authoritative capital-allocation decision.
+        alternatives:
+          - id: kinetic-investment-decision
+            terms:
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#addressesOpportunity", target: "https://cepio.org/ontology/kinetic#Opportunity"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#basedOnRecommendation", target: "https://cepio.org/ontology/kinetic#OptionRecommendation"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#selectedOption", target: "https://cepio.org/ontology/kinetic#Option"}
+    runtime: {provenance: true, kinetic: true}
+
+  - id: CFO-008
+    question: >
+      Which CFO objectives, KPIs, targets and guardrails are currently off track,
+      what accountability is attached to them, and which governed response should follow?
+    scope: domain
+    priority: critical
+    personas: [chief-financial-officer]
+    standards: []
+    capability_tags: [performance-contract, accountability, guardrails, response]
+    capabilities:
+      - id: cfo-performance-accountability
+        description: Bind CFO objectives and KPIs to targets, guardrails and accountability through the Performance Contract.
+        alternatives:
+          - id: performance-accountability
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#PerformanceContract", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Objective", kind: class}
+              - {iri: "https://cepio.org/ontology/core#KPI", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#Target", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#Guardrail", kind: class}
+              - {iri: "https://cepio.org/ontology/performance#Accountability", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#PerformanceContract", predicate: "https://cepio.org/ontology/performance#hasPerformanceNode", target: "https://cepio.org/ontology/core#Objective"}
+              - {source: "https://cepio.org/ontology/performance#PerformanceContract", predicate: "https://cepio.org/ontology/performance#hasPerformanceNode", target: "https://cepio.org/ontology/core#KPI"}
+              - {source: "https://cepio.org/ontology/core#KPI", predicate: "https://cepio.org/ontology/performance#hasTarget", target: "https://cepio.org/ontology/performance#Target"}
+              - {source: "https://cepio.org/ontology/performance#PerformanceContract", predicate: "https://cepio.org/ontology/performance#hasGuardrail", target: "https://cepio.org/ontology/performance#Guardrail"}
+              - {source: "https://cepio.org/ontology/performance#PerformanceContract", predicate: "https://cepio.org/ontology/performance#hasAccountability", target: "https://cepio.org/ontology/performance#Accountability"}
+              - {source: "https://cepio.org/ontology/performance#Accountability", predicate: "https://cepio.org/ontology/performance#accountabilityFor", target: "https://cepio.org/ontology/core#KPI"}
+      - id: governed-finance-response
+        description: Attach a governed response binding to the performance contract instead of embedding automation in the KPI definition.
+        alternatives:
+          - id: response-binding
+            terms:
+              - {iri: "https://cepio.org/ontology/performance#PerformanceResponseBinding", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/performance#PerformanceContract", predicate: "https://cepio.org/ontology/performance#hasResponseBinding", target: "https://cepio.org/ontology/performance#PerformanceResponseBinding"}
+              - {source: "https://cepio.org/ontology/performance#PerformanceResponseBinding", predicate: "https://cepio.org/ontology/performance#responseFor", target: "https://cepio.org/ontology/core#KPI"}
+    runtime: {provenance: true, kinetic: true}
