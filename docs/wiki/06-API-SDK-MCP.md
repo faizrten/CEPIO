@@ -222,6 +222,8 @@ Callers/models cannot submit their own CEPIO roles.
 
 The hosted gateway also applies transport host/origin protections. Anonymous access is rejected before MCP protocol dispatch.
 
+The Azure deployment workflow contains an explicit anonymous `/mcp` authentication smoke gate. A live deployment/environment qualification remains evidence that must be established by the corresponding deployment run rather than inferred from repository merge alone.
+
 See [Foundry + MCP](../foundry-mcp.md) and ADR-0035.
 
 ## Least-privilege MCP profiles
@@ -303,7 +305,7 @@ Remaining work includes:
 ## Claim boundaries
 
 - **v0.4 FOUNDATION:** public API/developer foundation qualified.
-- **Hosted `/mcp`:** implemented and deployment-qualified as an authenticated protocol surface on current mainline.
+- **Hosted `/mcp`:** implemented in the authenticated hosted composition with deployment smoke requirements; live deployment evidence remains environment-specific.
 - **Management:** implemented as authenticated read-only projection.
 - **Foundry G1 path:** implemented; live G1 PASS is separate.
 - **v0.5 CONNECT and later product releases:** not qualified merely by protocol implementation.
