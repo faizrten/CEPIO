@@ -47,6 +47,14 @@ def test_g1_qualification_passes_from_protocol_evidence():
     assert result.skill_evaluation_count == 1
     assert result.decision_ids == ("decision-1",)
     assert result.evidence_count == 1
+    assert result.to_dict() == {
+        "passed": True,
+        "reasons": [],
+        "tool_names": ["cepio_get_object", "cepio_evaluate_skill"],
+        "skill_evaluation_count": 1,
+        "decision_ids": ["decision-1"],
+        "evidence_count": 1,
+    }
 
 
 def test_g1_qualification_rejects_execution_even_when_skill_succeeds():
@@ -97,3 +105,32 @@ def test_g1_qualification_requires_named_skill_when_requested():
 
     assert result.passed is False
     assert "required Skill was not invoked: required.skill" in result.reasons
+
+
+def test_g1_qualification_rejects_incomplete_skill_output_and_malformed_json():
+    payload = {
+        "output": [
+            {
+                "type": "mcp_call",
+                "name": "cepio_evaluate_skill",
+                "arguments": "{not-valid-json",
+                "output": json.dumps(
+                    {
+                        "status": "completed",
+                        "decision": None,
+                        "evidence": [],
+                        "diagnostic": ["scalar", 7],
+                    }
+                ),
+            }
+        ]
+    }
+
+    result = qualify_g1_response(payload, required_skill_id="required.skill")
+
+    assert result.passed is False
+    assert result.decision_ids == ()
+    assert result.evidence_count == 0
+    assert "required Skill was not invoked: required.skill" in result.reasons
+    assert "no persisted CEPIO Decision identity was found in Skill output" in result.reasons
+    assert "Skill output contained no governed evidence references" in result.reasons
