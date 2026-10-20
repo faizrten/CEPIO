@@ -8,7 +8,11 @@ from cepio.industry_performance_packs import (
     industry_performance_packs,
     refinery_performance_pack,
 )
-from cepio.performance_contract import PerformanceAccountability, PerformanceTarget
+from cepio.performance_contract import (
+    PerformanceAccountability,
+    PerformanceSubject,
+    PerformanceTarget,
+)
 from cepio.performance_resolution import (
     PerformanceContractOverlayV2,
     PerformanceContractResolver,
@@ -131,8 +135,7 @@ def test_refinery_organization_can_specialize_only_owned_kpi_fields_and_accounta
     reference = refinery_performance_pack()
     availability = "cepio.reference.refinery.kpi.operational-availability"
     reference_accountability = (
-        "refinery.reference.operations-manager|"
-        f"{availability}|accountable_for"
+        "refinery.reference.operations-manager|" f"{availability}|accountable_for"
     )
 
     organization = PerformanceContractOverlayV2(
@@ -143,18 +146,16 @@ def test_refinery_organization_can_specialize_only_owned_kpi_fields_and_accounta
         organization_id="example-refinery",
         extends_contract_id=reference.id,
         subjects=(
-            # Organization-specific subjects coexist with the reference persona vocabulary.
-            # The KPI scope is explicitly rebound below rather than inferred by name.
-            __import__("cepio.performance_contract", fromlist=["PerformanceSubject"]).PerformanceSubject(
+            PerformanceSubject(
                 id="example-refinery", kind="enterprise", name="Example Refinery"
             ),
-            __import__("cepio.performance_contract", fromlist=["PerformanceSubject"]).PerformanceSubject(
+            PerformanceSubject(
                 id="example-refinery.operations",
                 kind="function",
                 name="Operations",
                 parent_id="example-refinery",
             ),
-            __import__("cepio.performance_contract", fromlist=["PerformanceSubject"]).PerformanceSubject(
+            PerformanceSubject(
                 id="example-refinery.coo",
                 kind="role",
                 name="Chief Operating Officer",
