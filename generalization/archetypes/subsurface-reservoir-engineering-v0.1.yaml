@@ -1,0 +1,34 @@
+id: subsurface-reservoir-engineering-v0.1
+version: "0.1"
+name: Subsurface Reservoir Engineering reference enterprise
+
+description: >
+  Source-neutral reference archetype for reservoir-engineering reasoning and decision
+  support. OSDU / ADME and specialist subsurface applications remain authoritative for
+  reservoir-model, simulation and technical payloads. CEPIO binds those records to
+  evidence, assumptions, uncertainty, opportunity, recommendation and decision context.
+
+operating_context:
+  - operator subsurface and reservoir-management organization
+  - multidisciplinary reservoir characterization and development planning
+  - model-scenario and forecast assurance across field-development lifecycle
+  - production surveillance, reserves/resource stewardship and opportunity maturation
+  - explicit uncertainty, provenance and decision-right boundaries
+
+source_landscape:
+  - OSDU / ADME Reservoir DDMS and OSDU core services
+  - RESQML reservoir model and earth-model payloads
+  - reservoir simulators and history-match / forecast outputs
+  - production surveillance and PRODML-compatible data sources
+  - pressure, PVT, core, petrophysics and seismic evidence
+  - reserves/resource, field-development-plan, economics and decision records
+
+scenario_seeds:
+  - current reservoir belief and evidence review
+  - reservoir-model scenario lineage and stale-dependency detection
+  - history-match and forecast assurance
+  - reserves and field-development-plan sensitivity
+  - infill-well opportunity and option ranking
+  - surveillance and value-of-information recommendation
+  - petrophysics-to-reservoir-model handover consistency
+  - recommendation, endorsement and authoritative decision separation
