@@ -1,0 +1,31 @@
+id: subsurface-reservoir-engineer-binding-v0.1
+version: "0.1"
+domain: subsurface-reservoir-engineering
+persona_id: reservoir-engineer
+competency_pack_id: subsurface-reservoir-engineering-v0.1
+minimum_question_count: 8
+questions:
+  - question_id: RE-001
+    mode: primary
+    rationale: Reservoir Engineer owns the defensible current reservoir-performance view and its evidence, assumptions and uncertainty.
+  - question_id: RE-002
+    mode: primary
+    rationale: Model-scenario lineage and stale downstream dependencies directly affect reservoir-engineering conclusions and development basis.
+  - question_id: RE-003
+    mode: primary
+    rationale: History-match and forecast assurance are core reservoir-engineering responsibilities while numerical simulation remains external.
+  - question_id: RE-004
+    mode: primary
+    rationale: Reservoir assumptions and uncertainty materially influence reserves/resource and field-development decisions.
+  - question_id: RE-005
+    mode: primary
+    rationale: Reservoir Engineer develops and evaluates recovery and infill options but does not automatically own the authoritative investment decision.
+  - question_id: RE-006
+    mode: primary
+    rationale: Surveillance planning and value-of-information reasoning are central to reducing material reservoir uncertainty.
+  - question_id: RE-007
+    mode: oversight
+    rationale: Reservoir Engineer consumes petrophysical and geological interpretations and must detect inconsistent or stale handovers without taking over source-discipline authority.
+  - question_id: RE-008
+    mode: oversight
+    rationale: Engineering recommendation must remain explicitly separated from reserves, investment or asset-level approval authority.

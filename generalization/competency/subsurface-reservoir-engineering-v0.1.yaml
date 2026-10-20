@@ -1,0 +1,249 @@
+id: subsurface-reservoir-engineering-v0.1
+version: "0.1"
+archetype_id: subsurface-reservoir-engineering-v0.1
+frozen: true
+questions:
+  - id: RE-001
+    question: >
+      For Reservoir R3, what is our current reservoir-performance and development belief,
+      what evidence and assumptions support or contradict it, and what uncertainty and
+      confidence remain?
+    scope: domain
+    priority: critical
+    personas: [reservoir-engineer]
+    standards: [osdu-reservoir-ddms, energistics-resqml-2.2]
+    capability_tags: [reservoir-belief, evidence, uncertainty, provenance]
+    capabilities:
+      - id: evidence-backed-reservoir-belief
+        description: Represent a reservoir belief as a claim constrained by supporting and contradicting evidence.
+        alternatives:
+          - id: core-claim-evidence
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Claim", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Evidence", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#Claim", predicate: "https://cepio.org/ontology/core#supportedBy", target: "https://cepio.org/ontology/core#Evidence"}
+              - {source: "https://cepio.org/ontology/core#Claim", predicate: "https://cepio.org/ontology/core#contradictedBy", target: "https://cepio.org/ontology/core#Evidence"}
+      - id: explicit-assumption-uncertainty-confidence
+        description: Bind assumptions, uncertainty and confidence explicitly to the current belief.
+        alternatives:
+          - id: core-epistemic-assessments
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Assumption", kind: class}
+              - {iri: "https://cepio.org/ontology/core#UncertaintyAssessment", kind: class}
+              - {iri: "https://cepio.org/ontology/core#ConfidenceAssessment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#Claim", predicate: "https://cepio.org/ontology/core#hasAssumption", target: "https://cepio.org/ontology/core#Assumption"}
+              - {source: "https://cepio.org/ontology/core#Claim", predicate: "https://cepio.org/ontology/core#hasUncertaintyAssessment", target: "https://cepio.org/ontology/core#UncertaintyAssessment"}
+              - {source: "https://cepio.org/ontology/core#Claim", predicate: "https://cepio.org/ontology/core#hasConfidenceAssessment", target: "https://cepio.org/ontology/core#ConfidenceAssessment"}
+    runtime: {provenance: true}
+
+  - id: RE-002
+    question: >
+      Which authoritative reservoir-model scenario underpins the current development basis,
+      what scenario superseded what, and which downstream opportunities or decisions are
+      exposed to a stale model dependency?
+    scope: domain
+    priority: critical
+    personas: [reservoir-engineer]
+    standards: [osdu-reservoir-ddms, energistics-resqml-2.2, cepio-osdu-boundary-v0.1]
+    capability_tags: [model-lineage, dependency, provenance]
+    capabilities:
+      - id: reservoir-scenario-lineage
+        description: Preserve source/version lineage and supersession without copying reservoir-model payloads.
+        alternatives:
+          - id: generic-lineage
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Evidence", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#Evidence", predicate: "https://cepio.org/ontology/core#supersedes", target: "https://cepio.org/ontology/core#Evidence"}
+      - id: stale-downstream-dependency
+        description: Trace a model-derived dependency to the enterprise object or decision it can invalidate.
+        alternatives:
+          - id: dependency-spine
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Dependency", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#Dependency", predicate: "https://cepio.org/ontology/core#dependencySource", target: "https://cepio.org/ontology/core#Entity"}
+              - {source: "https://cepio.org/ontology/core#Dependency", predicate: "https://cepio.org/ontology/core#dependencyTarget", target: "https://cepio.org/ontology/core#Entity"}
+    runtime: {provenance: true, temporal: true}
+
+  - id: RE-003
+    question: >
+      Across the current history-match and forecast scenarios, what evidence supports each
+      performance hypothesis, where do scenarios disagree, and which forecast uncertainty
+      should constrain the engineering conclusion?
+    scope: domain
+    priority: required
+    personas: [reservoir-engineer]
+    standards: [energistics-resqml-2.2, energistics-prodml-2.3]
+    capability_tags: [forecast-assurance, scenario-comparison, uncertainty]
+    capabilities:
+      - id: forecast-assurance
+        description: Represent forecast assurance as an assessment over evidence and uncertainty, not a simulator calculation.
+        alternatives:
+          - id: assessment-evidence-uncertainty
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Assessment", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Evidence", kind: class}
+              - {iri: "https://cepio.org/ontology/core#UncertaintyAssessment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#Assessment", predicate: "https://cepio.org/ontology/core#hasEvidence", target: "https://cepio.org/ontology/core#Evidence"}
+              - {source: "https://cepio.org/ontology/core#Assessment", predicate: "https://cepio.org/ontology/core#hasUncertaintyAssessment", target: "https://cepio.org/ontology/core#UncertaintyAssessment"}
+      - id: competing-reservoir-hypotheses
+        description: Keep alternative reservoir explanations explicit and evidence-backed.
+        alternatives:
+          - id: hypothesis-evidence
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Hypothesis", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Evidence", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#Hypothesis", predicate: "https://cepio.org/ontology/core#supportedBy", target: "https://cepio.org/ontology/core#Evidence"}
+              - {source: "https://cepio.org/ontology/core#Hypothesis", predicate: "https://cepio.org/ontology/core#contradictedBy", target: "https://cepio.org/ontology/core#Evidence"}
+    runtime: {provenance: true}
+
+  - id: RE-004
+    question: >
+      Which reservoir assumptions and uncertainties materially affect the reserves/resource
+      or field-development basis, and which opportunities or decisions are exposed to them?
+    scope: domain
+    priority: critical
+    personas: [reservoir-engineer]
+    standards: [spe-prms-2018, energistics-resqml-2.2]
+    capability_tags: [reserves, fdp, uncertainty, decision-exposure]
+    capabilities:
+      - id: uncertainty-to-decision-sensitivity
+        description: Connect uncertainty assessments to decision context without performing numerical uncertainty propagation.
+        alternatives:
+          - id: uncertainty-impact
+            terms:
+              - {iri: "https://cepio.org/ontology/core#UncertaintyAssessment", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#UncertaintyAssessment", predicate: "https://cepio.org/ontology/core#impacts", target: "https://cepio.org/ontology/kinetic#Decision"}
+      - id: assumption-dependency-trace
+        description: Trace assumption-driven dependencies into downstream development artifacts or decisions.
+        alternatives:
+          - id: assumption-dependency
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Assumption", kind: class}
+              - {iri: "https://cepio.org/ontology/core#Dependency", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#Dependency", predicate: "https://cepio.org/ontology/core#dependencySource", target: "https://cepio.org/ontology/core#Assumption"}
+              - {source: "https://cepio.org/ontology/core#Dependency", predicate: "https://cepio.org/ontology/core#dependencyTarget", target: "https://cepio.org/ontology/core#Entity"}
+    runtime: {provenance: true, kinetic: true}
+
+  - id: RE-005
+    question: >
+      For remaining hydrocarbons in Reservoir R3, what infill or recovery opportunity exists,
+      what options are credible, what is recommended, and what authoritative decision has
+      or has not been made?
+    scope: domain
+    priority: critical
+    personas: [reservoir-engineer]
+    standards: [osdu-reservoir-ddms, energistics-resqml-2.2]
+    capability_tags: [opportunity, options, recommendation, decision]
+    capabilities:
+      - id: reservoir-opportunity-options
+        description: Structure development opportunities, options and recommendations against objectives.
+        alternatives:
+          - id: kinetic-opportunity-chain
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Objective", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Opportunity", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Option", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#OptionRecommendation", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#opportunityForObjective", target: "https://cepio.org/ontology/core#Objective"}
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#hasOption", target: "https://cepio.org/ontology/kinetic#Option"}
+              - {source: "https://cepio.org/ontology/kinetic#Opportunity", predicate: "https://cepio.org/ontology/kinetic#hasRecommendation", target: "https://cepio.org/ontology/kinetic#OptionRecommendation"}
+              - {source: "https://cepio.org/ontology/kinetic#OptionRecommendation", predicate: "https://cepio.org/ontology/kinetic#recommendsOption", target: "https://cepio.org/ontology/kinetic#Option"}
+      - id: reservoir-decision-lineage
+        description: Keep recommendation separate from the authoritative option-selection decision.
+        alternatives:
+          - id: kinetic-decision-chain
+            terms:
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#addressesOpportunity", target: "https://cepio.org/ontology/kinetic#Opportunity"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#basedOnRecommendation", target: "https://cepio.org/ontology/kinetic#OptionRecommendation"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#selectedOption", target: "https://cepio.org/ontology/kinetic#Option"}
+    runtime: {provenance: true, kinetic: true}
+
+  - id: RE-006
+    question: >
+      What additional surveillance or subsurface evidence would most reduce the uncertainty
+      material to the next reservoir decision, and what uncertainty would that information address?
+    scope: domain
+    priority: required
+    personas: [reservoir-engineer]
+    standards: [energistics-prodml-2.3, cepio-osdu-boundary-v0.1]
+    capability_tags: [surveillance, information-gain, uncertainty]
+    capabilities:
+      - id: value-of-information-semantics
+        description: Represent information gain and the uncertainty it addresses while leaving EVPI/EVSI calculation to external engines.
+        alternatives:
+          - id: information-gain-spine
+            terms:
+              - {iri: "https://cepio.org/ontology/core#Evidence", kind: class}
+              - {iri: "https://cepio.org/ontology/core#UncertaintyAssessment", kind: class}
+              - {iri: "https://cepio.org/ontology/core#InformationGain", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/core#Evidence", predicate: "https://cepio.org/ontology/core#reducesUncertainty", target: "https://cepio.org/ontology/core#UncertaintyAssessment"}
+              - {source: "https://cepio.org/ontology/core#InformationGain", predicate: "https://cepio.org/ontology/core#informationGainFor", target: "https://cepio.org/ontology/core#UncertaintyAssessment"}
+    runtime: {provenance: true}
+
+  - id: RE-007
+    question: >
+      Show how the authoritative formation evaluation propagated into the current reservoir
+      model/development basis, where cross-discipline interpretations disagree, and which
+      downstream dependencies are stale or exposed.
+    scope: domain
+    priority: required
+    personas: [reservoir-engineer]
+    standards: [osdu-reservoir-ddms, energistics-resqml-2.2, cepio-osdu-boundary-v0.1]
+    capability_tags: [cross-discipline, handover, consistency, dependency]
+    capabilities:
+      - id: petrophysics-reservoir-handover
+        description: Trace formation-evaluation context into downstream reservoir-model or decision consumers.
+        alternatives:
+          - id: subsurface-handover
+            terms:
+              - {iri: "https://cepio.org/ontology/subsurface#ModelHandoverTrace", kind: class}
+              - {iri: "https://cepio.org/ontology/subsurface#FormationEvaluationCase", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/subsurface#ModelHandoverTrace", predicate: "https://cepio.org/ontology/subsurface#tracesFromCase", target: "https://cepio.org/ontology/subsurface#FormationEvaluationCase"}
+              - {source: "https://cepio.org/ontology/subsurface#ModelHandoverTrace", predicate: "https://cepio.org/ontology/subsurface#tracesTo", target: "https://cepio.org/ontology/core#Entity"}
+      - id: cross-discipline-consistency
+        description: Represent a governed consistency assessment over the handover context.
+        alternatives:
+          - id: subsurface-consistency-assessment
+            terms:
+              - {iri: "https://cepio.org/ontology/subsurface#InterpretationConsistencyAssessment", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/subsurface#InterpretationConsistencyAssessment", predicate: "https://cepio.org/ontology/core#assesses", target: "https://cepio.org/ontology/subsurface#ModelHandoverTrace"}
+    runtime: {provenance: true}
+
+  - id: RE-008
+    question: >
+      What development option can the Reservoir Engineer recommend from the current evidence,
+      and what approval or authoritative decision remains outside the engineer's autonomous authority?
+    scope: domain
+    priority: critical
+    personas: [reservoir-engineer]
+    standards: [spe-prms-2018, cepio-osdu-boundary-v0.1]
+    capability_tags: [authority, policy, recommendation, decision]
+    capabilities:
+      - id: recommendation-decision-separation
+        description: Preserve the distinction between an engineering recommendation and an authoritative decision.
+        alternatives:
+          - id: kinetic-recommendation-decision
+            terms:
+              - {iri: "https://cepio.org/ontology/kinetic#OptionRecommendation", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Decision", kind: class}
+              - {iri: "https://cepio.org/ontology/kinetic#Option", kind: class}
+            edges:
+              - {source: "https://cepio.org/ontology/kinetic#OptionRecommendation", predicate: "https://cepio.org/ontology/kinetic#recommendsOption", target: "https://cepio.org/ontology/kinetic#Option"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#basedOnRecommendation", target: "https://cepio.org/ontology/kinetic#OptionRecommendation"}
+              - {source: "https://cepio.org/ontology/kinetic#Decision", predicate: "https://cepio.org/ontology/kinetic#selectedOption", target: "https://cepio.org/ontology/kinetic#Option"}
+    runtime: {provenance: true, policy: true, kinetic: true}

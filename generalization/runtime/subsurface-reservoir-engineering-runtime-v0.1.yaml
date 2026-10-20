@@ -1,0 +1,154 @@
+id: subsurface-reservoir-engineering-runtime-v0.1
+version: "0.1"
+archetype_id: subsurface-reservoir-engineering-v0.1
+competency_pack: generalization/competency/subsurface-reservoir-engineering-v0.1.yaml
+description: >
+  Deterministic source-neutral runtime evidence for the frozen Reservoir Engineer
+  capability contract. External reservoir models and simulator outputs are represented
+  only by reference-like fixture objects; no technical payload or numerical simulation is
+  implemented by CEPIO.
+questions:
+  - question_id: RE-001
+    claim: Resolve current reservoir belief, supporting and contradicting evidence, assumptions and uncertainty.
+    capabilities: [evidence-backed-reservoir-belief, explicit-assumption-uncertainty-confidence]
+    objects:
+      - {id: CLAIM-R3, type: "https://cepio.org/ontology/core#Claim", name: R3 current reservoir belief}
+      - {id: EVID-PROD, type: "https://cepio.org/ontology/core#Evidence", name: R3 production response}
+      - {id: EVID-PRES, type: "https://cepio.org/ontology/core#Evidence", name: R3 pressure disagreement}
+      - {id: ASM-CONN, type: "https://cepio.org/ontology/core#Assumption", name: Inter-compartment connectivity assumption}
+      - {id: UA-R3, type: "https://cepio.org/ontology/core#UncertaintyAssessment", name: R3 connectivity uncertainty}
+      - {id: CA-R3, type: "https://cepio.org/ontology/core#ConfidenceAssessment", name: R3 belief confidence}
+    relationships:
+      - {id: claim-supported, type: "https://cepio.org/ontology/core#supportedBy", source: CLAIM-R3, target: EVID-PROD}
+      - {id: claim-contradicted, type: "https://cepio.org/ontology/core#contradictedBy", source: CLAIM-R3, target: EVID-PRES}
+      - {id: claim-assumption, type: "https://cepio.org/ontology/core#hasAssumption", source: CLAIM-R3, target: ASM-CONN}
+      - {id: claim-uncertainty, type: "https://cepio.org/ontology/core#hasUncertaintyAssessment", source: CLAIM-R3, target: UA-R3}
+      - {id: claim-confidence, type: "https://cepio.org/ontology/core#hasConfidenceAssessment", source: CLAIM-R3, target: CA-R3}
+    probes:
+      - {id: supporting-evidence, kind: relationship, start_id: CLAIM-R3, relationship_type: "https://cepio.org/ontology/core#supportedBy", expected_ids: [EVID-PROD]}
+      - {id: contradicting-evidence, kind: relationship, start_id: CLAIM-R3, relationship_type: "https://cepio.org/ontology/core#contradictedBy", expected_ids: [EVID-PRES]}
+      - {id: uncertainty, kind: relationship, start_id: CLAIM-R3, relationship_type: "https://cepio.org/ontology/core#hasUncertaintyAssessment", expected_ids: [UA-R3]}
+
+  - question_id: RE-002
+    claim: Resolve reservoir-model scenario supersession and stale downstream decision dependency.
+    capabilities: [reservoir-scenario-lineage, stale-downstream-dependency]
+    objects:
+      - {id: RM-21, type: "https://cepio.org/runtime#ExternalRecordReference", name: OSDU ReservoirModelScenario RM-21, properties: {source_system: osdu, source_service: reservoir_ddms, record_version: 21}}
+      - {id: RM-20, type: "https://cepio.org/runtime#ExternalRecordReference", name: OSDU ReservoirModelScenario RM-20, properties: {source_system: osdu, source_service: reservoir_ddms, record_version: 20}}
+      - {id: DEP-RM20, type: "https://cepio.org/ontology/core#Dependency", name: Stale RM-20 decision dependency}
+      - {id: DEC-INFILL, type: "https://cepio.org/ontology/kinetic#Decision", name: Infill well decision basis}
+    relationships:
+      - {id: supersession, type: "https://cepio.org/ontology/core#supersedes", source: RM-21, target: RM-20}
+      - {id: dependency-source, type: "https://cepio.org/ontology/core#dependencySource", source: DEP-RM20, target: RM-20}
+      - {id: dependency-target, type: "https://cepio.org/ontology/core#dependencyTarget", source: DEP-RM20, target: DEC-INFILL}
+    probes:
+      - {id: prior-model, kind: relationship, start_id: RM-21, relationship_type: "https://cepio.org/ontology/core#supersedes", expected_ids: [RM-20]}
+      - {id: stale-source, kind: relationship, start_id: DEP-RM20, relationship_type: "https://cepio.org/ontology/core#dependencySource", expected_ids: [RM-20]}
+      - {id: exposed-decision, kind: relationship, start_id: DEP-RM20, relationship_type: "https://cepio.org/ontology/core#dependencyTarget", expected_ids: [DEC-INFILL]}
+
+  - question_id: RE-003
+    claim: Resolve forecast assurance evidence, uncertainty and competing reservoir hypotheses.
+    capabilities: [forecast-assurance, competing-reservoir-hypotheses]
+    objects:
+      - {id: ASSESS-FCST, type: "https://cepio.org/ontology/core#Assessment", name: R3 forecast assurance assessment}
+      - {id: EVID-HM, type: "https://cepio.org/ontology/core#Evidence", name: History match evidence}
+      - {id: EVID-FCST, type: "https://cepio.org/ontology/core#Evidence", name: Forecast response evidence}
+      - {id: UA-FCST, type: "https://cepio.org/ontology/core#UncertaintyAssessment", name: Forecast uncertainty}
+      - {id: HYP-CONN, type: "https://cepio.org/ontology/core#Hypothesis", name: Strong aquifer connectivity hypothesis}
+    relationships:
+      - {id: assessment-history, type: "https://cepio.org/ontology/core#hasEvidence", source: ASSESS-FCST, target: EVID-HM}
+      - {id: assessment-forecast, type: "https://cepio.org/ontology/core#hasEvidence", source: ASSESS-FCST, target: EVID-FCST}
+      - {id: assessment-uncertainty, type: "https://cepio.org/ontology/core#hasUncertaintyAssessment", source: ASSESS-FCST, target: UA-FCST}
+      - {id: hypothesis-support, type: "https://cepio.org/ontology/core#supportedBy", source: HYP-CONN, target: EVID-HM}
+      - {id: hypothesis-challenge, type: "https://cepio.org/ontology/core#contradictedBy", source: HYP-CONN, target: EVID-FCST}
+    probes:
+      - {id: assurance-evidence, kind: relationship, start_id: ASSESS-FCST, relationship_type: "https://cepio.org/ontology/core#hasEvidence", expected_ids: [EVID-FCST, EVID-HM]}
+      - {id: forecast-uncertainty, kind: relationship, start_id: ASSESS-FCST, relationship_type: "https://cepio.org/ontology/core#hasUncertaintyAssessment", expected_ids: [UA-FCST]}
+      - {id: challenged-hypothesis, kind: relationship, start_id: HYP-CONN, relationship_type: "https://cepio.org/ontology/core#contradictedBy", expected_ids: [EVID-FCST]}
+
+  - question_id: RE-004
+    claim: Resolve assumption and uncertainty exposure into reserves or field-development decisions.
+    capabilities: [uncertainty-to-decision-sensitivity, assumption-dependency-trace]
+    objects:
+      - {id: UA-REC, type: "https://cepio.org/ontology/core#UncertaintyAssessment", name: Recovery factor uncertainty}
+      - {id: DEC-FDP, type: "https://cepio.org/ontology/kinetic#Decision", name: FDP development decision}
+      - {id: ASM-RF, type: "https://cepio.org/ontology/core#Assumption", name: Recovery factor assumption}
+      - {id: DEP-RF, type: "https://cepio.org/ontology/core#Dependency", name: Recovery factor decision dependency}
+    relationships:
+      - {id: uncertainty-impact, type: "https://cepio.org/ontology/core#impacts", source: UA-REC, target: DEC-FDP}
+      - {id: assumption-source, type: "https://cepio.org/ontology/core#dependencySource", source: DEP-RF, target: ASM-RF}
+      - {id: decision-target, type: "https://cepio.org/ontology/core#dependencyTarget", source: DEP-RF, target: DEC-FDP}
+    probes:
+      - {id: exposed-decision, kind: relationship, start_id: UA-REC, relationship_type: "https://cepio.org/ontology/core#impacts", expected_ids: [DEC-FDP]}
+      - {id: dependency-assumption, kind: relationship, start_id: DEP-RF, relationship_type: "https://cepio.org/ontology/core#dependencySource", expected_ids: [ASM-RF]}
+      - {id: dependency-decision, kind: relationship, start_id: DEP-RF, relationship_type: "https://cepio.org/ontology/core#dependencyTarget", expected_ids: [DEC-FDP]}
+
+  - question_id: RE-005
+    claim: Resolve remaining-hydrocarbon opportunity, options, recommendation and authoritative decision lineage.
+    capabilities: [reservoir-opportunity-options, reservoir-decision-lineage]
+    objects:
+      - {id: OBJ-RECOVERY, type: "https://cepio.org/ontology/core#Objective", name: Maximize economic recovery from R3}
+      - {id: OPP-INFILL, type: "https://cepio.org/ontology/kinetic#Opportunity", name: Develop remaining R3 hydrocarbons}
+      - {id: OPT-P117, type: "https://cepio.org/ontology/kinetic#Option", name: Infill option P117}
+      - {id: OPT-P118, type: "https://cepio.org/ontology/kinetic#Option", name: Infill option P118}
+      - {id: REC-P117, type: "https://cepio.org/ontology/kinetic#OptionRecommendation", name: Recommend P117}
+      - {id: DEC-P117, type: "https://cepio.org/ontology/kinetic#Decision", name: Select P117}
+    relationships:
+      - {id: opp-objective, type: "https://cepio.org/ontology/kinetic#opportunityForObjective", source: OPP-INFILL, target: OBJ-RECOVERY}
+      - {id: opp-option-117, type: "https://cepio.org/ontology/kinetic#hasOption", source: OPP-INFILL, target: OPT-P117}
+      - {id: opp-option-118, type: "https://cepio.org/ontology/kinetic#hasOption", source: OPP-INFILL, target: OPT-P118}
+      - {id: opp-recommendation, type: "https://cepio.org/ontology/kinetic#hasRecommendation", source: OPP-INFILL, target: REC-P117}
+      - {id: recommendation-option, type: "https://cepio.org/ontology/kinetic#recommendsOption", source: REC-P117, target: OPT-P117}
+      - {id: decision-opportunity, type: "https://cepio.org/ontology/kinetic#addressesOpportunity", source: DEC-P117, target: OPP-INFILL}
+      - {id: decision-recommendation, type: "https://cepio.org/ontology/kinetic#basedOnRecommendation", source: DEC-P117, target: REC-P117}
+      - {id: decision-option, type: "https://cepio.org/ontology/kinetic#selectedOption", source: DEC-P117, target: OPT-P117}
+    probes:
+      - {id: options, kind: relationship, start_id: OPP-INFILL, relationship_type: "https://cepio.org/ontology/kinetic#hasOption", expected_ids: [OPT-P117, OPT-P118]}
+      - {id: recommended-option, kind: relationship, start_id: REC-P117, relationship_type: "https://cepio.org/ontology/kinetic#recommendsOption", expected_ids: [OPT-P117]}
+      - {id: selected-option, kind: relationship, start_id: DEC-P117, relationship_type: "https://cepio.org/ontology/kinetic#selectedOption", expected_ids: [OPT-P117]}
+
+  - question_id: RE-006
+    claim: Resolve surveillance evidence and the uncertainty for which it provides information gain.
+    capabilities: [value-of-information-semantics]
+    objects:
+      - {id: EVID-PLT, type: "https://cepio.org/ontology/core#Evidence", name: Proposed PLT surveillance evidence}
+      - {id: UA-CONN, type: "https://cepio.org/ontology/core#UncertaintyAssessment", name: Connectivity uncertainty}
+      - {id: IG-PLT, type: "https://cepio.org/ontology/core#InformationGain", name: PLT information gain assessment}
+    relationships:
+      - {id: evidence-reduces, type: "https://cepio.org/ontology/core#reducesUncertainty", source: EVID-PLT, target: UA-CONN}
+      - {id: information-for, type: "https://cepio.org/ontology/core#informationGainFor", source: IG-PLT, target: UA-CONN}
+    probes:
+      - {id: evidence-target, kind: relationship, start_id: EVID-PLT, relationship_type: "https://cepio.org/ontology/core#reducesUncertainty", expected_ids: [UA-CONN]}
+      - {id: information-target, kind: relationship, start_id: IG-PLT, relationship_type: "https://cepio.org/ontology/core#informationGainFor", expected_ids: [UA-CONN]}
+
+  - question_id: RE-007
+    claim: Resolve formation-evaluation handover into reservoir model context and consistency assessment.
+    capabilities: [petrophysics-reservoir-handover, cross-discipline-consistency]
+    objects:
+      - {id: FE-A17, type: "https://cepio.org/ontology/subsurface#FormationEvaluationCase", name: A-17 formation evaluation}
+      - {id: TRACE-RM21, type: "https://cepio.org/ontology/subsurface#ModelHandoverTrace", name: A-17 to RM-21 handover}
+      - {id: RM-21-REF, type: "https://cepio.org/runtime#ExternalRecordReference", name: Reservoir model RM-21}
+      - {id: CONSIST-RM21, type: "https://cepio.org/ontology/subsurface#InterpretationConsistencyAssessment", name: RM-21 cross-discipline consistency}
+    relationships:
+      - {id: trace-source, type: "https://cepio.org/ontology/subsurface#tracesFromCase", source: TRACE-RM21, target: FE-A17}
+      - {id: trace-target, type: "https://cepio.org/ontology/subsurface#tracesTo", source: TRACE-RM21, target: RM-21-REF}
+      - {id: consistency-assesses, type: "https://cepio.org/ontology/core#assesses", source: CONSIST-RM21, target: TRACE-RM21}
+    probes:
+      - {id: formation-source, kind: relationship, start_id: TRACE-RM21, relationship_type: "https://cepio.org/ontology/subsurface#tracesFromCase", expected_ids: [FE-A17]}
+      - {id: model-target, kind: relationship, start_id: TRACE-RM21, relationship_type: "https://cepio.org/ontology/subsurface#tracesTo", expected_ids: [RM-21-REF]}
+      - {id: consistency-target, kind: relationship, start_id: CONSIST-RM21, relationship_type: "https://cepio.org/ontology/core#assesses", expected_ids: [TRACE-RM21]}
+
+  - question_id: RE-008
+    claim: Resolve engineering recommendation separately from authoritative option-selection decision.
+    capabilities: [recommendation-decision-separation]
+    objects:
+      - {id: OPT-WAG, type: "https://cepio.org/ontology/kinetic#Option", name: WAG pilot option}
+      - {id: REC-WAG, type: "https://cepio.org/ontology/kinetic#OptionRecommendation", name: Reservoir Engineer WAG recommendation}
+      - {id: DEC-WAG, type: "https://cepio.org/ontology/kinetic#Decision", name: Asset authority WAG decision}
+    relationships:
+      - {id: engineer-recommends, type: "https://cepio.org/ontology/kinetic#recommendsOption", source: REC-WAG, target: OPT-WAG}
+      - {id: decision-basis, type: "https://cepio.org/ontology/kinetic#basedOnRecommendation", source: DEC-WAG, target: REC-WAG}
+      - {id: authority-selects, type: "https://cepio.org/ontology/kinetic#selectedOption", source: DEC-WAG, target: OPT-WAG}
+    probes:
+      - {id: recommendation, kind: relationship, start_id: REC-WAG, relationship_type: "https://cepio.org/ontology/kinetic#recommendsOption", expected_ids: [OPT-WAG]}
+      - {id: authoritative-selection, kind: relationship, start_id: DEC-WAG, relationship_type: "https://cepio.org/ontology/kinetic#selectedOption", expected_ids: [OPT-WAG]}
