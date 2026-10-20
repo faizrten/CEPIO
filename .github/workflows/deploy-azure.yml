@@ -107,8 +107,15 @@ jobs:
             echo "::error::Expected unauthenticated object reads to return 401, got $status."
             exit 1
           fi
-          management_status="$(curl --silent --show-error --max-time 30 --output /dev/null \
-            --write-out '%{http_code}' "https://$host/management/v1/health")"
+          management_status=""
+          for _ in $(seq 1 12); do
+            management_status="$(curl --silent --show-error --max-time 30 --output /dev/null \
+              --write-out '%{http_code}' "https://$host/management/v1/health" || true)"
+            if [[ "$management_status" == "401" ]]; then
+              break
+            fi
+            sleep 10
+          done
           if [[ "$management_status" != "401" ]]; then
             echo "::error::Expected unauthenticated management reads to return 401, got $management_status."
             exit 1
