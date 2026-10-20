@@ -19,6 +19,7 @@ CEPIO Policy
         +-- temporal state
         +-- provenance
         +-- deterministic functions
+        +-- executable Skills
         +-- recommendations
         +-- governed actions
         |
@@ -34,9 +35,9 @@ Foundry authentication does not replace CEPIO authorization. A valid Foundry or 
 
 An agent must never receive direct Fabric, SQL, repository, SAP, PI, P6, or other adapter handles as CEPIO tools.
 
-## MCP tools
+## MCP tool profiles
 
-The reference MCP server publishes exactly seven governed tools:
+The backward-compatible `build_mcp_server(runtime, actor_provider)` surface publishes the **full eight-tool** CEPIO MCP profile:
 
 | Tool | Purpose | Side effect |
 | --- | --- | --- |
@@ -45,16 +46,19 @@ The reference MCP server publishes exactly seven governed tools:
 | `cepio_get_state_at` | Read valid-time / transaction-time state | none |
 | `cepio_explain_property` | Explain property provenance | none |
 | `cepio_call_function` | Run a policy-authorized CEPIO function | deterministic CEPIO function only |
+| `cepio_evaluate_skill` | Evaluate an admitted executable CEPIO Skill | may persist a governed Decision; no external Action |
 | `cepio_recommend_action` | Evaluate recommendation/execute policy | none |
 | `cepio_execute_action` | Execute a governed CEPIO action | possible enterprise-state change |
 
-`cepio_recommend_action` and `cepio_execute_action` are deliberately separate tools. A role such as `ai_agent_recommender` can receive a `recommend_only` policy decision without gaining execution permission.
+For recommendation-only agent scenarios, `build_mcp_server_with_profile(..., tool_profile="recommendation-only")` publishes the first seven tools and deliberately omits `cepio_execute_action`.
+
+`cepio_recommend_action` and `cepio_execute_action` are deliberately separate tools. A role such as `ai_agent_recommender` can receive a `recommend_only` policy decision without gaining execution permission. Tool-profile restriction is defense in depth; CEPIO policy remains authoritative.
 
 ## Identity contract
 
 MCP tool arguments never contain `actor_id` or `actor_roles`.
 
-The hosting layer authenticates the request, validates the Microsoft Entra token/identity, and supplies verified claims to `EntraClaimsMapper`. The mapper converts Entra application roles and/or groups into CEPIO roles and builds an `ActorContext`:
+The production remote host validates the Microsoft Entra bearer token, then supplies verified claims to `EntraClaimsMapper`. The mapper converts explicitly configured Entra application roles and/or groups into CEPIO roles and builds an `ActorContext`:
 
 ```text
 Microsoft Entra verified claims
@@ -66,8 +70,6 @@ Microsoft Entra verified claims
 ```
 
 If no CEPIO role is mapped, the request fails closed.
-
-Token verification is intentionally not implemented inside the ontology/runtime library. The Azure hosting layer (for example App Service/Functions/Container Apps/AKS ingress) must validate the token for the configured CEPIO MCP audience before claims reach CEPIO.
 
 ### Foundry authentication modes
 
@@ -107,7 +109,7 @@ azd ai connection create cepio-mcp \
   --audience "api://<cepio-mcp-app-registration>"
 ```
 
-Foundry approval policy should keep execution gated:
+For a full-profile deployment, Foundry approval policy should keep execution gated:
 
 ```json
 {
@@ -115,7 +117,7 @@ Foundry approval policy should keep execution gated:
 }
 ```
 
-The read/query/explain/recommend tools can normally be configured without Foundry approval because CEPIO still performs authorization on every call. A customer can require additional approval for any tool.
+The read/query/explain/Skill/recommend tools can normally be configured without Foundry approval because CEPIO still performs authorization on every call. A customer can require additional approval for any tool.
 
 ## MCP Python SDK
 
@@ -125,7 +127,7 @@ Install the optional server dependency:
 pip install -e '.[mcp]'
 ```
 
-Build the protocol server:
+Build the backward-compatible full protocol server:
 
 ```python
 from cepio.bootstrap import build_runtime
@@ -137,19 +139,35 @@ actor_provider = ContextVarActorProvider()
 mcp = build_mcp_server(runtime, actor_provider)
 ```
 
-For a remote endpoint, run the MCP server with Streamable HTTP after the hosting/authentication adapter has been wired to bind a verified `ActorContext` for each request:
+Build the narrower recommendation-only profile:
 
 ```python
-mcp.run(
-    transport="streamable-http",
-    host="0.0.0.0",
-    port=8000,
-    stateless_http=True,
-    json_response=True,
+from cepio.integrations.microsoft.foundry_mcp import build_mcp_server_with_profile
+
+mcp = build_mcp_server_with_profile(
+    runtime,
+    actor_provider,
+    tool_profile="recommendation-only",
 )
 ```
 
-The production hosting profile is completed under the separate App Service / AKS roadmap item. The MCP contract itself is hosting-neutral.
+## Authenticated remote host
+
+CEPIO includes a production-oriented Streamable-HTTP entrypoint:
+
+```bash
+cepio-foundry-mcp
+```
+
+It reuses CEPIO's Entra token validator, explicit role/group mapping, `ContextVarActorProvider`, and MCP transport host/origin restrictions. The host defaults to the `recommendation-only` tool profile and binds only to `127.0.0.1` unless the deployment explicitly sets `CEPIO_MCP_BIND_HOST`.
+
+A container/App Service/AKS deployment that requires external listening can set:
+
+```bash
+export CEPIO_MCP_BIND_HOST='0.0.0.0'
+```
+
+External exposure must remain behind TLS and Entra authentication with explicit `CEPIO_MCP_ALLOWED_HOSTS` / `CEPIO_MCP_ALLOWED_ORIGINS` configuration. See [Foundry Agent Lighthouse — G1](foundry-agent-g1.md) for the live qualification runbook.
 
 ## Policy behavior
 
@@ -161,7 +179,7 @@ Agent-facing object-set queries require an explicit `object_type`. CEPIO checks 
 
 ### Functions
 
-Functions are now explicitly allowlisted per CEPIO role using the existing policy document:
+Functions are explicitly allowlisted per CEPIO role using the existing policy document:
 
 ```yaml
 ai_agent_recommender:
@@ -173,6 +191,10 @@ ai_agent_recommender:
 
 A function that is not explicitly allowed is denied.
 
+### Skills
+
+`cepio_evaluate_skill` uses the shared CEPIO application contract. Each invocation re-runs actor-aware Skill preflight, executes only through the restricted host, carries governed evidence forward, and may produce/persist a CEPIO Decision. Skill evaluation does not grant external Action authority.
+
 ### Recommendations
 
 `cepio_recommend_action` calls the same CEPIO action policy evaluator used by runtime execution but never invokes the action handler.
@@ -183,7 +205,7 @@ Example response semantics:
 allow             -> recommendation permitted; actor could execute
 recommend_only    -> recommendation permitted; actor cannot execute
 approval_required -> recommendation permitted; human approval role required
- deny              -> recommendation not permitted
+deny              -> recommendation not permitted
 ```
 
 ### Execution
@@ -194,7 +216,7 @@ Foundry approval cannot override a CEPIO deny.
 
 ## Tool-schema generation
 
-The MCP server is built with the official MCP Python SDK. Tool JSON Schemas are generated from typed Python/Pydantic contracts, including `ObjectQuery`.
+The MCP server is built with the official MCP Python SDK. Tool JSON Schemas are generated from typed Python/Pydantic contracts, including `ObjectQuery` and `SkillInvocation`.
 
 The actor identity is intentionally absent from those schemas. This prevents a model from self-asserting identity or privilege.
 
@@ -204,12 +226,14 @@ The official MCP SDK supports in-process clients. CEPIO CI uses that mode to per
 
 Tests verify:
 
-- the exact seven-tool surface;
+- the backward-compatible eight-tool full surface;
+- the seven-tool recommendation-only surface with execution omitted;
 - generated tool schemas;
 - actor fields are absent from tool arguments;
 - policy-filtered object reads;
 - governed object queries;
 - explicit function authorization;
+- executable Skill evaluation;
 - Entra-claim-to-CEPIO-role mapping;
 - recommend-only agent behavior;
 - separate human-role execution behavior;
@@ -221,11 +245,12 @@ Tests verify:
 2. No source adapter/repository is an MCP tool.
 3. Every object/property read passes CEPIO policy.
 4. Function calls are explicitly allowlisted by CEPIO role.
-5. Recommendation does not execute.
-6. Execution always uses `CEPIORuntime.execute_action`.
-7. Foundry approval is additive; it cannot bypass CEPIO policy.
-8. Unmapped/unauthenticated identities fail closed.
-9. CEPIO canonical semantics remain independent of Foundry and the MCP SDK.
+5. Skill evaluation does not imply external Action authority.
+6. Recommendation does not execute.
+7. Execution always uses `CEPIORuntime.execute_action`.
+8. Foundry approval is additive; it cannot bypass CEPIO policy.
+9. Unmapped/unauthenticated identities fail closed.
+10. CEPIO canonical semantics remain independent of Foundry and the MCP SDK.
 
 ## Microsoft references
 
