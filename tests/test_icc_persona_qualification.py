@@ -230,7 +230,7 @@ def test_icc_persona_qualification_can_fallback_to_frozen_persona_tags(tmp_path)
 
 def test_icc_persona_qualification_blocks_when_fallback_has_no_questions(tmp_path):
     payload = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
-    payload["persona_id"] = "ceo"
+    payload["persona_id"] = "chief-executive"
     payload.pop("persona_binding", None)
     manifest = tmp_path / "manifest.yaml"
     manifest.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
