@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import datetime
 
 from .performance_contract import PerformanceContract
 from .performance_registry import (
@@ -99,9 +100,7 @@ class SQLitePerformanceContractStoreV2(SQLitePerformanceContractStore):
         )
 
     @staticmethod
-    def _parse_datetime(value: str):
-        from datetime import datetime
-
+    def _parse_datetime(value: str) -> datetime:
         return datetime.fromisoformat(value)
 
 
