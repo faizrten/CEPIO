@@ -21,6 +21,8 @@ RUN python -m build --wheel
 
 FROM python:3.11-slim
 
+ARG CEPIO_RUNTIME_EXTRAS=""
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000
@@ -31,7 +33,12 @@ RUN addgroup --system cepio && adduser --system --ingroup cepio cepio
 
 COPY --from=builder /build/dist/cepio-*.whl /tmp/
 RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=83.0.0" \
-    && python -m pip install --no-cache-dir /tmp/cepio-*.whl \
+    && wheel="$(ls /tmp/cepio-*.whl)" \
+    && if [ -n "$CEPIO_RUNTIME_EXTRAS" ]; then \
+         python -m pip install --no-cache-dir "${wheel}[${CEPIO_RUNTIME_EXTRAS}]"; \
+       else \
+         python -m pip install --no-cache-dir "$wheel"; \
+       fi \
     && rm -f /tmp/cepio-*.whl
 
 RUN mkdir -p /app /data && chown -R cepio:cepio /app /data
