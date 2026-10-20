@@ -23,6 +23,10 @@ _SEVERITY_RANK: dict[VulnerabilitySeverity, int] = {
 }
 
 
+def _default_sbom_formats() -> set[SBOMFormat]:
+    return {"spdx", "cyclonedx"}
+
+
 class IndustryIQSupplyChainError(ValueError):
     """Fail-closed supply-chain evidence or policy failure."""
 
@@ -91,7 +95,7 @@ class IndustryIQSupplyChainPolicy(BaseModel):
     require_vulnerability_scan_for_external: bool = False
     trusted_signing_identities: set[str] = Field(default_factory=set)
     allowed_attestation_predicate_types: set[str] = Field(default_factory=set)
-    allowed_sbom_formats: set[SBOMFormat] = Field(default_factory=lambda: {"spdx", "cyclonedx"})
+    allowed_sbom_formats: set[SBOMFormat] = Field(default_factory=_default_sbom_formats)
     maximum_vulnerability_severity: VulnerabilitySeverity | None = None
 
     @classmethod
@@ -153,7 +157,9 @@ class IndustryIQSupplyChainPolicy(BaseModel):
             )
 
         if attestation is not None:
-            self._enforce_attestation(attestation, artifact_digest=artifact_digest, publisher=publisher)
+            self._enforce_attestation(
+                attestation, artifact_digest=artifact_digest, publisher=publisher
+            )
         if sbom is not None:
             self._enforce_sbom(sbom, artifact_digest=artifact_digest)
         if scan is not None:
