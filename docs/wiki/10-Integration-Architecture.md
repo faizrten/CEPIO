@@ -2,125 +2,214 @@
 
 ## Integration principle
 
-CEPIO does not replace systems of record. It creates a stable semantic and operational layer above them.
+CEPIO does not replace systems of record, systems of observation or industrial data platforms. It binds authoritative enterprise context through a stable operating contract.
+
+> **Reuse -> Bind -> Extend -> Own only where CEPIO adds reusable industrial operating intelligence.**
 
 ```text
-Source systems
- SAP · PI · OSDU · P6 · MES · engineering · SQL · Fabric
+Authoritative source/platform
+ SAP · PI · OSDU · P6 · MES · engineering · Fabric · Cognite
        |
        v
-Mapping / Adapter / Event ingestion
+provider-specific reader / transport
        |
        v
-CEPIO canonical objects + relationships + state + provenance
+CEPIO Binding Contract
        |
        v
-Applications / Agents / Governed actions
+canonical identity + evidence + state + provenance
+       |
+       v
+Industry IQ / Skill / Decision / Performance
+       |
+       v
+policy / authority / governed Action
+       |
+       v
+source execution -> read-back -> verify -> reconcile -> Outcome
 ```
 
-## Adapter contract
+## Binding Contract
 
-An adapter should translate between an external system and CEPIO while preserving:
+The current source-neutral integration boundary is the CEPIO Binding Contract rather than a monolithic generic connector platform.
+
+A provider binding should preserve:
 
 - stable CEPIO identity;
-- canonical types/properties;
-- source references;
-- external acknowledgement;
-- authorization boundaries;
-- reconciliation.
+- canonical type/property/relationship mapping;
+- evidence references and source lineage;
+- event/observation time;
+- provider-specific transport separation from domain semantics;
+- authenticated/authorized Action handoff;
+- external acknowledgement/read-back;
+- verification and reconciliation;
+- deterministic/fail-closed error handling.
+
+Provider-specific transport belongs outside CEPIO Core semantics.
+
+## Integration ownership
+
+```text
+Source/platform owns:
+- authoritative raw facts/transactions
+- provider transport/API semantics
+- provider-native lifecycle
+
+CEPIO owns:
+- canonical industrial identity/meaning
+- evidence/provenance contract
+- cross-source operational state
+- Skill/Decision/authority semantics
+- governed Action intent
+- verification/reconciliation/Outcome meaning
+```
 
 ## SAP S/4HANA / EAM
 
-Expected roles:
+Intended authoritative roles include:
 
-- equipment/functional location source;
-- maintenance work management;
-- materials/spares;
-- procurement and vendors;
-- external writeback destination for governed work actions.
+- equipment / functional-location context;
+- maintenance notifications/work orders;
+- maintenance history;
+- materials/spares where required;
+- procurement/vendor context where required;
+- governed work-order/writeback execution target.
 
-Production-grade SAP integration is targeted for v0.5. Current repository direction includes dry-run/reference contracts.
+Current mainline contains generic external identity/write/verify/reconcile foundations, but the **live SAP product qualification remains open** under v0.5 CONNECT.
+
+The CONNECT proof requires more than a fake/reference write contract: it needs real source acknowledgement/read-back, idempotency, reconciliation and failure/observability evidence.
 
 ## AVEVA PI / historian
 
-Expected roles:
+Authoritative roles include:
 
 - time-series observations;
-- equipment/process operational state signals;
-- events and anomalies;
-- near-real-time evidence for functions and decisions.
+- equipment/process state signals;
+- events/anomalies;
+- event-time evidence for Functions, Skills and Decisions.
 
-A production streaming adapter is targeted for v0.5.
+The historian remains authoritative for raw measurements. CEPIO adds asset meaning, operational context, evidence/provenance and decision relevance.
 
-## OSDU
+A real PI/historian qualification remains a v0.5 CONNECT P0 proof.
 
-OSDU should be treated as an authoritative upstream data foundation, not as the enterprise ontology.
+## OSDU / upstream
 
-Recommended relationship:
+OSDU should remain an authoritative upstream/subsurface data foundation rather than being recreated inside CEPIO.
+
+Recommended boundary:
 
 ```text
-OSDU authoritative upstream records
+OSDU / ADME authoritative technical records
        |
        v
-CEPIO semantic projection / mapping
+CEPIO binding / identity / evidence
        |
        v
-Enterprise context across operations, maintenance, finance, projects and action
+uncertainty · Opportunity · Decision · authority · workflow · Action · Outcome
 ```
 
-Preserve OSDU identity and domain semantics where appropriate while projecting them into CEPIO's enterprise operating abstraction.
+CEPIO should reuse/bind strong upstream objects such as Well, Wellbore, trajectories, seismic, logs, interpretations, grids and reservoir models while owning cross-domain operating meaning that OSDU does not attempt to define.
+
+The OSDU-first boundary and domain runtime bindings are already on main; full live operational adapter qualification remains separate.
 
 ## Primavera P6
 
-Expected roles:
+Potential authoritative roles include:
 
 - project schedules;
 - turnaround planning;
 - EPCIC activities;
 - dependencies and milestones.
 
-## Fabric / OneLake
+P6 remains a valid third-domain path for CONNECT/reference applications but is not yet a qualified live product baseline.
 
-Fabric may provide the analytical and operational data foundation under CEPIO, including Lakehouse, Warehouse, Eventhouse/KQL and other data products.
+## Fabric / OneLake / Fabric IQ
 
-CEPIO still owns canonical industrial semantics.
+Fabric can provide enterprise data/operational context beneath CEPIO.
 
-## Visualization and spatial systems
+Current mainline includes:
 
-Spatial/3D viewers should be treated as additional projections of CEPIO identity rather than as the ontology itself.
+- Fabric/Fabric IQ semantic binding contracts;
+- provider-neutral Binding Contract usage;
+- Fabric live-proof transport path;
+- secretless/OIDC deployment foundations.
 
-Potential pattern:
+The transport/provider is Microsoft-specific; industrial semantics and Industry IQ must remain provider-neutral.
+
+A strategic portability test is that the same competency/Skill/Decision contract can operate over Fabric or another provider without changing CEPIO Core.
+
+## Cognite and other industrial platforms
+
+Cognite Data Fusion or another industrial data platform should be treated as an alternative authoritative context provider, not a competing semantic truth that CEPIO must copy wholesale.
+
+The goal is:
 
 ```text
-3D object/node
-   |
-spatial binding
-   |
-CEPIO object ID
-   |
-ontology + state + provenance + actions
+Fabric evidence ----+
+                    |
+Cognite evidence ---+--> same CEPIO competency / Skill / Decision contract
+                    |
+OSDU evidence ------+
 ```
 
-This allows visualization technology to remain replaceable.
+Provider-specific bindings may differ; the CEPIO industrial operating contract should remain stable.
+
+## Azure AI Search
+
+Azure AI Search is **not** an authoritative industrial integration source. It is an optional physical retrieval projection behind CEPIO Retrieval & Indexing.
+
+Rules:
+
+- Capability Registry / MemoryStore remain authoritative;
+- Search results are tenant/expiry revalidated;
+- raw SAP/PI/customer data is not automatically duplicated into Search;
+- Search ranking does not grant authority or satisfy evidence requirements by itself.
+
+## External Action lifecycle
+
+Current mainline external execution foundation follows:
+
+```text
+CEPIO Decision / Action intent
+ -> policy + authority
+ -> canonical-to-source identity resolution
+ -> idempotent source execution
+ -> acknowledgement/read-back
+ -> verification
+ -> reconciliation
+ -> WorkflowOutcome / audit
+```
+
+Ambiguous source identity fails closed. Unknown write state must be reconciled rather than treated as success.
 
 ## Integration maturity model
 
 ### Level 0 — static mapping
 
-Source extracts are mapped into CEPIO.
+Source extracts map into CEPIO with explicit semantics.
 
-### Level 1 — refreshable context
+### Level 1 — refreshable evidence
 
-Mappings run repeatedly with provenance and identity resolution.
+Mappings refresh with stable identity and provenance.
 
 ### Level 2 — event-driven operational state
 
-Near-real-time events update CEPIO state.
+Near-real-time source events update or inform CEPIO state/evidence.
 
-### Level 3 — governed action
+### Level 3 — governed external Action
 
-CEPIO executes approved external actions.
+CEPIO executes an authorized external Action through the Binding/Action boundary.
 
-### Level 4 — closed-loop reconciliation
+### Level 4 — verified closed loop
 
-External acknowledgement returns into CEPIO, and outcomes feed subsequent decisions.
+The source result is read back, verified and reconciled into CEPIO Outcome/audit.
+
+### Level 5 — portable capability
+
+The same CEPIO competency/Skill/Decision behavior works across multiple provider bindings without Core semantic change.
+
+## Current release boundary
+
+v0.5 CONNECT is not qualified until one industrial asset combines meaningful context from at least three authoritative source domains and completes one authenticated, idempotent, verified and reconciled writeback.
+
+See [Current State](../current-state.md), [Binding Contract](../developer/platform-bindings.md), [External Action Runtime](../external-action-runtime.md) and [Roadmap](17-Roadmap.md).
