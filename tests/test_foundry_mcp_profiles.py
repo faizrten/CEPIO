@@ -9,7 +9,10 @@ from cepio.integrations.microsoft.foundry_gateway import (
     ActorContext,
     FixedActorProvider,
 )
-from cepio.integrations.microsoft.foundry_mcp import build_mcp_server
+from cepio.integrations.microsoft.foundry_mcp import (
+    build_mcp_server,
+    build_mcp_server_with_profile,
+)
 
 
 def _actor() -> ActorContext:
@@ -26,7 +29,7 @@ def _actor() -> ActorContext:
 def test_recommendation_only_profile_excludes_action_execution_tool():
     from mcp import Client
 
-    server = build_mcp_server(
+    server = build_mcp_server_with_profile(
         build_runtime(),
         FixedActorProvider(_actor()),
         tool_profile="recommendation-only",
@@ -52,14 +55,10 @@ def test_recommendation_only_profile_excludes_action_execution_tool():
     asyncio.run(_exercise())
 
 
-def test_full_profile_preserves_action_execution_tool():
+def test_default_builder_preserves_full_action_execution_tool():
     from mcp import Client
 
-    server = build_mcp_server(
-        build_runtime(),
-        FixedActorProvider(_actor()),
-        tool_profile="full",
-    )
+    server = build_mcp_server(build_runtime(), FixedActorProvider(_actor()))
 
     async def _exercise() -> None:
         async with Client(server, raise_exceptions=True) as client:
@@ -73,7 +72,7 @@ def test_full_profile_preserves_action_execution_tool():
 
 def test_unknown_tool_profile_fails_closed():
     with pytest.raises(ValueError, match="Unsupported CEPIO MCP tool profile"):
-        build_mcp_server(
+        build_mcp_server_with_profile(
             build_runtime(),
             FixedActorProvider(_actor()),
             tool_profile="autonomous",  # type: ignore[arg-type]
