@@ -1,91 +1,238 @@
 # CEPIO Documentation
 
-This directory contains CEPIO's technical documentation and the curated CEPIO Wiki.
+This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
-- **[Version naming and delivery status](version-naming.md)** — distinguish CEPIO releases, runtime components, Lab benchmarks and API versions.
-- **[Canonical v1.0 completion scorecard](v1-completion-scorecard.md)** — evidence-backed 100-point product-maturity model and current canonical baseline.
-- **[v1.0 scorecard governance](governance/v1-scorecard-governance.md)** — scoring authority, evidence rules, partial-credit discipline, regression and change control.
+- **[Current State](current-state.md)** — dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
+- **[CEPIO Wiki](wiki/Home.md)** — reader-oriented product, architecture, runtime, Industry IQ and roadmap navigation.
+- **[Architecture](architecture.md)** — current portable Industrial Operating Intelligence architecture.
+- **[Execution Roadmap](roadmap.md)** — authoritative product release gates from FOUNDATION through GUARANTEE.
+- **[Version Naming and Delivery Status](version-naming.md)** — product labels, component/Lab/pack/API version scopes and roadmap-vs-scorecard distinction.
+- **[Canonical v1.0 Completion Scorecard](v1-completion-scorecard.md)** — governed evidence-backed 100-point maturity model.
+- **[v1.0 Scorecard Governance](governance/v1-scorecard-governance.md)** — scoring authority, evidence and change-control contract.
+- **[CEPIO v0.4 FOUNDATION Developer Preview](developer-preview.md)** — qualified published-release installation/support boundary.
+- **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality, security, compatibility and release evidence controls.
 
-- **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality gates, security, compatibility evidence, release qualification and required check names.
+## North Star
 
-- **[CEPIO v0.4 Developer Preview](developer-preview.md)** — clean-environment install, startup, qualification and release boundary.
-- **[CEPIO Wiki](wiki/Home.md)** — narrative, navigable documentation for product, architecture, ontology, runtime, APIs, integrations, operations, roadmap and glossary.
-- **[Management Control Plane](wiki/21-Management-Control-Plane.md)** — protocol-neutral Management Contract v0.1 and local read-only FastAPI projection.
-- **[Binding Contract v0.1](developer/platform-bindings.md)** — provider-neutral manifest, runtime registration, conformance and Management projection for replaceable industrial platforms.
-- **[Industry Performance Packs v0.1](industry-performance-packs.md)** — reusable refinery and drilling-contractor objectives, KPI identities, driver graphs, guardrails and reference accountability built on Performance Contracts.
-- **[Architecture](architecture.md)** — authoritative runtime architecture notes.
-- **[Execution Roadmap](roadmap.md)** — detailed implementation and release roadmap.
-- **[Kinetic Runtime](kinetic-runtime.md)** — durable workflow kernel over CEPIO Functions, Decisions, approvals and governed Actions.
-- **[Kinetic Execution Resilience v0.2](kinetic-execution-resilience.md)** — bounded Function retry/timeout, workflow cancellation and governed reverse compensation.
-- **[Governed External Action Runtime](external-action-runtime.md)** — canonical-to-source identity resolution, async writeback, verification and reconciliation.
-- **[Kinetic Runtime Consistency v0.3.1](kinetic-runtime-consistency-v0.3.1.md)** — immutable workflow versions, atomic triggers, explicit workflow lineage, identity revalidation and optimistic dispatch claims.
-- **[Kinetic External Verification Gate v0.4](kinetic-external-verification-v0.4.md)** — durable workflow wait on source verification with immutable terminal Outcomes and explicit reconciliation for unknown writes.
-- **[Generalization & Competency Harness](generalization-harness.md)** — agentic validation architecture and the deterministic drilling-contractor v0.1 benchmark.
-- **[Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)** — first evidence-driven remediation cycle against the frozen drilling benchmark.
+> **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
 
-## Users, competency and assurance
+For Microsoft-hosted agent workloads:
 
-- [Target Users / Personas](wiki/19-Target-Users-Personas.md) — industrial users, platform builders, lighthouse focus and catalog boundaries.
-- [Competency & Assurance](wiki/20-Competency-Assurance.md) — semantic benchmarks, operational gates, Operator evidence discipline and maturity direction.
-- [Operational assurance](../generalization/OPERATIONAL_ASSURANCE.md) — deterministic runtime evidence contract.
-- [Operator v0.6](../generalization/OPERATOR_V06.md) — executable REST/MCP agent boundary.
+> **Microsoft owns generic agent execution. CEPIO owns industrial agency.**
 
-## v0.4 public API and operations
+The documentation should preserve this distinction throughout:
 
-- [API v1 client guide](api-client-guide.md)
-- [API reliability semantics](api-reliability.md)
-- [Representative API examples](api-examples.md)
-- [REST security / Microsoft Entra](rest-security.md)
-- [Typed query contract](query-contract.md)
-- [Query load baseline](query-load-baseline.md)
-- [API versioning](api-versioning.md)
-- [Reference deployment profiles](deployment-profiles.md)
-- [Observability / OpenTelemetry](observability.md)
+- source/platform systems remain authoritative;
+- CEPIO binds them through replaceable contracts;
+- reusable industrial competence accumulates in Industry IQ;
+- agents operate through CEPIO evidence, policy and authority;
+- model output, caches and indexes do not become authority.
 
-## Key technical contracts
+## Current product posture
 
-- [Canonical v1.0 completion scorecard](v1-completion-scorecard.md)
-- [v1.0 scorecard schema](v1-completion-scorecard.schema.md)
-- [v1.0 scorecard governance](governance/v1-scorecard-governance.md)
-- [Management Control Plane](wiki/21-Management-Control-Plane.md)
-- [ADR-0020 — Management Control Plane v0.1](adr/ADR-0020-management-control-plane-v0.1.md)
-- [Binding Contract v0.1](developer/platform-bindings.md)
-- [ADR-0026 — Binding Contract v0.1](adr/ADR-0026-binding-contract-v0.1.md)
-- [ADR-0028 — Fabric Live Binding Proof v0.1](adr/ADR-0028-fabric-live-binding-proof-v0.1.md)
-- [Industry Performance Packs v0.1](industry-performance-packs.md)
-- [ADR-0034 — Industry Performance Reference Packs v0.1](adr/ADR-0034-industry-performance-reference-packs-v0.1.md)
-- [Kinetic runtime](kinetic-runtime.md)
-- [Kinetic execution resilience v0.2](kinetic-execution-resilience.md)
-- [Governed external action runtime](external-action-runtime.md)
-- [Kinetic runtime consistency v0.3.1](kinetic-runtime-consistency-v0.3.1.md)
-- [Kinetic external verification gate v0.4](kinetic-external-verification-v0.4.md)
+- **v0.4 FOUNDATION:** qualified published Developer Preview.
+- **v0.5 CONNECT:** current / partial product release gate.
+- **v0.6 EXECUTE–v1.0 GUARANTEE:** future release gates with some foundations already implemented on `main`.
+- **canonical v1 score:** 69/100 at the governed snapshot; later merges do not automatically modify the score.
+
+See [Current State](current-state.md).
+
+---
+
+# Core architecture and contracts
+
+## Semantic / temporal / governance foundation
+
+- [Architecture](architecture.md)
 - [Temporal state projection](temporal-state-projection.md)
-- [Microsoft platform extension](microsoft-platform-extension.md)
-- [Foundry + MCP](foundry-mcp.md)
 - [Migrations and compatibility](migrations-and-compatibility.md)
 - [Type identity and versioning](type-identity-and-versioning.md)
 - [Property normalization](property-normalization.md)
 - [Domain module normalization](domain-module-normalization.md)
-- [Generalization & Competency Harness](generalization-harness.md)
-- [Drilling Harness Semantic Remediation v0.2](drilling-semantic-remediation-v0.2.md)
+- [Query contract](query-contract.md)
+- [Application Contract v0.2](application-contract-v0.2.md)
+- [Protocol Convergence v0.3](protocol-convergence-v0.3.md)
 
-## Integrations
+## Kinetic / governed execution
 
+- [Kinetic Runtime](kinetic-runtime.md)
+- [Kinetic Execution Resilience](kinetic-execution-resilience.md)
+- [Kinetic Runtime Consistency](kinetic-runtime-consistency-v0.3.1.md)
+- [Kinetic External Verification Gate](kinetic-external-verification-v0.4.md)
+- [Governed External Action Runtime](external-action-runtime.md)
+- [Workflow Policy Integration](workflow-policy-v0.5.1.md)
+- [Skill Runtime Preflight](skill-runtime-preflight.md)
+- [Skill Runtime Capabilities](skill-runtime-capabilities.md)
+
+---
+
+# Binding and platform portability
+
+- [Binding Contract v0.1](developer/platform-bindings.md)
+- [Microsoft Platform Extension](microsoft-platform-extension.md)
 - [Microsoft Fabric / Fabric IQ](integrations/microsoft-fabric-iq.md)
-- [Microsoft Fabric Live Binding Proof v0.1](integrations/microsoft-fabric-live-binding-proof.md)
+- [Microsoft Fabric Live Binding Proof](integrations/microsoft-fabric-live-binding-proof.md)
+- [Foundry + MCP](foundry-mcp.md)
+- [Reliability Agent Lighthouse](reliability-agent-lighthouse.md)
+- [Foundry Reliability G1](foundry-reliability-g1.md)
+- [Azure AI Search Adapter](azure-ai-search-adapter.md)
 - [NVIDIA cuGraph](integrations/nvidia-cugraph.md)
 
-## Documentation model
+Binding principle:
 
-The documentation is intentionally split into two layers:
+> **Reuse -> Bind -> Extend -> Own only where CEPIO adds reusable industrial operating intelligence.**
 
-1. **`docs/wiki/`** — the explanatory and navigational layer for readers.
-2. **Technical documents in `docs/`, ontologies, mappings, shapes and code** — the authoritative executable/design contracts.
+---
 
-When the two differ, the implementation contracts and accepted architecture decisions in the repository are authoritative. The wiki should be updated as part of material CEPIO capability and release changes.
+# Industry IQ control plane
 
-## Workflow policy v0.5.1
+## Capability and compounding intelligence
 
-[Workflow policy integration](workflow-policy-v0.5.1.md) binds exact policy versions to durable workflow instances, derives trusted canonical context, pauses governed actions for human approval, and persists policy evidence through Action, external execution and Outcome.
+- [Capability Registry & Compounding Industrial Intelligence](capability-registry-and-compounding-intelligence.md)
+- [Domain Onboarding workflow](wiki/20-Domain-Onboarding-Workflow.md)
+- [Compounding Industrial Intelligence Wiki](wiki/21-Compounding-Industrial-Intelligence.md)
+
+## Industry IQ packs and trust
+
+- Industry IQ Pack Registry and compatibility contracts are documented in their focused package/Skill docs and tests.
+- [Industry IQ Trusted Catalogue](industry-iq-trusted-catalogue.md)
+- [Industry IQ Supply Chain v0.6.1](industry-iq-supply-chain-v0.6.1.md)
+
+These contracts keep reusable industrial intelligence separately deployable and governed while preventing agents from gaining package discovery/install/trust-policy authority.
+
+---
+
+# Memory, retrieval and runtime acceleration
+
+- [Memory & Context Architecture](memory-context-architecture.md)
+- [Memory & Context Wiki](wiki/22-Memory-and-Context.md)
+- [Retrieval & Indexing Architecture](retrieval-indexing-architecture.md)
+- [Retrieval & Indexing Wiki](wiki/23-Retrieval-and-Indexing.md)
+- [Compiled Industry IQ](compiled-industry-iq.md)
+- [Compiled Industry IQ Wiki](wiki/24-Compiled-Industry-IQ.md)
+- [Azure AI Search Adapter](azure-ai-search-adapter.md)
+
+Core invariant:
+
+> **Industry IQ knowledge may compound continuously; runtime working context remains bounded.**
+
+Search indexes and caches are rebuildable projections, not semantic authority or industrial truth.
+
+---
+
+# Enterprise performance intelligence
+
+- [Enterprise Performance Graph Wiki](wiki/22-Enterprise-Performance-Graph.md)
+- Performance Contract / specialization documentation is linked from the Enterprise Performance Graph page and associated ADRs.
+- [Industry Performance Packs v0.1](industry-performance-packs.md)
+- [Industry Performance Packs Wiki](wiki/25-Industry-Performance-Packs.md)
+- [ADR-0034 — Industry Performance Reference Packs](adr/ADR-0034-industry-performance-reference-packs-v0.1.md)
+
+Performance reference packs are organization-neutral starting points. Customer formulas, targets, thresholds, scopes, source bindings and operating structures remain customer specialization.
+
+---
+
+# Management and hosted protocol surfaces
+
+- [Management Control Plane Wiki](wiki/21-Management-Control-Plane.md)
+- [Remote Management Read Projection](remote-management-read-projection.md)
+- [Foundry + MCP](foundry-mcp.md)
+- [ADR-0035 — Hosted MCP Gateway](adr/ADR-0035-hosted-mcp-gateway-v0.1.md)
+
+Hosted target composition:
+
+```text
+/api/v1/*          REST Application Contract
+/management/v1/*   authenticated read-only Management projection
+/mcp               authenticated Streamable HTTP MCP gateway
+```
+
+Management remains observation-only; authenticated MCP callers cannot self-assert CEPIO roles.
+
+---
+
+# Users, competency, generalization and assurance
+
+- [Target Users / Personas](wiki/19-Target-Users-Personas.md)
+- [Competency & Assurance](wiki/20-Competency-Assurance.md)
+- [Generalization & Competency Harness](generalization-harness.md)
+- [Drilling Semantic Remediation](drilling-semantic-remediation-v0.2.md)
+- [Operational Assurance](../generalization/OPERATIONAL_ASSURANCE.md)
+- [Operator v0.6](../generalization/OPERATOR_V06.md)
+
+Competency quality should be read across separate layers:
+
+- semantic;
+- runtime;
+- procedural / Skill;
+- agent;
+- operational.
+
+Do not turn one layer's PASS into a blanket production-readiness claim.
+
+---
+
+# Public API, SDK and operations
+
+- [API v1 Client Guide](api-client-guide.md)
+- [API Reliability Semantics](api-reliability.md)
+- [Representative API Examples](api-examples.md)
+- [REST Security / Entra](rest-security.md)
+- [Typed Query Contract](query-contract.md)
+- [Query Load Baseline](query-load-baseline.md)
+- [API Versioning](api-versioning.md)
+- [Reference Deployment Profiles](deployment-profiles.md)
+- [Observability / OpenTelemetry](observability.md)
+
+---
+
+# Wiki map
+
+The canonical navigation lives in [Wiki Home](wiki/Home.md).
+
+New capability pages have landed in parallel and some retain duplicate historical numeric filename prefixes. Treat the Wiki Home map as canonical navigation; do not infer ordering or versioning from the numeric filename prefix alone.
+
+Current newer pages include:
+
+- Domain Onboarding Workflow;
+- Compounding Industrial Intelligence;
+- Management Control Plane;
+- Memory and Context;
+- Retrieval and Indexing;
+- Compiled Industry IQ;
+- Enterprise Performance Graph;
+- Industry Performance Packs.
+
+---
+
+# Documentation authority model
+
+Use these layers together:
+
+1. **implementation contracts, code, ontologies, mappings, tests and accepted ADRs** — authoritative behavior/implementation evidence;
+2. **`current-state.md`** — current narrative mainline snapshot;
+3. **`roadmap.md`** — product release-gate authority;
+4. **`config/v1-scorecard.yaml`** — numeric v1 maturity authority;
+5. **`RELEASE.md`** — published v0.4 support boundary;
+6. **`docs/wiki/`** — explanatory/navigation layer.
+
+Historical benchmark documents remain historical evidence and should not be rewritten simply to adopt newer product terminology.
+
+## Documentation definition of done
+
+A material PR should update the relevant focused technical docs and the appropriate narrative/index surfaces in the same PR.
+
+At minimum consider:
+
+- `current-state.md`;
+- root `README.md`;
+- this index;
+- Wiki Home;
+- Architecture;
+- Roadmap;
+- Version Naming;
+- relevant focused technical docs and ADRs.
+
+If a change genuinely has no documentation impact, the PR should explicitly state why.
