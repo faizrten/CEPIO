@@ -23,6 +23,7 @@ from .domain_onboarding import (
     run_domain_onboarding,
 )
 from .generalization import CompetencyQuestion, load_pack, load_personas
+from .persona_binding import load_persona_binding, resolve_persona_questions
 
 
 AUTHORITY_TAGS = {
@@ -168,7 +169,9 @@ def _runtime_scope(runtime_report: dict[str, Any] | None, question_ids: set[str]
         }
 
     results = [
-        result for result in runtime_report.get("results", []) if result.get("question_id") in question_ids
+        result
+        for result in runtime_report.get("results", [])
+        if result.get("question_id") in question_ids
     ]
     status_counts = {
         status: sum(result.get("status") == status for result in results)
@@ -226,6 +229,8 @@ def run_icc_persona_qualification(
     runtime_path = (
         _artifact_path(repo_root, artifacts.runtime_suite) if artifacts.runtime_suite else None
     )
+    binding_value = raw_manifest.get("persona_binding")
+    binding_path = _artifact_path(repo_root, str(binding_value)) if binding_value else None
 
     pack = load_pack(competency_path)
     personas = load_personas(personas_path)
@@ -237,6 +242,7 @@ def run_icc_persona_qualification(
         "policy_sha256": _sha256_file(policy_path),
         "archetype_sha256": _sha256_file(archetype_path),
         "persona_pack_sha256": _sha256_file(personas_path),
+        "persona_binding_sha256": _sha256_file(binding_path) if binding_path else None,
         "standards_sha256": _sha256_file(standards_path),
         "competency_pack_sha256": _sha256_file(competency_path),
         "runtime_suite_sha256": _sha256_file(runtime_path) if runtime_path else None,
@@ -263,11 +269,52 @@ def run_icc_persona_qualification(
             "persona_id": selected_persona_id,
             "status": "BLOCKED",
             "current_state": "BLOCKED",
-            "block_reason": f"persona {selected_persona_id!r} is not declared in the scoped persona pack",
+            "block_reason": (
+                f"persona {selected_persona_id!r} is not declared in the scoped persona pack"
+            ),
             "provenance": base_provenance,
         }
 
-    questions = [question for question in pack.questions if selected_persona_id in question.personas]
+    binding_id = None
+    binding_version = None
+    if binding_path is not None:
+        try:
+            binding = load_persona_binding(binding_path)
+            questions, binding_metadata = resolve_persona_questions(
+                binding,
+                pack,
+                domain=manifest.domain,
+                persona_id=selected_persona_id,
+            )
+            binding_id = binding.id
+            binding_version = binding.version
+            selection_source = "explicit-persona-binding"
+        except Exception as exc:
+            return {
+                "contract_type": "industrial-capability-contract-persona-binding",
+                "contract_version": "0.1",
+                "contract_id": f"{manifest.id}:{selected_persona_id}",
+                "domain": manifest.domain,
+                "persona_id": selected_persona_id,
+                "status": "BLOCKED",
+                "current_state": "BLOCKED",
+                "block_reason": f"invalid persona capability binding: {exc}",
+                "provenance": base_provenance,
+            }
+    else:
+        questions = [
+            question for question in pack.questions if selected_persona_id in question.personas
+        ]
+        binding_metadata = [
+            {
+                "question_id": question.id,
+                "mode": "primary",
+                "rationale": "Selected from the frozen competency pack persona annotation.",
+            }
+            for question in questions
+        ]
+        selection_source = "competency-persona-tags"
+
     if not questions:
         return {
             "contract_type": "industrial-capability-contract-persona-binding",
@@ -277,7 +324,9 @@ def run_icc_persona_qualification(
             "persona_id": selected_persona_id,
             "status": "BLOCKED",
             "current_state": "BLOCKED",
-            "block_reason": f"persona {selected_persona_id!r} has no competency questions in frozen pack {pack.id!r}",
+            "block_reason": (
+                f"persona {selected_persona_id!r} has no competency questions in frozen pack {pack.id!r}"
+            ),
             "provenance": base_provenance,
         }
 
@@ -305,7 +354,8 @@ def run_icc_persona_qualification(
     if semantic["semantic_pass_rate"] < policy.qualification.minimum_semantic_pass_rate:
         failures.append(
             "persona semantic pass rate "
-            f"{semantic['semantic_pass_rate']:.3f} < {policy.qualification.minimum_semantic_pass_rate:.3f}"
+            f"{semantic['semantic_pass_rate']:.3f} < "
+            f"{policy.qualification.minimum_semantic_pass_rate:.3f}"
         )
     if len(semantic["critical_failures"]) > policy.qualification.maximum_critical_failures:
         failures.append(
@@ -339,12 +389,12 @@ def run_icc_persona_qualification(
         **base_provenance,
         "ontology_sha256": domain_report["semantic_baseline"].get("ontology_hash"),
         "semantic_batch_hash": domain_report["semantic_baseline"].get("batch_hash"),
-        "runtime_suite_id": (
-            domain_report.get("runtime_qualification") or {}
-        ).get("suite_id"),
-        "runtime_suite_hash": (
-            domain_report.get("runtime_qualification") or {}
-        ).get("suite_hash"),
+        "runtime_suite_id": (domain_report.get("runtime_qualification") or {}).get("suite_id"),
+        "runtime_suite_hash": (domain_report.get("runtime_qualification") or {}).get(
+            "suite_hash"
+        ),
+        "persona_binding_id": binding_id,
+        "persona_binding_version": binding_version,
         "persona_scope_hash": _scope_hash(selected_persona_id, questions),
     }
 
@@ -359,10 +409,15 @@ def run_icc_persona_qualification(
         "current_state": current_state,
         "block_reason": "; ".join(failures) if failures else None,
         "persona_binding": {
+            "binding_id": binding_id,
+            "binding_version": binding_version,
+            "selection_source": selection_source,
             "role": persona.role,
             "objectives": persona.objectives,
             "information_needs": persona.information_needs,
+            "question_count": len(questions),
             "question_ids": semantic["question_ids"],
+            "question_bindings": binding_metadata,
         },
         "qualification": {
             "semantic_pass_rate": semantic["semantic_pass_rate"],
