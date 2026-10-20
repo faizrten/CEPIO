@@ -1,0 +1,25 @@
+id: drilling-contractor-maintenance-planner-binding-v0.1
+version: "0.1"
+domain: drilling-contractor
+persona_id: maintenance-planner
+competency_pack_id: drilling-contractor-persona-capabilities-v0.3
+minimum_question_count: 6
+questions:
+  - question_id: DC-PC-005
+    mode: primary
+    rationale: Maintenance Planner must connect equipment defects, failure evidence, work orders and accountable work ownership to protect rig availability.
+  - question_id: DC-PC-006
+    mode: oversight
+    rationale: Planned maintenance can be blocked by electrical isolation and release constraints even though verification authority remains with the responsible electrical and HSE roles.
+  - question_id: DC-PC-008
+    mode: support
+    rationale: Material availability is an executability dependency for planned work; the planner consumes supply evidence without owning drilling-fluid treatment decisions.
+  - question_id: DC-PC-012
+    mode: support
+    rationale: Competency and certification readiness can constrain execution of planned work; the planner consumes workforce-readiness evidence without owning competency assurance.
+  - question_id: DC-PC-013
+    mode: support
+    rationale: Rig-move and campaign readiness define operating windows that can constrain when maintenance work is executable without transferring marine authority to the planner.
+  - question_id: DC-PC-014
+    mode: primary
+    rationale: Critical material, supplier and procurement exposure can directly block maintenance work and campaign milestones and therefore belongs in maintenance planning priority.
