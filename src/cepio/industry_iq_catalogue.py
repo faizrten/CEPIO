@@ -15,6 +15,11 @@ from .industry_iq import (
     IndustryIQPackRegistry,
     industry_iq_manifest,
 )
+from .industry_iq_supply_chain import (
+    IndustryIQSupplyChainError,
+    IndustryIQSupplyChainEvidence,
+    IndustryIQSupplyChainPolicy,
+)
 from .runtime import CEPIORuntime
 
 
@@ -34,7 +39,8 @@ class IndustryIQPackProvenance(BaseModel):
 
     ``host_verified`` means the source adapter verified the referenced artifact before
     handing the candidate to CEPIO Core. Core does not fetch remote artifacts or infer
-    cryptographic trust from a self-declared digest.
+    cryptographic trust from a self-declared digest. Optional supply-chain evidence can
+    strengthen that assertion with signed publisher, SBOM, and vulnerability evidence.
     """
 
     source_id: str = Field(min_length=1)
@@ -43,6 +49,7 @@ class IndustryIQPackProvenance(BaseModel):
     publisher: str | None = None
     artifact_digest: str | None = None
     verification: Literal["builtin", "host_verified", "unverified"] = "unverified"
+    supply_chain: IndustryIQSupplyChainEvidence | None = None
 
 
 class IndustryIQTrustPolicy(BaseModel):
@@ -51,6 +58,9 @@ class IndustryIQTrustPolicy(BaseModel):
     trusted_source_ids: set[str] = Field(default_factory=set)
     trusted_publishers: set[str] = Field(default_factory=set)
     require_digest_for_external: bool = True
+    supply_chain_policy: IndustryIQSupplyChainPolicy = Field(
+        default_factory=IndustryIQSupplyChainPolicy
+    )
 
     def enforce(self, provenance: IndustryIQPackProvenance) -> None:
         if provenance.source_id not in self.trusted_source_ids:
@@ -89,6 +99,16 @@ class IndustryIQTrustPolicy(BaseModel):
                 "PACK_DIGEST_INVALID",
                 "Industry IQ artifact digest must use sha256:<64 hex characters>.",
             )
+
+        try:
+            self.supply_chain_policy.enforce(
+                artifact_digest=provenance.artifact_digest,
+                publisher=provenance.publisher,
+                external=external,
+                evidence=provenance.supply_chain,
+            )
+        except IndustryIQSupplyChainError as exc:
+            raise IndustryIQCatalogueError(exc.code, str(exc)) from exc
 
 
 @dataclass(frozen=True)
