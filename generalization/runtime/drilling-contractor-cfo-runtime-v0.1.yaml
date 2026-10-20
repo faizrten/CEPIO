@@ -1,0 +1,172 @@
+id: drilling-contractor-cfo-runtime-v0.1
+version: "0.1"
+archetype_id: drilling-contractor-v0.1
+competency_pack: generalization/competency/drilling-contractor-cfo-v0.1.yaml
+description: >
+  Deterministic source-neutral runtime evidence for the frozen drilling-contractor CFO
+  capability contract. ERP, EPM, treasury, planning and accounting systems remain
+  authoritative for financial calculations and records; CEPIO binds their evidence to
+  industrial context, performance contracts, risk and governed decisions.
+questions:
+  - question_id: CFO-001
+    claim: Resolve rig margin evidence from revenue, cost and organization-defined KPI observations.
+    capabilities: [rig-margin-evidence, margin-kpi-observation]
+    objects:
+      - {id: RIG-CFO-1, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Rig Alpha}
+      - {id: REV-CFO-1, type: "https://cepio.org/ontology/commercial#RevenueRecord", name: Rig Alpha current-period revenue, properties: {amount: 5200000, currency: USD}}
+      - {id: COST-CFO-1, type: "https://cepio.org/ontology/commercial#CostRecord", name: Rig Alpha current-period cost, properties: {amount: 3900000, currency: USD}}
+      - {id: KPI-MARGIN-1, type: "https://cepio.org/ontology/core#KPI", name: Rig contribution margin}
+      - {id: OBS-MARGIN-1, type: "https://cepio.org/ontology/performance#KPIObservation", name: Rig Alpha contribution margin observation, properties: {value: 0.25}}
+    relationships:
+      - {id: revenue-rig, type: "https://cepio.org/ontology/commercial#revenueFor", source: REV-CFO-1, target: RIG-CFO-1}
+      - {id: cost-rig, type: "https://cepio.org/ontology/commercial#costFor", source: COST-CFO-1, target: RIG-CFO-1}
+      - {id: margin-kpi, type: "https://cepio.org/ontology/performance#observationOfKPI", source: OBS-MARGIN-1, target: KPI-MARGIN-1}
+      - {id: margin-rig, type: "https://cepio.org/ontology/performance#observationForEntity", source: OBS-MARGIN-1, target: RIG-CFO-1}
+    probes:
+      - {id: rig-revenue, kind: relationship, start_id: REV-CFO-1, relationship_type: "https://cepio.org/ontology/commercial#revenueFor", expected_ids: [RIG-CFO-1]}
+      - {id: rig-cost, kind: relationship, start_id: COST-CFO-1, relationship_type: "https://cepio.org/ontology/commercial#costFor", expected_ids: [RIG-CFO-1]}
+      - {id: margin-observation, kind: relationship, start_id: OBS-MARGIN-1, relationship_type: "https://cepio.org/ontology/performance#observationOfKPI", expected_ids: [KPI-MARGIN-1]}
+
+  - question_id: CFO-002
+    claim: Resolve contract rate, rate basis, obligation and value-at-risk exposure for drilling-contract economics.
+    capabilities: [contract-rate-obligation-economics, commercial-value-at-risk]
+    objects:
+      - {id: CONTRACT-CFO-2, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Rig Alpha daywork contract}
+      - {id: RATE-CFO-2, type: "https://cepio.org/ontology/commercial#ContractRate", name: Current contract rate, properties: {value: 185000, currency: USD}}
+      - {id: BASIS-CFO-2, type: "https://cepio.org/ontology/commercial#RateBasis", name: Operating day rate basis}
+      - {id: OBL-CFO-2, type: "https://cepio.org/ontology/commercial#ContractObligation", name: Availability obligation}
+      - {id: VAR-CFO-2, type: "https://cepio.org/ontology/commercial#ValueAtRisk", name: Revenue leakage exposure, properties: {amount: 555000, currency: USD}}
+    relationships:
+      - {id: rate-contract, type: "https://cepio.org/ontology/commercial#rateForContract", source: RATE-CFO-2, target: CONTRACT-CFO-2}
+      - {id: rate-basis, type: "https://cepio.org/ontology/commercial#hasRateBasis", source: RATE-CFO-2, target: BASIS-CFO-2}
+      - {id: obligation-contract, type: "https://cepio.org/ontology/commercial#obligationOfContract", source: OBL-CFO-2, target: CONTRACT-CFO-2}
+      - {id: contract-risk, type: "https://cepio.org/ontology/core#hasRisk", source: CONTRACT-CFO-2, target: VAR-CFO-2}
+    probes:
+      - {id: governed-rate, kind: relationship, start_id: RATE-CFO-2, relationship_type: "https://cepio.org/ontology/commercial#rateForContract", expected_ids: [CONTRACT-CFO-2]}
+      - {id: rate-basis-probe, kind: relationship, start_id: RATE-CFO-2, relationship_type: "https://cepio.org/ontology/commercial#hasRateBasis", expected_ids: [BASIS-CFO-2]}
+      - {id: financial-risk, kind: relationship, start_id: CONTRACT-CFO-2, relationship_type: "https://cepio.org/ontology/core#hasRisk", expected_ids: [VAR-CFO-2]}
+
+  - question_id: CFO-003
+    claim: Resolve cash-conversion and working-capital KPI performance against target for the affected operating entity.
+    capabilities: [finance-performance-contract, finance-kpi-variance-context]
+    objects:
+      - {id: PERF-CFO-3, type: "https://cepio.org/ontology/performance#PerformanceContract", name: CFO cash conversion performance contract}
+      - {id: KPI-CASH-3, type: "https://cepio.org/ontology/core#KPI", name: Cash conversion cycle}
+      - {id: TARGET-CASH-3, type: "https://cepio.org/ontology/performance#Target", name: Cash conversion target, properties: {value: 45, unit: days}}
+      - {id: OBS-CASH-3, type: "https://cepio.org/ontology/performance#KPIObservation", name: Current cash conversion observation, properties: {value: 61, unit: days}}
+      - {id: RIG-CFO-3, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Rig Bravo}
+    relationships:
+      - {id: perf-kpi, type: "https://cepio.org/ontology/performance#hasPerformanceNode", source: PERF-CFO-3, target: KPI-CASH-3}
+      - {id: kpi-target, type: "https://cepio.org/ontology/performance#hasTarget", source: KPI-CASH-3, target: TARGET-CASH-3}
+      - {id: observation-kpi, type: "https://cepio.org/ontology/performance#observationOfKPI", source: OBS-CASH-3, target: KPI-CASH-3}
+      - {id: observation-rig, type: "https://cepio.org/ontology/performance#observationForEntity", source: OBS-CASH-3, target: RIG-CFO-3}
+    probes:
+      - {id: cash-kpi, kind: relationship, start_id: PERF-CFO-3, relationship_type: "https://cepio.org/ontology/performance#hasPerformanceNode", expected_ids: [KPI-CASH-3]}
+      - {id: cash-target, kind: relationship, start_id: KPI-CASH-3, relationship_type: "https://cepio.org/ontology/performance#hasTarget", expected_ids: [TARGET-CASH-3]}
+      - {id: cash-entity, kind: relationship, start_id: OBS-CASH-3, relationship_type: "https://cepio.org/ontology/performance#observationForEntity", expected_ids: [RIG-CFO-3]}
+
+  - question_id: CFO-004
+    claim: Resolve fleet capex item, affected rig and return-on-capital KPI evidence.
+    capabilities: [capital-item-rig-scope, return-kpi-evidence]
+    objects:
+      - {id: CAPEX-CFO-4, type: "https://cepio.org/ontology/commercial#CapitalItem", name: Top-drive modernization package, properties: {amount: 7500000, currency: USD}}
+      - {id: RIG-CFO-4, type: "https://cepio.org/ontology/drilling#OperatingRig", name: Rig Charlie}
+      - {id: KPI-ROC-4, type: "https://cepio.org/ontology/core#KPI", name: Return on capital}
+      - {id: OBS-ROC-4, type: "https://cepio.org/ontology/performance#KPIObservation", name: Modernization return observation, properties: {value: 0.14}}
+    relationships:
+      - {id: capex-rig, type: "https://cepio.org/ontology/commercial#capitalItemFor", source: CAPEX-CFO-4, target: RIG-CFO-4}
+      - {id: return-kpi, type: "https://cepio.org/ontology/performance#observationOfKPI", source: OBS-ROC-4, target: KPI-ROC-4}
+      - {id: return-capex, type: "https://cepio.org/ontology/performance#observationForEntity", source: OBS-ROC-4, target: CAPEX-CFO-4}
+    probes:
+      - {id: affected-rig, kind: relationship, start_id: CAPEX-CFO-4, relationship_type: "https://cepio.org/ontology/commercial#capitalItemFor", expected_ids: [RIG-CFO-4]}
+      - {id: return-observation, kind: relationship, start_id: OBS-ROC-4, relationship_type: "https://cepio.org/ontology/performance#observationOfKPI", expected_ids: [KPI-ROC-4]}
+
+  - question_id: CFO-005
+    claim: Resolve downside scenario assumptions, uncertainty, financial risk and exposed decision.
+    capabilities: [economic-scenario-uncertainty, downside-decision-exposure]
+    objects:
+      - {id: SCEN-CFO-5, type: "https://cepio.org/ontology/commercial#EconomicScenario", name: Fleet downside scenario}
+      - {id: ASM-RATE-5, type: "https://cepio.org/ontology/core#Assumption", name: Day-rate compression assumption}
+      - {id: UA-UTIL-5, type: "https://cepio.org/ontology/core#UncertaintyAssessment", name: Utilization uncertainty}
+      - {id: VAR-CFO-5, type: "https://cepio.org/ontology/commercial#ValueAtRisk", name: Downside fleet value at risk}
+      - {id: DEC-CAPEX-5, type: "https://cepio.org/ontology/kinetic#Decision", name: Fleet capex timing decision}
+    relationships:
+      - {id: scenario-assumption, type: "https://cepio.org/ontology/core#hasAssumption", source: SCEN-CFO-5, target: ASM-RATE-5}
+      - {id: scenario-uncertainty, type: "https://cepio.org/ontology/core#hasUncertaintyAssessment", source: SCEN-CFO-5, target: UA-UTIL-5}
+      - {id: scenario-risk, type: "https://cepio.org/ontology/core#hasRisk", source: SCEN-CFO-5, target: VAR-CFO-5}
+      - {id: uncertainty-decision, type: "https://cepio.org/ontology/core#impacts", source: UA-UTIL-5, target: DEC-CAPEX-5}
+    probes:
+      - {id: downside-assumption, kind: relationship, start_id: SCEN-CFO-5, relationship_type: "https://cepio.org/ontology/core#hasAssumption", expected_ids: [ASM-RATE-5]}
+      - {id: downside-risk, kind: relationship, start_id: SCEN-CFO-5, relationship_type: "https://cepio.org/ontology/core#hasRisk", expected_ids: [VAR-CFO-5]}
+      - {id: exposed-decision, kind: relationship, start_id: UA-UTIL-5, relationship_type: "https://cepio.org/ontology/core#impacts", expected_ids: [DEC-CAPEX-5]}
+
+  - question_id: CFO-006
+    claim: Resolve service obligation, delivery evidence, acceptance and affected contract revenue.
+    capabilities: [service-contract-evidence-chain, contract-revenue-impact]
+    objects:
+      - {id: CONTRACT-CFO-6, type: "https://cepio.org/ontology/drilling#DrillingContract", name: Rig Delta contract}
+      - {id: OBL-CFO-6, type: "https://cepio.org/ontology/commercial#ContractObligation", name: Service availability obligation}
+      - {id: SERVICE-CFO-6, type: "https://cepio.org/ontology/commercial#ServiceExecution", name: Contracted drilling service period}
+      - {id: EVID-CFO-6, type: "https://cepio.org/ontology/commercial#ServiceDeliveryEvidence", name: Service delivery evidence package}
+      - {id: ACCEPT-CFO-6, type: "https://cepio.org/ontology/commercial#ServiceAcceptance", name: Customer service acceptance}
+      - {id: REV-CFO-6, type: "https://cepio.org/ontology/commercial#RevenueRecord", name: Contract revenue record, properties: {amount: 4300000, currency: USD}}
+    relationships:
+      - {id: obligation-contract-6, type: "https://cepio.org/ontology/commercial#obligationOfContract", source: OBL-CFO-6, target: CONTRACT-CFO-6}
+      - {id: service-obligation, type: "https://cepio.org/ontology/commercial#governedByObligation", source: SERVICE-CFO-6, target: OBL-CFO-6}
+      - {id: service-evidence, type: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", source: SERVICE-CFO-6, target: EVID-CFO-6}
+      - {id: acceptance-service, type: "https://cepio.org/ontology/commercial#acceptanceOfService", source: ACCEPT-CFO-6, target: SERVICE-CFO-6}
+      - {id: revenue-contract-6, type: "https://cepio.org/ontology/commercial#revenueFor", source: REV-CFO-6, target: CONTRACT-CFO-6}
+    probes:
+      - {id: service-governance, kind: relationship, start_id: SERVICE-CFO-6, relationship_type: "https://cepio.org/ontology/commercial#governedByObligation", expected_ids: [OBL-CFO-6]}
+      - {id: delivery-evidence, kind: relationship, start_id: SERVICE-CFO-6, relationship_type: "https://cepio.org/ontology/commercial#producesDeliveryEvidence", expected_ids: [EVID-CFO-6]}
+      - {id: affected-revenue, kind: relationship, start_id: REV-CFO-6, relationship_type: "https://cepio.org/ontology/commercial#revenueFor", expected_ids: [CONTRACT-CFO-6]}
+
+  - question_id: CFO-007
+    claim: Resolve capital-allocation opportunity, options, recommendation and authoritative decision.
+    capabilities: [capital-allocation-options, capital-allocation-decision]
+    objects:
+      - {id: OBJ-CFO-7, type: "https://cepio.org/ontology/core#Objective", name: Maximize risk-adjusted fleet return}
+      - {id: OPP-CFO-7, type: "https://cepio.org/ontology/kinetic#Opportunity", name: Allocate next fleet investment tranche}
+      - {id: OPT-UPGRADE-7, type: "https://cepio.org/ontology/kinetic#Option", name: Upgrade high-utilization rig}
+      - {id: OPT-DEBT-7, type: "https://cepio.org/ontology/kinetic#Option", name: Preserve cash and reduce debt}
+      - {id: REC-UPGRADE-7, type: "https://cepio.org/ontology/kinetic#OptionRecommendation", name: Finance recommendation}
+      - {id: DEC-UPGRADE-7, type: "https://cepio.org/ontology/kinetic#Decision", name: Capital committee decision}
+    relationships:
+      - {id: opportunity-objective, type: "https://cepio.org/ontology/kinetic#opportunityForObjective", source: OPP-CFO-7, target: OBJ-CFO-7}
+      - {id: option-upgrade, type: "https://cepio.org/ontology/kinetic#hasOption", source: OPP-CFO-7, target: OPT-UPGRADE-7}
+      - {id: option-debt, type: "https://cepio.org/ontology/kinetic#hasOption", source: OPP-CFO-7, target: OPT-DEBT-7}
+      - {id: recommendation, type: "https://cepio.org/ontology/kinetic#hasRecommendation", source: OPP-CFO-7, target: REC-UPGRADE-7}
+      - {id: recommended-option, type: "https://cepio.org/ontology/kinetic#recommendsOption", source: REC-UPGRADE-7, target: OPT-UPGRADE-7}
+      - {id: decision-opportunity, type: "https://cepio.org/ontology/kinetic#addressesOpportunity", source: DEC-UPGRADE-7, target: OPP-CFO-7}
+      - {id: decision-recommendation, type: "https://cepio.org/ontology/kinetic#basedOnRecommendation", source: DEC-UPGRADE-7, target: REC-UPGRADE-7}
+      - {id: selected-option, type: "https://cepio.org/ontology/kinetic#selectedOption", source: DEC-UPGRADE-7, target: OPT-UPGRADE-7}
+    probes:
+      - {id: investment-options, kind: relationship, start_id: OPP-CFO-7, relationship_type: "https://cepio.org/ontology/kinetic#hasOption", expected_ids: [OPT-DEBT-7, OPT-UPGRADE-7]}
+      - {id: finance-recommendation, kind: relationship, start_id: REC-UPGRADE-7, relationship_type: "https://cepio.org/ontology/kinetic#recommendsOption", expected_ids: [OPT-UPGRADE-7]}
+      - {id: capital-decision, kind: relationship, start_id: DEC-UPGRADE-7, relationship_type: "https://cepio.org/ontology/kinetic#selectedOption", expected_ids: [OPT-UPGRADE-7]}
+
+  - question_id: CFO-008
+    claim: Resolve CFO objective, KPI, target, guardrail, accountability and governed performance response.
+    capabilities: [cfo-performance-accountability, governed-finance-response]
+    objects:
+      - {id: PERF-CFO-8, type: "https://cepio.org/ontology/performance#PerformanceContract", name: CFO enterprise performance contract}
+      - {id: OBJ-CASH-8, type: "https://cepio.org/ontology/core#Objective", name: Protect cash generation}
+      - {id: KPI-FCF-8, type: "https://cepio.org/ontology/core#KPI", name: Free cash flow}
+      - {id: TARGET-FCF-8, type: "https://cepio.org/ontology/performance#Target", name: Free cash flow target}
+      - {id: GUARD-DEBT-8, type: "https://cepio.org/ontology/performance#Guardrail", name: Net leverage guardrail}
+      - {id: ACCOUNT-CFO-8, type: "https://cepio.org/ontology/performance#Accountability", name: CFO KPI accountability}
+      - {id: RESPONSE-CFO-8, type: "https://cepio.org/ontology/performance#PerformanceResponseBinding", name: Finance variance response binding}
+    relationships:
+      - {id: perf-objective-8, type: "https://cepio.org/ontology/performance#hasPerformanceNode", source: PERF-CFO-8, target: OBJ-CASH-8}
+      - {id: perf-kpi-8, type: "https://cepio.org/ontology/performance#hasPerformanceNode", source: PERF-CFO-8, target: KPI-FCF-8}
+      - {id: target-kpi-8, type: "https://cepio.org/ontology/performance#hasTarget", source: KPI-FCF-8, target: TARGET-FCF-8}
+      - {id: guardrail-8, type: "https://cepio.org/ontology/performance#hasGuardrail", source: PERF-CFO-8, target: GUARD-DEBT-8}
+      - {id: accountability-8, type: "https://cepio.org/ontology/performance#hasAccountability", source: PERF-CFO-8, target: ACCOUNT-CFO-8}
+      - {id: accountability-for-8, type: "https://cepio.org/ontology/performance#accountabilityFor", source: ACCOUNT-CFO-8, target: KPI-FCF-8}
+      - {id: response-binding-8, type: "https://cepio.org/ontology/performance#hasResponseBinding", source: PERF-CFO-8, target: RESPONSE-CFO-8}
+      - {id: response-for-8, type: "https://cepio.org/ontology/performance#responseFor", source: RESPONSE-CFO-8, target: KPI-FCF-8}
+    probes:
+      - {id: cfo-kpi, kind: relationship, start_id: PERF-CFO-8, relationship_type: "https://cepio.org/ontology/performance#hasPerformanceNode", expected_ids: [KPI-FCF-8, OBJ-CASH-8]}
+      - {id: cfo-guardrail, kind: relationship, start_id: PERF-CFO-8, relationship_type: "https://cepio.org/ontology/performance#hasGuardrail", expected_ids: [GUARD-DEBT-8]}
+      - {id: cfo-accountability, kind: relationship, start_id: ACCOUNT-CFO-8, relationship_type: "https://cepio.org/ontology/performance#accountabilityFor", expected_ids: [KPI-FCF-8]}
+      - {id: governed-response, kind: relationship, start_id: PERF-CFO-8, relationship_type: "https://cepio.org/ontology/performance#hasResponseBinding", expected_ids: [RESPONSE-CFO-8]}
