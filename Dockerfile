@@ -31,7 +31,7 @@ RUN addgroup --system cepio && adduser --system --ingroup cepio cepio
 
 COPY --from=builder /build/dist/cepio-*.whl /tmp/
 RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=83.0.0" \
-    && python -m pip install --no-cache-dir /tmp/cepio-*.whl \
+    && python -m pip install --no-cache-dir /tmp/cepio-*.whl "mcp>=2.0,<3" \
     && rm -f /tmp/cepio-*.whl
 
 RUN mkdir -p /app /data && chown -R cepio:cepio /app /data
