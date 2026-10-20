@@ -124,8 +124,7 @@ def test_drilling_pack_covers_fleet_operations_performance_commercial_and_safety
     ilt_edge = next(
         item
         for item in pack.contributions
-        if item.source_node_id
-        == "cepio.reference.drilling-contractor.metric.invisible-lost-time"
+        if item.source_node_id == "cepio.reference.drilling-contractor.metric.invisible-lost-time"
     )
     assert ilt_edge.target_node_id == "cepio.reference.drilling-contractor.kpi.npt-ratio"
     assert ilt_edge.relation.value == "influences"
@@ -135,7 +134,7 @@ def test_refinery_organization_can_specialize_only_owned_kpi_fields_and_accounta
     reference = refinery_performance_pack()
     availability = "cepio.reference.refinery.kpi.operational-availability"
     reference_accountability = (
-        "refinery.reference.operations-manager|" f"{availability}|accountable_for"
+        f"refinery.reference.operations-manager|{availability}|accountable_for"
     )
 
     organization = PerformanceContractOverlayV2(
@@ -146,9 +145,7 @@ def test_refinery_organization_can_specialize_only_owned_kpi_fields_and_accounta
         organization_id="example-refinery",
         extends_contract_id=reference.id,
         subjects=(
-            PerformanceSubject(
-                id="example-refinery", kind="enterprise", name="Example Refinery"
-            ),
+            PerformanceSubject(id="example-refinery", kind="enterprise", name="Example Refinery"),
             PerformanceSubject(
                 id="example-refinery.operations",
                 kind="function",
@@ -167,16 +164,12 @@ def test_refinery_organization_can_specialize_only_owned_kpi_fields_and_accounta
                 element_type="node",
                 element_key=availability,
                 set_fields=(
-                    PerformanceFieldSet(
-                        field="scope_subject_id", value="example-refinery.coo"
-                    ),
+                    PerformanceFieldSet(field="scope_subject_id", value="example-refinery.coo"),
                     PerformanceFieldSet(
                         field="formula_ref",
                         value="logic://example-refinery/operational-availability/v1",
                     ),
-                    PerformanceFieldSet(
-                        field="target", value={"operator": "gte", "value": 0.96}
-                    ),
+                    PerformanceFieldSet(field="target", value={"operator": "gte", "value": 0.96}),
                 ),
                 reason="Bind reference availability to the organization's governed definition",
             ),
@@ -233,9 +226,7 @@ def test_drilling_organization_can_bind_npt_policy_without_copying_reference_gra
                     PerformanceFieldSet(
                         field="formula_ref", value="logic://example-drilling/npt-ratio/v3"
                     ),
-                    PerformanceFieldSet(
-                        field="target", value={"operator": "lte", "value": 0.05}
-                    ),
+                    PerformanceFieldSet(field="target", value={"operator": "lte", "value": 0.05}),
                 ),
                 reason="Bind NPT to the contractor's activity taxonomy and performance target",
             ),
