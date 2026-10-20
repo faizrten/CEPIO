@@ -22,6 +22,7 @@ dependencies = [
 
 [project.scripts]
 cepio-management = "cepio.management_api:main"
+cepio-foundry-mcp = "cepio.integrations.microsoft.foundry_mcp_host:main"
 
 [project.optional-dependencies]
 mcp = ["mcp>=2.0,<3"]
