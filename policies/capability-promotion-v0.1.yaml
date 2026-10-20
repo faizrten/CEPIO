@@ -1,0 +1,7 @@
+id: cepio-capability-promotion-policy
+version: "0.1"
+minimum_independent_domains: 2
+allowed_target_layers: [CORE, COMMON]
+minimum_regression_survival_rate: 1.0
+require_human_approval: true
+forbid_customer_specific_evidence: true

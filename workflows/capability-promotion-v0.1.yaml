@@ -1,0 +1,22 @@
+id: workflow.capability-promotion.v1
+version: "0.1"
+initial_state: CANDIDATE
+states:
+  - CANDIDATE
+  - EVIDENCE_COLLECTED
+  - CROSS_DOMAIN_TESTED
+  - ARCHITECTURE_REVIEW
+  - APPROVED
+  - PROMOTED
+  - BLOCKED
+  - REJECTED
+transitions:
+  - {source: CANDIDATE, target: EVIDENCE_COLLECTED, gate: evidence_complete}
+  - {source: EVIDENCE_COLLECTED, target: CROSS_DOMAIN_TESTED, gate: independent_domain_evidence}
+  - {source: CROSS_DOMAIN_TESTED, target: ARCHITECTURE_REVIEW, gate: regression_passed}
+  - {source: ARCHITECTURE_REVIEW, target: APPROVED, gate: human_architecture_approval}
+  - {source: ARCHITECTURE_REVIEW, target: REJECTED, gate: human_architecture_rejection}
+  - {source: APPROVED, target: PROMOTED, gate: registry_update}
+  - {source: CANDIDATE, target: BLOCKED, gate: policy_failure}
+  - {source: EVIDENCE_COLLECTED, target: BLOCKED, gate: policy_failure}
+  - {source: CROSS_DOMAIN_TESTED, target: BLOCKED, gate: regression_failure}
