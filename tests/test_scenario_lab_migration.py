@@ -1,4 +1,5 @@
 """Public contributor checks for the Labs ownership boundary; no corpus access."""
+
 from pathlib import Path
 import subprocess
 
