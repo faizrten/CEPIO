@@ -1,0 +1,31 @@
+id: drilling-contractor-cfo-binding-v0.1
+version: "0.1"
+domain: drilling-contractor
+persona_id: chief-financial-officer
+competency_pack_id: drilling-contractor-cfo-v0.1
+minimum_question_count: 8
+questions:
+  - question_id: CFO-001
+    mode: primary
+    rationale: CFO owns the fleet-level financial view and must explain rig margin from revenue, cost and KPI evidence.
+  - question_id: CFO-002
+    mode: primary
+    rationale: Contract rate, obligation and leakage exposure directly affect cash generation and margin protection.
+  - question_id: CFO-003
+    mode: primary
+    rationale: Cash conversion and working-capital performance are core CFO outcomes while formulas remain organization-specific.
+  - question_id: CFO-004
+    mode: primary
+    rationale: CFO governs capex exposure and return-on-capital evidence across the fleet.
+  - question_id: CFO-005
+    mode: primary
+    rationale: Downside financial scenarios must expose assumptions, uncertainty and decision sensitivity without embedding the financial model in CEPIO.
+  - question_id: CFO-006
+    mode: oversight
+    rationale: CFO requires evidence of contract leakage, obligation performance and acceptance exposure while Commercial owns detailed contract administration.
+  - question_id: CFO-007
+    mode: primary
+    rationale: CFO develops and recommends capital-allocation options while authoritative approval remains explicitly separated.
+  - question_id: CFO-008
+    mode: primary
+    rationale: CFO performance accountability should bind objectives, KPIs, targets, guardrails and governed response through the Performance Contract.
