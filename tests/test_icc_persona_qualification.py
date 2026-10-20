@@ -13,7 +13,9 @@ POLICY = ROOT / "policies/domain-onboarding-v0.1.yaml"
 
 
 def _rig_manager_question_id() -> str:
-    pack = load_pack(ROOT / "generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml")
+    pack = load_pack(
+        ROOT / "generalization/competency/drilling-contractor-persona-capabilities-v0.3.yaml"
+    )
     return next(question.id for question in pack.questions if "rig-manager" in question.personas)
 
 
@@ -25,9 +27,14 @@ def test_rig_manager_icc_is_persona_scoped_and_reuses_existing_capabilities():
     assert report["domain"] == "drilling-contractor"
     assert report["persona_id"] == "rig-manager"
     assert report["persona_binding"]["role"] == "Rig Manager"
+    assert report["persona_binding"]["selection_source"] == "explicit-persona-binding"
+    assert report["persona_binding"]["binding_id"] == "drilling-contractor-rig-manager-binding-v0.1"
+    assert report["persona_binding"]["question_count"] == 14
     assert report["qualification"]["semantic_pass_rate"] == 1.0
     assert report["qualification"]["runtime_coverage_rate"] == 1.0
-    assert report["icc_delta"]["required_question_ids"]
+    assert report["icc_delta"]["required_question_ids"] == [
+        f"DC-PC-{index:03d}" for index in range(1, 15)
+    ]
     assert report["icc_delta"]["required_capabilities"]
     assert len(report["icc_delta"]["reused_capabilities"]) == len(
         report["icc_delta"]["required_capabilities"]
@@ -38,6 +45,7 @@ def test_rig_manager_icc_is_persona_scoped_and_reuses_existing_capabilities():
     assert report["icc_delta"]["policy_authority_gaps"] == []
     assert report["human_review_required"] is True
     assert len(report["provenance"]["manifest_sha256"]) == 64
+    assert len(report["provenance"]["persona_binding_sha256"]) == 64
     assert len(report["provenance"]["persona_scope_hash"]) == 64
 
 
