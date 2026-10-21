@@ -325,15 +325,9 @@ def test_valid_provenance_is_persisted_after_an_authorized_property_mutation():
         mapping_version="test-v2",
         source_value="low",
     )
-    updated = runtime.set_property(
-        "K-MCP", "asset:criticality", "low", provenance=record
-    )
+    updated = runtime.set_property("K-MCP", "asset:criticality", "low", provenance=record)
     definition = runtime.property_registry.resolve("asset:criticality")
     assert updated.properties[definition.iri] == "low"
     explanation = runtime.explain_property("K-MCP", "asset:criticality")
     assert any(row["id"] == record.id for row in explanation["provenance"])
-    assert any(
-        row["mapping_version"] == "test-v2"
-        for row in explanation["provenance"]
-    )
-
+    assert any(row["mapping_version"] == "test-v2" for row in explanation["provenance"])
