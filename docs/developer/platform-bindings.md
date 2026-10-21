@@ -165,3 +165,10 @@ Provider/source provenance remains different; industrial interpretation remains 
 ## North-Star rule
 
 When adding a binding, ask: **could the same Industry IQ Skill run when this provider is replaced?** If not, provider behavior has probably leaked into the industrial-intelligence layer.
+
+
+## Provenance and external writeback safety qualification
+
+A canonical property mutation that supplies `PropertyProvenance` must validate the source object's identity and canonical property IRI, and confirm that a provenance repository exists, **before** mutating the CEPIO object. The authenticated MCP explanation path also checks object/property read authorization before exposing the provenance source. This is a validation-order invariant, not a claim that the reference storage layer supports an atomic distributed transaction across source system and provenance store.
+
+External writeback outcomes must remain queryable and restart-safe. A transport failure after dispatch produces an **unknown** state, not permission to write again. Even after process restart, `dispatch` and `verify` cannot blindly retry an unknown outcome. Only explicit source reconciliation may resolve the record to verified/failed, preserving the original action, actor, decision and correlation identity. Offline fake-adapter tests prove these runtime invariants; real SAP read-back and live CONNECT qualification remain open under #53/#57/#58.

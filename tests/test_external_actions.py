@@ -287,9 +287,7 @@ def test_external_state_and_identity_survive_sqlite_restart(tmp_path: Path):
     restored = reloaded.get_execution(execution.id)
     assert restored.status == ExternalActionStatus.pending_verification
     assert restored.workflow_instance_id == "workflow-restart"
-    identities = reloaded.identities_for(
-        "K-201", system="fake_eam", identity_type="equipment"
-    )
+    identities = reloaded.identities_for("K-201", system="fake_eam", identity_type="equipment")
     assert len(identities) == 1
     assert identities[0].id == identity.id
 
@@ -308,3 +306,49 @@ def test_external_write_requires_successfully_executed_cepio_action():
 
     with pytest.raises(PermissionError, match="successfully executed CEPIO Action"):
         external.enqueue_from_action("fabricated-action-id")
+
+
+def test_unknown_outcome_survives_restart_and_only_reconciliation_can_resolve_it(tmp_path: Path):
+    database = tmp_path / "unknown-writeback.db"
+    runtime = build_runtime(sqlite_path=database)
+    runtime.upsert_object(compressor())
+    decision, action = execute_risk_action(runtime, correlation_id="trace-unknown-restart")
+    external, adapter = configured_external_runtime(runtime, sqlite_path=database)
+    register_verified_identity(external)
+    queued = external.enqueue_from_action(action.action_id)
+
+    adapter.raise_on_write = TimeoutError("Source acknowledgement lost after submit")
+    unknown = external.dispatch(queued.id)
+    assert unknown.status == ExternalActionStatus.unknown
+    assert unknown.failure_reason == "adapter_write_outcome_unknown"
+    assert len(external.list_executions(ExternalActionStatus.unknown)) == 1
+    assert unknown.decision_id == decision.id
+    assert unknown.actor_id == "reliability-1"
+    assert unknown.correlation_id == "trace-unknown-restart"
+    assert len(adapter.write_calls) == 1
+    external.repository.close()  # type: ignore[attr-defined]
+
+    resumed, recovery_adapter = configured_external_runtime(runtime, sqlite_path=database)
+    restored = resumed.get_execution(queued.id)
+    assert restored.status == ExternalActionStatus.unknown
+    assert len(resumed.list_executions(ExternalActionStatus.unknown)) == 1
+
+    with pytest.raises(UnsafeExternalRedispatchError):
+        resumed.dispatch(queued.id)
+    with pytest.raises(UnsafeExternalRedispatchError):
+        resumed.verify(queued.id)
+    assert recovery_adapter.write_calls == []
+
+    recovery_adapter.reconciliation_status = AdapterVerificationStatus.verified
+    verified = resumed.reconcile(queued.id)
+    assert verified.status == ExternalActionStatus.verified
+    assert verified.failure_reason is None
+    assert verified.verified_at is not None
+    assert len(resumed.list_executions(ExternalActionStatus.unknown)) == 0
+    assert len(resumed.list_executions(ExternalActionStatus.verified)) == 1
+    assert len(recovery_adapter.reconcile_calls) == 1
+    assert recovery_adapter.write_calls == []
+    assert "reconciliation_verified" in [event.event for event in resumed.history(queued.id)]
+
+    resumed.repository.close()  # type: ignore[attr-defined]
+    runtime.object_repository.close()  # type: ignore[attr-defined]

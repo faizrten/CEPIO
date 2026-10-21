@@ -32,7 +32,9 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
         self.provenance_repository = provenance_repository
         self.strict_properties = strict_properties
 
-    def upsert_object(self, obj: OntologyObject, expected_version: int | None = None) -> OntologyObject:
+    def upsert_object(
+        self, obj: OntologyObject, expected_version: int | None = None
+    ) -> OntologyObject:
         if self.property_registry and self.strict_properties:
             normalized: dict[str, Any] = {}
             for key, value in obj.properties.items():
@@ -68,6 +70,17 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
         if not self.property_registry:
             raise RuntimeError("Canonical property registry is not configured")
         definition = self.property_registry.resolve(property_name)
+        provenance_repository = self.provenance_repository
+        if provenance is not None:
+            # Validate independently supplied lineage before changing object state.
+            # A malformed provenance record must not leave a successful mutation.
+            if provenance_repository is None:
+                raise RuntimeError("Provenance repository is not configured")
+            if provenance.object_id != object_id:
+                raise ValueError("Property provenance object_id does not match target object")
+            if provenance.property_iri != definition.iri:
+                raise ValueError("Property provenance IRI does not match canonical property")
+
         obj = self.get_object(object_id)
         properties = dict(obj.properties)
         properties[definition.iri] = value
@@ -78,14 +91,9 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
             updated,
             expected_version=obj.version if expected_version is None else expected_version,
         )
-        if provenance:
-            if not self.provenance_repository:
-                raise RuntimeError("Provenance repository is not configured")
-            if provenance.object_id != object_id:
-                raise ValueError("Property provenance object_id does not match target object")
-            if provenance.property_iri != definition.iri:
-                raise ValueError("Property provenance IRI does not match canonical property")
-            self.provenance_repository.append_property(provenance)
+        if provenance is not None:
+            assert provenance_repository is not None
+            provenance_repository.append_property(provenance)
         return stored
 
     def explain_property(self, object_id: str, property_name: str) -> dict[str, Any]:
@@ -120,7 +128,9 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
             raise RuntimeError("Configured repository does not support temporal object history")
         obj = method(object_id, transaction_time)
         if obj is None:
-            raise KeyError(f"No CEPIO object {object_id} existed at transaction time {transaction_time.isoformat()}")
+            raise KeyError(
+                f"No CEPIO object {object_id} existed at transaction time {transaction_time.isoformat()}"
+            )
         return obj
 
     def get_object_valid_at(
@@ -148,7 +158,9 @@ class ContractAwareCEPIORuntime(CEPIORuntime):
     ) -> list[Relationship]:
         method = getattr(self.object_repository, "relationships_at", None)
         if method is None:
-            raise RuntimeError("Configured repository does not support temporal relationship history")
+            raise RuntimeError(
+                "Configured repository does not support temporal relationship history"
+            )
         return method(
             object_id,
             valid_time,
