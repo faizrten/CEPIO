@@ -43,18 +43,22 @@ def _completed_skill_call(*, decision_id="decision-1", evidence=None, status="co
     return {
         "type": "mcp_call",
         "name": "cepio_evaluate_skill",
-        "arguments": json.dumps({
-            "invocation": {
-                "skill_id": module.RELIABILITY_SKILL_ID,
-                "subject": {"id": "K-101", "type": "Compressor"},
+        "arguments": json.dumps(
+            {
+                "invocation": {
+                    "skill_id": module.RELIABILITY_SKILL_ID,
+                    "subject": {"id": "K-101", "type": "Compressor"},
+                }
             }
-        }),
-        "output": json.dumps({
-            "skill_id": module.RELIABILITY_SKILL_ID,
-            "status": status,
-            "evidence": evidence,
-            "decision": {"id": decision_id} if decision_id is not None else None,
-        }),
+        ),
+        "output": json.dumps(
+            {
+                "skill_id": module.RELIABILITY_SKILL_ID,
+                "status": status,
+                "evidence": evidence,
+                "decision": {"id": decision_id} if decision_id is not None else None,
+            }
+        ),
     }
 
 
@@ -75,10 +79,12 @@ def test_qualifier_accepts_mcp_content_envelope() -> None:
 def test_qualifier_rejects_text_only_claim_of_tool_call() -> None:
     payload = {
         "status": "completed",
-        "output": [{
-            "type": "message",
-            "content": "cepio_evaluate_skill " + module.RELIABILITY_SKILL_ID,
-        }],
+        "output": [
+            {
+                "type": "message",
+                "content": "cepio_evaluate_skill " + module.RELIABILITY_SKILL_ID,
+            }
+        ],
     }
     failures = module.qualify_payload(payload)
     assert any("cepio_evaluate_skill tool call" in failure for failure in failures)
@@ -103,34 +109,42 @@ def test_qualifier_fails_when_action_tool_is_used(tool_name: str) -> None:
 
 @pytest.mark.parametrize("decision_id", [None, ""])
 def test_qualifier_rejects_missing_decision_identity(decision_id) -> None:
-    failures = module.qualify_payload({
-        "status": "completed",
-        "output": [_completed_skill_call(decision_id=decision_id)],
-    })
+    failures = module.qualify_payload(
+        {
+            "status": "completed",
+            "output": [_completed_skill_call(decision_id=decision_id)],
+        }
+    )
     assert any("Decision identity" in failure for failure in failures)
 
 
 def test_qualifier_rejects_missing_evidence() -> None:
-    failures = module.qualify_payload({
-        "status": "completed",
-        "output": [_completed_skill_call(evidence=[])],
-    })
+    failures = module.qualify_payload(
+        {
+            "status": "completed",
+            "output": [_completed_skill_call(evidence=[])],
+        }
+    )
     assert any("structured evidence" in failure for failure in failures)
 
 
 def test_qualifier_rejects_blocked_result() -> None:
-    failures = module.qualify_payload({
-        "status": "completed",
-        "output": [_completed_skill_call(status="blocked")],
-    })
+    failures = module.qualify_payload(
+        {
+            "status": "completed",
+            "output": [_completed_skill_call(status="blocked")],
+        }
+    )
     assert any("did not complete successfully" in failure for failure in failures)
 
 
 def test_qualifier_rejects_incomplete_foundry_response() -> None:
-    failures = module.qualify_payload({
-        "status": "incomplete",
-        "output": [_completed_skill_call()],
-    })
+    failures = module.qualify_payload(
+        {
+            "status": "incomplete",
+            "output": [_completed_skill_call()],
+        }
+    )
     assert any("Foundry response did not complete" in failure for failure in failures)
 
 
