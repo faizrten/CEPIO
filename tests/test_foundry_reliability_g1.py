@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -36,26 +37,56 @@ def test_g1_prompt_is_subject_specific_and_action_bounded() -> None:
     assert "Do not execute" in prompt
 
 
-def test_qualifier_accepts_skill_call_without_action_tools() -> None:
-    payload = {
-        "output": [
-            {
-                "type": "mcp_call",
-                "name": "cepio_evaluate_skill",
-                "arguments": {"skill_id": module.RELIABILITY_SKILL_ID},
-                "output": {
-                    "status": "completed",
-                    "skill_id": module.RELIABILITY_SKILL_ID,
-                    "decision": {"id": "decision-1"},
-                },
+def _completed_skill_call(*, decision_id="decision-1", evidence=None, status="completed"):
+    if evidence is None:
+        evidence = [{"source_system": "pi", "record_id": "K-101-vibration-1"}]
+    return {
+        "type": "mcp_call",
+        "name": "cepio_evaluate_skill",
+        "arguments": json.dumps({
+            "invocation": {
+                "skill_id": module.RELIABILITY_SKILL_ID,
+                "subject": {"id": "K-101", "type": "Compressor"},
             }
-        ]
+        }),
+        "output": json.dumps({
+            "skill_id": module.RELIABILITY_SKILL_ID,
+            "status": status,
+            "evidence": evidence,
+            "decision": {"id": decision_id} if decision_id is not None else None,
+        }),
     }
+
+
+def test_qualifier_accepts_structured_skill_outcome_with_evidence() -> None:
+    payload = {"status": "completed", "output": [_completed_skill_call()]}
     assert module.qualify_payload(payload) == []
 
 
+def test_qualifier_accepts_mcp_content_envelope() -> None:
+    call = _completed_skill_call()
+    call["output"] = {
+        "content": [{"type": "text", "text": call["output"]}],
+        "isError": False,
+    }
+    assert module.qualify_payload({"status": "completed", "output": [call]}) == []
+
+
+def test_qualifier_rejects_text_only_claim_of_tool_call() -> None:
+    payload = {
+        "status": "completed",
+        "output": [{
+            "type": "message",
+            "content": "cepio_evaluate_skill " + module.RELIABILITY_SKILL_ID,
+        }],
+    }
+    failures = module.qualify_payload(payload)
+    assert any("cepio_evaluate_skill tool call" in failure for failure in failures)
+
+
 def test_qualifier_fails_without_skill_call() -> None:
-    failures = module.qualify_payload({"output": [{"name": "cepio_get_object"}]})
+    payload = {"status": "completed", "output": [{"type": "mcp_call", "name": "cepio_get_object"}]}
+    failures = module.qualify_payload(payload)
     assert any("cepio_evaluate_skill" in failure for failure in failures)
     assert any("Reliability Skill" in failure for failure in failures)
 
@@ -63,13 +94,58 @@ def test_qualifier_fails_without_skill_call() -> None:
 @pytest.mark.parametrize("tool_name", module.G1_PROHIBITED_TOOLS)
 def test_qualifier_fails_when_action_tool_is_used(tool_name: str) -> None:
     payload = {
-        "output": [
-            {"name": "cepio_evaluate_skill", "skill_id": module.RELIABILITY_SKILL_ID},
-            {"name": tool_name},
-        ]
+        "status": "completed",
+        "output": [_completed_skill_call(), {"type": "mcp_call", "name": tool_name}],
     }
     failures = module.qualify_payload(payload)
     assert any(tool_name in failure for failure in failures)
+
+
+@pytest.mark.parametrize("decision_id", [None, ""])
+def test_qualifier_rejects_missing_decision_identity(decision_id) -> None:
+    failures = module.qualify_payload({
+        "status": "completed",
+        "output": [_completed_skill_call(decision_id=decision_id)],
+    })
+    assert any("Decision identity" in failure for failure in failures)
+
+
+def test_qualifier_rejects_missing_evidence() -> None:
+    failures = module.qualify_payload({
+        "status": "completed",
+        "output": [_completed_skill_call(evidence=[])],
+    })
+    assert any("structured evidence" in failure for failure in failures)
+
+
+def test_qualifier_rejects_blocked_result() -> None:
+    failures = module.qualify_payload({
+        "status": "completed",
+        "output": [_completed_skill_call(status="blocked")],
+    })
+    assert any("did not complete successfully" in failure for failure in failures)
+
+
+def test_qualifier_rejects_incomplete_foundry_response() -> None:
+    failures = module.qualify_payload({
+        "status": "incomplete",
+        "output": [_completed_skill_call()],
+    })
+    assert any("Foundry response did not complete" in failure for failure in failures)
+
+
+def test_qualifier_rejects_wrong_skill_in_invocation() -> None:
+    call = _completed_skill_call()
+    call["arguments"] = {"invocation": {"skill_id": "unqualified.skill"}}
+    failures = module.qualify_payload({"status": "completed", "output": [call]})
+    assert any("invocation" in failure for failure in failures)
+
+
+def test_qualifier_rejects_mcp_error() -> None:
+    call = _completed_skill_call()
+    call["error"] = "tool invocation failed"
+    failures = module.qualify_payload({"status": "completed", "output": [call]})
+    assert any("tool error" in failure for failure in failures)
 
 
 def test_settings_fail_closed_when_required_environment_is_missing(monkeypatch) -> None:
