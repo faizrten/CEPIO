@@ -259,3 +259,20 @@ Azure deployment additionally verifies that anonymous `POST /mcp` returns HTTP 4
 - MCP authentication: https://learn.microsoft.com/azure/foundry/agents/how-to/mcp-authentication
 - Build/register custom MCP server: https://learn.microsoft.com/azure/foundry/mcp/build-your-own-mcp-server
 - Azure Functions MCP + Foundry: https://learn.microsoft.com/azure/azure-functions/functions-mcp-foundry-tools
+
+## Explicit protected Industry IQ composition (G1)
+
+The default hosted `build_hosted_mcp(runtime)` and `build_mcp_server(runtime, actor_provider)` are unchanged and expose the existing full eight-tool contract. A deployment that assembles a protected Skill executor externally can opt into:
+
+```python
+from cepio.integrations.microsoft.hosted_mcp import build_hosted_mcp_with_application_service
+
+# service is a CEPIOApplicationService already assembled by trusted deployment code
+# with a runtime-matched SkillRegistry and explicitly registered Skill executors.
+server, authenticated_http_app = build_hosted_mcp_with_application_service(service)
+# Start server.session_manager.run() in the host lifespan and mount the ASGI app.
+```
+
+The G1 default includes exactly six tools: `cepio_get_object`, `cepio_query_objects`, `cepio_get_state_at`, `cepio_explain_property`, `cepio_call_function`, and `cepio_evaluate_skill`. **Neither `cepio_recommend_action` nor `cepio_execute_action` is registered in G1.** This is a host-level restriction in addition to CEPIO actor/policy/Skill preflight. A trusted deployer may explicitly select `tool_profile="full"` for a separate, governed full-authority host; models cannot select the profile.
+
+The externally composed service uses the exact same CEPIO runtime as the gateway. Actor roles always originate from the existing authenticated request middleware and `ContextVarActorProvider`, not client tool parameters. No protected procedure/evaluation corpus, plugin discovery, dynamic loader, Foundry dependency or customer secret enters the public CEPIO package. The standard `host_api` entrypoint is not modified; an external deployment must explicitly opt in at composition/hosting time.
