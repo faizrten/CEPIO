@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
+from typing import Literal
 
-from ...application_contract import CEPIOApplicationService, SkillInvocation
+from ...application_contract import SkillInvocation
+from ...application_contract import CEPIOApplicationService
 from ...query import ObjectQuery
 from ...runtime import CEPIORuntime
 from .foundry_gateway import ActorProvider, CEPIOMCPGateway
@@ -90,6 +92,7 @@ def _build_mcp_server(gateway: CEPIOMCPGateway, *, include_actions: bool):
         return gateway.evaluate_skill(invocation).model_dump(mode="json")
 
     if include_actions:
+
         @mcp.tool(name="cepio_recommend_action", title="Evaluate CEPIO action recommendation")
         def cepio_recommend_action(
             action_type: str,
@@ -106,7 +109,7 @@ def _build_mcp_server(gateway: CEPIOMCPGateway, *, include_actions: bool):
                 correlation_id=correlation_id,
                 decision_id=decision_id,
             ).model_dump(mode="json")
-    
+
         @mcp.tool(name="cepio_execute_action", title="Execute governed CEPIO action")
         def cepio_execute_action(
             action_type: str,

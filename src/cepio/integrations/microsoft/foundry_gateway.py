@@ -7,7 +7,8 @@ from typing import Any, Iterator, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
-from ...application_contract import CEPIOApplicationService, ExecutionContext, SkillEvaluation, SkillInvocation
+from ...application_contract import ExecutionContext, SkillEvaluation, SkillInvocation
+from ...application_contract import CEPIOApplicationService
 from ...application_runtime import build_application_service
 from ...model import (
     ActionRequest,

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Literal
+from typing import Any
+from typing import Literal
 
 from fastapi import HTTPException, status
 from starlette.datastructures import Headers
@@ -12,7 +13,8 @@ from ...auth import AuthSettings, EntraTokenValidator
 from ...application_contract import CEPIOApplicationService
 from ...runtime import CEPIORuntime
 from .foundry_gateway import ActorContext, ContextVarActorProvider
-from .foundry_mcp import build_mcp_server, build_mcp_server_with_application_service
+from .foundry_mcp import build_mcp_server
+from .foundry_mcp import build_mcp_server_with_application_service
 
 
 def _csv_env(name: str) -> list[str]:

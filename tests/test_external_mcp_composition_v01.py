@@ -35,7 +35,9 @@ def _composed_service():
     runtime = build_runtime()
     runtime.upsert_object(
         OntologyObject(
-            id="WO-EXT", type="WorkOrder", name="External review work order",
+            id="WO-EXT",
+            type="WorkOrder",
+            name="External review work order",
             properties={"status": "planned"},
         )
     )
@@ -119,8 +121,12 @@ def test_composed_mcp_g1_admits_external_skill_and_persists_actor_scoped_decisio
         async with Client(server, raise_exceptions=True) as client:
             available = {tool.name for tool in (await client.list_tools()).tools}
             assert available == {
-                "cepio_get_object", "cepio_query_objects", "cepio_get_state_at",
-                "cepio_explain_property", "cepio_call_function", "cepio_evaluate_skill",
+                "cepio_get_object",
+                "cepio_query_objects",
+                "cepio_get_state_at",
+                "cepio_explain_property",
+                "cepio_call_function",
+                "cepio_evaluate_skill",
             }
             result = await client.call_tool(
                 "cepio_evaluate_skill",
