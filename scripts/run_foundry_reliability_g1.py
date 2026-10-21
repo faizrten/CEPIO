@@ -138,11 +138,7 @@ def qualify_payload(payload: dict[str, Any]) -> list[str]:
 
     output = payload.get("output")
     calls = (
-        [
-            item
-            for item in output
-            if isinstance(item, dict) and item.get("type") == "mcp_call"
-        ]
+        [item for item in output if isinstance(item, dict) and item.get("type") == "mcp_call"]
         if isinstance(output, list)
         else []
     )
@@ -159,11 +155,7 @@ def qualify_payload(payload: dict[str, Any]) -> list[str]:
 
     for call in skill_calls:
         arguments = _decode_mcp_json(call.get("arguments"))
-        invocation = (
-            arguments.get("invocation", arguments)
-            if isinstance(arguments, dict)
-            else None
-        )
+        invocation = arguments.get("invocation", arguments) if isinstance(arguments, dict) else None
         if not isinstance(invocation, dict) or invocation.get("skill_id") != RELIABILITY_SKILL_ID:
             failures.append("Reliability Skill invocation has missing or incorrect skill_id")
 
