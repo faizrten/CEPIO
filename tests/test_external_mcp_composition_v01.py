@@ -110,6 +110,12 @@ def test_external_gateway_injects_same_service_and_runtime_without_changing_defa
     with pytest.raises(TypeError):
         CEPIOMCPGateway.with_application_service(object(), provider)
 
+    # An injected service must always carry a real CEPIO runtime, never a
+    # model-selected or proxy object that could silently use different policy.
+    service.runtime = object()
+    with pytest.raises(TypeError, match="CEPIORuntime"):
+        CEPIOMCPGateway.with_application_service(service, provider)
+
 
 def test_composed_mcp_g1_admits_external_skill_and_persists_actor_scoped_decision():
     from mcp import Client
@@ -152,16 +158,22 @@ def test_composed_hosted_mcp_uses_g1_restriction_and_keeps_standard_full_surface
     assert hosted is not None
     assert app is not None
     full = build_mcp_server(runtime, _actor())
+    composed_full = build_mcp_server_with_application_service(
+        service, _actor(), tool_profile="full"
+    )
 
     async def check():
-        async with Client(full) as client:
-            available = {tool.name for tool in (await client.list_tools()).tools}
-            assert "cepio_execute_action" in available
-            assert "cepio_recommend_action" in available
+        for candidate in (full, composed_full):
+            async with Client(candidate) as client:
+                available = {tool.name for tool in (await client.list_tools()).tools}
+                assert "cepio_execute_action" in available
+                assert "cepio_recommend_action" in available
 
     asyncio.run(check())
     with pytest.raises(ValueError, match="Unsupported"):
         build_mcp_server_with_application_service(service, _actor(), tool_profile="unknown")
+    with pytest.raises(TypeError, match="CEPIOApplicationService"):
+        build_hosted_mcp_with_application_service(object())
 
 
 def test_composed_service_preserves_actor_authority_and_failed_preflight():
