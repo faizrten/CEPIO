@@ -254,3 +254,80 @@ def test_actual_mcp_protocol_lists_governed_tools_and_hides_actor_arguments():
             assert rec_result.structured_content["policy"]["effect"] == "recommend_only"
 
     asyncio.run(_exercise())
+
+
+def test_property_lineage_is_hidden_when_property_read_policy_denies_it():
+    runtime = _runtime()
+    gateway = CEPIOMCPGateway(runtime, FixedActorProvider(_ai_actor()))
+
+    # A visible asset does not make all of its properties or their sources visible.
+    with pytest.raises(AuthorizationError):
+        gateway.explain_property("K-MCP", "manufacturer")
+
+    explanation = gateway.explain_property("K-MCP", "asset:criticality")
+    assert explanation["object_id"] == "K-MCP"
+    assert explanation["provenance"][0]["source"]["source_system"] == "SAP"
+
+
+def test_invalid_provenance_does_not_mutate_object_before_validation():
+    runtime = _runtime()
+    original = runtime.get_object("K-MCP").model_dump(mode="json")
+    source = SourceReference(
+        source_system="SAP",
+        source_entity="Equipment",
+        source_field="Criticality",
+        source_record_id="K-MCP",
+    )
+
+    wrong_object = PropertyProvenance.create(
+        object_id="UNRELATED-ASSET",
+        property_name="asset:criticality",
+        property_registry=runtime.property_registry,
+        source=source,
+        mapping_kind="direct",
+        mapping_version="test-v1",
+    )
+    with pytest.raises(ValueError, match="object_id"):
+        runtime.set_property("K-MCP", "asset:criticality", "low", provenance=wrong_object)
+    assert runtime.get_object("K-MCP").model_dump(mode="json") == original
+
+    wrong_property = PropertyProvenance.create(
+        object_id="K-MCP",
+        property_name="asset:conditionPercent",
+        property_registry=runtime.property_registry,
+        source=source,
+        mapping_kind="direct",
+        mapping_version="test-v1",
+    )
+    with pytest.raises(ValueError, match="IRI"):
+        runtime.set_property("K-MCP", "asset:criticality", "low", provenance=wrong_property)
+    assert runtime.get_object("K-MCP").model_dump(mode="json") == original
+
+    runtime.provenance_repository = None
+    with pytest.raises(RuntimeError, match="Provenance repository"):
+        runtime.set_property("K-MCP", "asset:criticality", "low", provenance=wrong_object)
+    assert runtime.get_object("K-MCP").model_dump(mode="json") == original
+
+
+def test_valid_provenance_is_persisted_after_an_authorized_property_mutation():
+    runtime = _runtime()
+    record = PropertyProvenance.create(
+        object_id="K-MCP",
+        property_name="asset:criticality",
+        property_registry=runtime.property_registry,
+        source=SourceReference(
+            source_system="SAP",
+            source_entity="Equipment",
+            source_field="Criticality",
+            source_record_id="K-MCP",
+        ),
+        mapping_kind="direct",
+        mapping_version="test-v2",
+        source_value="low",
+    )
+    updated = runtime.set_property("K-MCP", "asset:criticality", "low", provenance=record)
+    definition = runtime.property_registry.resolve("asset:criticality")
+    assert updated.properties[definition.iri] == "low"
+    explanation = runtime.explain_property("K-MCP", "asset:criticality")
+    assert any(row["id"] == record.id for row in explanation["provenance"])
+    assert any(row["mapping_version"] == "test-v2" for row in explanation["provenance"])
