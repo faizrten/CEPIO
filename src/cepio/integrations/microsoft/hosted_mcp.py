@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from typing import Any
+from typing import Literal
 
 from fastapi import HTTPException, status
 from starlette.datastructures import Headers
@@ -9,9 +10,11 @@ from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from ...auth import AuthSettings, EntraTokenValidator
+from ...application_contract import CEPIOApplicationService
 from ...runtime import CEPIORuntime
 from .foundry_gateway import ActorContext, ContextVarActorProvider
 from .foundry_mcp import build_mcp_server
+from .foundry_mcp import build_mcp_server_with_application_service
 
 
 def _csv_env(name: str) -> list[str]:
@@ -158,8 +161,36 @@ def build_hosted_mcp(runtime: CEPIORuntime):
     must enter ``server.session_manager.run()`` in its lifespan before serving.
     """
 
+    return _build_hosted_mcp(runtime)
+
+
+def build_hosted_mcp_with_application_service(
+    application_service: CEPIOApplicationService,
+    *,
+    tool_profile: Literal["g1", "full"] = "g1",
+):
+    """Externally compose protected Skills into authenticated hosted MCP.
+
+    The deployer retains control of identity/authentication middleware and the
+    session-manager lifecycle. G1 defaults to the six investigation tools.
+    """
+    if not isinstance(application_service, CEPIOApplicationService):
+        raise TypeError("Expected CEPIOApplicationService")
+    return _build_hosted_mcp(application_service.runtime, application_service, tool_profile)
+
+
+def _build_hosted_mcp(
+    runtime: CEPIORuntime,
+    application_service: CEPIOApplicationService | None = None,
+    tool_profile: Literal["g1", "full"] = "g1",
+):
     actor_provider = ContextVarActorProvider()
-    server = build_mcp_server(runtime, actor_provider)
+    if application_service is None:
+        server = build_mcp_server(runtime, actor_provider)
+    else:
+        server = build_mcp_server_with_application_service(
+            application_service, actor_provider, tool_profile=tool_profile
+        )
     http_app = server.streamable_http_app(
         streamable_http_path="/mcp",
         stateless_http=True,

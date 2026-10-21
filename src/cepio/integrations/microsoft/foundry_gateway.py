@@ -8,6 +8,7 @@ from typing import Any, Iterator, Literal, Protocol
 from pydantic import BaseModel, Field
 
 from ...application_contract import ExecutionContext, SkillEvaluation, SkillInvocation
+from ...application_contract import CEPIOApplicationService
 from ...application_runtime import build_application_service
 from ...model import (
     ActionRequest,
@@ -149,6 +150,26 @@ class CEPIOMCPGateway:
         self.runtime = runtime
         self.actor_provider = actor_provider
         self.application_service = build_application_service(runtime)
+
+    @classmethod
+    def with_application_service(
+        cls,
+        application_service: CEPIOApplicationService,
+        actor_provider: ActorProvider,
+    ) -> CEPIOMCPGateway:
+        """Compose an already-built service through the existing authenticated gateway.
+
+        This explicit deployment seam is not dynamic plugin discovery. The gateway
+        uses the exact runtime held by the service and obtains actor identity only
+        from the trusted actor provider, never from MCP tool arguments.
+        """
+        if not isinstance(application_service, CEPIOApplicationService):
+            raise TypeError("Expected an explicitly composed CEPIOApplicationService")
+        if not isinstance(application_service.runtime, CEPIORuntime):
+            raise TypeError("Composed application service must own a CEPIORuntime")
+        gateway = cls(application_service.runtime, actor_provider)
+        gateway.application_service = application_service
+        return gateway
 
     def _actor(self) -> ActorContext:
         return self.actor_provider.current_actor()

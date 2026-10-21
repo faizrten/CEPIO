@@ -2,27 +2,44 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Any
+from typing import Literal
 
 from ...application_contract import SkillInvocation
+from ...application_contract import CEPIOApplicationService
 from ...query import ObjectQuery
 from ...runtime import CEPIORuntime
 from .foundry_gateway import ActorProvider, CEPIOMCPGateway
 
 
 def build_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
-    """Build the CEPIO MCP server using the official MCP Python SDK.
+    """Backward-compatible eight-tool MCP server for the standard CEPIO host."""
+    return _build_mcp_server(CEPIOMCPGateway(runtime, actor_provider), include_actions=True)
 
-    The `mcp` dependency is optional for CEPIO-Core. Install CEPIO with the `mcp`
-    extra to host this server. The transport is selected by the deployment entrypoint;
-    Foundry remote tools should use Streamable HTTP.
+
+def build_mcp_server_with_application_service(
+    application_service: CEPIOApplicationService,
+    actor_provider: ActorProvider,
+    *,
+    tool_profile: Literal["g1", "full"] = "g1",
+):
+    """Explicit protected-IQ composition; G1 defaults to six read/Skill tools.
+
+    No tool-profile name comes from an agent request. Only the deployer supplies
+    it during server construction. The existing public builder remains unchanged.
     """
+    if tool_profile not in {"g1", "full"}:
+        raise ValueError("Unsupported MCP tool profile")
+    gateway = CEPIOMCPGateway.with_application_service(application_service, actor_provider)
+    return _build_mcp_server(gateway, include_actions=tool_profile == "full")
 
+
+def _build_mcp_server(gateway: CEPIOMCPGateway, *, include_actions: bool):
+    """Register the same governed MCP tools over one selected application service."""
     try:
         from mcp.server.mcpserver import MCPServer
     except ImportError as exc:  # pragma: no cover - exercised only without optional extra
         raise RuntimeError("Install CEPIO with the 'mcp' extra to build the MCP server") from exc
 
-    gateway = CEPIOMCPGateway(runtime, actor_provider)
     mcp = MCPServer(
         "CEPIO Industrial Operating Gateway",
         instructions=(
@@ -74,40 +91,42 @@ def build_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
         """Evaluate one admitted executable Skill through the shared application contract."""
         return gateway.evaluate_skill(invocation).model_dump(mode="json")
 
-    @mcp.tool(name="cepio_recommend_action", title="Evaluate CEPIO action recommendation")
-    def cepio_recommend_action(
-        action_type: str,
-        target_id: str,
-        parameters: dict[str, Any] | None = None,
-        correlation_id: str | None = None,
-        decision_id: str | None = None,
-    ) -> dict[str, Any]:
-        """Evaluate whether the actor may recommend/execute an action without executing it."""
-        return gateway.recommend_action(
-            action_type,
-            target_id,
-            parameters=parameters,
-            correlation_id=correlation_id,
-            decision_id=decision_id,
-        ).model_dump(mode="json")
+    if include_actions:
 
-    @mcp.tool(name="cepio_execute_action", title="Execute governed CEPIO action")
-    def cepio_execute_action(
-        action_type: str,
-        target_id: str,
-        parameters: dict[str, Any] | None = None,
-        idempotency_key: str | None = None,
-        correlation_id: str | None = None,
-        decision_id: str | None = None,
-    ) -> dict[str, Any]:
-        """Execute a CEPIO action through runtime policy, preconditions and audit controls."""
-        return gateway.execute_action(
-            action_type,
-            target_id,
-            parameters=parameters,
-            idempotency_key=idempotency_key,
-            correlation_id=correlation_id,
-            decision_id=decision_id,
-        ).model_dump(mode="json")
+        @mcp.tool(name="cepio_recommend_action", title="Evaluate CEPIO action recommendation")
+        def cepio_recommend_action(
+            action_type: str,
+            target_id: str,
+            parameters: dict[str, Any] | None = None,
+            correlation_id: str | None = None,
+            decision_id: str | None = None,
+        ) -> dict[str, Any]:
+            """Evaluate whether the actor may recommend/execute an action without executing it."""
+            return gateway.recommend_action(
+                action_type,
+                target_id,
+                parameters=parameters,
+                correlation_id=correlation_id,
+                decision_id=decision_id,
+            ).model_dump(mode="json")
+
+        @mcp.tool(name="cepio_execute_action", title="Execute governed CEPIO action")
+        def cepio_execute_action(
+            action_type: str,
+            target_id: str,
+            parameters: dict[str, Any] | None = None,
+            idempotency_key: str | None = None,
+            correlation_id: str | None = None,
+            decision_id: str | None = None,
+        ) -> dict[str, Any]:
+            """Execute a CEPIO action through runtime policy, preconditions and audit controls."""
+            return gateway.execute_action(
+                action_type,
+                target_id,
+                parameters=parameters,
+                idempotency_key=idempotency_key,
+                correlation_id=correlation_id,
+                decision_id=decision_id,
+            ).model_dump(mode="json")
 
     return mcp
