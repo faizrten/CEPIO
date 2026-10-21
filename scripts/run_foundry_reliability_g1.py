@@ -100,32 +100,86 @@ def _to_plain(value: Any) -> Any:
     return value
 
 
-def _contains_exact_string(value: Any, expected: str) -> bool:
+def _decode_mcp_json(value: Any) -> Any:
+    """Decode only structured MCP results, never free-form model narration."""
     if isinstance(value, str):
-        return value == expected
-    if isinstance(value, dict):
-        return any(
-            _contains_exact_string(key, expected) or _contains_exact_string(item, expected)
-            for key, item in value.items()
-        )
+        try:
+            return _decode_mcp_json(json.loads(value))
+        except (TypeError, ValueError):
+            return None
     if isinstance(value, list):
-        return any(_contains_exact_string(item, expected) for item in value)
-    return False
+        if len(value) != 1:
+            return None
+        item = value[0]
+        if not isinstance(item, dict) or item.get("type") != "text":
+            return None
+        return _decode_mcp_json(item.get("text"))
+    if isinstance(value, dict):
+        if value.get("isError") is True:
+            return None
+        if "structuredContent" in value:
+            return _decode_mcp_json(value["structuredContent"])
+        if "content" in value:
+            return _decode_mcp_json(value["content"])
+        return value
+    return None
 
 
 def qualify_payload(payload: dict[str, Any]) -> list[str]:
+    """Check actual MCP-call results; a textual answer is never proof of a Decision.
+
+    This public check verifies the returned SkillEvaluation structure. The live
+    gate additionally needs host-side confirmation that the Decision was
+    persisted under the verified actor with traceable, current-run evidence.
+    """
     failures: list[str] = []
-    if not _contains_exact_string(payload, "cepio_evaluate_skill"):
+    if payload.get("status") != "completed":
+        failures.append("Foundry response did not complete")
+
+    output = payload.get("output")
+    calls = (
+        [item for item in output if isinstance(item, dict) and item.get("type") == "mcp_call"]
+        if isinstance(output, list)
+        else []
+    )
+
+    for call in calls:
+        if call.get("name") in G1_PROHIBITED_TOOLS:
+            failures.append(f"G1 response used prohibited tool: {call['name']}")
+
+    skill_calls = [call for call in calls if call.get("name") == "cepio_evaluate_skill"]
+    if not skill_calls:
         failures.append("Foundry response does not contain a cepio_evaluate_skill tool call")
-    if not _contains_exact_string(payload, RELIABILITY_SKILL_ID):
         failures.append("Foundry response does not reference the required Reliability Skill")
-    for tool_name in G1_PROHIBITED_TOOLS:
-        if _contains_exact_string(payload, tool_name):
-            failures.append(f"G1 response used prohibited tool: {tool_name}")
-    if _contains_exact_string(payload, "blocked"):
-        failures.append("Reliability Skill evaluation was blocked")
-    if _contains_exact_string(payload, "failed"):
-        failures.append("Reliability Skill evaluation failed")
+        return failures
+
+    for call in skill_calls:
+        arguments = _decode_mcp_json(call.get("arguments"))
+        invocation = arguments.get("invocation", arguments) if isinstance(arguments, dict) else None
+        if not isinstance(invocation, dict) or invocation.get("skill_id") != RELIABILITY_SKILL_ID:
+            failures.append("Reliability Skill invocation has missing or incorrect skill_id")
+
+        if call.get("error"):
+            failures.append("Reliability Skill MCP call returned a tool error")
+            continue
+        result = _decode_mcp_json(call.get("output"))
+        if not isinstance(result, dict):
+            failures.append("Reliability Skill MCP output is missing or malformed")
+            continue
+        if result.get("skill_id") != RELIABILITY_SKILL_ID:
+            failures.append("Reliability Skill result has missing or incorrect skill_id")
+        if result.get("status") != "completed":
+            failures.append("Reliability Skill evaluation did not complete successfully")
+        decision = result.get("decision")
+        if (
+            not isinstance(decision, dict)
+            or not isinstance(decision.get("id"), str)
+            or not decision["id"].strip()
+        ):
+            failures.append("Reliability Skill output lacks a Decision identity")
+        evidence = result.get("evidence")
+        if not isinstance(evidence, list) or not evidence:
+            failures.append("Reliability Skill output lacks structured evidence references")
     return failures
 
 

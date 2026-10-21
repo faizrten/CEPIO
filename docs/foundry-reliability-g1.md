@@ -114,12 +114,17 @@ The exclusion is implemented in the Foundry MCP tool definition through `allowed
 
 ## Qualification conditions
 
-The runner returns `PASS` only when the Foundry response contains:
+The public runner reports `PASS` only for a **completed Foundry response** containing:
 
-- a `cepio_evaluate_skill` call;
-- the exact Reliability Skill identity;
-- no use of either prohibited action tool;
-- no blocked/failed Skill status.
+- an actual structured MCP `cepio_evaluate_skill` call (not a claim in model-generated text);
+- an invocation and returned result referencing the exact Reliability Skill identity;
+- a completed, non-error Skill result with a non-empty structured evidence-reference collection;
+- a governed Decision identity in that Skill result;
+- no invocation of either prohibited action tool.
+
+**Public runner PASS is an advisory protocol/result check, not independent persistence proof.** A **live G1 qualification PASS** additionally requires trusted host-side verification that the referenced Decision really exists, belongs to the authenticated agent execution context, and carries current-run evidence/trace lineage. Record this evidence separately in the qualification report. Model output or tool result text alone cannot establish source-of-truth persistence.
+
+Before paid inference, confirm the deployment has a bounded, enforceable execution/spend control. A token allocation or deployment quota is not automatically a guaranteed currency-denominated budget cap.
 
 The protected CEPIO-Labs qualification adds the stronger industrial assertions:
 
