@@ -10,6 +10,9 @@ from pydantic import ValidationError
 from cepio.azure_search import (
     AzureSearchConfig,
     AzureSearchMemoryBackend,
+    IndexRetryPolicy,
+    _index_retry_delay,
+    _index_status,
     _indexing_succeeded,
     _search_in_expression,
     azure_search_index_schema,
@@ -328,3 +331,151 @@ def test_search_failure_and_invalid_payloads():
     client.results = [{"record_json": "{bad json", "@search.score": 1.0}]
     with pytest.raises(RetrievalBackendError, match="invalid memory record"):
         backend.search(step)
+
+
+def test_retry_policy_validation():
+    for kwargs in (
+        {"max_attempts": 0},
+        {"max_attempts": 11},
+        {"initial_delay_seconds": -1},
+        {"max_delay_seconds": -1},
+        {"initial_delay_seconds": 3, "max_delay_seconds": 2},
+    ):
+        with pytest.raises(ValueError):
+            IndexRetryPolicy(**kwargs)
+
+
+def test_index_status_shapes_and_retry_after_header():
+    assert _index_status(SimpleNamespace(status_code=429)) == 429
+    assert _index_status({"status_code": 503}) == 503
+    assert _index_status(SimpleNamespace(response=SimpleNamespace(status_code=429))) == 429
+    assert _index_status(RuntimeError("unknown")) is None
+
+    policy = IndexRetryPolicy(initial_delay_seconds=1, max_delay_seconds=5)
+    error = SimpleNamespace(response=SimpleNamespace(headers={"Retry-After": "4"}))
+    assert _index_retry_delay(error, 1, policy) == 4
+    assert _index_retry_delay(error, 3, policy) == 4
+    error.response.headers["Retry-After"] = "100"
+    assert _index_retry_delay(error, 1, policy) == 5
+    error.response.headers["Retry-After"] = "not-a-number"
+    assert _index_retry_delay(error, 2, policy) == 2
+    assert _index_retry_delay(None, 4, policy) == 5
+
+
+def test_transient_http_429_retries_then_succeeds(monkeypatch):
+    sleeps = []
+    monkeypatch.setattr("cepio.azure_search.time.sleep", sleeps.append)
+
+    class ThrottledClient(FakeSearchClient):
+        calls = 0
+
+        def upload_documents(self, documents):
+            self.calls += 1
+            if self.calls == 1:
+                error = RuntimeError("throttled")
+                error.status_code = 429
+                error.response = SimpleNamespace(headers={"Retry-After": "3"})
+                raise error
+            return [SimpleNamespace(succeeded=True) for _ in documents]
+
+    client = ThrottledClient()
+    backend = AzureSearchMemoryBackend(
+        client,
+        AzureSearchConfig(endpoint="https://search.local"),
+    )
+    backend.retry_policy = IndexRetryPolicy(max_attempts=3, initial_delay_seconds=1)
+    assert backend.upload_many([_record()]) == 1
+    assert client.calls == 2
+    assert sleeps == [3]
+    assert backend.total_upload_retries == 1
+
+
+def test_partial_batch_retries_only_transient_failed_documents(monkeypatch):
+    monkeypatch.setattr("cepio.azure_search.time.sleep", lambda _: None)
+
+    class PartialClient(FakeSearchClient):
+        batches = []
+
+        def upload_documents(self, documents):
+            self.batches.append([item["id"] for item in documents])
+            if len(self.batches) == 1:
+                return [
+                    {"succeeded": True},
+                    {"succeeded": False, "status_code": 503},
+                ]
+            return [{"succeeded": True} for _ in documents]
+
+    client = PartialClient()
+    backend = AzureSearchMemoryBackend(client, AzureSearchConfig(endpoint="https://search.local"))
+    assert backend.upload_many([_record("m1"), _record("m2")]) == 2
+    assert client.batches == [["m1", "m2"], ["m2"]]
+    assert backend.total_upload_retries == 1
+
+
+def test_exhausted_retry_budget_and_permanent_failures(monkeypatch):
+    sleeps = []
+    monkeypatch.setattr("cepio.azure_search.time.sleep", sleeps.append)
+
+    class ThrottleForever(FakeSearchClient):
+        calls = 0
+
+        def upload_documents(self, documents):
+            self.calls += 1
+            error = RuntimeError("throttled")
+            error.status_code = 429
+            raise error
+
+    client = ThrottleForever()
+    backend = AzureSearchMemoryBackend(
+        client,
+        AzureSearchConfig(endpoint="https://search.local"),
+    )
+    backend.retry_policy = IndexRetryPolicy(max_attempts=2, initial_delay_seconds=0)
+    with pytest.raises(RetrievalBackendError, match="after 2 attempts"):
+        backend.upload_many([_record()])
+    assert client.calls == 2
+    assert sleeps == [0]
+    assert backend.total_upload_retries == 1
+
+    class ForbiddenClient(FakeSearchClient):
+        calls = 0
+
+        def upload_documents(self, documents):
+            self.calls += 1
+            error = RuntimeError("unauthorized")
+            error.status_code = 403
+            raise error
+
+    denied = ForbiddenClient()
+    backend = AzureSearchMemoryBackend(
+        denied,
+        AzureSearchConfig(endpoint="https://search.local"),
+    )
+    with pytest.raises(RetrievalBackendError, match="request failed"):
+        backend.upsert(_record())
+    assert denied.calls == 1
+    assert backend.total_upload_retries == 0
+
+    permanent = FakeSearchClient()
+    permanent.upload_results = [{"succeeded": False, "status_code": 400}]
+    backend = AzureSearchMemoryBackend(
+        permanent,
+        AzureSearchConfig(endpoint="https://search.local"),
+    )
+    with pytest.raises(RetrievalBackendError, match="rejected"):
+        backend.upload_many([_record()])
+    assert backend.total_upload_retries == 0
+
+
+def test_partial_batch_transient_exhaustion(monkeypatch):
+    monkeypatch.setattr("cepio.azure_search.time.sleep", lambda _: None)
+    client = FakeSearchClient()
+    client.upload_results = [{"succeeded": False, "status_code": 429}]
+    backend = AzureSearchMemoryBackend(
+        client,
+        AzureSearchConfig(endpoint="https://search.local"),
+    )
+    backend.retry_policy = IndexRetryPolicy(max_attempts=2, initial_delay_seconds=0)
+    with pytest.raises(RetrievalBackendError, match="after 2 attempts"):
+        backend.upload_many([_record()])
+    assert backend.total_upload_retries == 1

@@ -6,13 +6,16 @@ on:
       corpus_sizes:
         description: "Comma-separated synthetic corpus sizes"
         required: true
-        default: "50000,500000"
+        default: "5000,50000"
 
 permissions:
   contents: read
 
 jobs:
   qualify:
+    concurrency:
+      group: azure-search-dev-scale-qualification
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     environment: azure-demo
     timeout-minutes: 120
@@ -41,16 +44,23 @@ jobs:
 
       - name: Run synthetic scale qualification
         shell: bash
+        env:
+          CORPUS_SIZES: ${{ inputs.corpus_sizes }}
         run: |
           set -euo pipefail
-          IFS=',' read -ra sizes <<< "${{ inputs.corpus_sizes }}"
+          IFS=',' read -ra sizes <<< "$CORPUS_SIZES"
           python scripts/run_azure_search_scale_qualification.py \
             --endpoint "$CEPIO_AZURE_SEARCH_ENDPOINT" \
             --index "$CEPIO_AZURE_SEARCH_INDEX" \
             --reset-index \
+            --batch-size 100 \
+            --batch-delay-seconds 0.5 \
+            --max-corpus-size 50000 \
             --sizes "${sizes[@]}"
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: azure-search-scale-qualification
           path: evidence/azure-search-scale-qualification.json
+          if-no-files-found: warn
