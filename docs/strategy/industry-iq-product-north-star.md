@@ -1,176 +1,105 @@
-# CEPIO / Industry IQ — Product North Star & Strategic Doctrine
+# CEPIO / Industry IQ — Product North Star
 
-**Adopted product direction:** 2026-10-22  
-**Status:** strategic product doctrine; proposed service and roadmap investments are not delivered capabilities or release qualifications.  
-**Audience:** CEPIO product, architecture, engineering, Industry IQ Studio, CEPIO Labs, partners, and product leadership.
+**Product direction adopted:** 2026-10-22  
+**Publication class:** PUBLIC STRATEGY ABSTRACT. The proprietary competence-building playbook, detailed investment sequencing, protected evaluations and IP hypotheses remain in private CEPIO Labs.  
+**Status:** product direction; not a statement of current delivery, market traction or release qualification.
 
-> This document states **what we seek to achieve**, **why a professional should use Industry IQ**, and **what we will deliberately own**. Technical implementation and product readiness are governed by their respective contracts, ADRs, release gates, and evidence.
+## Mission
 
-## 1. Four levels of strategy
+> **Democratize industrial expertise and elevate human professional excellence.**
 
-| Level | Statement | Interpretation |
-| --- | --- | --- |
-| **Mission — why** | **Democratize industrial expertise and elevate human professional excellence.** | Help every industrial professional make better decisions and grow their competence, without displacing accountable human judgment. |
-| **Product North Star — what** | **The indispensable expert companion for every industrial professional.** | A trustworthy companion that understands the person's work, proactively surfaces what matters, reasons with industrial rigor, and helps turn insight into governed, verified outcomes. |
-| **Technology North Star — how** | **Thin infrastructure. Thick Industry IQ.** | Portable Industrial Operating Intelligence for Energy & Process Industries; maximize reusable industrial competence, not infrastructure duplication. |
-| **Engineering doctrine — how we build** | **Reuse → Bind → Extend → Own.** | Own reusable industrial semantics, competence, assurance, decisions, authority and outcomes; bind to data platforms, identity, generic models, agent runtimes and systems of record. |
+We want every industrial professional to have access to a trustworthy expert companion that helps them understand their work, develop expertise, make better decisions and achieve meaningful industrial outcomes.
 
-These statements are complementary, not a replacement of CEPIO's existing architecture. We begin with energy, drilling, reliability and process industries, and expand through validated generalization—not through unsupported claims of universal competency.
+## Product North Star
 
-**Long-term aspiration:** one million professionals making better decisions because Industry IQ is part of how they work. This is an aspiration, not a current metric or forecast.
+> **The indispensable expert companion for every industrial professional.**
 
-## 2. The professional promise
+Industry IQ should be a professional's trusted first stop before a consequential industrial decision. It should understand the person's authorized role and operating context, proactively identify relevant work, apply industrial reasoning, show its evidence and uncertainties, and help the professional progress through governed decisions and verified outcomes.
 
-The product must earn the right to be the first place an engineer, technician, planner, operator, or operational leader turns for their next consequential industrial decision.
+We begin with Energy & Process Industries and pursue broader professional coverage through qualified reuse rather than unsupported claims of universal expertise.
 
-Seven experience principles:
+Our **aspiration** is a world where one million professionals make better decisions because Industry IQ is part of how they work. This is a long-term ambition, not a measurement or forecast.
 
-1. **Understand my profession:** role, objectives, responsibilities, task, asset, operating context, and applicable standards—not generic conversation alone.
-2. **Know what deserves attention:** prioritized, authorized, evidence-backed signals; be useful before receiving a sophisticated prompt.
-3. **Reason like an industrial expert:** competing hypotheses, deterministic tools where warranted, physical/operating constraints, uncertainty, and justified abstention.
-4. **Help complete real work:** prepare decisions, hand off for human authorization, orchestrate permitted actions, and verify outcomes through authoritative systems.
-5. **Help me become better:** explain reasoning, tutor and challenge appropriately, and preserve reusable professional lessons without rating or surveilling workers by default.
-6. **Be worthy of trust:** precise evidence/provenance and freshness, scope and qualification status, authorization boundaries, refusal, and verifiable audit—not opaque or invented confidence.
-7. **Meet me where I work:** headless REST/MCP first, presented through Teams, Copilot, web, mobile and embedded applications as appropriate.
+## Technology North Star
 
-The professional should not need to inspect ontology, YAML, Skill packages, or engineering infrastructure to perceive value. Expert Mode should provide bounded, licensed/public-knowledge usefulness before enterprise integration; Connected Mode uses authorized enterprise context; Action Mode adds explicitly governed execution and verification. No demo or synthetic observation may masquerade as live asset evidence.
+> **Thin infrastructure. Thick Industry IQ.**
 
-**Central product hypothesis:** repeated professional usefulness, not breadth of AI features, determines adoption.
+CEPIO remains a headless, portable **Industrial Operating Intelligence** layer, preserving authoritative source systems and supplying reusable industrial competence, evidence/provenance, decisions, policy/authority and governed outcomes.
 
-## 3. Product boundaries and ownership
+**Engineering doctrine:** **Reuse → Bind → Extend → Own.**
 
-- **CEPIO Core:** headless, source-neutral industrial operating contract, evidence/identity/state/time, qualified Industry IQ, performance, Skills, policy, authority, Decisions, governed Actions, memory/context and verifiable Outcomes.
-- **CEPIO Labs (protected):** expert knowledge development, scenario/casebook research, synthetic data, independent evals, protected Skills, holdouts, value-assurance and promotion proposals. Lab test results are not field proof.
-- **Industry IQ Studio:** builder/operator/technical-authority surface for inspecting, configuring, evaluating, qualifying, publishing and operating Industry IQ through governed CEPIO contracts. Studio is *not* the personal day-to-day workspace by default.
-- **Industry IQ Companion (proposed logical experience):** profession-adaptive daily guidance, investigations, evidence-led decisions, learning, attention, and outcome continuity. Delivered through existing hosts and interfaces; **not** a fourth industrial runtime or automatically a fourth repository.
+Frontier models and agents provide general intelligence and execution; industrial systems supply authoritative context. CEPIO contributes the industrial semantics, competence and authority needed for safe, useful industrial work.
 
-CEPIO must not depend on Studio or Companion. They consume its stable contracts; Labs may support both with approved, protected interfaces. Generic model planning/agent execution belongs to host platforms; industrial authority stays within CEPIO. For Microsoft reference deployments: **Microsoft owns generic agent execution; CEPIO owns industrial agency.**
+For Microsoft reference deployments: **Microsoft owns generic agent execution. CEPIO owns industrial agency.** Provider neutrality remains an architectural requirement.
 
-### Existing foundations to reuse
+## Professional experience principles
 
-The current codebase contains Industry IQ Packs, Capability/Skill registries, persona-scoped ICC qualification, Profile/Semantic/Procedural/Episodic memory contracts, Performance Contracts and specialization, provenance, policy/authority, governed workflow/Outcome foundations, REST/MCP/Management projections, Teams Attention foundations, and a Foundry reliability lighthouse path.
+1. **Understands my profession:** adapts to role, responsibility, job, equipment and authorized context.
+2. **Knows what matters:** draws attention to relevant, justified priorities—not undifferentiated alerts.
+3. **Reasons like an expert:** evidence-first hypotheses, engineering checks, competing explanations, uncertainty and appropriate refusal.
+4. **Helps complete work:** Recommendations progress only through policy and authorized human decisions to verifiable outcomes.
+5. **Makes me better:** teaches professional judgment and supports continuity of learning with appropriate privacy.
+6. **Earns my trust:** qualification scope, freshness, evidence, limitations and authority are inspectable.
+7. **Works where I work:** reusable headless services presented in Teams, Copilot, web, mobile or other applications.
 
-These are foundations, **not** proof that Companion, proactive operations, live SAP/PI, or enterprise value outcomes are product-qualified.
+The product should have a useful **Expert** experience without proprietary connections; authorized **Connected** experiences bring enterprise context; **Action** experiences require governed execution and verification. These are strategic modes, not claims that all are currently delivered or commercialized.
 
-## 4. Strategic moat: the Industrial Competence Network
+## Competitive differentiation
 
-**Thesis:** our defensible advantage must be accumulated **qualified industrial competence** and trust, rather than commodity AI models, prompts, ontology size, cloud infrastructure, or a generic agent host.
+**Strategic moat hypothesis: the Industrial Competence Network.**
 
-Five mutually reinforcing, differently mature moats:
+Our durable advantage should come from reusable, properly qualified industrial competence, independent assurance, trustworthy professional experience, and verified operational learning—not the size of the ontology, proprietary hosting infrastructure or a generic chatbot.
 
-1. **Proprietary industrial competence:** reviewed failure patterns, diagnostic methods, technical constraints, decision procedures, reusable executable Skills and validated cross-domain abstractions.
-2. **Industrial assurance:** difficult independent holdouts, specialist rubrics, negative/refusal cases, evidence and policy checks, model/tool parity experiments, qualification provenance and transparent limits.
-3. **Decision-to-outcome learning:** where contracts and consent permit, link evidence → hypotheses → Decision → human approval → Action → observed Outcome; promote only generalized, reviewed lessons.
-4. **Professional trust and workflow presence:** reliable recurring usefulness, familiar role-aware experiences, and safely preserved task continuity; no customer or personal lock-in through data hostage-taking.
-5. **Capability ecosystem:** *later*, OEMs, independent experts and specialist vendors contribute licensed, qualified capabilities subject to governance, IP review, compatibility, liability and distribution terms.
+> **Own the competence. Prove the competence. Distribute the competence. Compound the competence.**
 
-**Compounding flywheel:** qualified expert input → versioned capability → independently tested competence → professional use → permitted outcome feedback → governed generalization and review → stronger qualified capability. More users or raw data do not automatically create a moat. Human review and isolation are hard requirements.
+Competence only compounds when new lessons can be lawfully used, independently reviewed and qualified. Customer-specific data, policies, outcomes and industrial knowledge remain protected by the customer's own ownership and authorization boundaries. A model's output or synthetic test does not establish field competence.
 
-**Core doctrine:** **Own the competence. Prove the competence. Distribute the competence. Compound the competence.**
+Detailed moat methodology, services investment, protected casebooks, expert contribution rules, evaluation criteria, and commercial hypotheses remain **in private CEPIO Labs**.
 
-## 5. Service portfolio: build logically, reuse physically
+## Product boundaries
 
-These are **product capabilities / logical services**, not an instruction to create six standalone microservices or duplicate existing registries.
-
-| Service | Priority | Responsibility | Starting foundation |
-| --- | --- | --- | --- |
-| **Industry IQ Capability Service** | **P0** | Discover, version, scope, resolve and distribute reusable industrial capabilities and competency maps | Industry IQ Pack/Skill/Capability Registry, ICC, Binding and Performance Contracts |
-| **Industry IQ Assurance Service** | **P0** | Independent scenario qualification, domain expert review, casebook/holdout governance, transparency of capability scope and provenance | Labs Scenario Lab, Industrial Evals, value assurance, Capability Registry |
-| **Industry IQ Companion Service** | **P0** | Role-adaptive professional entry point: daily work, investigation, recommendation, learning and continuity | Persona bindings, Profile/Episodic Memory, Performance Contracts, CEPIO REST/MCP and host UX |
-| **Industrial Attention Service** | **P0** | Filter signals, prioritize relevance, prepare defensible alerts, escalation and task focus | OperationalEvent, workflows, Teams Attention, Foundry G3 planned trigger |
-| **Outcome & Value Intelligence Service** | **P1** | Verified Decision/Action/Outcome lineage, operational baselines, effort and attributable economic value, with negative findings included | WorkflowOutcome, Performance Contracts, protected Enterprise Value Assurance |
-| **Industrial Expert Network Service** | **P2** | Expert panels, permissioned case contributions, OEM/specialist participation, eventual qualified-capability distribution | Protected Labs, supply-chain/pack trust, capability promotion governance |
-
-**Capability Passport (P0 presentation contract):** show job/persona supported, pack/version, sources/evidence required, methods, authority ceiling, runtime readiness, test scope, withheld/unproven claims and independent review provenance. Do not claim external certification absent a genuine independent certification.
-
-**Industrial Casebook (P0 protected asset):** curate hard, expert-reviewed cases and alternate hypotheses, with provenance, IP rights, held-out answers and permitted-use boundaries. Synthetic volume alone does not establish competence or field reliability.
-
-**Professional Experience Contract (P0 proposed composition):** Who am I? What matters? What do we know? What can I do? What happened? Compose existing identity, persona, memory, Performance, Capability, policy, Decision and Outcome contracts instead of inventing a second source of truth.
-
-## 6. What we own versus leverage
-
-| CEPIO owns | CEPIO reuses/binds |
+| Product or capability | Role |
 | --- | --- |
-| Industrial meaning, competency/Skill contracts, failure/decision patterns, constraints and engineering/economic methods | Frontier models and generic agent hosting (Foundry/Copilot or replaceable hosts) |
-| Qualification/assurance methodology and qualified capability claims | Enterprise data/context platforms (Fabric/Fabric IQ, Cognite, OSDU, etc.) |
-| Industrial evidence, authority, policy, Decision/Action/Outcome semantics | Entra or other enterprise identity, plus SAP/Maximo/PI/MES/EAM as authoritative systems |
-| Provider-neutral capability registry, specialization and promotion boundaries | Cloud hosting, physical storage, search, observability, scheduling and generic orchestration |
-| Governed reusable expert experience contracts and value assurance | Teams, Copilot, web/mobile surfaces, provider integrations |
+| **CEPIO Core** | Headless, governed industrial intelligence and source-neutral contracts |
+| **CEPIO Labs** | Protected capability research, scenarios, independent evaluations and promotion proposals |
+| **Industry IQ Studio** | Human builder/operator/technical-authority inspection, qualification, configuration and governed operation |
+| **Industry IQ Companion** | Proposed profession-specific working experience for attention, investigation, guidance, learning and decision support over CEPIO APIs/MCP |
 
-Never create a generic CEPIO agent framework, proprietary graph database, undifferentiated storage/search platform, or standalone model runtime as a moat project. Own extra infrastructure only when an explicit industrial contract cannot be met otherwise.
+The Companion is a **logical experience**, not a commitment to another runtime or repository. Studio remains distinct from the daily professional workspace. CEPIO Core must not depend on either surface.
 
-## 7. Beachhead: drilling-contractor reliability
+## Initial product wedge and proof standard
 
-The initial professional reference journey is **Reliability Engineer — Top Drives and Mud Pumps**. Prove:
+Begin with a **drilling-contractor Reliability Engineer** investigating **top drives and mud pumps**. Demonstrate credible evidence, engineering reasoning, justified refusals, professional usefulness, authorization boundaries and verified outcomes where a real customer/workflow permits.
 
-1. Professional receives or initiates a justified attention/investigation.
-2. CEPIO resolves authorized asset context and source freshness.
-3. Relevant Industry IQ and Skill execute evidence-first diagnostic hypotheses, including alternatives, uncertainty and refusal.
-4. User can see the engineering rationale, constraints, and permitted next steps.
-5. Where equipped and authorized, a human approves downstream action; CEPIO verifies external Outcome and records learning evidence.
+This focus does **not** displace CEPIO's current **v0.5 CONNECT** qualification: live multiple authoritative sources and governed, verified, reconciled source-system writeback remain required under their existing release gates. The Microsoft-native Reliability Agent Lighthouse also remains governed by its own G0–G7 proofs.
 
-Use CEPIO **API/MCP as the sole industrial authority surface**, the Microsoft Foundry/Teams host where appropriate, and CEPIO Labs for versioned test evidence. Synthetic/demo mode remains plainly labelled and cannot qualify live operational readiness.
+**Proof before promise:** Merged components, impressive demos and synthetic benchmark performance must not be represented as field qualification or realized customer value.
 
-**Release independence:** The existing v0.5 CONNECT three-authoritative-source, source-authoritative, verified and reconciled writeback gate—including SAP/PI and current compressor lighthouse requirements—remains open and unchanged. Drilling reliability is the Companion value wedge, not a silent substitute for that release gate. The G0–G7 Reliability Agent Lighthouse remains authoritative for its own qualification.
+## How progress is interpreted
 
-## 8. Sequencing and decision gates
+Two independent measurements are needed:
 
-| Horizon | Strategic outcome | Decision gate / evidence |
-| --- | --- | --- |
-| **0–3 months** | One compelling reliability companion and Capability Passport; high-quality top-drive/mud-pump casebook; controlled baseline comparisons | Under matched model/data/tool conditions, material reasoning improvement with no critical policy/safety failures; credible review of UX usefulness |
-| **3–6 months** | Real design-partner workflows, role-aware attention, independent outcome feedback | Verified bounded pilot, repeat usage, measured preparation effort, documented abstentions and actual approvals |
-| **6–12 months** | Reuse into adjacent rotating equipment and roles; platform/customer portability | Pass cross-domain regression, preserve equivalent authority/evidence, demonstrate portability beyond a single environment |
-| **12–24 months** | If justified, OEM/expert capability distribution and marketplace pilot | Supply, demand, IP licensing, independent qualification and unit economics established before marketplace investment |
+1. **Engineering maturity:** evidence-backed Core, bindings, Industry IQ, assurance, enterprise operation and portability; governed by the canonical v1 scorecard and release gates.
+2. **Professional value and moat growth:** improved decision quality against matched-data/model/tool baselines, useful qualified competency coverage, safe recommendations, repeat professional use, verified outcomes and demonstrable reusable competence.
 
-These horizons are **planning hypotheses**, not existing delivery commitments, release dates or verified traction.
+Professional adoption is not measured by raw prompt count. ROI claims require appropriate operational evidence and accountable finance validation. Unsafe or unauthorized execution is never acceptable even when other aggregate metrics improve.
 
-## 9. How success is measured
+## Guardrails
 
-**North Star outcome:** *Industrial professionals making materially better, safer decisions with Industry IQ as part of their recurring work.* Count active professionals **only with qualified usefulness/decision evidence**, not raw chat sessions.
+- Human accountability: **knowledge ≠ authority; recommendation ≠ execution; model output ≠ evidence.**
+- No false confidence, unsupported root causes, synthetic-to-field qualification claims or invented business outcomes.
+- No customer-data leakage, unauthorized OEM material reuse or opaque employee surveillance.
+- No duplication of generic data/AI infrastructure without a concrete industrial need.
+- No premature broad persona expansion or marketplace before proven usefulness and quality.
 
-Companion and moat scorecard (distinct from canonical v1 engineering maturity score):
+## Related authoritative records
 
-- **Incremental reasoning benefit:** matched B-versus-C comparisons with the same model, evidence, tools, policy and evaluators (CEPIO Labs EVA/VA-1 discipline).
-- **Qualified coverage:** proportion of high-value persona decisions supported by versioned, expert-reviewed capability and appropriate refusal behavior.
-- **Professional usefulness:** time-to-evidence, investigation preparation effort, repeat weekly usage, returning-user cohorts and user-rated relevance.
-- **Verified decision quality:** material evidence correctness, useful recommendations, negative cases, escalation quality and zero unauthorized execution.
-- **Outcome/value:** provenance-linked Decision → approved Action → observed Outcome; separately measured KPI effect and finance-validated attribution where possible.
-- **Compounding efficiency:** cross-domain reusable qualified capabilities, regression survival and reduced marginal domain onboarding effort.
-- **Distribution health:** activated enterprise design partners, recurring professionals and (later) licensed, qualified external capabilities.
+- [CEPIO README](../../README.md) — technical architecture and boundaries.
+- [CEPIO Current State](../current-state.md) — dated published/merged/proof status.
+- [Execution Roadmap](../roadmap.md) — release gates remain authoritative.
+- [v1 Engineering Scorecard](../../config/v1-scorecard.yaml) — unchanged by this product strategy.
+- [Capability Registry and Compounding Intelligence](../capability-registry-and-compounding-intelligence.md) — governed capability promotion.
+- [Reliability Agent Lighthouse](../reliability-agent-lighthouse.md) — end-to-end technical/operational qualification.
+- [Industry IQ Studio](https://github.com/faizrten/industry-iq-studio) — separate Studio/Companion presentation work.
 
-**Illustrative pilot targets** (to refine before a study, not current results): at least 95% auditable evidence coverage for consequential recommendations; 40% less investigation preparation effort; 60% follow-on weekly use among activated pilot professionals; **zero** unauthorized operational actions; one demonstrable capability reuse into a second context. Treat all as hypotheses with frozen rubrics, denominators and baselines.
-
-Use the separate Enterprise Value Assurance levels: technical/intelligence superiority does **not** establish operational impact, and operational impact does **not** establish finance-approved enterprise ROI. Include negative results and all lifecycle costs.
-
-## 10. Commercial hypothesis
-
-1. **Professional access/subscriptions:** day-one bounded expert guidance, learning and role-based workflows; test repeat use before scaling marketing.
-2. **Enterprise licensing:** qualified capabilities, integrated context, governed operations, support and value assurance; probable initial economic anchor, not an established business fact.
-3. **Future ecosystem distribution:** qualifying, licensing and distributing third-party capabilities after permission, verification and clear unit economics.
-
-Buyer and user differ: CIO/COO/digital and operational leaders may sponsor; engineer/operator/planner must experience actual daily value. Distribute through existing workplace surfaces without mandating a particular cloud suite.
-
-## 11. Guardrails and anti-goals
-
-- **Human accountability:** knowledge ≠ authority; recommendation ≠ execution; model output ≠ evidence; synthetic benchmark ≠ field proof; operational KPI ≠ finance-validated ROI.
-- **Source sovereignty and IP:** customer context and outcome histories stay customer-controlled; do not copy customer-specific information into shared Labs or globally train on it. Reuse requires licensing/consent, review, sanitized abstraction and independent regression.
-- **Worker dignity and privacy:** professional profile and feedback require justified purpose, tenant/role controls and appropriate consent; do not create an employee-surveillance or unaccountable individual scoring system.
-- **No premature qualification:** a prototype, demo, passing deterministic test, or merged PR is not a live production claim. Declare uncertainty and unproven limits.
-- **No infrastructure distraction:** avoid recreating generic hosts, workflow schedulers, storage/search engines or complex middleware without a demonstrated industrial contract gap.
-- **No premature sprawl:** reject unqualified persona/industry expansion, dozens of new contracts that replicate existing contracts, and marketplace features before traction.
-
-## 12. Relationship to existing authoritative artifacts
-
-- [CEPIO README](../../README.md): current technical architecture and runtime boundaries.
-- [Execution roadmap](../roadmap.md): authoritative product release gates; unchanged by this doctrine.
-- [Current state](../current-state.md): dated shipped/merged/unqualified status.
-- [Canonical v1 scorecard](../../config/v1-scorecard.yaml): evidence-backed **engineering maturity**, not a score for professional adoption or moat.
-- [Persona-scoped ICC qualification](../icc-persona-qualification-v0.1.md): role-specific qualified capability binding.
-- [Memory & Context](../memory-context-architecture.md): bounded context, isolation and memory contracts.
-- [Capability Registry / Compounding Intelligence](../capability-registry-and-compounding-intelligence.md): human-reviewed generalization, not auto-learning.
-- [Reliability Agent Lighthouse](../reliability-agent-lighthouse.md): Foundry + CEPIO MCP technical/operational proof.
-- [Teams Attention](../teams-action-surface-v0.1.md): initial proactive experience foundation.
-- [CEPIO Labs protected strategy](https://github.com/faizrten/CEPIO-Labs): detailed casebook, assurance and moat execution remain protected.
-- [Industry IQ Studio](https://github.com/faizrten/industry-iq-studio): operator/builder/technical-authority experience; companion is a separate **logical** professional product surface.
-
-**Decision principle for future work:** an investment must improve *professional competence, decision quality, verified execution, qualified reuse, or demonstrated business outcomes*. Infrastructure is a means to those ends, not a separate North Star.
+**Decision principle:** Every investment must improve industrial professional competence, decision quality, safe execution, qualified capability reuse, or independently demonstrated business value. Infrastructure is a means, not the product North Star.
