@@ -4,6 +4,7 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
+- **[Industry IQ Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md)** — mission, professional Companion vision, Industrial Competence Network moat, logical service priorities, phased strategy and success metrics.
 - **[Current State](current-state.md)** — dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
 - **[CEPIO Wiki](wiki/Home.md)** — reader-oriented product, architecture, runtime, Industry IQ and roadmap navigation.
 - **[Architecture](architecture.md)** — current portable Industrial Operating Intelligence architecture.
@@ -16,7 +17,11 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## North Star
 
-> **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
+**Product:** The indispensable expert companion for every industrial professional.
+
+**Technology:** CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.
+
+**Strategic moat:** An independently qualified Industrial Competence Network, not a generic agent runtime. The new [strategy document](strategy/industry-iq-product-north-star.md) is normative for product direction while technical ADRs, roadmap gates and the scorecard govern implementation and qualification.
 
 For Microsoft-hosted agent workloads:
 
