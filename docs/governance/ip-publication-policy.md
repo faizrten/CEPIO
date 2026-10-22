@@ -131,3 +131,20 @@ Until repository visibility has been changed to private, the required `governanc
 After the repository becomes private, internal implementation work may resume through the normal protected-branch and governance checks. Anything subsequently published must be deliberately extracted into a separately managed public developer repository following the Labs IP register and publication-candidate review. No bulk mirroring of private source trees into public repositories is permitted.
 
 A public baseline, including Git history and third-party clones, cannot be made secret retroactively. Perform a customer-confidentiality and credential-exposure audit, rotate any exposed secrets, and review IP ownership/licensing before subsequent disclosure. This policy does not purport to create retroactive confidentiality or to determine legal rights.
+
+
+## 2026-10-22 final repository architecture — open CEPIO, protected Industry IQ
+
+**Supersedes the earlier 2026-10-22 proposal to make the entire CEPIO repository private.** The founder elects to keep `faizrten/CEPIO` PUBLIC as an interoperability/runtime platform and evolve differentiated industrial competence in PRIVATE `faizrten/CEPIO-Labs`. The former blanket public-code embargo is withdrawn in favor of classification-aware public code review and protected-path enforcement.
+
+**Public CEPIO:** canonical reusable ontology, identity/time/state/provenance, generic policy and governed actions, public Capability/Performance/Skill contract schemas, REST/MCP/SDK, interoperable bindings, documentation and deliberately sanitized examples. Ordinary public platform development may continue with successful mandatory CI, governance and publication attestations.
+
+**Private Industry IQ:** domain-specific industrial algorithms, sophisticated agent planning, differentiated expert Skills, advanced evaluation and grading, detailed persona/competency packs, normalization, learning and industry-performance heuristics. New development begins privately by default. No direct public-to-private source/runtime dependency is permitted: the public CEPIO package must build and function on its own. Private code may use stable public interfaces; private deployments can compose the two through governed contracts.
+
+**Customer-confidential:** customer mappings/profiles and operating rules require their own enterprise-controlled boundary, not public CEPIO and not shared Labs by default. Existing `profiles/satorp/` is a review priority; historical public disclosure does not establish permission for future customer publication.
+
+**Migration discipline:** copying an already-public historical artifact into Labs does not restore secrecy. Preserve release and test compatibility; do not remove current public runtime modules or CI-dependent baselines until private equivalents pass release qualification. Only intentionally extracted contracts/SDKs/sanitized sample artifacts may move outward.
+
+**Publication automation:** the required `governance-protection` check denies additions/modifications/renames into categorized proprietary paths and customer-profile trees, yet permits deletions after migration. For other public code changes it requires one IP classification plus four explicit publication attestations. As with all path checks, this is a guardrail, not proof that every new path is safe: human review of IP, confidential contents and third-party rights remains mandatory.
+
+**Deployment invariant:** Azure, REST/MCP, Industry IQ Studio and Foundry clients retain their published interfaces. Any future private packaging or integration must undergo contract, authorization and performance regression testing, with no customer data or protected private code exposed in public CI artifacts.
