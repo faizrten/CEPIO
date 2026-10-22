@@ -46,29 +46,44 @@ jobs:
               }
               core.summary.addHeading('Protected governance changes').addList(protectedPaths);
             }
-            // Emergency disclosure containment. The full runtime is not a public SDK.
-            // Public visibility must NOT allow further implementation/corpus publication.
-            // This gate intentionally stops blocking protected implementation when the
-            // owner changes the repository to private; that change is account-admin only.
+            // CEPIO remains public as a stable interoperability platform. Keep
+            // proprietary Industry IQ / customer data private by path and PR review.
             if (context.payload.repository?.private === false) {
               const ipReview = section('IP / publication review');
-              const selected = [...ipReview.matchAll(/^- \[[xX]\] \*\*(PUBLIC|PROTECTED|CUSTOMER CONFIDENTIAL)\b/gm)];
-              if (selected.length !== 1) {
-                core.setFailed('Public PR must select exactly one IP/publication classification.');
+              const selections = [...ipReview.matchAll(/^- \[[xX]\] \*\*(PUBLIC|PROTECTED|CUSTOMER CONFIDENTIAL)\b/gm)];
+              if (selections.length !== 1) {
+                core.setFailed('Select exactly one IP/publication classification for public CEPIO.');
               }
-              if (selected.some(match => match[1] === 'CUSTOMER CONFIDENTIAL')) {
-                core.setFailed('Customer-confidential material cannot be published.');
+              const classification = selections[0]?.[1];
+              if (classification === 'CUSTOMER CONFIDENTIAL') {
+                core.setFailed('Customer-confidential assets are never eligible for public publication.');
               }
-              // Any existing source, pack, fixture, evaluator or runtime change must
-              // be developed privately. Deleted files are allowed for containment.
-              const privateByDefault = /^(?:src\/|generalization\/|ontologies\/|profiles\/|mappings\/|shapes\/|actions\/|policies\/|workflows\/|mvp\/|scripts\/|tests\/|config\/|deploy\/|deployments\/|integrations\/|quality\/)/;
-              const embargoed = files
+
+              // These paths are never expanded in the public repo. Removals are
+              // explicitly allowed after the private copy and CI checks succeed.
+              const protectedIntelligence = /^(?:generalization\/(?:agents|benchmarks|competency|domain-packs|gaps|industry-iq|normalization|persona-bindings|personas|runtime)\/|mvp\/datasets\/|profiles\/|src\/cepio\/(?:agent_retrieval|compiled_iq_runtime|cross_customer_qualification|drilling_npt_iq|drilling_operator_well_delivery_iq|drilling_rig_readiness_iq|formation_evaluation|generalization|icc_qualification|industry_performance_packs|maintenance_deferral_skill|operational_assurance|operator_agent|performance_business_logic|performance_industry_iq|petrophysics_v1|qualification_assurance|runtime_coverage)\.py$)/;
+              const forbidden = files
                 .filter(file => file.status !== 'removed')
                 .flatMap(file => [file.filename, file.previous_filename].filter(Boolean))
-                .filter(path => privateByDefault.test(path));
-              if (embargoed.length) {
-                core.setFailed('Publication embargo: implementation, industrial intelligence, evaluations and customer profiles may not change while CEPIO is public. Make the full CEPIO repository private before merging these files.');
-                core.summary.addHeading('Blocked public-code publication').addList([...new Set(embargoed)]);
+                .filter(path => protectedIntelligence.test(path));
+              if (forbidden.length) {
+                core.setFailed('Protected Industry IQ/customer material must be developed in Labs or a customer-controlled boundary. Public PRs may only REMOVE protected-path assets after tested migration.');
+                core.summary.addHeading('Blocked IP paths').addList([...new Set(forbidden)]);
+              }
+
+              const nonDocumentationChange = files.some(file =>
+                file.status !== 'removed' && !/^(?:docs\/|\.github\/|README\.md$|RELEASE\.md$|THIRD_PARTY_NOTICES\.md$)/.test(file.filename)
+              );
+              if (nonDocumentationChange) {
+                const attestations = [
+                  /^- \[[xX]\] No customer-confidential data,/m,
+                  /^- \[[xX]\] No protected benchmark\/evaluation corpus/m,
+                  /^- \[[xX]\] I considered whether the same ecosystem value/m,
+                  /^- \[[xX]\] Publication value exceeds replication\/IP-exposure risk\./m
+                ];
+                for (const claim of attestations) {
+                  if (!claim.test(ipReview)) core.setFailed('Public code changes require all four publication-safety attestations.');
+                }
               }
             }
             await core.summary.write();
