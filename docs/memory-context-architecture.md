@@ -22,7 +22,7 @@ Memory & Context v0.1 implements the first three roadmap phases:
 2. **Durable memory MVP** — a source-neutral `MemoryStore` protocol, an in-memory reference implementation, and a durable SQLite reference implementation.
 3. **Bounded context assembly** — deterministic ranking, deduplication, tenant/expiry filtering, explicit resource budgets, and fail-closed handling when required context cannot fit.
 
-It deliberately does **not** introduce Redis, Azure AI Search, a vector database, a graph database, or PostgreSQL as a mandatory dependency. Those are later physical-storage and retrieval choices behind the logical contracts.
+v0.1 does **not** introduce Redis, vector/graph engines or PostgreSQL as mandatory dependencies. PostgreSQL is now the preferred next durable memory/retrieval implementation behind the same logical contracts.
 
 ## Memory model
 

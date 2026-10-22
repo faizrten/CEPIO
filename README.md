@@ -102,7 +102,7 @@ SAP + PI and the K-201 reliability lighthouse remain the decisive product proof.
 - Capability Registry and governed Compounding Industrial Intelligence;
 - Industry IQ Pack Registry, trusted catalogue and supply-chain trust policy;
 - durable Memory & Context, capability-routed Retrieval & Indexing and Compiled Industry IQ;
-- optional Azure AI Search retrieval projection;
+- source-neutral retrieval; PostgreSQL is the preferred next durable memory/retrieval implementation;
 - Performance Contracts, specialization and Refinery/Drilling Industry Performance Reference Packs;
 - authenticated read-only `/management/v1/*` projection;
 - authenticated hosted Streamable HTTP `/mcp` gateway;
@@ -336,7 +336,7 @@ Microsoft is the primary reference ecosystem, but Microsoft services implement C
 | **Microsoft Foundry** | model/agent execution using CEPIO contracts and tools |
 | **Entra** | authenticated human, application and agent identity |
 | **Azure App Service / AKS** | reference hosting/deployment profiles |
-| **Azure AI Search** | optional rebuildable retrieval projection |
+| **PostgreSQL** | preferred durable memory / structured and full-text retrieval (mainline adapter pending) |
 | **Purview** | governance/catalog/lineage bridge direction |
 
 The CEPIO contract should remain portable across other industrial environments such as Cognite Data Fusion and OSDU-based stacks.

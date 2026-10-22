@@ -197,7 +197,7 @@ RetrievalIntent
 
 Search/index backends are rebuildable projections, not authority.
 
-Azure AI Search is an optional physical backend behind this contract.
+PostgreSQL is the preferred next backend behind this logical contract; existing CEPIO SQLite reference storage remains until repository qualification.
 
 ## Compiled Industry IQ
 

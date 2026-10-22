@@ -39,14 +39,14 @@ CEPIO Policy
 CEPIO Runtime
         |
         +-- Fabric / Fabric IQ binding
-        +-- Azure AI Search retrieval projection
+        +-- CEPIO governed memory / retrieval
         +-- reference repositories
         +-- future SAP / PI / OSDU / P6 adapters
 ```
 
 Foundry authentication does not replace CEPIO authorization. A valid Entra identity proves who is calling; CEPIO policy still decides what that principal can read, calculate, evaluate, recommend or execute.
 
-An agent never receives direct Fabric, SQL, Azure AI Search, repository, SAP, PI, P6 or other adapter handles as CEPIO tools.
+An agent never receives direct Fabric, SQL, repository, SAP, PI, P6 or other adapter handles as CEPIO tools.
 
 ## MCP tools
 
@@ -150,7 +150,7 @@ CEPIO Core keeps the MCP SDK optional:
 pip install -e '.[mcp]'
 ```
 
-The production CEPIO container includes the MCP runtime dependency because `cepio.host_api` exposes `/mcp` alongside REST and Management. Provider extras can be composed with it, for example `azure-search,mcp`.
+The production CEPIO container includes the MCP runtime dependency because `cepio.host_api` exposes `/mcp` alongside REST and Management. Only supported provider extras can be composed with the hosted MCP runtime.
 
 The hosted composition uses the official MCP Python SDK Streamable HTTP application with:
 

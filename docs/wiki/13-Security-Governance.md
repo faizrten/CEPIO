@@ -148,7 +148,7 @@ Retrieval/index services are derived projections and must not become authority.
 - cache/index loss must be recoverable from authoritative contracts/data;
 - cache contents must not grant maturity, policy or execution authority.
 
-Azure AI Search follows these same boundaries.
+Future PostgreSQL search projections must follow these same boundaries.
 
 ## Industry IQ pack trust
 

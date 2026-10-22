@@ -154,16 +154,12 @@ OSDU evidence ------+
 
 Provider-specific bindings may differ; the CEPIO industrial operating contract should remain stable.
 
-## Azure AI Search
+## Retrieval and memory integration
 
-Azure AI Search is **not** an authoritative industrial integration source. It is an optional physical retrieval projection behind CEPIO Retrieval & Indexing.
-
-Rules:
-
-- Capability Registry / MemoryStore remain authoritative;
-- Search results are tenant/expiry revalidated;
-- raw SAP/PI/customer data is not automatically duplicated into Search;
-- Search ranking does not grant authority or satisfy evidence requirements by itself.
+CEPIO's governed retrieval layer remains source-neutral. PostgreSQL is the
+preferred next durable memory and full-text retrieval backend; current
+reference storage is SQLite. Tenant, expiry and evidence validation remain
+inside CEPIO regardless of the physical index implementation.
 
 ## External Action lifecycle
 

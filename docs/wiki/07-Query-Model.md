@@ -127,13 +127,13 @@ RetrievalIntent
  -> RetrievalPlan
  -> structured MemoryStore
  -> lexical index
- -> optional vector / graph / Azure AI Search adapters
+ -> future PostgreSQL full-text / optional vector and graph adapters
  -> deterministic rank fusion
  -> tenant/expiry re-check
  -> ContextAssembler
 ```
 
-Azure AI Search is therefore a **retrieval projection**, not an object-query or semantic authority layer.
+Indexes are **retrieval projections**, not an object-query or semantic authority layer; PostgreSQL is the preferred next implementation.
 
 ## Graph analytics vs object query vs retrieval
 

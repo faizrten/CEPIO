@@ -158,7 +158,7 @@ Authoritative source
 - durable workflow wait for verification and immutable Outcomes;
 - Fabric/Fabric IQ binding and live-proof transport path;
 - OSDU-first subsurface boundary and runtime bindings;
-- optional Azure AI Search retrieval projection;
+- source-neutral retrieval, with PostgreSQL durable memory/full-text integration as the preferred next implementation;
 - live-environment deployment/OIDC foundations.
 
 ## Remaining P0 product proof
@@ -403,7 +403,7 @@ through supported tooling without editing canonical Core modules.
 - runtime observability;
 - workflow restart/idempotency correctness;
 - external verification/reconciliation;
-- Azure AI Search physical retrieval adapter.
+- Azure AI Search prototype (now retired under ADR-0039; future PostgreSQL adapter is the successor milestone).
 
 ## Remaining enterprise-runtime qualification
 

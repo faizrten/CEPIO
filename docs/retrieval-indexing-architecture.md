@@ -27,7 +27,7 @@ v0.1 implements:
 9. direct integration into the Memory v0.1 ContextAssembler; and
 10. qualification metrics and a synthetic corpus-growth canary.
 
-It does not make Azure AI Search, PostgreSQL/pgvector, a graph database, Redis or any other physical service mandatory.
+It does not make PostgreSQL extensions, graph databases, Redis or other physical services mandatory; PostgreSQL is the preferred next implementation behind the logical contract.
 
 ## End-to-end control flow
 
@@ -155,7 +155,7 @@ The reference lexical index deliberately does not index capability IDs as free t
 
 `VECTOR` and `GRAPH` are first-class strategy values but have no mandatory storage product in v0.1.
 
-An Azure AI Search, pgvector, Fabric, custom embedding service, graph engine or sovereign customer-owned implementation can participate by implementing `RetrievalBackend`. The engine does not need to change.
+PostgreSQL full-text / optional pgvector, Fabric, custom embedding services, graph engines or customer-owned implementations can participate by implementing `RetrievalBackend`. The engine does not need to change.
 
 This avoids the common failure mode where a vector database becomes the architecture rather than an implementation detail.
 
@@ -300,8 +300,7 @@ A future structured retrieval adapter may use `QueryEngine` or external source b
 
 The contracts now allow several physical deployments without changing CEPIO Core:
 
-- Azure AI Search for lexical/vector/hybrid search;
-- PostgreSQL/Azure SQL plus an optional vector extension;
+- PostgreSQL full-text search plus an optional future pgvector extension;
 - Fabric SQL/search patterns for customer-owned memory projections;
 - NetworkX or nx-cugraph capability/semantic graph projections;
 - customer-owned sovereign search services; and

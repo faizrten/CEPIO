@@ -216,7 +216,7 @@ jobs:
           from cepio.resource_paths import resolve_resource_root
 
           root = resolve_resource_root()
-          assert cepio.__version__ == "0.4.0"
+          assert cepio.__version__ == "0.4.1"
           assert (root / "ontology-modules.yaml").exists()
           assert (root / "ontologies").is_dir()
           assert (root / "profiles" / "satorp" / "profile.yaml").exists()
