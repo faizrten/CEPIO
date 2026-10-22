@@ -46,4 +46,29 @@ jobs:
               }
               core.summary.addHeading('Protected governance changes').addList(protectedPaths);
             }
+            // Emergency disclosure containment. The full runtime is not a public SDK.
+            // Public visibility must NOT allow further implementation/corpus publication.
+            // This gate intentionally stops blocking protected implementation when the
+            // owner changes the repository to private; that change is account-admin only.
+            if (context.payload.repository?.private === false) {
+              const ipReview = section('IP / publication review');
+              const selected = [...ipReview.matchAll(/^- \[[xX]\] \*\*(PUBLIC|PROTECTED|CUSTOMER CONFIDENTIAL)\b/gm)];
+              if (selected.length !== 1) {
+                core.setFailed('Public PR must select exactly one IP/publication classification.');
+              }
+              if (selected.some(match => match[1] === 'CUSTOMER CONFIDENTIAL')) {
+                core.setFailed('Customer-confidential material cannot be published.');
+              }
+              // Any existing source, pack, fixture, evaluator or runtime change must
+              // be developed privately. Deleted files are allowed for containment.
+              const privateByDefault = /^(?:src\/|generalization\/|ontologies\/|profiles\/|mappings\/|shapes\/|actions\/|policies\/|workflows\/|mvp\/|scripts\/|tests\/|config\/|deploy\/|deployments\/|integrations\/|quality\/)/;
+              const embargoed = files
+                .filter(file => file.status !== 'removed')
+                .flatMap(file => [file.filename, file.previous_filename].filter(Boolean))
+                .filter(path => privateByDefault.test(path));
+              if (embargoed.length) {
+                core.setFailed('Publication embargo: implementation, industrial intelligence, evaluations and customer profiles may not change while CEPIO is public. Make the full CEPIO repository private before merging these files.');
+                core.summary.addHeading('Blocked public-code publication').addList([...new Set(embargoed)]);
+              }
+            }
             await core.summary.write();

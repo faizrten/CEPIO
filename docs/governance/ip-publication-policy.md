@@ -121,3 +121,13 @@ The practical objective is therefore:
 ## Legal boundary
 
 This document is an engineering and publication-control policy, not a software license, patent opinion or legal determination of ownership. Licensing, trademark, patentability, employment-IP and contributor-rights decisions should be reviewed separately with qualified counsel where material.
+
+## 2026-10-22 founder IP containment override
+
+The previously open-source-style full-stack repository carries material implementation and qualification assets, not just developer interfaces. It must be treated as a **proprietary source repository** during the transition to a deliberately extracted public developer surface.
+
+Until repository visibility has been changed to private, the required `governance-protection` check embargoes new or modified runtime, data, evaluation, automation, ontology, profile and industrial-competency assets. Pure removals remain allowed. This is a publication freeze, not a substitute for changing visibility.
+
+After the repository becomes private, internal implementation work may resume through the normal protected-branch and governance checks. Anything subsequently published must be deliberately extracted into a separately managed public developer repository following the Labs IP register and publication-candidate review. No bulk mirroring of private source trees into public repositories is permitted.
+
+A public baseline, including Git history and third-party clones, cannot be made secret retroactively. Perform a customer-confidentiality and credential-exposure audit, rotate any exposed secrets, and review IP ownership/licensing before subsequent disclosure. This policy does not purport to create retroactive confidentiality or to determine legal rights.
