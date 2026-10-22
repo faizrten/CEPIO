@@ -2,13 +2,27 @@
 
 **Common Energy & Process Industry Ontology**
 
-> **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
+> **Industry IQ product North Star: The indispensable expert companion for every industrial professional.**
+
+CEPIO is the headless, portable Industrial Operating Intelligence layer that makes this professional experience possible: **thin infrastructure, thick Industry IQ**.
 
 CEPIO gives humans, applications and AI agents a shared operating understanding of industrial assets, processes, work, risk, performance, decisions and governed actions while preserving authoritative source systems and enterprise-specific operating knowledge.
 
-## North Star
+## Product and technology North Stars
 
-> **Thin infrastructure. Thick Industry IQ.**
+**Mission:** Democratize industrial expertise and elevate human professional excellence.
+
+**Product North Star:** The indispensable expert companion for every industrial professional.
+
+**Technology North Star:** Thin infrastructure. Thick Industry IQ.
+
+**Strategic moat:** The Industrial Competence Network—qualified industrial expertise, independently tested capabilities, professional trust, and governed decision-to-outcome learning.
+
+**Doctrine:** Own the competence. Prove the competence. Distribute the competence. Compound the competence.
+
+See the [Industry IQ Product North Star & Strategic Doctrine](docs/strategy/industry-iq-product-north-star.md) for professional experience principles, differentiating moat, proposed services, guarded learning flywheel, portfolio boundaries, sequencing, success measures and anti-goals.
+
+Industry IQ Companion is a **proposed logical professional experience** consuming the CEPIO API/MCP and host surfaces, not a new agent runtime; Industry IQ Studio remains the technical control/qualification experience. The current v0.5 CONNECT release gate and canonical v1 maturity score are unchanged.
 
 Frontier models provide general intelligence. Data and industrial platforms provide storage, compute and enterprise context. CEPIO provides reusable **industrial operating competence**:
 
