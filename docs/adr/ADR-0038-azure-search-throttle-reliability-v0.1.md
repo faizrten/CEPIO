@@ -1,6 +1,6 @@
 # ADR-0038 — Azure AI Search Bounded Indexing Reliability and Scale Qualification
 
-- **Status:** Accepted for development qualification; live proof remains pending
+- **Status:** Superseded by ADR-0039 (2026-10-22); historical record only
 - **Date:** 2026-10-22
 - **Decision owners:** CEPIO retrieval/platform engineering
 - **Related:** ADR-0032 Azure AI Search adapter; GitHub qualification runs 39430176053 and 39593038395

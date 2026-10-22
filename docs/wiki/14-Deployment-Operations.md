@@ -2,7 +2,7 @@
 
 ## Current state
 
-CEPIO can run locally and has an Azure-hosted reference composition. Deployment is no longer only a future architecture topic; current mainline includes authenticated hosted REST, read-only Management and Streamable HTTP MCP surfaces, secretless GitHub/Azure OIDC deployment foundations, optional Azure AI Search runtime support and reference App Service/AKS profiles.
+CEPIO can run locally and has an Azure-hosted reference composition. Deployment is no longer only a future architecture topic; current mainline includes authenticated hosted REST, read-only Management and Streamable HTTP MCP surfaces, secretless GitHub/Azure OIDC deployment foundations, source-neutral retrieval and reference App Service/AKS profiles; PostgreSQL is preferred for a future durable memory/retrieval adapter, not yet activated in the hosted CEPIO runtime.
 
 This does **not** mean CEPIO has completed the v0.8 OPERATE enterprise-runtime gate. Production distributed persistence, HA, queues/workers, SLO/DR and penetration/security qualification remain open.
 
@@ -66,7 +66,6 @@ Current deployment characteristics include:
 - GitHub Actions -> Azure federated OIDC deployment without stored Azure passwords;
 - immutable-image/digest-oriented deployment checks;
 - health and anonymous-auth-boundary validation;
-- optional Azure AI Search runtime extra;
 - hosted MCP runtime dependency/profile;
 - managed-identity patterns for Azure resource access.
 
@@ -80,18 +79,13 @@ This repository uses an immutable GitHub OIDC subject configuration. Azure feder
 
 See the focused deployment/OIDC documentation for current setup and recovery instructions.
 
-## Azure AI Search
+## PostgreSQL integration direction
 
-Azure AI Search is an optional runtime adapter for CEPIO Retrieval & Indexing.
-
-Deployment principles:
-
-- use managed identity / `DefaultAzureCredential`, not Search API keys committed into CEPIO;
-- the Search index is a rebuildable projection of bounded CEPIO memory metadata/evidence references;
-- tenant/expiry boundaries are pushed into filters and revalidated by CEPIO after retrieval;
-- Search does not become semantic authority or raw industrial source storage by default.
-
-Live scale qualification remains separate from existence of the adapter implementation.
+The hosted CEPIO reference application remains on SQLite. PostgreSQL is the
+preferred next durable memory/retrieval backend but needs a CEPIO repository
+adapter, migration, private connectivity and tenant-boundary qualification.
+The former Azure Search provider is no longer part of the application
+deployment.
 
 ## Management projection
 

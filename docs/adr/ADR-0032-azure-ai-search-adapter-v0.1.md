@@ -1,6 +1,6 @@
 # ADR-0032: Azure AI Search Physical Retrieval Adapter v0.1
 
-- Status: Accepted
+- Status: Superseded by ADR-0039 (2026-10-22); historical record only
 - Date: 2026-10-20
 
 ## Context

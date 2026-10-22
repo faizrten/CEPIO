@@ -112,7 +112,7 @@ The following capabilities are merged on `main` but must be interpreted accordin
 - Fabric/Fabric IQ bindings and a Fabric live-proof transport path;
 - source-neutral evidence and governed-action boundaries;
 - OSDU-first subsurface extension boundary;
-- optional Azure AI Search physical retrieval adapter as a rebuildable projection rather than semantic authority.
+- retired Azure AI Search integration (ADR-0039); PostgreSQL is preferred for next memory/retrieval adapter; SQLite remains the current mainline repository.
 
 Live SAP/PI and the full three-source CONNECT release gate remain unqualified.
 
@@ -131,7 +131,7 @@ Live SAP/PI and the full three-source CONNECT release gate remain unqualified.
 - bounded per-task Context Assembly;
 - capability-routed Retrieval & Indexing;
 - structured and lexical reference backends plus replaceable vector/graph slots;
-- Azure AI Search adapter behind the same source-neutral retrieval contract;
+- PostgreSQL-backed memory/retrieval adapter remains a future milestone behind the same source-neutral contracts;
 - deterministic Compiled Industry IQ bundles and bounded hot-cache acceleration;
 - hard exclusion of PROFILE/customer context from the shared compiled cache.
 

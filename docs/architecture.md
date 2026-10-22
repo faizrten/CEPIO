@@ -188,7 +188,7 @@ request
 
 Indexes are rebuildable projections. Memory/source evidence remains authoritative.
 
-Azure AI Search is one optional physical adapter behind this contract; it does not become semantic authority.
+PostgreSQL is the preferred next durable memory/retrieval backend; the independent contract remains semantic authority. CEPIO's existing SQLite repository remains live until the PostgreSQL adapter is qualified.
 
 ## Compiled Industry IQ
 
@@ -301,7 +301,7 @@ Do not build duplicate generic model-routing/session/agent infrastructure inside
 
 Domain-facing repositories and logical store protocols isolate CEPIO contracts from storage technology.
 
-Current/reference implementations include in-memory and SQLite storage for several contracts. Azure AI Search is an optional retrieval projection. Future PostgreSQL/Azure SQL/Fabric/graph/distributed backends should implement CEPIO logical contracts without leaking their physical semantics into applications.
+Current/reference implementations include in-memory and SQLite storage for several contracts. PostgreSQL is the preferred next durable memory/retrieval adapter, not yet qualified for the hosted CEPIO runtime. Future Fabric/graph/distributed backends must implement source-neutral logical contracts.
 
 ## Headless-first experience
 

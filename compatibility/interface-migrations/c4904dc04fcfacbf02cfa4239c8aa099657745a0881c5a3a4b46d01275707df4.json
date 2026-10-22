@@ -1,0 +1,5 @@
+{
+  "base": "cbb308f184833494ca5c7b9c26b7254e5af2a606",
+  "rationale": "Deliberate retirement of the optional Azure AI Search Python module, all public types and helpers, and its package extra. The provider was never an authoritative CEPIO contract, and retaining an import-compatible Azure Search stub would contradict ADR-0039. Source development version is advanced to 0.4.1.dev0 without changing the published 0.4.0 FOUNDATION release.",
+  "migration": "Consumers importing cepio.azure_search or installing cepio[azure-search] must stop using that optional physical provider. Integrate against cepio.retrieval_contracts.RetrievalBackend and cepio.memory.MemoryStore instead; the current supported CEPIO reference memory/repository persists in SQLite. A PostgreSQL backend will be introduced and qualified separately, not silently enabled by this change. Remove CEPIO_AZURE_SEARCH_ENDPOINT and CEPIO_AZURE_SEARCH_INDEX configuration and do not run the retired index qualification workflow. No CEPIO semantic/runtime state is migrated and no Search cloud resource is removed by this code PR."
+}

@@ -17,7 +17,7 @@ Microsoft services may implement data, identity, hosting, retrieval and model/ag
       |                     |                      |
 Fabric / OneLake         Foundry / Copilot       Entra
 RTI / Warehouse          model + agent runtime
-Azure AI Search          MCP client/host
+PostgreSQL               MCP client/host
       |                     |                      |
       +---------------------+----------------------+
                             |
@@ -43,7 +43,7 @@ Azure AI Search          MCP client/host
 | Entra | authenticated human, application and agent identity |
 | Azure App Service | current hosted reference composition for REST + Management + MCP |
 | AKS | reference scale-out deployment direction/profile |
-| Azure AI Search | optional rebuildable retrieval projection behind CEPIO retrieval contracts |
+| PostgreSQL | preferred durable memory/retrieval backend (CEPIO adapter qualification pending) |
 | Purview | future/deferred governance/catalog/lineage bridge |
 
 ## Fabric and Binding Contract
@@ -133,18 +133,14 @@ The container host composes these surfaces while preserving their distinct autho
 
 See [Remote Management Read Projection](../remote-management-read-projection.md) and [Foundry + MCP](../foundry-mcp.md).
 
-## Azure AI Search
+## PostgreSQL memory/retrieval direction
 
-Azure AI Search is an optional physical backend behind CEPIO Retrieval & Indexing.
-
-It is explicitly a **rebuildable retrieval projection**:
-
-- Capability Registry / MemoryStore remain authoritative;
-- tenant and expiry constraints are pushed into Search and rechecked after retrieval;
-- customer/source raw data is not automatically copied into the index;
-- Search ranking never grants authority or bypasses ContextAssembler budgets.
-
-See [Azure AI Search Adapter](../azure-ai-search-adapter.md).
+PostgreSQL is the preferred durable memory and structured/full-text retrieval
+backend. CEPIO's MemoryStore and RetrievalBackend interfaces retain tenant
+isolation, expiry and evidence provenance. The public CEPIO runtime continues
+to use its qualified SQLite reference adapter until PostgreSQL integration
+and migration validation are complete. The former Search service is retired
+under ADR-0039.
 
 ## AKS
 

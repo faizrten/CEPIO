@@ -31,8 +31,6 @@ jobs:
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
       AZURE_CONTAINER_REGISTRY: ${{ vars.AZURE_CONTAINER_REGISTRY }}
-      CEPIO_AZURE_SEARCH_ENDPOINT: https://cepio-search-dev-31d48.search.windows.net
-      CEPIO_AZURE_SEARCH_INDEX: cepio-memory-v1
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,7 +63,7 @@ jobs:
           tag="cepio:${DEPLOY_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           az acr build --registry "$AZURE_CONTAINER_REGISTRY" \
             --image "$tag" --file Dockerfile \
-            --build-arg CEPIO_RUNTIME_EXTRAS=azure-search,mcp --no-logs .
+            --build-arg CEPIO_RUNTIME_EXTRAS=mcp --no-logs .
           digest="$(az acr repository show --name "$AZURE_CONTAINER_REGISTRY" \
             --image "$tag" --query digest --output tsv)"
           if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
@@ -87,11 +85,10 @@ jobs:
             --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" \
             --container-image-name "$IMAGE" \
             --container-registry-url "https://$REGISTRY_SERVER" --output none
-          az webapp config appsettings set \
+          # Clear legacy Search settings; do not touch other App Service configuration.
+          az webapp config appsettings delete \
             --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" \
-            --settings \
-              CEPIO_AZURE_SEARCH_ENDPOINT="$CEPIO_AZURE_SEARCH_ENDPOINT" \
-              CEPIO_AZURE_SEARCH_INDEX="$CEPIO_AZURE_SEARCH_INDEX" \
+            --setting-names CEPIO_AZURE_SEARCH_ENDPOINT CEPIO_AZURE_SEARCH_INDEX \
             --output none
           az webapp restart --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME"
           configured="$(az webapp config show --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -136,7 +133,6 @@ jobs:
             echo "- Management: https://$host/management/v1 (authenticated read-only)"
             echo "- MCP: https://$host/mcp (authenticated Streamable HTTP)"
             echo "- Image: ${{ steps.build.outputs.image }}"
-            echo "- Azure AI Search: $CEPIO_AZURE_SEARCH_ENDPOINT / $CEPIO_AZURE_SEARCH_INDEX"
             echo "- Anonymous object access: HTTP 401"
             echo "- Anonymous management access: HTTP 401"
             echo "- Anonymous MCP access: HTTP 401"

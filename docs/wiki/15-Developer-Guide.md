@@ -113,7 +113,7 @@ Source/provider integrations belong behind the Binding Contract. Provider-specif
 
 ### Derived runtime projections
 
-Memory indexes, Azure AI Search and compiled caches are projections/acceleration mechanisms.
+Memory indexes and compiled caches are projections/acceleration mechanisms; PostgreSQL retrieval must preserve CEPIO semantic authority.
 
 ```text
 Index != Source of Truth

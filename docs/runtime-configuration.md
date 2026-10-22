@@ -53,7 +53,7 @@ This allows an installed wheel to bootstrap from any working directory without r
 
 `src/cepio/_version.py` is the single package version source. `pyproject.toml`, `cepio.__version__`, FastAPI metadata, and `/health` consume that value.
 
-Current development version is `0.4.0.dev0`.
+The CEPIO Python distribution version is `0.4.1`, including the explicit Azure AI Search provider retirement (ADR-0039). This packaging change does not qualify the separate CEPIO v0.5 CONNECT product release.
 
 ## Health metadata
 

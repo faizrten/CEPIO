@@ -77,7 +77,6 @@ See [Current State](current-state.md).
 - [Foundry + MCP](foundry-mcp.md)
 - [Reliability Agent Lighthouse](reliability-agent-lighthouse.md)
 - [Foundry Reliability G1](foundry-reliability-g1.md)
-- [Azure AI Search Adapter](azure-ai-search-adapter.md)
 - [NVIDIA cuGraph](integrations/nvidia-cugraph.md)
 
 Binding principle:
@@ -112,7 +111,6 @@ These contracts keep reusable industrial intelligence separately deployable and 
 - [Retrieval & Indexing Wiki](wiki/23-Retrieval-and-Indexing.md)
 - [Compiled Industry IQ](compiled-industry-iq.md)
 - [Compiled Industry IQ Wiki](wiki/24-Compiled-Industry-IQ.md)
-- [Azure AI Search Adapter](azure-ai-search-adapter.md)
 
 Core invariant:
 

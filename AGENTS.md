@@ -133,7 +133,7 @@ The success signal is **rising industrial competency with decreasing Core churn*
 - Fabric/Fabric IQ semantic binding and live-proof transport path;
 - OSDU-first subsurface boundary;
 - external identity/write/verify/reconcile foundation;
-- Azure AI Search as optional rebuildable retrieval projection, never semantic authority.
+- Azure AI Search retired per ADR-0039; PostgreSQL is the preferred next memory/retrieval target, pending CEPIO repository-adapter qualification.
 
 ### Industry IQ control plane
 

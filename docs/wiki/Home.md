@@ -253,7 +253,6 @@ The Wiki summarizes; focused docs define bounded technical contracts. Important 
 - [Industry Performance Packs](../industry-performance-packs.md)
 - [Foundry + MCP](../foundry-mcp.md)
 - [Reliability Agent Lighthouse](../reliability-agent-lighthouse.md)
-- [Azure AI Search Adapter](../azure-ai-search-adapter.md)
 - [Remote Management Read Projection](../remote-management-read-projection.md)
 
 ## Documentation governance

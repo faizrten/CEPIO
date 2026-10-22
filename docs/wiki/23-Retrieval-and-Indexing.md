@@ -40,7 +40,7 @@ The lexical index is a projection, not a source of truth. Durable `MemoryStore` 
 
 ## Why no mandatory vector database
 
-Vector search is an implementation choice. Azure AI Search, pgvector, a customer-owned service or another engine can implement the same retrieval backend contract. CEPIO semantics, tenancy and capability governance stay above the product layer.
+Vector search is optional. PostgreSQL full-text and optional future pgvector are preferred for the next adapter, while customer-owned backends can implement the same retrieval contract. CEPIO semantics, tenancy and governance remain above the product layer.
 
 ## Safety
 

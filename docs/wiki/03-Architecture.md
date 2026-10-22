@@ -157,7 +157,7 @@ request
  -> ContextAssembler
 ```
 
-Indexes are rebuildable projections, not memory truth. Azure AI Search is one optional implementation behind the same logical contract.
+Indexes are rebuildable projections, not memory truth. PostgreSQL is the preferred next physical implementation behind the same logical contract.
 
 ## Compiled Industry IQ
 
@@ -235,9 +235,9 @@ Current/reference physical implementations include:
 
 - in-memory stores;
 - SQLite;
-- Azure AI Search as a retrieval projection.
+- locally scoped structured/lexical retrieval indexes.
 
-Future Fabric, PostgreSQL/Azure SQL, graph, distributed cache/search or sovereign backends should implement logical CEPIO contracts without defining CEPIO semantics.
+PostgreSQL is preferred as the next durable memory/retrieval backend; future Fabric, graph, distributed cache/search or sovereign backends must still implement logical CEPIO contracts.
 
 ## Headless experience
 
