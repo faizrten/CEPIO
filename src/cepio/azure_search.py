@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import time
 from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass
 from datetime import timezone
 from typing import Any, Protocol
 from urllib.parse import urlparse
@@ -191,10 +193,54 @@ def _indexing_succeeded(result: Any) -> bool:
     return bool(getattr(result, "succeeded", False))
 
 
+_RETRYABLE_INDEX_STATUSES = frozenset({429, 500, 502, 503, 504})
+
+
+@dataclass(frozen=True)
+class IndexRetryPolicy:
+    """Bounded retries for idempotent Search index projection writes."""
+
+    max_attempts: int = 7
+    initial_delay_seconds: float = 2.0
+    max_delay_seconds: float = 30.0
+
+    def __post_init__(self) -> None:
+        if self.max_attempts < 1 or self.max_attempts > 10:
+            raise ValueError("max_attempts must be between 1 and 10")
+        if self.initial_delay_seconds < 0 or self.max_delay_seconds < 0:
+            raise ValueError("retry delays cannot be negative")
+        if self.initial_delay_seconds > self.max_delay_seconds:
+            raise ValueError("initial retry delay exceeds maximum")
+
+
+def _index_status(value: Any) -> int | None:
+    status = getattr(value, "status_code", None)
+    if isinstance(value, Mapping):
+        status = value.get("status_code", status)
+    if status is None:
+        status = getattr(getattr(value, "response", None), "status_code", None)
+    return status if isinstance(status, int) else None
+
+
+def _index_retry_delay(error: Exception | None, attempt: int, policy: IndexRetryPolicy) -> float:
+    delay = min(policy.max_delay_seconds, policy.initial_delay_seconds * (2 ** (attempt - 1)))
+    headers = getattr(getattr(error, "response", None), "headers", None)
+    if headers:
+        raw = headers.get("Retry-After")
+        try:
+            if raw is not None:
+                delay = max(delay, min(policy.max_delay_seconds, max(0.0, float(raw))))
+        except (TypeError, ValueError):
+            pass
+    return delay
+
+
 class AzureSearchMemoryBackend:
     """Azure AI Search lexical backend and rebuildable memory-index projection."""
 
     strategy = RetrievalStrategy.LEXICAL
+
+    retry_policy = IndexRetryPolicy()
 
     def __init__(
         self,
@@ -203,20 +249,54 @@ class AzureSearchMemoryBackend:
     ) -> None:
         self.client = client
         self.config = config
+        self.total_upload_retries = 0
 
     def upsert(self, record: MemoryRecord) -> None:
-        results = self.client.upload_documents([memory_to_search_document(record)])
-        if not results or not all(_indexing_succeeded(item) for item in results):
-            raise RetrievalBackendError(f"Azure AI Search failed to index memory {record.id}")
+        self.upload_many([record])
 
     def upload_many(self, records: Sequence[MemoryRecord]) -> int:
+        """Retry bounded transient failures; never silently accept partial indexing.
+
+        Retried uploads use stable document IDs, so a request that committed before a
+        lost response is safe to repeat. Permanent failures fail closed immediately.
+        """
         if not records:
             return 0
         documents = [memory_to_search_document(item) for item in records]
-        results = self.client.upload_documents(documents)
-        if len(results) != len(documents) or not all(_indexing_succeeded(item) for item in results):
-            raise RetrievalBackendError("Azure AI Search batch indexing did not fully succeed")
-        return len(documents)
+        pending = documents
+        attempt = 0
+        while True:
+            attempt += 1
+            error: Exception | None = None
+            try:
+                results = self.client.upload_documents(pending)
+            except Exception as exc:
+                error = exc
+                if _index_status(exc) not in _RETRYABLE_INDEX_STATUSES:
+                    raise RetrievalBackendError("Azure AI Search indexing request failed") from exc
+                failed = pending
+            else:
+                if len(results) != len(pending):
+                    raise RetrievalBackendError(
+                        "Azure AI Search batch indexing returned incomplete results"
+                    )
+                failed = []
+                for document, result in zip(pending, results):
+                    if _indexing_succeeded(result):
+                        continue
+                    if _index_status(result) not in _RETRYABLE_INDEX_STATUSES:
+                        raise RetrievalBackendError("Azure AI Search batch indexing was rejected")
+                    failed.append(document)
+                if not failed:
+                    return len(documents)
+
+            if attempt == self.retry_policy.max_attempts:
+                raise RetrievalBackendError(
+                    f"Azure AI Search transient indexing failed after {attempt} attempts"
+                ) from error
+            self.total_upload_retries += 1
+            time.sleep(_index_retry_delay(error, attempt, self.retry_policy))
+            pending = failed
 
     def remove(self, memory_id: str) -> bool:
         results = self.client.delete_documents([{"id": memory_id}])

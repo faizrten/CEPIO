@@ -169,49 +169,81 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT)
     parser.add_argument("--index", default=DEFAULT_INDEX)
-    parser.add_argument("--sizes", nargs="+", type=int, default=[50_000, 500_000])
-    parser.add_argument("--batch-size", type=int, default=1000)
+    parser.add_argument("--sizes", nargs="+", type=int, default=[5_000, 50_000])
+    parser.add_argument("--batch-size", type=int, default=100)
+    parser.add_argument("--batch-delay-seconds", type=float, default=0.5)
+    parser.add_argument("--max-corpus-size", type=int, default=50_000)
     parser.add_argument("--reset-index", action="store_true")
     parser.add_argument("--output", default="evidence/azure-search-scale-qualification.json")
     args = parser.parse_args()
 
     sizes = sorted(set(args.sizes))
-    if not sizes or sizes[0] < 3:
-        raise ValueError("sizes must contain corpus sizes >= 3")
+    if not sizes or sizes[0] < 3 or sizes[-1] > args.max_corpus_size:
+        raise ValueError("corpus sizes must be between 3 and the configured maximum")
     if args.batch_size < 1 or args.batch_size > 1000:
         raise ValueError("batch-size must be between 1 and 1000")
+    if args.batch_delay_seconds < 0 or args.batch_delay_seconds > 10:
+        raise ValueError("batch-delay-seconds must be between 0 and 10")
 
-    config = AzureSearchConfig(endpoint=args.endpoint, index_name=args.index)
-    credential = DefaultAzureCredential(exclude_interactive_browser_credential=True)
-    index_client = SearchIndexClient(config.endpoint, credential)
-    _ensure_index(index_client, index_name=config.index_name, reset=args.reset_index)
-
-    search_client = SearchClient(config.endpoint, config.index_name, credential)
-    backend = AzureSearchMemoryBackend(search_client, config)
-    backend.upload_many(_targets())
-
-    evidence: list[dict[str, object]] = []
-    uploaded_noise = 0
-    for requested_size in sizes:
-        target_noise = requested_size - 3
-        while uploaded_noise < target_noise:
-            stop = min(target_noise, uploaded_noise + args.batch_size)
-            backend.upload_many(_noise(uploaded_noise, stop))
-            uploaded_noise = stop
-        evidence.append(_query(backend, corpus_size=requested_size))
-
-    report = {
-        "status": "PASS",
-        "endpoint": config.endpoint,
-        "index": config.index_name,
+    started = time.perf_counter()
+    report: dict[str, object] = {
+        "status": "FAIL",
+        "endpoint": args.endpoint,
+        "index": args.index,
         "synthetic_only": True,
-        "results": evidence,
+        "sizes_requested": sizes,
+        "batch_size": args.batch_size,
+        "batch_delay_seconds": args.batch_delay_seconds,
+        "results": [],
+        "uploaded_documents": 0,
+        "upload_batches": 0,
+        "upload_retries": 0,
     }
-    path = Path(args.output)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
-    print(json.dumps(report, indent=2, sort_keys=True))
-    return 0
+    backend: AzureSearchMemoryBackend | None = None
+    try:
+        config = AzureSearchConfig(endpoint=args.endpoint, index_name=args.index)
+        credential = DefaultAzureCredential(exclude_interactive_browser_credential=True)
+        index_client = SearchIndexClient(config.endpoint, credential)
+        _ensure_index(index_client, index_name=config.index_name, reset=args.reset_index)
+
+        search_client = SearchClient(config.endpoint, config.index_name, credential)
+        backend = AzureSearchMemoryBackend(search_client, config)
+        backend.upload_many(_targets())
+        report["uploaded_documents"] = 3
+        report["upload_batches"] = 1
+        uploaded_noise = 0
+        for requested_size in sizes:
+            target_noise = requested_size - 3
+            while uploaded_noise < target_noise:
+                stop = min(target_noise, uploaded_noise + args.batch_size)
+                backend.upload_many(_noise(uploaded_noise, stop))
+                uploaded_noise = stop
+                report["uploaded_documents"] = uploaded_noise + 3
+                report["upload_batches"] = int(report["upload_batches"]) + 1
+                if uploaded_noise % 1_000 < args.batch_size:
+                    print(
+                        f"indexed {uploaded_noise + 3:,} / {sizes[-1]:,} synthetic records "
+                        f"(retries={backend.total_upload_retries})",
+                        flush=True,
+                    )
+                if uploaded_noise < target_noise and args.batch_delay_seconds:
+                    time.sleep(args.batch_delay_seconds)
+            report["results"].append(_query(backend, corpus_size=requested_size))
+            print(f"retrieval validated at corpus size {requested_size:,}", flush=True)
+        report["status"] = "PASS"
+    except Exception as exc:
+        report["error_type"] = type(exc).__name__
+        report["error"] = str(exc)[:400]
+        print(f"qualification failed: {type(exc).__name__}: {str(exc)[:200]}", flush=True)
+    finally:
+        if backend is not None:
+            report["upload_retries"] = backend.total_upload_retries
+        report["elapsed_seconds"] = round(time.perf_counter() - started, 3)
+        path = Path(args.output)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps(report, indent=2, sort_keys=True), flush=True)
+    return 0 if report["status"] == "PASS" else 1
 
 
 if __name__ == "__main__":

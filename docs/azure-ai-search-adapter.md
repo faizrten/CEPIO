@@ -105,19 +105,54 @@ The index is a projection and can be deleted/rebuilt without changing CEPIO auth
 
 The portable App Service Bicep exposes `azureSearchEndpoint` and `azureSearchIndex` parameters. The existing demo-specific deployment workflow binds the development endpoint directly and installs the optional Azure Search runtime extra.
 
-## Scale qualification
+## Scale qualification and throttle recovery
 
-`CEPIO Azure AI Search Scale Qualification` is a manually triggered workflow. It uses synthetic data only and can run the progression:
+`CEPIO Azure AI Search Scale Qualification` is manually triggered, uses **synthetic
+data only**, and resets the designated **development-only** `cepio-memory-v1` index.
+Never run it against a customer or production index. It uses GitHub `azure-demo`
+OIDC; no Search admin keys or client secrets are required.
+
+Default progression:
 
 ```text
-50,000 -> 500,000
+5,000 -> 50,000 (hard cap in the workflow)
 ```
 
-For each corpus size it requires reusable global target evidence and same-tenant target evidence to be found, foreign-tenant target evidence to be absent, result count to remain bounded, and measured query latency to be captured.
+The workflow deliberately does **not** run 500K by default or scale up Azure
+capacity. Each indexing upload contains at most **100 documents**, separated by
+a **0.5 second** pacing delay. The adapter retries transient indexing HTTP
+429/500/502/503/504 with bounded exponential backoff (7 total attempts, 30s
+maximum delay per retry, honoring numeric Retry-After). Permanently rejected
+uploads (including 401/403) fail immediately. Partial batch results retry **only**
+the transiently rejected documents; incomplete or malformed result sets fail closed.
 
-The workflow resets the dedicated development index before the run, uploads synthetic records in batches of at most 1,000, and emits `evidence/azure-search-scale-qualification.json`.
+Each size must retrieve global and same-tenant target evidence and **zero**
+foreign-tenant target evidence; query results stay bounded to the configured
+retrieval limit. This test captures a single query latency per size; it does
+**not** establish production p95 or a throughput SLO.
 
-This is an infrastructure qualification, not a production SLO. Production SLOs should be established per deployment region, replica/partition count, index size, query mix and customer residency topology.
+The workflow emits `evidence/azure-search-scale-qualification.json` on both
+success **and failure**, with indexed-document count, batch count, retry count,
+elapsed time, per-size retrieval evidence and a bounded error diagnostic.
+No customer source values are included. Azure request throttling is an
+operational constraint, not permission to disable tenant checks or increase
+quota automatically.
+
+Manual operating sequence:
+
+1. Cancel **old waiting** qualification attempts before launching a new one;
+   they may otherwise reset the same development index after delayed approval.
+2. Dispatch the workflow from `main` with `5000` for the first live smoke.
+3. Approve `azure-demo` in GitHub's deployment review.
+4. Inspect the uploaded JSON artifact and job logs. Only advance to
+   `5000,50000` after the 5K evidence is green.
+5. If 429 persists, inspect batch progress and retry counts before deciding
+   whether to change pacing or Azure capacity. Capacity increases require
+   separate expenditure approval.
+
+This is infrastructure qualification, not a production SLO. Production
+capacity/SLO needs a defined region, replica/partition count, index size,
+query workload, and tenant/residency topology.
 
 ## Vector search
 
