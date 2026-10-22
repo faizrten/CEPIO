@@ -12,7 +12,7 @@ CEPIO currently publishes a complete working source repository even though it in
 
 1. Treat the full `faizrten/CEPIO` source repository as proprietary and change its GitHub visibility to **private** using the repository owner's administrative settings.
 2. Until that change takes effect, fail the required `governance-protection` PR check for modified or newly added implementation, domain intelligence, qualification and customer-profile paths. Deletions of already-public material may proceed as containment.
-3. After the privacy change, keep normal main-branch, CI, CodeQL, quality and operational-governance controls. The publication embargo automatically ceases to block internal PRs when the GitHub event reports the repository is private.
+3. After the privacy change, re-check branch rules and CI: GitHub Free may not enforce rulesets in private repositories, and private code scanning may require a separate entitlement. GitHub Pro (or eligible Team/Enterprise) is needed for private rulesets. Do not claim protection remains enforced until entitlement and rule activation are verified. The publication embargo itself ceases to block internal PRs when the GitHub event reports the repository is private.
 4. Publish deliberate API, SDK, MCP, schema, documentation and sanitized-example extracts via a separate public developer surface. Do not copy the full private implementation to that surface.
 5. Keep customer-specific proprietary information in customer-controlled boundaries and protected industrial intelligence in private CEPIO / CEPIO-Labs, with classification and provenance controls.
 
