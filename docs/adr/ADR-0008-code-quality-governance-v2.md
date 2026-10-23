@@ -58,3 +58,22 @@ The activation follow-up also tightens security exception matching to exact code
 context and multiplicity. Bandit's native baseline matches file/rule/message and
 could hide another SQL warning in the same file; the CEPIO wrapper rejects that
 case and retains the raw scan report. Negative controls verify this behavior.
+
+
+## 2026-10-24: patched setuptools baseline
+
+The post-merge dependency audit for main at `baf0107d144e37542b79640811170fe5f5f7e030`
+reported [GHSA-xmj3-9gf7-h52w](https://github.com/advisories/GHSA-xmj3-9gf7-h52w)
+in the quality environment's pinned `setuptools==84.0.0`. The advisory identifies
+84.1.0 as patched for the low-severity Windows legacy wheel-installation path
+escape. Quality tooling now pins 84.1.0; the isolated build-system requirement
+and container installation floor also require at least 84.1.0 so those paths
+cannot deliberately resolve an affected older version.
+
+Keep the existing full resolved-environment pip-audit check, with no advisory
+ignores or severity exclusions. Validate this dependency change through the
+existing security, packaging/container, compatibility and quality CI lanes.
+An open PR or a green PR audit does not repair main's historical failed run or
+qualify the deployed image. Retain exact source/run evidence and rerun main's
+quality gate after merge. This dependency update changes no identity, federation,
+role assignment, infrastructure, model invocation or CEPIO release/maturity claim.

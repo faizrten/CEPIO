@@ -34,7 +34,7 @@ WORKDIR /app
 RUN addgroup --system cepio && adduser --system --ingroup cepio cepio
 
 COPY --from=builder /build/dist/cepio-*.whl /tmp/
-RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=83.0.0" \
+RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" \
     && wheel="$(ls /tmp/cepio-*.whl)" \
     && if [ -n "$CEPIO_RUNTIME_EXTRAS" ]; then \
          python -m pip install --no-cache-dir "${wheel}[${CEPIO_RUNTIME_EXTRAS}]"; \
