@@ -246,3 +246,60 @@ def test_deployed_host_keeps_rest_openapi_and_mcp_out_of_rest_contract(monkeypat
         public_paths = client.get("/openapi.json").json()["paths"]
         assert "/api/v1/health" in public_paths
         assert "/mcp" not in public_paths
+
+
+def test_hosted_entra_protocol_metadata_and_spoofed_dev_headers(monkeypatch):
+    monkeypatch.setenv("CEPIO_ENVIRONMENT", "production")
+    monkeypatch.setenv("CEPIO_AUTH_MODE", "entra")
+
+    class TestValidator:
+        def __init__(self, settings):
+            pass
+
+        def validate(self, token):
+            # This is a local transport/actor test, not real Entra validation.
+            if token != "synthetic-authorized-test":
+                raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
+            return SimpleNamespace(
+                actor_id="test-reader", roles={"cepio_admin"}, tenant_id="test-tenant", claims={}
+            )
+
+    monkeypatch.setattr(hosted_mcp, "EntraTokenValidator", TestValidator)
+    from cepio.host_api import app
+
+    with TestClient(app) as client:
+        for headers in (
+            {},
+            {"X-CEPIO-Dev-Actor": "admin", "X-CEPIO-Dev-Roles": "cepio_admin"},
+            {"Authorization": "Bearer synthetic-rejected-test"},
+        ):
+            denied = client.post("/mcp", json={}, headers=headers)
+            assert denied.status_code == 401
+            assert denied.headers["www-authenticate"] == "Bearer"
+        headers = {
+            "Authorization": "Bearer synthetic-authorized-test",
+            "Accept": "application/json, text/event-stream",
+        }
+        initialized = client.post(
+            "/mcp",
+            headers=headers,
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-03-26",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test-readonly", "version": "1"},
+                },
+            },
+        )
+        assert initialized.status_code == 200
+        headers["MCP-Protocol-Version"] = initialized.json()["result"]["protocolVersion"]
+        listed = client.post(
+            "/mcp",
+            headers=headers,
+            json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
+        )
+        assert listed.status_code == 200
+        assert listed.json()["result"]["tools"]

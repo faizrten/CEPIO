@@ -16,12 +16,40 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/heads/main
+          persist-credentials: false
       - name: Sign in with existing deployment identity
         uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Inspect startup and anonymous protocol boundaries without changes
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          APP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$APP_NAME" == "cepio-demo-31d48" && -n "$RESOURCE_GROUP" ]]
+          az webapp config show --resource-group "$RESOURCE_GROUP" --name "$APP_NAME" \
+            --query '{appCommandLine:appCommandLine,linuxFxVersion:linuxFxVersion}' \
+            --output json > "$RUNNER_TEMP/cepio-host-config.json"
+          python3 scripts/check_hosted_boundary.py \
+            --startup-config "$RUNNER_TEMP/cepio-host-config.json" \
+            --base-url https://cepio-demo-31d48.azurewebsites.net
+          python3 - <<'PYTHON'
+          import json, os, re
+          from pathlib import Path
+          config = json.loads((Path(os.environ["RUNNER_TEMP"]) / "cepio-host-config.json").read_text())
+          image = config.get("linuxFxVersion", "")
+          if not re.fullmatch(r"DOCKER\|cepiodemo31d48[.]azurecr[.]io/cepio@sha256:[0-9a-f]{64}", image):
+              raise SystemExit("Unexpected image reference; inspect privately")
+          print("Configured immutable image: " + image)
+          PYTHON
+
       - name: Check authenticated API without mutations
         env:
           RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
@@ -96,12 +124,44 @@ jobs:
                   stop("API_TRANSPORT_FAILED")
               results.append((path, status))
               print(path + ": HTTP " + str(status))
+          # Protocol metadata only: no tools/call, model, Action or dataset query.
+          headers = {"Authorization": "Bearer " + token,
+                     "Content-Type": "application/json",
+                     "Accept": "application/json, text/event-stream"}
+          def mcp_request(method, params, request_id):
+              request = urllib.request.Request(
+                  "https://" + host + "/mcp",
+                  data=json.dumps({"jsonrpc": "2.0", "id": request_id,
+                                   "method": method, "params": params}).encode(),
+                  headers=headers,
+              )
+              try:
+                  with opener.open(request, timeout=30) as response:
+                      payload = json.loads(response.read(262144))
+              except (urllib.error.URLError, TimeoutError, ValueError):
+                  stop("MCP_AUTHENTICATED_PROTOCOL_NOT_QUALIFIED")
+              if not isinstance(payload, dict) or "error" in payload or "result" not in payload:
+                  stop("MCP_PROTOCOL_RESULT_MISSING")
+              return payload["result"]
+
+          initialized = mcp_request("initialize", {
+              "protocolVersion": "2025-03-26", "capabilities": {},
+              "clientInfo": {"name": "cepio-readonly-proof", "version": "1"},
+          }, 1)
+          if not isinstance(initialized, dict) or not isinstance(initialized.get("protocolVersion"), str):
+              stop("MCP_INITIALIZATION_NOT_QUALIFIED")
+          headers["MCP-Protocol-Version"] = initialized["protocolVersion"]
+          listed = mcp_request("tools/list", {}, 2)
+          if not isinstance(listed, dict) or not isinstance(listed.get("tools"), list) or not listed["tools"]:
+              stop("MCP_TOOL_CATALOG_NOT_QUALIFIED")
+          print("Authenticated MCP initialize and tools/list: PASS (no tools invoked)")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
               summary.write("## Read-only CEPIO API access\n")
               for path, status in results:
                   summary.write("- " + path + ": HTTP " + str(status) + "\n")
+              summary.write("- Authenticated MCP initialize and tools/list: PASS (no tools invoked)\n")
               summary.write("\nNo model calls, Actions, deployment changes or permission grants.\n")
               summary.write("HTTP 200 on objects proves request access, not complete dataset visibility or scenario qualification.\n")
-          if results[0][1] != 200:
+          if any(status != 200 for path, status in results):
               stop("APPLICATION_API_ACCESS_NOT_QUALIFIED")
           PY

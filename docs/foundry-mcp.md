@@ -237,7 +237,32 @@ Tests verify:
 - separate human-role execution behavior;
 - REST OpenAPI remains a separate contract and does not absorb `/mcp`.
 
-Azure deployment additionally verifies that anonymous `POST /mcp` returns HTTP 401.
+Azure deployment validates the App Service startup override before building: an
+empty override uses the image's `cepio.host_api:app` CMD, and the supported explicit
+override is `uvicorn cepio.host_api:app --host 0.0.0.0 --port 8000`. Unknown overrides
+fail for private inspection; the workflow does not overwrite them or print their
+contents. The deployed image must still match the immutable ACR digest.
+
+After restart, `scripts/check_hosted_boundary.py` waits at most 180 seconds for
+three consecutive complete rounds: healthy REST plus HTTP 401 with a Bearer
+challenge on anonymous REST object reads, Management health and `POST /mcp`.
+Redirects do not count as success. Transient startup/404 responses reset the
+stability counter; persistent failures remain blocking. Anonymous 2xx on a
+protected route fails immediately. REST health alone cannot qualify MCP.
+
+The main-only **CEPIO API Read-only Access Check** uses the existing `azure-demo`
+OIDC identity to inspect startup/image configuration and repeat those anonymous
+checks. It also requires authenticated REST and Management reads, MCP initialize
+and a nonempty tools/list result. It never invokes tools or paid inference, changes
+permissions, or deploys infrastructure. Run it after merging workflow changes;
+missing identity authority is a blocker, not a reason to broaden roles automatically.
+These checks do not prove the live worker's image digest or full authorization
+coverage; retain the configured digest, source SHA and deployment run evidence.
+
+On 2026-10-23 the deployment run's single MCP check returned 404 immediately after
+restart, while a later independent live check returned 401 on REST, Management and
+MCP without a new mainline commit. Rollout timing is a hypothesis, not a confirmed
+root cause; current authorized control-plane and protocol evidence is still needed.
 
 ## Security invariants
 
