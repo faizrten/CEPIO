@@ -183,6 +183,52 @@ def graph_role_diagnostics(claims):
         return {"graph_assignments": "read_unavailable_no_permissions_changed"}
 
 
+def wrong_audience_checks(opener, host, expected_audience):
+    """Use the existing Azure login's ARM token; request no new permissions.
+
+    This is a genuine token for a different resource, not edited JWT claims.
+    A tenant-specific rejection cannot be isolated without another test identity.
+    """
+    token = az_read(
+        "account",
+        "get-access-token",
+        "--resource",
+        "https://management.azure.com/",
+        "--query",
+        "accessToken",
+    )
+    claims = decode_diagnostic_claims(token)
+    if not isinstance(claims.get("aud"), str) or claims["aud"] == expected_audience:
+        raise RuntimeError("WRONG_AUDIENCE_CONTROL_NOT_DISTINCT")
+    results = {}
+    for name, path in [
+        ("rest", "/api/v1/objects"),
+        ("management", "/management/v1/health"),
+        ("mcp", "/mcp"),
+    ]:
+        payload = (
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-03-26",
+                    "capabilities": {},
+                    "clientInfo": {"name": "cepio-negative-proof", "version": "1"},
+                },
+            }
+            if name == "mcp"
+            else None
+        )
+        results[name], _ = request_json(opener, host, path, token, payload)
+    return {
+        "evidence_type": "existing_identity_real_ARM_resource_token",
+        "audience_distinct": True,
+        "surfaces": results,
+        "qualified": all(value["http_status"] == 401 for value in results.values()),
+    }
+
+
 def main():
     group, app = os.environ["RESOURCE_GROUP"], os.environ["APP_NAME"]
     if app != "cepio-demo-31d48" or not group:
@@ -252,14 +298,19 @@ def main():
             opener, host, "/mcp", token, payload, version
         )
     results["directory"] = graph_role_diagnostics(claims)
-    results["qualified"] = all(
-        results[name]["http_status"] == 200
-        for name in ("rest", "management", "mcp_initialize", "mcp_tools_list")
-    ) and bool(
-        isinstance(listed, dict)
-        and isinstance(listed.get("result"), dict)
-        and isinstance(listed["result"].get("tools"), list)
-        and listed["result"].get("tools")
+    results["wrong_audience"] = wrong_audience_checks(opener, host, audience)
+    results["qualified"] = (
+        all(
+            results[name]["http_status"] == 200
+            for name in ("rest", "management", "mcp_initialize", "mcp_tools_list")
+        )
+        and bool(
+            isinstance(listed, dict)
+            and isinstance(listed.get("result"), dict)
+            and isinstance(listed["result"].get("tools"), list)
+            and listed["result"].get("tools")
+        )
+        and results["wrong_audience"]["qualified"]
     )
     # Only this constructed allowlisted diagnostic object is ever written.
     report = json.dumps(results, sort_keys=True)

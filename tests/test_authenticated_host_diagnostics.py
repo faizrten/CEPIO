@@ -163,6 +163,7 @@ def test_failed_check_still_writes_redacted_summary_and_never_lists_or_calls_too
         "decode_diagnostic_claims",
         lambda token: {"aud": "private-audience", "tid": "private-tenant", "azp": "private-client"},
     )
+    monkeypatch.setattr(probe, "wrong_audience_checks", lambda *args: {"qualified": True})
     calls = []
 
     def request(opener, host, path, token, payload=None, protocol=None):
@@ -180,3 +181,53 @@ def test_failed_check_still_writes_redacted_summary_and_never_lists_or_calls_too
     assert "SECRET" not in output and "private-" not in output
     assert '"mcp_role_required"' in (tmp_path / "summary").read_text()
     assert [item["method"] for item in calls if item] == ["initialize"]
+
+
+@pytest.mark.parametrize(
+    "statuses,expected",
+    [
+        ([401, 401, 401], True),
+        ([401, 403, 401], False),
+        ([401, 200, 401], False),
+        ([0, 401, 401], False),
+    ],
+)
+def test_real_wrong_audience_matrix_requires_all_401(monkeypatch, statuses, expected):
+    commands = []
+
+    def az(*args):
+        commands.append(args)
+        return "PRIVATE_ARM_TOKEN"
+
+    monkeypatch.setattr(probe, "az_read", az)
+    monkeypatch.setattr(probe, "decode_diagnostic_claims", lambda token: {"aud": "ARM"})
+    calls = []
+    codes = iter(statuses)
+
+    def request(opener, host, path, token, payload=None, protocol=None):
+        calls.append((path, payload))
+        assert token == "PRIVATE_ARM_TOKEN"
+        return {"http_status": next(codes), "error_code": "invalid_token"}, None
+
+    monkeypatch.setattr(probe, "request_json", request)
+    result = probe.wrong_audience_checks(None, "host", "CEPIO")
+    assert result["qualified"] is expected
+    assert commands == [
+        (
+            "account",
+            "get-access-token",
+            "--resource",
+            "https://management.azure.com/",
+            "--query",
+            "accessToken",
+        )
+    ]
+    assert [payload["method"] for _, payload in calls if payload] == ["initialize"]
+    assert "PRIVATE" not in json.dumps(result)
+
+
+def test_wrong_audience_control_rejects_same_audience_before_requests(monkeypatch):
+    monkeypatch.setattr(probe, "az_read", lambda *args: "PRIVATE")
+    monkeypatch.setattr(probe, "decode_diagnostic_claims", lambda token: {"aud": "CEPIO"})
+    with pytest.raises(RuntimeError, match="NOT_DISTINCT"):
+        probe.wrong_audience_checks(None, "host", "CEPIO")
