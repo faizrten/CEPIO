@@ -261,7 +261,10 @@ def test_hosted_entra_protocol_metadata_and_spoofed_dev_headers(monkeypatch):
             if token != "synthetic-authorized-test":
                 raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
             return SimpleNamespace(
-                actor_id="test-reader", roles={"cepio_admin"}, tenant_id="test-tenant", claims={}
+                actor_id="test-reader",
+                roles={"cepio_management_reader"},
+                tenant_id="test-tenant",
+                claims={},
             )
 
     monkeypatch.setattr(hosted_mcp, "EntraTokenValidator", TestValidator)
@@ -303,3 +306,13 @@ def test_hosted_entra_protocol_metadata_and_spoofed_dev_headers(monkeypatch):
         )
         assert listed.status_code == 200
         assert listed.json()["result"]["tools"]
+
+
+def test_management_reader_metadata_role_adds_no_reference_industrial_authority():
+    runtime = build_runtime()
+    roles = {"cepio_management_reader"}
+    assert not runtime.policy_engine.can_read_type(roles, "Equipment")
+    assert not runtime.policy_engine.can_call_function(roles, "calculateAssetRisk")
+    assert not runtime.policy_engine.can_propose_decision(
+        roles, "maintenance-intervention-recommendation"
+    )

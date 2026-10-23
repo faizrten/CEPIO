@@ -113,10 +113,12 @@ def test_readonly_proof_reuses_existing_identity_and_only_lists_mcp_tools():
     assert job["environment"] == "azure-demo"
     assert job["permissions"] == {"contents": "read", "id-token": "write"}
     run = job["steps"][-1]["run"]
-    assert 'mcp_request("initialize"' in run
-    assert 'mcp_request("tools/list"' in run
-    assert 'mcp_request("tools/call"' not in run
-    assert "any(status != 200 for path, status in results)" in run
-    # Compile the embedded Python used by the actual workflow, not a test copy.
-    embedded = run.split("python3 - <<'PY'\n", 1)[1].rsplit("\nPY", 1)[0]
-    compile(embedded, "api-readonly-access.yml", "exec")
+    assert run == "python3 scripts/check_authenticated_host.py"
+    assert job["steps"][-1]["env"]["OIDC_CLIENT_ID"] == "${{ vars.AZURE_CLIENT_ID }}"
+    source = (ROOT / "scripts/check_authenticated_host.py").read_text()
+    assert '"method": "initialize"' in source
+    assert '"method": "tools/list"' in source
+    assert '"method": "tools/call"' not in source
+    assert '"GET"' in source
+    assert '"POST"' not in source
+    compile(source, "check_authenticated_host.py", "exec")

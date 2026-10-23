@@ -266,6 +266,21 @@ root cause; current authorized control-plane and protocol evidence is still need
 
 ## Security invariants
 
+The read-only OIDC check reports sanitized audience/issuer/tenant/client matching,
+effective-role counts and known role names. Its decoded token claims are diagnostic
+evidence only. On rejection it records the HTTP status plus an allowlisted CEPIO
+or standard JSON-RPC code; raw tokens, identifiers and error bodies stay private.
+Existing Graph access may inspect API app-role assignments; denied reads remain
+unavailable evidence and never cause automatic permission grants.
+
+For an intended metadata reader, `cepio_management_reader` is the narrow existing
+candidate for Management and MCP initialization/tool listing. It is not a grant
+to execute industrial tools. Confirm the exact principal, API and enabled
+Application role with the Entra/API owner before any assignment, and preserve
+deployment/data-plane identity separation where required. See
+[ADR-0041](adr/ADR-0041-oidc-readonly-role-diagnostics.md). No grants are applied by
+the diagnostic workflow.
+
 1. No MCP tool accepts caller-supplied CEPIO roles.
 2. No source adapter/repository is an MCP tool.
 3. Every object/property read passes CEPIO policy.
