@@ -158,6 +158,12 @@ The public scorecard may reference protected CEPIO-Labs evidence at a safe abstr
 
 Customer-confidential evidence may justify an internal release decision, but the public scorecard must use a sanitized evidence reference or a public qualification statement rather than exposing the underlying material.
 
+## Sovereignty and compounding measures (non-scoring)
+
+The North Star now explicitly includes globally compounding *qualified* industrial competence and independently sovereign customer intelligence. Use two supplemental reporting dimensions: **Industrial Competence Compounding** (independent-domain coverage, holdout results, cross-domain regression, reuse efficiency) and **Intelligence Sovereignty Assurance** (permitted-use provenance, tenant isolation negative tests, absence of unauthorized sharing, contribution rights reviews and derivative leakage checks).
+
+These metrics are **not additional score points**. The canonical score remains exactly 100 possible points; its stage weights and earned points change only through the evidence/reweighting workflow above. A privacy, customer-IP, cross-tenant isolation or human-authority hard-gate failure must block its affected release regardless of score. Unknown, untested and proposed mechanisms must never be reported as passing or qualified. Do not publish confidential telemetry or source materials to prove these indicators; cite authorized attestations.
+
 ## Change workflow
 
 A normal score update follows:
