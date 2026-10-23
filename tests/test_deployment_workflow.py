@@ -92,8 +92,31 @@ def test_deployment_pins_built_image_digest(workflow):
 def test_deployment_checks_health_and_anonymous_read_denial(workflow):
     steps = workflow["jobs"]["deploy"]["steps"]
     verify = steps[-1]["run"]
-    assert "/api/v1/health" in verify
-    assert 'data.get("status") == "ok"' in verify
-    assert "/api/v1/objects" in verify
-    assert '[[ "$status" != "401" ]]' in verify
+    assert 'scripts/check_hosted_boundary.py --base-url "https://$host"' in verify
     assert "GITHUB_STEP_SUMMARY" in verify
+    startup = next(
+        step for step in steps if step.get("name") == "Verify hosted startup before deployment"
+    )
+    assert "appCommandLine:appCommandLine" in startup["run"]
+    assert "--startup-config" in startup["run"]
+    build = next(i for i, step in enumerate(steps) if step.get("id") == "build")
+    assert steps.index(startup) < build
+
+
+def test_readonly_proof_reuses_existing_identity_and_only_lists_mcp_tools():
+    readonly = yaml.load(
+        (ROOT / ".github/workflows/api-readonly-access.yml").read_text(),
+        Loader=yaml.BaseLoader,
+    )
+    job = readonly["jobs"]["check"]
+    assert job["if"] == "github.ref == 'refs/heads/main'"
+    assert job["environment"] == "azure-demo"
+    assert job["permissions"] == {"contents": "read", "id-token": "write"}
+    run = job["steps"][-1]["run"]
+    assert 'mcp_request("initialize"' in run
+    assert 'mcp_request("tools/list"' in run
+    assert 'mcp_request("tools/call"' not in run
+    assert "any(status != 200 for path, status in results)" in run
+    # Compile the embedded Python used by the actual workflow, not a test copy.
+    embedded = run.split("python3 - <<'PY'\n", 1)[1].rsplit("\nPY", 1)[0]
+    compile(embedded, "api-readonly-access.yml", "exec")

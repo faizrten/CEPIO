@@ -55,6 +55,16 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Verify hosted startup before deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          az webapp config show --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --query '{appCommandLine:appCommandLine,linuxFxVersion:linuxFxVersion}' \
+            --output json > "$RUNNER_TEMP/cepio-host-config.json"
+          python3 scripts/check_hosted_boundary.py --startup-config "$RUNNER_TEMP/cepio-host-config.json"
+
       - name: Build private container image
         id: build
         shell: bash
@@ -104,28 +114,7 @@ jobs:
           set -euo pipefail
           host="$(az webapp show --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_WEBAPP_NAME" --query defaultHostName --output tsv)"
-          health="$(curl --fail --silent --show-error --retry 12 --retry-delay 10 \
-            --retry-all-errors --max-time 30 "https://$host/api/v1/health")"
-          echo "$health" | python3 -c 'import json, sys; data = json.load(sys.stdin); sys.exit(0 if data.get("status") == "ok" else 1)'
-          status="$(curl --silent --show-error --max-time 30 --output /dev/null \
-            --write-out '%{http_code}' "https://$host/api/v1/objects")"
-          if [[ "$status" != "401" ]]; then
-            echo "::error::Expected unauthenticated object reads to return 401, got $status."
-            exit 1
-          fi
-          management_status="$(curl --silent --show-error --max-time 30 --output /dev/null \
-            --write-out '%{http_code}' "https://$host/management/v1/health")"
-          if [[ "$management_status" != "401" ]]; then
-            echo "::error::Expected unauthenticated management reads to return 401, got $management_status."
-            exit 1
-          fi
-          mcp_status="$(curl --silent --show-error --max-time 30 --output /dev/null \
-            --write-out '%{http_code}' -X POST -H 'Content-Type: application/json' \
-            --data '{}' "https://$host/mcp")"
-          if [[ "$mcp_status" != "401" ]]; then
-            echo "::error::Expected unauthenticated MCP access to return 401, got $mcp_status."
-            exit 1
-          fi
+          python3 scripts/check_hosted_boundary.py --base-url "https://$host"
           {
             echo "### CEPIO demo deployment"
             echo "- Commit: $DEPLOY_SHA"

@@ -264,6 +264,20 @@ jobs:
           done
           cat /tmp/cepio-health.json 2>/dev/null || true
           test "$healthy" -eq 1
+          # Health alone can pass for a REST-only or stale host. Exercise the
+          # container CMD's MCP mount without invoking a model or any tool.
+          mcp_status=$(curl --silent --show-error --max-time 10 -o /dev/null \
+            -w '%{http_code}' -H 'Content-Type: application/json' --data '{}' \
+            http://127.0.0.1:18000/mcp)
+          test "$mcp_status" = 403  # Explicit test/dev auth requires a role.
+          curl --fail --silent --show-error --max-time 10 \
+            -H 'X-CEPIO-Dev-Actor: container-smoke' \
+            -H 'X-CEPIO-Dev-Roles: ai_agent_recommender' \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json, text/event-stream' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"container-smoke","version":"1"}}}' \
+            http://127.0.0.1:18000/mcp > /tmp/cepio-mcp-initialize.json
+          python3 -c 'import json; data=json.load(open("/tmp/cepio-mcp-initialize.json")); assert data["result"]["protocolVersion"]'
 
   test:
     name: test
