@@ -4,6 +4,8 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
+- **[Scenario Lab migration](scenario-lab-migration.md)** — drilling synthetic assets and acceptance now belong to Labs; public contributor workflow and remaining cutover scope.
+
 - **[Current State](current-state.md)** — dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
 - **[CEPIO Wiki](wiki/Home.md)** — reader-oriented product, architecture, runtime, Industry IQ and roadmap navigation.
 - **[Architecture](architecture.md)** — current portable Industrial Operating Intelligence architecture.

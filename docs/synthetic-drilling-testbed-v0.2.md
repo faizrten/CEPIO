@@ -1,5 +1,8 @@
 # Synthetic Drilling Testbed v0.2 — Multimodal Extension
 
+> Historical design. The generators, fixture files and acceptance harness now live
+> in CEPIO Labs. See [migration and contributor instructions](scenario-lab-migration.md).
+
 ## Purpose
 
 Drilling v0.2 extends the v0.1 CEPIO MVP conformance fixture from heterogeneous structured data into multimodal industrial evidence. The four v0.1 scenarios remain unchanged so failures in v0.2 can be attributed to multimodal binding rather than changed domain ground truth.
@@ -37,7 +40,12 @@ The v0.2 deterministic conformance gate preserves all twenty v0.1 golden questio
 
 The immediate runtime objective is to make REST, Python SDK and MCP answer the same 30 fixture questions from the same CEPIO semantic contract without application code needing to understand the source formats.
 
-This public conformance gate is intentionally reproducible and must not be confused with live-model qualification. Agent Challenge experimentation, unseen evaluator corpora, scoring logic and model-specific execution belong in the protected CEPIO Labs boundary. Agent Challenge v0.1 was previously disclosed and is retired as a hidden qualification benchmark; v0.2 and later must use fresh private evaluator material under ADR-0011.
+This previously disclosed conformance gate remains reproducible in Labs and must
+not be confused with live-model qualification. Agent Challenge experimentation,
+unseen evaluator corpora, scoring logic and model-specific execution belong in the
+protected CEPIO Labs boundary. Agent Challenge v0.1 was previously disclosed and
+is retired as a hidden qualification benchmark; v0.2 and later must use fresh
+private evaluator material under ADR-0011.
 
 ## Future modalities
 

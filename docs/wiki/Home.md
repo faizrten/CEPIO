@@ -8,6 +8,9 @@ The Wiki is the reader-oriented narrative/navigation layer over the executable c
 
 For the latest repository posture, start with [CEPIO Current State](../current-state.md).
 
+For the drilling synthetic testbed's move to Labs, see
+[Scenario Lab migration](../scenario-lab-migration.md).
+
 ## North Star
 
 > **Thin infrastructure. Thick Industry IQ.**
