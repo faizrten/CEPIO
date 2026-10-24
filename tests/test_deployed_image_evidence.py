@@ -73,6 +73,14 @@ def acr_record():
     }
 
 
+def test_manual_deployment_retains_exact_source_build_linkage():
+    run = {**run_record(), "event": "workflow_dispatch"}
+    assert probe.build_linkage(run, acr_record(), SOURCE, IMAGE, "123")["qualified"]
+    for change in ({"event": "push"}, {"head_sha": "c" * 40}, {"conclusion": "failure"}):
+        with pytest.raises(ValueError, match="DEPLOYMENT_LINKAGE_MISMATCH"):
+            probe.build_linkage({**run, **change}, acr_record(), SOURCE, IMAGE, "123")
+
+
 @pytest.mark.parametrize(
     "digest,source,run",
     [

@@ -145,4 +145,8 @@ def test_signing_proposal_cannot_activate_or_broaden_existing_workflows():
         workflow = yaml.safe_load((root / ".github/workflows" / file).read_text())
         assert workflow["permissions"] == {"contents": "read"}
         for job in workflow["jobs"].values():
-            assert job["permissions"] == {"contents": "read", "id-token": "write"}
+            if "uses" in job:
+                assert job["uses"] == "./.github/workflows/ci.yml"
+                assert job.get("permissions", workflow["permissions"]) == {"contents": "read"}
+            else:
+                assert job["permissions"] == {"contents": "read", "id-token": "write"}

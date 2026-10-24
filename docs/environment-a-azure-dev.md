@@ -49,12 +49,14 @@ Configure these **environment variables**:
 
 | Variable | Example | Purpose |
 |---|---|---|
-| `AZURE_DEV_ENABLED` | `false` initially, then `true` | Enables automatic `main -> DEV` deployment after bootstrap |
 | `AZURE_LOCATION` | `northeurope` | Resource-group/resource location |
 | `AZURE_RESOURCE_SUFFIX` | `fs01` | Globally unique lowercase suffix for ACR/app names |
 | `CEPIO_PROFILES` | `satorp` | Optional comma-separated profile list |
 
-Keep `AZURE_DEV_ENABLED=false` until the Azure federated identity and all DEV secrets/variables are configured. Manual `workflow_dispatch` remains available for the first controlled deployment. After a successful first deployment, set `AZURE_DEV_ENABLED=true` to activate automatic deployment for qualifying changes merged to `main`.
+DEV deployment is manual-only on `main`, after the existing reusable CI succeeds.
+Merging does not deploy, and `AZURE_DEV_ENABLED` no longer enables automatic
+deployment. Existing environment and identity permissions are unchanged.
+Production remains **HOLD**; manual dispatch requires separate rollout authorization.
 
 ## GitHub OIDC trust
 
