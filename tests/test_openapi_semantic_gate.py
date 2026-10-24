@@ -2,6 +2,10 @@
 
 import importlib.util
 from pathlib import Path
+import json
+import tempfile
+
+import pytest
 
 
 def module():
@@ -36,3 +40,18 @@ def test_custom_authorization_header_and_operation_id_cannot_silently_change():
     }
     after = {"paths": {"/items": {"get": {"operationId": "renamed", "parameters": []}}}}
     assert len(gate.security_changes(before, after)) == 2
+
+
+def test_dependency_generated_schema_drift_requires_reviewed_snapshot():
+    gate = module()
+    with tempfile.TemporaryDirectory(dir=Path.cwd()) as directory:
+        root = Path(directory)
+        path = root / gate.SNAPSHOTS["application"]
+        path.parent.mkdir()
+        schema = {"paths": {"/items": {"get": {"responses": {"200": {"description": "OK"}}}}}}
+        path.write_text(json.dumps(schema), encoding="utf-8")
+        gate.check_snapshot(root, "application", schema)
+        with pytest.raises(ValueError, match="drifted"):
+            gate.check_snapshot(root, "application", {"paths": {}})
+        with pytest.raises(ValueError, match="drifted"):
+            gate.check_snapshot(root, "management", schema)

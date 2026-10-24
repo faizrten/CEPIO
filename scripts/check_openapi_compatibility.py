@@ -15,6 +15,11 @@ import tarfile
 import tempfile
 
 METHODS = {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
+SNAPSHOTS = {
+    "application": "openapi/generated-application-v1.json",
+    "management": "openapi/generated-management-v1.json",
+    "labs": "service/openapi-labs-v1.json",
+}
 EXPORT = """
 import json, sys
 from fastapi.openapi.utils import get_openapi
@@ -78,6 +83,12 @@ def operations(schema):
         for method, operation in item.items()
         if method in METHODS
     }
+
+
+def check_snapshot(root, surface, schema):
+    path = root / SNAPSHOTS[surface]
+    if not path.is_file() or json.loads(path.read_text(encoding="utf-8")) != schema:
+        raise ValueError(f"Generated {surface} schema drifted from its reviewed full snapshot")
 
 
 def security_changes(before, after):
@@ -217,7 +228,10 @@ def self_test(binary, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", required=True)
+    parser.add_argument("--base")
+    parser.add_argument(
+        "--record", action="store_true", help="Intentionally write full snapshots for review"
+    )
     parser.add_argument(
         "--surfaces", nargs="+", choices=["application", "management", "labs"], required=True
     )
@@ -225,6 +239,16 @@ def main():
     parser.add_argument("--out", default="evidence/openapi")
     args = parser.parse_args()
     root = Path.cwd().resolve()
+    if args.record:
+        for surface in args.surfaces:
+            path = root / SNAPSHOTS[surface]
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                json.dumps(export(root, surface), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
+        return 0
+    if not args.base:
+        parser.error("--base is required for compatibility checks")
     base = run(["git", "rev-parse", "--verify", args.base + "^{commit}"], text=True).stdout.strip()
     if not re.fullmatch(r"[0-9a-f]{40}", base):
         raise ValueError("Invalid baseline commit")
@@ -232,17 +256,30 @@ def main():
     self_test(args.oasdiff, output / "controls")
     archive = run(["git", "archive", "--format=tar", base]).stdout
     results = {}
+    baseline_sources = {}
     with tempfile.TemporaryDirectory(prefix="api-contract-base-") as directory:
         source = Path(directory)
         with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
             tar.extractall(source, filter="data")
         for surface in args.surfaces:
-            results[surface] = compare(
-                args.oasdiff, export(source, surface), export(root, surface), output / surface
+            current = export(root, surface)
+            check_snapshot(root, surface, current)
+            recorded = source / SNAPSHOTS[surface]
+            previous = (
+                json.loads(recorded.read_text(encoding="utf-8"))
+                if recorded.is_file()
+                else export(source, surface)
             )
+            baseline_sources[surface] = (
+                "reviewed full snapshot"
+                if recorded.is_file()
+                else "initial source-generated bootstrap"
+            )
+            results[surface] = compare(args.oasdiff, previous, current, output / surface)
     report = {
         "base": base,
         "surfaces": results,
+        "baseline_sources": baseline_sources,
         "compatible": all(results.values()),
         "limits": "Declared HTTP contract only; runtime authorization and deployed qualification remain separate.",
     }

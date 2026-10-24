@@ -17,6 +17,12 @@ Extend the existing quality-compatibility lane with checksum-pinned oasdiff
 1.34.0, comparing complete generated application and Management contracts from
 isolated base/head processes. Base source comes from the exact Git commit, and
 both processes use in-memory test configuration without starting a service.
+Commit reviewed complete application and Management snapshots, require head
+generation to match, and compare against the immutable base snapshot thereafter.
+This detects dependency-driven schema drift that regeneration of both sources
+with today's dependency graph alone could hide. Initial introduction uses an
+explicitly labelled base-source bootstrap because no historical full snapshot
+exists; it is not a recreation of an old released dependency graph.
 Block ERR/WARN findings and any changed authentication requirement/scheme,
 Authorization header or stable operation ID. Prohibit remote schema references.
 Run positive/negative comparator controls first and retain full local reports.
@@ -30,7 +36,7 @@ an explicit versioned contract and separately reviewed transition.
 ## Consequences and validation
 
 Declared schemas gain semantic compatibility coverage without a paid comparison
-service or uploading specifications to a third party. Two deterministic unit
+service or uploading specifications to a third party. Three deterministic unit
 tests cover security/header/operation identity preservation; every CI run also
 executes comparator controls for compatible optional inputs and incompatible
 required inputs, bounds, response guarantees and authentication removal.

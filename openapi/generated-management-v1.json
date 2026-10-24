@@ -1,0 +1,553 @@
+{
+  "components": {
+    "schemas": {
+      "BindingDescriptor": {
+        "description": "Management projection of an explicitly registered Binding Contract.",
+        "properties": {
+          "authority": {
+            "title": "Authority",
+            "type": "string"
+          },
+          "binding_contract_version": {
+            "default": "0.1",
+            "title": "Binding Contract Version",
+            "type": "string"
+          },
+          "binding_id": {
+            "title": "Binding Id",
+            "type": "string"
+          },
+          "capability": {
+            "title": "Capability",
+            "type": "string"
+          },
+          "declared_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Declared Capabilities",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "read",
+              "write",
+              "read-write"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "source_system": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source System"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "degraded",
+              "not-configured"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "binding_id",
+          "provider",
+          "capability",
+          "mode",
+          "status",
+          "authority"
+        ],
+        "title": "BindingDescriptor",
+        "type": "object"
+      },
+      "CapabilityInventory": {
+        "properties": {
+          "application_contract_available": {
+            "default": true,
+            "title": "Application Contract Available",
+            "type": "boolean"
+          },
+          "binding_contract_version": {
+            "default": "0.1",
+            "title": "Binding Contract Version",
+            "type": "string"
+          },
+          "binding_count": {
+            "title": "Binding Count",
+            "type": "integer"
+          },
+          "executable_skill_count": {
+            "title": "Executable Skill Count",
+            "type": "integer"
+          },
+          "industry_iq_pack_count": {
+            "title": "Industry Iq Pack Count",
+            "type": "integer"
+          },
+          "management_contract_version": {
+            "default": "0.1.0",
+            "title": "Management Contract Version",
+            "type": "string"
+          },
+          "profile_count": {
+            "title": "Profile Count",
+            "type": "integer"
+          },
+          "skill_count": {
+            "title": "Skill Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "skill_count",
+          "executable_skill_count",
+          "industry_iq_pack_count",
+          "binding_count",
+          "profile_count"
+        ],
+        "title": "CapabilityInventory",
+        "type": "object"
+      },
+      "IndustryIQPackDescriptor": {
+        "properties": {
+          "pack_id": {
+            "title": "Pack Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pack_id",
+          "version"
+        ],
+        "title": "IndustryIQPackDescriptor",
+        "type": "object"
+      },
+      "ManagementMetadata": {
+        "properties": {
+          "contract_version": {
+            "const": "0.1.0",
+            "default": "0.1.0",
+            "title": "Contract Version",
+            "type": "string"
+          }
+        },
+        "title": "ManagementMetadata",
+        "type": "object"
+      },
+      "ProfileDescriptor": {
+        "properties": {
+          "profile_id": {
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_id",
+          "version"
+        ],
+        "title": "ProfileDescriptor",
+        "type": "object"
+      },
+      "RuntimeDescriptor": {
+        "properties": {
+          "application_auth_mode": {
+            "title": "Application Auth Mode",
+            "type": "string"
+          },
+          "cepio_version": {
+            "title": "Cepio Version",
+            "type": "string"
+          },
+          "environment": {
+            "title": "Environment",
+            "type": "string"
+          },
+          "management_access": {
+            "const": "loopback-only",
+            "default": "loopback-only",
+            "title": "Management Access",
+            "type": "string"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/ManagementMetadata"
+          },
+          "persistence_mode": {
+            "enum": [
+              "memory",
+              "sqlite",
+              "external"
+            ],
+            "title": "Persistence Mode",
+            "type": "string"
+          },
+          "strict_properties": {
+            "title": "Strict Properties",
+            "type": "boolean"
+          },
+          "validate_properties": {
+            "title": "Validate Properties",
+            "type": "boolean"
+          },
+          "validate_types": {
+            "title": "Validate Types",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "cepio_version",
+          "environment",
+          "persistence_mode",
+          "application_auth_mode",
+          "validate_types",
+          "validate_properties",
+          "strict_properties"
+        ],
+        "title": "RuntimeDescriptor",
+        "type": "object"
+      },
+      "RuntimeHealth": {
+        "properties": {
+          "local_only": {
+            "default": true,
+            "title": "Local Only",
+            "type": "boolean"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/ManagementMetadata"
+          },
+          "read_only": {
+            "default": true,
+            "title": "Read Only",
+            "type": "boolean"
+          },
+          "status": {
+            "const": "healthy",
+            "default": "healthy",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "RuntimeHealth",
+        "type": "object"
+      },
+      "SkillAuthorityDescriptor": {
+        "properties": {
+          "approval_required_for": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Approval Required For",
+            "type": "array"
+          },
+          "execute_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Execute Actions",
+            "type": "array"
+          },
+          "propose_decision": {
+            "title": "Propose Decision",
+            "type": "boolean"
+          },
+          "recommend": {
+            "title": "Recommend",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "recommend",
+          "propose_decision"
+        ],
+        "title": "SkillAuthorityDescriptor",
+        "type": "object"
+      },
+      "SkillDescriptor": {
+        "properties": {
+          "action_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Action Capabilities",
+            "type": "array"
+          },
+          "authority": {
+            "$ref": "#/components/schemas/SkillAuthorityDescriptor"
+          },
+          "binding_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Binding Id"
+          },
+          "decision_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Decision Capabilities",
+            "type": "array"
+          },
+          "executable": {
+            "title": "Executable",
+            "type": "boolean"
+          },
+          "required_industry_iq": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Required Industry Iq",
+            "type": "object"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill_id",
+          "executable",
+          "authority"
+        ],
+        "title": "SkillDescriptor",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "management",
+    "version": "v1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/management/v1/bindings": {
+      "get": {
+        "operationId": "bindings_management_v1_bindings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BindingDescriptor"
+                  },
+                  "title": "Response Bindings Management V1 Bindings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Bindings",
+        "tags": [
+          "management-configuration"
+        ]
+      }
+    },
+    "/management/v1/capabilities": {
+      "get": {
+        "operationId": "capabilities_management_v1_capabilities_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapabilityInventory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Capabilities",
+        "tags": [
+          "management-capabilities"
+        ]
+      }
+    },
+    "/management/v1/health": {
+      "get": {
+        "operationId": "health_management_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeHealth"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Health",
+        "tags": [
+          "management-system"
+        ]
+      }
+    },
+    "/management/v1/industry-iq": {
+      "get": {
+        "operationId": "industry_iq_management_v1_industry_iq_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IndustryIQPackDescriptor"
+                  },
+                  "title": "Response Industry Iq Management V1 Industry Iq Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Industry Iq",
+        "tags": [
+          "management-capabilities"
+        ]
+      }
+    },
+    "/management/v1/profiles": {
+      "get": {
+        "operationId": "profiles_management_v1_profiles_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileDescriptor"
+                  },
+                  "title": "Response Profiles Management V1 Profiles Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Profiles",
+        "tags": [
+          "management-configuration"
+        ]
+      }
+    },
+    "/management/v1/skills": {
+      "get": {
+        "operationId": "skills_management_v1_skills_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SkillDescriptor"
+                  },
+                  "title": "Response Skills Management V1 Skills Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Skills",
+        "tags": [
+          "management-capabilities"
+        ]
+      }
+    },
+    "/management/v1/status": {
+      "get": {
+        "operationId": "status_management_v1_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeDescriptor"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Status",
+        "tags": [
+          "management-system"
+        ]
+      }
+    }
+  }
+}

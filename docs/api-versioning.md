@@ -48,6 +48,16 @@ invalid output, unavailable tools or comparator failures block CI; updating an
 accepted route YAML cannot hide a change to the generated base contract. There
 is no automatic migration waiver or paid/uploaded comparison service.
 
+Reviewed complete snapshots are stored in `openapi/generated-application-v1.json`
+and `openapi/generated-management-v1.json`. The generated head must exactly match
+its snapshot; this catches changes from dependency resolution as well as source.
+Regenerate deliberately with `python scripts/check_openapi_compatibility.py
+--record --surfaces application management`, review the complete diff, and retain
+the immutable base comparison. That comparison reads the base commit's snapshot,
+so updating a head snapshot cannot conceal an incompatible change. The initial
+PR bootstraps from base source because older main has no full snapshot; reports
+label this explicitly rather than asserting historical dependency reproducibility.
+
 This checks declared HTTP contracts, not business meaning or actual runtime
 authorization. Untyped responses and undocumented error statuses remain explicit
 contract coverage gaps; signed identity, tenant/property, replay and consumer
