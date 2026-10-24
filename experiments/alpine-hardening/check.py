@@ -11,9 +11,9 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 variant = sys.argv[1]
-assert variant in {"default", "integrations"}
+assert variant in {"default", "integrations", "trixie-control"}
 arguments = sys.argv[:]
-sys.argv = ["evaluate.py", "alpine324"]
+sys.argv = ["evaluate.py", "trixie" if variant == "trixie-control" else "alpine324"]
 spec = importlib.util.spec_from_file_location(
     "base_evaluator", ROOT / "experiments/base-images/evaluate.py"
 )
@@ -25,7 +25,7 @@ evaluation.EVIDENCE.mkdir(parents=True, exist_ok=True)
 evaluation.DOCKERFILE = "experiments/alpine-hardening/Dockerfile"
 report = evaluation.REPORT
 report["variant"] = variant
-report["extras"] = "mcp,otel,fabric-sql" if variant == "integrations" else "mcp"
+report["extras"] = "mcp" if variant == "default" else "mcp,otel,fabric-sql"
 report["production_qualified"] = False
 run = evaluation.run
 probe = ROOT / "experiments/alpine-hardening/runtime_probe.py"
@@ -64,6 +64,47 @@ def require(label, command, timeout=900):
 
 
 def main():
+    if variant == "trixie-control":
+        require(
+            "control-build",
+            [
+                "docker",
+                "build",
+                "--target",
+                "optional-probe",
+                "-f",
+                "experiments/base-images/Dockerfile.trixie",
+                "-t",
+                "cepio:control",
+                ".",
+            ],
+        )
+        output = require(
+            "control-sql-probe",
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--read-only",
+                "--network",
+                "none",
+                "--cap-drop=ALL",
+                "--security-opt=no-new-privileges",
+                "--tmpfs",
+                "/tmp:rw",
+                "-v",
+                f"{probe}:/probe.py:ro",
+                "--entrypoint",
+                "python",
+                "cepio:control",
+                "/probe.py",
+                "sql",
+            ],
+            timeout=90,
+        )
+        report["sql_control"] = json.loads(output.splitlines()[-1])
+        report["isolated_checks_passed"] = True
+        return
     require(
         "runtime-build",
         [
@@ -259,8 +300,42 @@ def main():
     report["installed_tests"] = (
         ET.parse(evaluation.EVIDENCE / "installed-tests.xml").getroot().find("testsuite").attrib
     )
-    report["compatibility_and_hardening_passed"] = True
+    report["hardening_and_test_suites_passed"] = True
+    pipeline_results = {}
+    for label, arguments in {
+        "find": ["find", "/", "-xdev", "-type", "f", "-perm", "/6000", "-print"],
+        "id": ["id", "-u"],
+        "inventory": ["python", "-c", (ROOT / "scripts/minimize_runtime.py").read_text()],
+    }.items():
+        code, _ = run(
+            "existing-gate-" + label,
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--read-only",
+                "--network",
+                "none",
+                "--entrypoint",
+                arguments[0],
+                "cepio:ci",
+                *arguments[1:],
+            ],
+        )
+        pipeline_results[label] = {"exit_code": code, "compatible": code == 0}
+    report["existing_production_gate"] = pipeline_results
+    report["existing_production_gate_compatible"] = all(
+        v["compatible"] for v in pipeline_results.values()
+    )
+    report["safe_to_switch_production_now"] = False
     assert report.get("vulnerability_gate_passed"), "Final runtime vulnerability gate failed"
+    if variant == "integrations":
+        report["cepio_fabric_configuration_compatible"] = report["runtime_integrations"]["sql"][
+            "cepio_connection_configuration"
+        ]["accepted"]
+        assert report["cepio_fabric_configuration_compatible"], (
+            "CEPIO Fabric connection configuration rejected by installed driver"
+        )
     report["isolated_checks_passed"] = True
 
 

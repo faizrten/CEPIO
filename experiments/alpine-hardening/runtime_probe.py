@@ -96,12 +96,20 @@ def tls_checks():
 def sql_checks():
     import mssql_python
     from azure.identity import ManagedIdentityCredential
-    from cepio.integrations.microsoft.fabric_sql import _mssql_connect
+    from cepio.integrations.microsoft.fabric_sql import FabricSqlSettings
+    from mssql_python.connection_string_parser import _ConnectionStringParser
 
     info = mssql_python.get_native_provider_info()
     ctypes.CDLL(info["driver_path"])
     credential = ManagedIdentityCredential()
     credential.close()  # Construct only; do not request a token or contact Azure metadata.
+    # Use the driver's actual parser without attempting any cloud authentication.
+    settings = FabricSqlSettings(server="fixture.invalid", database="fixture")
+    configuration = {"accepted": True}
+    try:
+        _ConnectionStringParser(validate_keywords=True)._parse(settings.connection_string)
+    except Exception as error:
+        configuration = {"accepted": False, "error_type": type(error).__name__, "error": str(error)}
     listener = socket.socket()
     listener.bind(("127.0.0.1", 0))
     listener.listen()
@@ -125,9 +133,11 @@ def sql_checks():
     thread.start()
     failed = False
     try:
-        _mssql_connect(
+        # Probe native transport separately using the driver's supported timeout API.
+        mssql_python.connect(
             f"Server=127.0.0.1,{port};Database=fixture;UID=fixture;PWD=unused-fixture;"
-            "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=2;"
+            "Encrypt=yes;TrustServerCertificate=no;",
+            timeout=2,
         )
     except Exception as error:
         failed = True
@@ -151,6 +161,7 @@ def sql_checks():
         "closed_peer_rejected": failed,
         "failure_type": failure_type,
         "authenticated_sql_query_tested": False,
+        "cepio_connection_configuration": configuration,
     }
 
 
@@ -233,4 +244,6 @@ def online():
 
 
 if __name__ == "__main__":
-    print(json.dumps(online() if sys.argv[1] == "online" else offline(sys.argv[1]), sort_keys=True))
+    mode = sys.argv[1]
+    result = online() if mode == "online" else sql_checks() if mode == "sql" else offline(mode)
+    print(json.dumps(result, sort_keys=True))
