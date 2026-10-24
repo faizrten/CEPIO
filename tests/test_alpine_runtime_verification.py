@@ -36,7 +36,7 @@ def alpine(tmp_path):
     manifest = {
         "inventory": "/lib/apk/db/installed",
         "inventory_sha256": hashlib.sha256(b"honest inventory").hexdigest(),
-        "removed_paths": ["/bin/busybox", "/bin/mount"],
+        "removed_paths": ["/bin/busybox", "/bin/mount", "/usr/bin/[", "/usr/bin/[["],
         "busybox_sha256": hashlib.sha256(b"busybox fixture").hexdigest(),
         "replaced_shell": {"path": "/bin/sh", "target": "/usr/bin/dash"},
         "vulnerability_waiver": False,

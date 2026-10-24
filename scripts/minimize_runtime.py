@@ -121,7 +121,10 @@ def verify_alpine(root):
     for name in manifest["removed_paths"]:
         if (
             not isinstance(name, str)
-            or not re.fullmatch(r"/[A-Za-z0-9_./+-]+", name)
+            or (
+                not re.fullmatch(r"/[A-Za-z0-9_./+-]+", name)
+                and name not in {"/usr/bin/[", "/usr/bin/[["}
+            )
             or ".." in Path(name).parts
         ):
             raise ValueError("INVALID_MINIMIZATION_MANIFEST")
