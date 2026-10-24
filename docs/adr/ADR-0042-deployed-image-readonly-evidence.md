@@ -406,5 +406,52 @@ SQLite reopening, public Microsoft DNS/HTTPS, and real SQL-driver prelogin with
 a loopback fixture. These tests use no cloud credentials or model calls. The
 existing full source suite is also rerun. Live Fabric authentication/queries,
 managed identity and private networking remain unqualified by these isolated
-checks. Results will be recorded after completion; no production or maturity
-claim is made by introducing this harness.
+checks. Verified results follow; this harness makes no production or maturity
+claim.
+
+### Verified Alpine hardening outcome: production switch remains blocked
+
+The [completed hardening run](https://github.com/faizrten/CEPIO/actions/runs/40108881924)
+tested commit `5c7e2c271af27fe2fc38ea2d4f11368eabe3e104` on linux/amd64.
+Both final Alpine images (default and `mcp,otel,fabric-sql`) have **0 CRITICAL,
+0 HIGH, 0 MEDIUM, 0 LOW and 0 UNKNOWN** in the retained Trivy reports.
+Each passed 1,168 source tests with one Node-dependent skip and all 93
+installed-wheel integration/authorization tests. Host CI covers the Node test.
+CodeQL passed after making the TLS fixture's minimum version explicitly TLS 1.2.
+
+Both images removed BusyBox and 304 aliases, retained dash startup/PORT behavior,
+ran as non-root, preserved apk inventory, and passed absence checks for
+administrative commands, privilege bits and file capabilities. Native libraries,
+REST/MCP, SQLite reopen, TLS trust/hostname rejection, public Microsoft DNS/HTTPS
+and OpenTelemetry context checks passed where applicable. No telemetry exporter,
+cloud authentication or paid inference was invoked.
+
+The optional-runtime job **fails**, correctly, on the existing CEPIO Fabric
+connection configuration. `FabricSqlSettings.connection_string` supplies
+`Connection Timeout=...`, which installed `mssql-python==1.16.0` rejects with
+`Unknown keyword 'connection timeout' is not recognized`. The same rejection
+was reproduced on Trixie. With the driver's supported `timeout=` argument,
+both native drivers sent an 88-byte TDS prelogin packet to the loopback fixture
+and rejected the closed peer. This proves native initialization and protocol
+startup, not successful authentication or a SQL query. Mocked integration tests
+did not expose this existing application issue; no application fix is included.
+
+Read-only probes also establish that the unchanged production candidate checker
+cannot qualify this Alpine image: it requires removed `find`/`id` commands and
+the Debian dpkg/minimization manifest. The isolated harness does not waive or
+replace that gate. A reviewed portability update is needed before qualification.
+Live Fabric authentication/SELECT, managed identity and private endpoint
+networking remain unverified without authorized credentials and environment.
+
+**Decision: not safe to switch production now.** The security and isolated
+hardening results are favorable, but the existing gate incompatibility and
+Fabric configuration failure must be resolved and relevant live integration
+evidence obtained. Production Dockerfile, application code, manifests and
+infrastructure are unchanged; no deployment, merge or permission expansion.
+The last verified deployed findings remain 44 HIGH / 1 UNKNOWN, G6 remains
+FAIL/HOLD, and canonical v1 maturity remains 69/100. No open-PR credit is added.
+
+Retained artifacts (30 days): default `12566086108`, integrations `12565559231`,
+Trixie control `12565558851`. ZIP SHA-256 digests and every report-listed evidence
+file hash were verified locally. The local v1 production-security scorecard and
+`alpine-hardening-assessment-2026-10-24.json` record the results and blockers.
