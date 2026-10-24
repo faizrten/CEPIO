@@ -146,17 +146,76 @@ def current_image():
     ).strip()
 
 
+def scanner_command(evidence, docker_config, cache):
+    # Root-owned cache directories can make TemporaryDirectory cleanup fail on
+    # hosted runners. Keep every scanner-created file owned by the runner.
+    uid = os.getuid() if hasattr(os, "getuid") else 1000
+    gid = os.getgid() if hasattr(os, "getgid") else 1000
+    if uid == 0:
+        raise ValueError("SCANNER_RUNNER_MUST_BE_NONROOT")
+    return [
+        "docker",
+        "run",
+        "--rm",
+        "--user",
+        f"{uid}:{gid}",
+        "--read-only",
+        "--tmpfs",
+        "/tmp",
+        "-e",
+        "HOME=/tmp",
+        "-e",
+        "DOCKER_CONFIG=/docker",
+        "-v",
+        f"{docker_config.resolve()}:/docker:ro",
+        "-v",
+        f"{cache.resolve()}:/cache",
+        "-v",
+        f"{evidence.resolve()}:/evidence",
+        SCANNER,
+        "image",
+        "--cache-dir",
+        "/cache",
+        "--image-src",
+        "remote",
+        "--timeout",
+        "10m",
+        "--scanners",
+        "vuln",
+    ]
+
+
+def safe_failure(stage, error):
+    allowed = {
+        "INVALID_DIGEST",
+        "INVALID_SOURCE",
+        "INVALID_DEPLOYMENT",
+        "INVALID_ACR_RUN",
+        "UNEXPECTED_AZURE_TARGET",
+        "DEPLOYED_IMAGE_CHANGED_OR_MISMATCHED",
+        "COMMAND_FAILED",
+        "COMMAND_UNAVAILABLE_OR_TIMEOUT",
+        "SCANNER_RUNNER_MUST_BE_NONROOT",
+    }
+    code = str(error) if isinstance(error, ValueError) and str(error) in allowed else "CHECK_FAILED"
+    return {"stage": stage, "type": type(error).__name__, "code": code}
+
+
 def main():
     evidence = Path("evidence/deployed-image")
     evidence.mkdir(parents=True, exist_ok=True)
     report = {"qualified": False, "checks": {}, "errors": [], "scanner_image": SCANNER}
+    stage, initial_target_confirmed, image = "inputs", False, None
     try:
         digest = os.environ["EXPECTED_DIGEST"]
         source, deployment = os.environ["SOURCE_SHA"], os.environ["DEPLOYMENT_RUN_ID"]
         image = target(digest, source, deployment)
         report.update(image=image, deployed_source_sha=source, deployment_run_id=int(deployment))
+        stage = "target-before"
         if current_image() != "DOCKER|" + image:
             raise ValueError("DEPLOYED_IMAGE_CHANGED_OR_MISMATCHED")
+        initial_target_confirmed = True
+        stage = "build-linkage"
         acr_run_id = os.environ["ACR_RUN_ID"]
         if not re.fullmatch(r"[a-z0-9]{1,64}", acr_run_id):
             raise ValueError("INVALID_ACR_RUN")
@@ -194,6 +253,7 @@ def main():
             docker_config.mkdir(mode=0o700)
             cache = Path(temporary) / "cache"
             cache.mkdir()
+            stage = "registry-login"
             credential = json.loads(
                 command(
                     [
@@ -223,28 +283,7 @@ def main():
                 stdin=credential["accessToken"],
             )
             del credential
-            scan = [
-                "docker",
-                "run",
-                "--rm",
-                "--read-only",
-                "--tmpfs",
-                "/tmp",
-                "-v",
-                f"{docker_config.resolve()}:/root/.docker:ro",
-                "-v",
-                f"{cache.resolve()}:/root/.cache/trivy",
-                "-v",
-                f"{evidence.resolve()}:/evidence",
-                SCANNER,
-                "image",
-                "--image-src",
-                "remote",
-                "--timeout",
-                "10m",
-                "--scanners",
-                "vuln",
-            ]
+            scan = scanner_command(evidence, docker_config, cache)
             for name, options, summarize in [
                 (
                     "scan",
@@ -269,6 +308,7 @@ def main():
                     ),
                 ),
             ]:
+                stage = name
                 try:
                     command(scan + options + [image], timeout=660)
                     report["checks"][name] = summarize()
@@ -278,6 +318,7 @@ def main():
                         "error": "SCAN_OR_SBOM_UNAVAILABLE_OR_INVALID",
                     }
             # gh uses the temporary registry login, not a new permission grant.
+            stage = "signed-provenance"
             old_config = os.environ.get("DOCKER_CONFIG")
             os.environ["DOCKER_CONFIG"] = str(docker_config)
             try:
@@ -319,14 +360,22 @@ def main():
                     os.environ.pop("DOCKER_CONFIG", None)
                 else:
                     os.environ["DOCKER_CONFIG"] = old_config
-        if current_image() != "DOCKER|" + image:
-            raise ValueError("DEPLOYED_IMAGE_CHANGED_DURING_CHECK")
-        report["qualified"] = all(
-            report["checks"].get(name, {}).get("qualified") is True
-            for name in ("build_linkage", "scan", "sbom", "signed_provenance")
-        )
-    except (ValueError, OSError, KeyError, TypeError, AttributeError, StopIteration):
-        report["errors"].append("ARTIFACT_CHECK_INCOMPLETE_OR_TARGET_MISMATCH")
+            stage = "temporary-cleanup"
+    except (ValueError, OSError, KeyError, TypeError, AttributeError, StopIteration) as error:
+        report["errors"].append(safe_failure(stage, error))
+    finally:
+        # A cleanup failure must not suppress the independent final target read.
+        if initial_target_confirmed:
+            try:
+                same = current_image() == "DOCKER|" + image
+                report["checks"]["target_consistency"] = {"qualified": same}
+            except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
+                report["checks"]["target_consistency"] = {"qualified": False}
+                report["errors"].append(safe_failure("target-after", error))
+    report["qualified"] = not report["errors"] and all(
+        report["checks"].get(name, {}).get("qualified") is True
+        for name in ("build_linkage", "scan", "sbom", "signed_provenance", "target_consistency")
+    )
     report["files_sha256"] = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
         for path in evidence.glob("*.json")

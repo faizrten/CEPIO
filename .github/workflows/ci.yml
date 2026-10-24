@@ -244,6 +244,14 @@ jobs:
           persist-credentials: false
       - name: Build Developer Preview container
         run: docker build -t cepio:ci .
+      - name: Inspect candidate tooling removal and retain full scan/SBOM
+        run: python3 scripts/check_candidate_image.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-candidate-image-${{ github.run_id }}
+          path: evidence/candidate-image/
+          if-no-files-found: error
       - name: Smoke test container outside Python checkout
         shell: bash
         run: |
