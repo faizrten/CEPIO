@@ -390,3 +390,21 @@ production-security G6 remains FAIL/HOLD, and canonical v1 maturity stays 69/100
 Artifacts (30-day workflow retention): Alpine `12563211244`, Bookworm
 `12563027893`, Trixie `12562418607`, Ubuntu `12561949971`. Each includes full
 scanner JSON, SBOM, grouped OS triage, JUnit results, build/smoke logs and hashes.
+
+### Alpine follow-up: removal of BusyBox and final optional-runtime scans
+
+`experiments/alpine-hardening/` adds isolated default and optional-extra final
+images. A supported dash shell preserves the existing startup command while the
+BusyBox executable and its aliases are removed after installation. The preserved
+apk inventory continues to describe installed package provenance for scanning;
+it is never edited to erase findings. Runtime probes require the administrative
+commands, BusyBox copies, privilege bits and file capabilities to be absent.
+
+The follow-up scans both final runtime variants, exercises installed-wheel
+authorization/Management/MCP/Fabric contracts, TLS trust rejection, persistent
+SQLite reopening, public Microsoft DNS/HTTPS, and real SQL-driver prelogin with
+a loopback fixture. These tests use no cloud credentials or model calls. The
+existing full source suite is also rerun. Live Fabric authentication/queries,
+managed identity and private networking remain unqualified by these isolated
+checks. Results will be recorded after completion; no production or maturity
+claim is made by introducing this harness.
