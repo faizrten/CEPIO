@@ -1,7 +1,15 @@
 # Alpine hardening and integration qualification
 
+The current migration workflow runs `nonfabric` against the root Dockerfile.
+Fabric is not provisioned; live qualification is deferred. Prior default,
+optional-extra and Trixie-control results remain historical evidence. The
+non-Fabric run adds persistence across separate containers on a named volume and
+requires the optional SQL driver to be absent. See
+`docs/operations/alpine-migration-rollback.md` for scope and rollback instructions.
+
 Candidate-only follow-up to the supported-base comparison in ADR-0042. Production
-Dockerfile, release state, deployment workflows and permissions are unchanged.
+Release state, deployment workflows and permissions are unchanged; the root
+Dockerfile now proposes the Alpine migration for review.
 The authorized follow-up fixes Fabric's driver timeout argument and makes the
 candidate checker portable to Alpine. The branch-only workflow uses contents:read
 and no cloud identity.

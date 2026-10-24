@@ -2,7 +2,7 @@ name: CEPIO Alpine Hardening Checks
 on:
   push:
     branches: [security/base-image-evaluation]
-    paths: ['experiments/alpine-hardening/**', 'scripts/**', 'src/cepio/integrations/microsoft/fabric_sql.py', 'tests/**', '.github/workflows/alpine-hardening.yml']
+    paths: ['Dockerfile', 'requirements/**', 'experiments/alpine-hardening/**', 'scripts/**', 'src/cepio/integrations/microsoft/fabric_sql.py', 'tests/**', '.github/workflows/alpine-hardening.yml']
 permissions:
   contents: read
 jobs:
@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [default, integrations, trixie-control]
+        variant: [nonfabric]
     steps:
       - uses: actions/checkout@v4
         with:

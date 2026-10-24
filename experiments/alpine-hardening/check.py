@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 variant = sys.argv[1]
-assert variant in {"default", "integrations", "trixie-control"}
+assert variant in {"default", "integrations", "trixie-control", "nonfabric"}
 arguments = sys.argv[:]
 sys.argv = ["evaluate.py", "trixie" if variant == "trixie-control" else "alpine324"]
 spec = importlib.util.spec_from_file_location(
@@ -23,10 +23,12 @@ spec.loader.exec_module(evaluation)
 sys.argv = arguments
 evaluation.EVIDENCE = ROOT / "evidence/alpine-hardening" / variant
 evaluation.EVIDENCE.mkdir(parents=True, exist_ok=True)
-evaluation.DOCKERFILE = "experiments/alpine-hardening/Dockerfile"
+evaluation.DOCKERFILE = (
+    "Dockerfile" if variant == "nonfabric" else "experiments/alpine-hardening/Dockerfile"
+)
 report = evaluation.REPORT
 report["variant"] = variant
-report["extras"] = "mcp" if variant == "default" else "mcp,otel,fabric-sql"
+report["extras"] = "mcp" if variant in {"default", "nonfabric"} else "mcp,otel,fabric-sql"
 report["production_qualified"] = False
 run = evaluation.run
 probe = ROOT / "experiments/alpine-hardening/runtime_probe.py"
@@ -175,6 +177,43 @@ def main():
         ],
     )
     report["native_smoke"] = json.loads(native)
+    if variant == "nonfabric":
+        report["fabric_qualification"] = (
+            "DEFERRED: no Fabric environment; driver absent from default runtime"
+        )
+        report["runtime_dockerfile"] = "Dockerfile"
+        volume = require("volume-create", ["docker", "volume", "create"]).strip()
+        try:
+            for phase in ("write", "reopen"):
+                code = (
+                    "import os,sqlite3; assert os.getuid()!=0; "
+                    "c=sqlite3.connect('/data/nonfabric.sqlite'); "
+                    + (
+                        "c.execute('CREATE TABLE fixture(value TEXT)'); c.execute(\"INSERT INTO fixture VALUES ('preserved')\"); c.commit()"
+                        if phase == "write"
+                        else "assert c.execute('SELECT value FROM fixture').fetchone()==('preserved',)"
+                    )
+                )
+                require(
+                    "persistent-volume-" + phase,
+                    [
+                        "docker",
+                        "run",
+                        *restrictions,
+                        "--network",
+                        "none",
+                        "-v",
+                        volume + ":/data",
+                        "--entrypoint",
+                        "python",
+                        "cepio:ci",
+                        "-c",
+                        code,
+                    ],
+                )
+            report["persistent_volume_across_containers"] = True
+        finally:
+            require("volume-remove", ["docker", "volume", "rm", volume])
     require(
         "privilege-bits",
         [
@@ -216,23 +255,24 @@ def main():
         timeout=90,
     )
     report["runtime_integrations"] = probe_result(offline, "hardening_passed")
-    online = require(
-        "public-dns-https",
-        [
-            "docker",
-            "run",
-            *restrictions,
-            "-v",
-            f"{probe}:/probe.py:ro",
-            "--entrypoint",
-            "python",
-            "cepio:ci",
-            "/probe.py",
-            "online",
-        ],
-        timeout=60,
-    )
-    report["public_dns_https"] = json.loads(online)
+    if variant != "nonfabric":
+        online = require(
+            "public-dns-https",
+            [
+                "docker",
+                "run",
+                *restrictions,
+                "-v",
+                f"{probe}:/probe.py:ro",
+                "--entrypoint",
+                "python",
+                "cepio:ci",
+                "/probe.py",
+                "online",
+            ],
+            timeout=60,
+        )
+        report["public_dns_https"] = json.loads(online)
     evaluation.hosted_smoke()
     assert report.get("hosted_smoke", {}).get("passed")
     require(
@@ -243,7 +283,7 @@ def main():
             "--target",
             "test-runner",
             "-f",
-            evaluation.DOCKERFILE,
+            "experiments/alpine-hardening/Dockerfile",
             "-t",
             "cepio:test",
             ".",

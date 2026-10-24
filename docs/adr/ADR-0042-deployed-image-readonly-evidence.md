@@ -508,3 +508,21 @@ exact final artifact security/provenance qualification, and rollout/rollback
 approval. The production Dockerfile still selects the existing base. No merge,
 deployment, infrastructure change, cloud permission expansion or inference was
 performed. Production remains G6 FAIL/HOLD and canonical maturity remains 69/100.
+
+### Proposed default-runtime migration without Fabric
+
+The user has confirmed Fabric is not provisioned. Live Fabric testing is deferred
+and is not a blocker for qualification of the default runtime without Fabric.
+The root Dockerfile now proposes the tested digest-pinned Alpine runtime and
+reviewed version constraints, with the build hardener promoted to
+`scripts/harden_alpine.py`. The branch workflow validates the actual root
+Dockerfile in `nonfabric` mode; optional SQL transport is absent. Existing pure
+unit tests may still cover its code, but no Fabric connection is attempted.
+Named-volume persistence across separate containers supplements the prior
+SQLite reopen check. Signed-token authorization and REST/Management/MCP tests run
+against the installed wheel. Results will be recorded after this exact-image run.
+
+The [migration and rollback instructions](../operations/alpine-migration-rollback.md)
+cover previous immutable image retention, identity/provenance, data and ownership
+checks, rollback triggers, configuration preservation and post-rollback checks.
+They require a separately authorized rollout and do not execute a deployment.
