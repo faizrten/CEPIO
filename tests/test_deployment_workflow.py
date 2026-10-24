@@ -105,10 +105,9 @@ def test_deployment_pins_built_image_digest(workflow):
     steps = workflow["jobs"]["deploy"]["steps"]
     build = next(step for step in steps if step.get("id") == "build")["run"]
     deploy = next(step for step in steps if step.get("name") == "Deploy immutable image")
-    assert "${DEPLOY_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" in build
-    assert "--no-logs" in build
-    assert "sha256:[0-9a-f]{64}" in build
-    assert "image=${server}/cepio@${digest}" in build
+    assert build == "python3 scripts/build_demo_image.py"
+    # The helper's functional tests reject wrong source/run/attempt tags and
+    # registry digests and withhold outputs on signing/verification failure.
     assert deploy["env"]["IMAGE"] == "${{ steps.build.outputs.image }}"
     assert '--container-image-name "$IMAGE"' in deploy["run"]
     assert '[[ "$configured" != "DOCKER|$IMAGE" ]]' in deploy["run"]

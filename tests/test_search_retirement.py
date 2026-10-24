@@ -26,8 +26,10 @@ def test_runtime_package_excludes_retired_search_sdk():
 
 def test_deployment_clears_stale_search_app_settings():
     workflow = (ROOT / ".github/workflows/deploy-azure.yml").read_text(encoding="utf-8")
+    builder = (ROOT / "scripts/build_demo_image.py").read_text(encoding="utf-8")
     bicep = (ROOT / "deploy/appservice/main.bicep").read_text(encoding="utf-8")
-    assert "CEPIO_RUNTIME_EXTRAS=mcp" in workflow
+    assert "scripts/build_demo_image.py" in workflow
+    assert "CEPIO_RUNTIME_EXTRAS=mcp" in builder
     assert "az webapp config appsettings delete" in workflow
     assert "--setting-names CEPIO_AZURE_SEARCH_ENDPOINT CEPIO_AZURE_SEARCH_INDEX" in workflow
     assert "az webapp config appsettings set" not in workflow

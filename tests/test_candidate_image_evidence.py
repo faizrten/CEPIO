@@ -5,6 +5,7 @@ import sys
 import pytest
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
+sys.path.insert(0, str(SCRIPTS))
 SPEC = importlib.util.spec_from_file_location(
     "check_deployed_image", SCRIPTS / "check_deployed_image.py"
 )

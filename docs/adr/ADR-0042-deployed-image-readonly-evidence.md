@@ -225,3 +225,83 @@ maturity remain unchanged.
 
 References: [Docker multi-stage builds](https://docs.docker.com/build/building/multi-stage/),
 [official attestation action inputs](https://github.com/actions/attest/blob/v4/action.yml).
+
+## Existing-OIDC implementation: registry-backed exact-image provenance
+
+This implementation supersedes the inactive GitHub attestation-API design above.
+Both existing jobs keep exactly `contents: read` and `id-token: write`. There is
+no `attestations: write`, `actions: read`, new Entra identity/role, registry policy
+change, key vault or persistent signing key. Cross-run artifact downloads require
+Actions-read permission, so verification reads the signed attestation from the
+existing CEPIO image repository instead. Signing adds OCI attestation metadata
+beside the exact newly built digest using the existing ACR login. It does not
+change the image layers/digest or App Service configuration. If the identity
+cannot publish there, fail before deployment; never grant a role automatically.
+
+`install_cosign.py` pins official Cosign v3.1.4 by SHA256 and installs only into
+runner temporary storage. The demo build now runs `build_demo_image.py` after
+the existing current-main guard. The helper verifies GitHub run/source/attempt
+and hosted-runner metadata; rejects tracked, untracked or ignored working-tree
+changes; captures a clean `git archive` SHA256, Dockerfile and `.dockerignore`
+hashes before ACR submission; uses the same local context, Dockerfile and MCP
+extra; and rereads the authenticated successful ACR run/tag/digest mapping.
+The archive hash describes the clean committed source snapshot, not the Azure
+CLI's separately compressed/excluded upload bytes. The context policy and
+`.dockerignore` hash are explicit. This does not claim complete transitive/base
+image dependency resolution or reproducible builds.
+
+The helper constructs a custom SLSA v1 predicate for **GitHub orchestration of
+ACR**: exact source/ref, source snapshot/Dockerfile/ignore hashes, build type,
+runtime extra, ACR run/tag/output digest and GitHub invocation. Cosign obtains
+its short-lived certificate through the existing GitHub OIDC permission and
+publishes the attestation into the same repository. Public Sigstore services
+retain certificate/transparency metadata and signed predicate contents; only
+public source identifiers, hashes and sanitized build identifiers are included,
+never customer data, tokens, complete cloud records or source archives.
+
+Before any App Service mutation, a separate `cosign verify-attestation` reads
+the registry and requires exact issuer, workflow certificate identity, source
+SHA, source ref, repository, workflow_dispatch trigger, transparency verification and
+default image-claim verification. Authenticated GitHub job metadata must show
+one GitHub-hosted `deploy` job, with ubuntu-latest and no self-hosted label. Only
+successful verifier stdout is decoded; its in-toto statement must exactly match
+the expected subject, custom predicate type/build type, materials, builder and
+ACR/GitHub invocation. Valid signatures over another image/source/build do not
+qualify. No insecure/ignore flag or wildcard identity is allowed. Signing or
+verification failure withholds deployment outputs. Public predicate, bundle and
+verified statement are retained as workflow artifacts for 90 days; registry
+attestation is the independent read-only verification source, not those files.
+
+The read-only image workflow installs the same pinned verifier, uses its existing
+temporary registry login, and runs the same signature and semantic checks.
+GitHub subject API discovery remains diagnostic only: a 404 cannot invalidate a
+valid registry attestation and cannot qualify a missing one. Missing, expired,
+inaccessible or mismatched registry provenance remains a blocking failure. The
+checker never signs, pushes or retrofits a statement for a historic deployment.
+An image predating this build-time path remains unqualified until a fresh source
+is merged, built and deployed through the guarded workflow.
+
+Validation includes source/image/material/runner/invocation mismatch controls,
+withheld-output and credential-restoration checks, unchanged permission checks,
+and native pinned-Cosign positive/tampered-file/wrong-identity/wrong-issuer tests
+using the official public Cosign release bundle. PR CI uses no CEPIO signing or
+cloud identity. Native fixture success is not a live CEPIO signing proof: the
+first main build must still establish existing registry push permission, GitHub
+certificate claims and read-only exact-image verification. A signed vulnerable
+image remains production HOLD; every scan/SBOM/authorization gate is independent.
+
+References: [Cosign attest](https://github.com/sigstore/cosign/blob/v3.1.4/doc/cosign_attest.md),
+[verification constraints](https://github.com/sigstore/cosign/blob/v3.1.4/doc/cosign_verify-attestation.md),
+[GitHub artifact download permission](https://docs.github.com/en/rest/actions/artifacts#download-an-artifact).
+
+### Compatibility with separately authorized manual deployment
+
+After ADR-0043, the active builder and certificate verifier require only
+`workflow_dispatch` on current main. The deployment run must contain exactly the
+seven successful reusable CI validation jobs and one GitHub-hosted deploy job;
+missing, failed, extra or truncated job records fail closed before image outputs.
+The inactive historical proposal retains its former trigger by default. This
+changes no identity permissions or deployment authorization boundary.
+The builder process disables Python bytecode writes so its own helper imports
+cannot contaminate the clean source context; unexpected existing ignored files
+still fail the clean-worktree gate.

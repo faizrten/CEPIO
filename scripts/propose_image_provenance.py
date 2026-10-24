@@ -9,7 +9,9 @@ WORKFLOW = "https://github.com/" + REPO + "/.github/workflows/deploy-azure.yml"
 BUILD_TYPE = WORKFLOW + "/acr-orchestration/v1"
 
 
-def proposal(run, acr, source, digest, context_sha256, dockerfile_sha256):
+def proposal(
+    run, acr, source, digest, context_sha256, dockerfile_sha256, *, expected_event="workflow_run"
+):
     """Inputs must be collected by the future build job, never supplied by a caller."""
     if not re.fullmatch(r"[0-9a-f]{40}", source) or not re.fullmatch(
         r"sha256:[0-9a-f]{64}", digest
@@ -28,7 +30,8 @@ def proposal(run, acr, source, digest, context_sha256, dockerfile_sha256):
     if not (
         run.get("head_sha") == source
         and run.get("head_branch") == "main"
-        and run.get("event") == "workflow_run"
+        and expected_event in {"workflow_run", "workflow_dispatch"}
+        and run.get("event") == expected_event
         and run.get("path") == ".github/workflows/deploy-azure.yml"
         and run.get("repository", {}).get("full_name") == REPO
         and (

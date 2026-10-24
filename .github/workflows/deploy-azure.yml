@@ -72,24 +72,22 @@ jobs:
             --output json > "$RUNNER_TEMP/cepio-host-config.json"
           python3 scripts/check_hosted_boundary.py --startup-config "$RUNNER_TEMP/cepio-host-config.json"
 
-      - name: Build private container image
+      - name: Install checksum-pinned provenance verifier
+        run: python3 scripts/install_cosign.py
+
+      - name: Build, sign and verify exact private image
         id: build
-        shell: bash
-        run: |
-          set -euo pipefail
-          tag="cepio:${DEPLOY_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          az acr build --registry "$AZURE_CONTAINER_REGISTRY" \
-            --image "$tag" --file Dockerfile \
-            --build-arg CEPIO_RUNTIME_EXTRAS=mcp --no-logs .
-          digest="$(az acr repository show --name "$AZURE_CONTAINER_REGISTRY" \
-            --image "$tag" --query digest --output tsv)"
-          if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
-            echo "::error::Registry did not return a valid image digest."
-            exit 1
-          fi
-          server="$(az acr show --name "$AZURE_CONTAINER_REGISTRY" --query loginServer --output tsv)"
-          echo "image=${server}/cepio@${digest}" >> "$GITHUB_OUTPUT"
-          echo "server=$server" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 scripts/build_demo_image.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cepio-image-provenance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/cepio-provenance/
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Deploy immutable image
         shell: bash
