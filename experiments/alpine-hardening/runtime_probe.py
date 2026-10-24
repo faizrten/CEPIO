@@ -116,6 +116,8 @@ def sql_checks():
                 connection.settimeout(5)
                 packet = connection.recv(4096)
                 packets.append({"type": packet[0] if packet else None, "bytes": len(packet)})
+        except TimeoutError:
+            packets.append({"fixture_timeout": True})
         finally:
             listener.close()
 
@@ -130,8 +132,19 @@ def sql_checks():
     except Exception as error:
         failed = True
         failure_type = type(error).__name__
+        print(
+            json.dumps(
+                {
+                    "sql_probe_error_type": failure_type,
+                    "sql_probe_error": str(error),
+                    "provider": info,
+                }
+            ),
+            file=sys.stderr,
+            flush=True,
+        )
     thread.join(timeout=10)
-    assert failed and not thread.is_alive() and packets and packets[0]["type"] == 0x12
+    assert failed and not thread.is_alive() and packets and packets[0].get("type") == 0x12
     return {
         "provider": info,
         "tds_prelogin": packets,

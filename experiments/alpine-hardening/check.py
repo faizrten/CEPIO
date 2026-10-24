@@ -81,6 +81,8 @@ def main():
             ".",
         ],
     )
+    # Retain full final-image security evidence even if a later integration fails.
+    evaluation.scan_runtime()
     restrictions = ["--rm", "--read-only", "--cap-drop=ALL", "--security-opt=no-new-privileges"]
     native = require(
         "native-smoke",
@@ -138,7 +140,7 @@ def main():
         ],
         timeout=90,
     )
-    report["runtime_integrations"] = json.loads(offline)
+    report["runtime_integrations"] = json.loads(offline.splitlines()[-1])
     online = require(
         "public-dns-https",
         [
@@ -158,8 +160,6 @@ def main():
     report["public_dns_https"] = json.loads(online)
     evaluation.hosted_smoke()
     assert report.get("hosted_smoke", {}).get("passed")
-    # Scan the exact final hardened image, including selected runtime extras.
-    evaluation.scan_runtime()
     require(
         "tests-build",
         [
