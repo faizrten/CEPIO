@@ -456,7 +456,7 @@ Trixie control `12565558851`. ZIP SHA-256 digests and every report-listed eviden
 file hash were verified locally. The local v1 production-security scorecard and
 `alpine-hardening-assessment-2026-10-24.json` record the results and blockers.
 
-### Follow-up fixes under validation
+### Verified timeout and candidate-checker fixes
 
 The authorized follow-up removes the unsupported connection-string timeout keyword
 and passes the configured 1–300 second timeout through `mssql_python.connect(timeout=)`.
@@ -476,3 +476,35 @@ The isolated matrix executes the actual candidate checker against both final
 Alpine variants, plus the corrected SQL connector against Alpine and Trixie.
 Live authentication/query and private-network qualification still require separate
 evidence; these changes authorize no deployment or permission expansion.
+
+The [completed follow-up run](https://github.com/faizrten/CEPIO/actions/runs/40110762560)
+at `c1052ca88814c1f296a4673d3cba06950b83221f` closes the two implementation blockers
+above. Both final Alpine variants pass the actual candidate checker, including
+its independent archive-bound scan, inventory verification, non-root checks,
+privilege-bit and file-capability rejection. Both scans agree on zero findings at
+every severity and on the exact image identity. Both variants pass 1,183 source
+tests (one Node-dependent skip covered by host CI) and 96 installed-wheel tests.
+The Linux regression fixtures pass, including tampered inventory, restored
+administrative commands, renamed BusyBox binaries, malformed manifests and
+privilege regressions. Legitimate package records named `busybox` remain retained;
+binary-copy detection compares content, and known command paths must be absent.
+The Debian container CI also passes with the updated checker.
+
+The real driver parser accepts CEPIO's corrected configuration on Alpine and
+Trixie. The CEPIO connector using the supported timeout API sends an 88-byte TDS
+prelogin packet on both and rejects the incomplete fixture connection. These are
+isolated transport tests, not live authenticated Fabric query evidence.
+
+Artifacts: default `12566845756`, integrations `12567030564`, Trixie control
+`12566970375`. ZIP digests, report evidence hashes, nested candidate-checker hashes
+and image/config identity agreement were independently verified locally. The local
+security scorecard and `alpine-fixes-assessment-2026-10-24.json` record these verified
+fixes without overwriting historical failed results.
+
+**Remaining switch conditions:** live Fabric authentication and read-only query
+qualification with the intended existing identity; private-network/DNS/TLS and
+managed-identity evidence where used; reviewed production Dockerfile migration,
+exact final artifact security/provenance qualification, and rollout/rollback
+approval. The production Dockerfile still selects the existing base. No merge,
+deployment, infrastructure change, cloud permission expansion or inference was
+performed. Production remains G6 FAIL/HOLD and canonical maturity remains 69/100.
