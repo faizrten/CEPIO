@@ -29,6 +29,10 @@ def statement(run, acr, source, digest, materials):
     definition["resolvedDependencies"].append(
         {"uri": ".dockerignore", "digest": {"sha256": materials[MATERIALS[2]]}}
     )
+    # SLSA ResourceDescriptor.content is base64 bytes, not a plain run ID.
+    result["predicate"]["runDetails"]["byproducts"] = [
+        {"name": "acr-build", "uri": "azure-acr://cepiodemo31d48/runs/" + acr["runId"]}
+    ]
     return result
 
 
@@ -59,6 +63,8 @@ def verify_command(image, source):
         "--type",
         "slsaprovenance1",
         "--check-claims=true",
+        "--output",
+        "json",
         "--certificate-identity",
         WORKFLOW + "@refs/heads/main",
         "--certificate-oidc-issuer",

@@ -74,6 +74,9 @@ def test_verified_statement_matches_exact_image_source_and_invocation(schema):
         item["predicate"]["buildDefinition"]["resolvedDependencies"][1]["uri"]
         == "clean-git-source.tar"
     )
+    assert item["predicate"]["runDetails"]["byproducts"] == [
+        {"name": "acr-build", "uri": "azure-acr://cepiodemo31d48/runs/cbb"}
+    ]
 
 
 @pytest.mark.parametrize(
