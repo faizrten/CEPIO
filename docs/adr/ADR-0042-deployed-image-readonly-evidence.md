@@ -520,7 +520,22 @@ Dockerfile in `nonfabric` mode; optional SQL transport is absent. Existing pure
 unit tests may still cover its code, but no Fabric connection is attempted.
 Named-volume persistence across separate containers supplements the prior
 SQLite reopen check. Signed-token authorization and REST/Management/MCP tests run
-against the installed wheel. Results will be recorded after this exact-image run.
+against the installed wheel.
+
+Verified root-Dockerfile run:
+[40113997169](https://github.com/faizrten/CEPIO/actions/runs/40113997169), source
+`3afa74ef37ac2a91795d74061f534261d42de5fa`, artifact `12567233053`.
+Both archive-bound scans report zero findings at every severity and agree on image
+identity. The runtime passes 1,183 source tests with one Node-dependent skip
+covered by host CI, all 96 installed-wheel tests, native/TLS and REST/MCP checks,
+and actual candidate-checker hardening/inventory checks. Named-volume SQLite data
+written by one non-root container is reopened by a separate container. The SQL
+driver is absent. No live Fabric test or public Microsoft metadata request ran.
+Artifact ZIP, evidence-file and nested checker hashes were verified locally;
+the scorecard records this in `nonfabric-migration-assessment-2026-10-24.json`.
+This validates the proposed default image for review; deployment-specific identity,
+startup/probe and volume ownership checks, exact release provenance and an
+authorized rollout remain required. Production remains HOLD until then.
 
 The [migration and rollback instructions](../operations/alpine-migration-rollback.md)
 cover previous immutable image retention, identity/provenance, data and ownership

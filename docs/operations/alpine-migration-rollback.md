@@ -6,6 +6,14 @@ and its live qualification is deferred. It is not a prerequisite for this defaul
 runtime; enabling Fabric later requires separate identity, networking and query
 qualification. Optional extras are not qualified by the non-Fabric run.
 
+Verified candidate: source `3afa74ef37ac2a91795d74061f534261d42de5fa`,
+[qualification run 40113997169](https://github.com/faizrten/CEPIO/actions/runs/40113997169).
+Zero detected vulnerabilities at every severity; 1,183 source tests passed (one
+Node-dependent skip covered by host CI), 96 installed-wheel tests passed, named
+volume persistence across containers passed, and the actual candidate checker
+passed. Artifact `12567233053` and its evidence hashes were verified. This is
+isolated candidate evidence; the rollout prerequisites below still apply.
+
 ## Proposed change and evidence
 
 The root Dockerfile uses digest-pinned Python 3.11.17 / Alpine 3.24, reviewed
