@@ -390,4 +390,3 @@ production-security G6 remains FAIL/HOLD, and canonical v1 maturity stays 69/100
 Artifacts (30-day workflow retention): Alpine `12563211244`, Bookworm
 `12563027893`, Trixie `12562418607`, Ubuntu `12561949971`. Each includes full
 scanner JSON, SBOM, grouped OS triage, JUnit results, build/smoke logs and hashes.
-
