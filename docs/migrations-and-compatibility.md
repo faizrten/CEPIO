@@ -81,3 +81,11 @@ PYTHONPATH=src python scripts/check_ontology_compat.py \
 
 A non-zero exit blocks the PR when there is an undeclared breaking change,
 semantic-version violation, duplicate declaration, or stale declaration.
+
+## Database migration safety
+
+The reference runtime accepts `memory://` and `sqlite:///...`. Setting a PostgreSQL
+URL does not select a PostgreSQL repository adapter. Unsupported database settings
+fail closed without including the supplied URL in the error, since it can contain
+credentials. Keep the existing persistence configuration until repository parity,
+tenant isolation, backup restoration and rollback have been independently qualified.

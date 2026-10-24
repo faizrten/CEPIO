@@ -61,7 +61,8 @@ class RuntimeSettings:
                 raise RuntimeError(f"CEPIO SQLite parent directory does not exist: {parent}")
             return path
         raise RuntimeError(
-            f"Unsupported CEPIO_DB_URL '{self.db_url}'. The reference runtime supports memory:// and sqlite:///..."
+            "Unsupported CEPIO_DB_URL. The reference runtime supports memory:// and sqlite:///...; "
+            "PostgreSQL requires a separately qualified repository adapter"
         )
 
 
