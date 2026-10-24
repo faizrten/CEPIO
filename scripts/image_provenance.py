@@ -19,10 +19,15 @@ def statement(run, acr, source, digest, materials):
         for k in MATERIALS
     ):
         raise ValueError("INVALID_PROVENANCE_MATERIALS")
-    result = proposal(run, acr, source, digest, materials[MATERIALS[0]], materials[MATERIALS[1]],
-                      expected_event="workflow_dispatch")[
-        "statement"
-    ]
+    result = proposal(
+        run,
+        acr,
+        source,
+        digest,
+        materials[MATERIALS[0]],
+        materials[MATERIALS[1]],
+        expected_event="workflow_dispatch",
+    )["statement"]
     definition = result["predicate"]["buildDefinition"]
     definition["buildType"] = BUILD_TYPE
     definition["externalParameters"]["contextPolicy"] = "clean-git-worktree-with-dockerignore"
@@ -39,13 +44,21 @@ def statement(run, acr, source, digest, materials):
 
 def hosted_runner(run_id, execute):
     jobs = json.loads(
-        execute(["gh", "api", f"repos/{REPO}/actions/runs/{run_id}/jobs?filter=latest&per_page=100"])
+        execute(
+            ["gh", "api", f"repos/{REPO}/actions/runs/{run_id}/jobs?filter=latest&per_page=100"]
+        )
     )
     matches = [j for j in jobs.get("jobs", []) if j.get("name") == "deploy"]
     validation = {
-        "validate / " + name for name in (
-            "ci-unit", "ci-contracts", "ci-drilling", "ci-refinery",
-            "ci-package", "ci-container", "test",
+        "validate / " + name
+        for name in (
+            "ci-unit",
+            "ci-contracts",
+            "ci-drilling",
+            "ci-refinery",
+            "ci-package",
+            "ci-container",
+            "test",
         )
     }
     entries = jobs.get("jobs", [])
@@ -56,7 +69,8 @@ def hosted_runner(run_id, execute):
         or {j.get("name") for j in entries} != validation | {"deploy"}
         or any(
             j.get("status") != "completed" or j.get("conclusion") != "success"
-            for j in entries if j.get("name") in validation
+            for j in entries
+            if j.get("name") in validation
         )
     ):
         raise ValueError("UNEXPECTED_PROVENANCE_RUNNER")

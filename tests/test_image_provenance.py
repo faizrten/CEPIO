@@ -60,10 +60,18 @@ def jobs():
         "total_count": 8,
         "jobs": [
             {"name": "deploy", "runner_group_name": "GitHub Actions", "labels": ["ubuntu-latest"]}
-        ] + [
+        ]
+        + [
             {"name": "validate / " + name, "status": "completed", "conclusion": "success"}
-            for name in ("ci-unit", "ci-contracts", "ci-drilling", "ci-refinery",
-                         "ci-package", "ci-container", "test")
+            for name in (
+                "ci-unit",
+                "ci-contracts",
+                "ci-drilling",
+                "ci-refinery",
+                "ci-package",
+                "ci-container",
+                "test",
+            )
         ],
     }
 
@@ -143,7 +151,9 @@ def test_verifier_keeps_exact_identity_claims_and_no_insecure_overrides():
         proof.verify_command("repo:latest", SOURCE)
 
 
-@pytest.mark.parametrize("bad", ["self-hosted", "group", "missing", "multiple", "validation", "automatic"])
+@pytest.mark.parametrize(
+    "bad", ["self-hosted", "group", "missing", "multiple", "validation", "automatic"]
+)
 def test_untrusted_runners_are_rejected(bad):
     data = jobs()
     if bad == "self-hosted":
