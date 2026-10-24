@@ -1,0 +1,62 @@
+name: CEPIO Deployed Image Read-only Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_digest:
+        description: Exact currently configured sha256 image digest
+        required: true
+        type: string
+      source_sha:
+        description: Source commit built by the successful deployment run
+        required: true
+        type: string
+      deployment_run_id:
+        description: Existing successful deploy-azure workflow run ID
+        required: true
+        type: string
+      acr_run_id:
+        description: Existing ACR quick-build run ID from that deployment
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: azure-demo
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/heads/main
+          persist-credentials: false
+      - name: Sign in with existing federated deployment identity
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Scan exact deployed image and verify existing provenance
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          APP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+          EXPECTED_DIGEST: ${{ inputs.expected_digest }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          DEPLOYMENT_RUN_ID: ${{ inputs.deployment_run_id }}
+          ACR_RUN_ID: ${{ inputs.acr_run_id }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/check_deployed_image.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-deployed-image-evidence-${{ github.run_id }}
+          path: evidence/deployed-image/
+          if-no-files-found: error
+          retention-days: 30

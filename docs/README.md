@@ -14,6 +14,8 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 - **[CEPIO v0.4 FOUNDATION Developer Preview](developer-preview.md)** — qualified published-release installation/support boundary.
 - **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality, security, compatibility and release evidence controls.
 
+- [Deployed image read-only evidence](adr/ADR-0042-deployed-image-readonly-evidence.md) � exact digest scans, SBOM and provenance verification boundaries.
+
 ## North Star
 
 > **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
