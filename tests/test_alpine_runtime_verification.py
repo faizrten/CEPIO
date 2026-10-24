@@ -49,6 +49,10 @@ def alpine(tmp_path):
 
 def test_alpine_preserves_inventory_and_required_checks(alpine):
     root, _, _ = alpine
+    # Alpine retains a package-owned command-list record with this basename.
+    record = root / "etc/busybox-paths.d/busybox"
+    record.parent.mkdir(parents=True)
+    record.write_text("/bin/ash\n/bin/sh\n")
     result = minimizer.verify(root)
     assert result["os_inventory_unchanged"] and result["busybox_absent"]
     assert not result["vulnerability_waiver"]

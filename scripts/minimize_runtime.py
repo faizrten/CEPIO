@@ -133,7 +133,11 @@ def verify_alpine(root):
             raise ValueError("RUNTIME_PATH_ESCAPES_ROOT")
         if path.exists() or path.is_symlink():
             raise ValueError("UNMINIMIZED_RUNTIME")
-    if any(p.exists() or p.is_symlink() for p in candidates(root)):
+    busybox_commands = [
+        root / directory / "busybox"
+        for directory in ("bin", "sbin", "usr/bin", "usr/sbin", "usr/local/bin")
+    ]
+    if any(p.exists() or p.is_symlink() for p in [*candidates(root), *busybox_commands]):
         raise ValueError("UNMINIMIZED_RUNTIME")
     shell = manifest.get("replaced_shell", {})
     if shell.get("path") != "/bin/sh" or shell.get("target") not in {"/bin/dash", "/usr/bin/dash"}:
@@ -158,8 +162,6 @@ def verify_alpine(root):
                         == manifest["busybox_sha256"]
                     ):
                         raise ValueError("BUSYBOX_RUNTIME_COPY_PRESENT")
-            if name == "busybox" and (path.exists() or path.is_symlink()):
-                raise ValueError("BUSYBOX_RUNTIME_COPY_PRESENT")
     return {
         "unused_entrypoints_absent": True,
         "removed_path_count": len(manifest["removed_paths"]),

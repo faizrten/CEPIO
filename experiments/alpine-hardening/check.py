@@ -140,6 +140,24 @@ def main():
     )
     # Retain full final-image security evidence even if a later integration fails.
     evaluation.scan_runtime()
+    require(
+        "runtime-minimization-verifier",
+        [
+            "docker",
+            "run",
+            "--rm",
+            "--read-only",
+            "--network",
+            "none",
+            "--user",
+            "0",
+            "--entrypoint",
+            "python",
+            "cepio:ci",
+            "-c",
+            (ROOT / "scripts/minimize_runtime.py").read_text(),
+        ],
+    )
     restrictions = ["--rm", "--read-only", "--cap-drop=ALL", "--security-opt=no-new-privileges"]
     native = require(
         "native-smoke",
