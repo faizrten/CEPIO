@@ -11,7 +11,9 @@ This page is the narrative current-state snapshot for CEPIO. The pinned SHA iden
 
 ## North Star
 
-> **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
+**Product direction added 2026-10-22, after this capability snapshot:** Industry IQ aims to be **the indispensable expert companion for every industrial professional**. This adds a professional experience and trust/adoption goal; it does **not** upgrade the 2026-10-20 product release, evidence snapshot, live proof or canonical scorecard. See [Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md).
+
+**Technology North Star:** CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.
 
 The product objective is to make reusable industrial operating competence available to humans, applications and AI agents without rebuilding systems of record, data platforms, generic agent runtimes or frontier-model infrastructure.
 

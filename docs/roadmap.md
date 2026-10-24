@@ -4,7 +4,11 @@ See [Version naming and delivery status](version-naming.md) for version scopes, 
 
 ## North Star
 
-> **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
+**Product North Star:** The indispensable expert companion for every industrial professional.
+
+**Technology North Star:** CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.
+
+The [Industry IQ Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md) defines proposed moat-building services, professional adoption measurements and the drilling reliability Companion wedge. These are strategic overlays—not new release labels, maturity credits or replacements for the gates below.
 
 The governing product rule is:
 
