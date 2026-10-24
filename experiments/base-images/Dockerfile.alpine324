@@ -24,7 +24,7 @@ COPY experiments/base-images/runtime-constraints.txt /tmp/constraints.txt
 RUN python -m pip install --no-cache-dir --upgrade pip "setuptools==84.2.1" && wheel="$(ls /tmp/cepio-*.whl)" && python -m pip install --no-cache-dir --only-binary=:all: -c /tmp/constraints.txt "${wheel}[mcp]" && python -m pip check && python -m pip freeze --all > /tmp/runtime-freeze.txt
 
 FROM installed AS optional-probe
-RUN apk add --no-cache libtool krb5-libs krb5-dev
+RUN apk add --no-cache libtool krb5-libs krb5-dev libstdc++
 RUN wheel="$(ls /tmp/cepio-*.whl)" && python -m pip install --no-cache-dir --only-binary=:all: -c /tmp/constraints.txt "${wheel}[mcp,otel,fabric-sql]" && python -m pip check && python -c "import mssql_python, azure.identity, opentelemetry.trace"
 RUN python -c "import ctypes, json, mssql_python; info=mssql_python.get_native_provider_info(); ctypes.CDLL(info['driver_path']); print(json.dumps(info))"
 
@@ -37,3 +37,4 @@ RUN python /tmp/minimize.py && rm /tmp/minimize.py /tmp/minimize_runtime.py
 USER cepio
 EXPOSE 8000
 CMD ["sh", "-c", "uvicorn cepio.host_api:app --host 0.0.0.0 --port ${PORT:-8000}"]
+

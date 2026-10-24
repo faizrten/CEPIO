@@ -178,8 +178,7 @@ def main():
                 "--user", f"{os.getuid()}:{os.getgid()}", "-e", "HOME=/tmp",
                 "--security-opt=no-new-privileges", "--tmpfs", "/tmp:exec",
                 "-v", f"{ROOT}:/work:ro", "-v", f"{EVIDENCE}:/evidence", "cepio:test",
-                "python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--basetemp=/tmp/pytest",
-                "--junitxml=/evidence/tests.xml"], timeout=900)
+                "python", "-c", "import os, shutil; shutil.copytree('/work', '/tmp/source'); os.chdir('/tmp/source'); os.execvp('python', ['python', '-m', 'pytest', '-q', '-p', 'no:cacheprovider', '--basetemp=/tmp/pytest', '--junitxml=/evidence/tests.xml'])"], timeout=900)
             xml = EVIDENCE / "tests.xml"
             if xml.exists():
                 REPORT["tests"] = ET.parse(xml).getroot().find("testsuite").attrib
@@ -192,8 +191,10 @@ def main():
         REPORT["default_runtime_compatible"] = bool(REPORT.get("native_smoke", {}).get("passed")
             and REPORT.get("hosted_smoke", {}).get("passed") and REPORT.get("privilege_bits_absent")
             and REPORT["steps"].get("source-suite", {}).get("exit_code") == 0)
-        REPORT["eligible_for_proposal"] = bool(REPORT["default_runtime_compatible"]
+        REPORT["automated_candidate_checks_passed"] = bool(REPORT["default_runtime_compatible"]
             and REPORT.get("vulnerability_gate_passed") and REPORT.get("optional_extras_install_and_import"))
+        REPORT["eligible_for_proposal"] = False
+        REPORT["advisory_review_required"] = "Original CVEs require vendor-fix or component-absence evidence; zero scanner blockers alone cannot authorize a migration proposal."
         REPORT["limits"] = "linux/amd64 CI experiment only. Source suite uses candidate OS/Python plus test dependencies; native/host checks use the final installed wheel. Optional extras are install/import probes, not live Fabric/SQL connectivity. No deployment, signing, cloud access, model calls, or production qualification. Different vendor severity databases are not reachability proof. BusyBox applets may remain reachable via busybox even when standalone links are removed."
         REPORT["files_sha256"] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
             for p in EVIDENCE.iterdir() if p.is_file() and p.name != "report.json"}
@@ -203,3 +204,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
