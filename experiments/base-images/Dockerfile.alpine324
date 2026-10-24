@@ -24,11 +24,13 @@ COPY experiments/base-images/runtime-constraints.txt /tmp/constraints.txt
 RUN python -m pip install --no-cache-dir --upgrade pip "setuptools==84.2.1" && wheel="$(ls /tmp/cepio-*.whl)" && python -m pip install --no-cache-dir --only-binary=:all: -c /tmp/constraints.txt "${wheel}[mcp]" && python -m pip check && python -m pip freeze --all > /tmp/runtime-freeze.txt
 
 FROM installed AS optional-probe
+RUN apk add --no-cache libtool krb5-libs krb5-dev
 RUN wheel="$(ls /tmp/cepio-*.whl)" && python -m pip install --no-cache-dir --only-binary=:all: -c /tmp/constraints.txt "${wheel}[mcp,otel,fabric-sql]" && python -m pip check && python -c "import mssql_python, azure.identity, opentelemetry.trace"
+RUN python -c "import ctypes, json, mssql_python; info=mssql_python.get_native_provider_info(); ctypes.CDLL(info['driver_path']); print(json.dumps(info))"
 
 FROM installed AS runtime
 RUN python -m pip uninstall --yes pip && python -c "import pathlib, shutil, sysconfig; p=pathlib.Path(sysconfig.get_path('stdlib'))/'ensurepip'; shutil.rmtree(p, ignore_errors=True)" && python -c "import importlib.util; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None" && rm -f /tmp/cepio-*.whl /tmp/constraints.txt
-RUN find / -xdev -type f -exec chmod a-s {} + && mkdir -p /app /data && chown -R cepio:cepio /app /data
+RUN find / -xdev -type f \( -perm -4000 -o -perm -2000 \) -exec chmod a-s {} + && mkdir -p /app /data && chown -R cepio:cepio /app /data
 COPY scripts/minimize_runtime.py /tmp/minimize_runtime.py
 COPY experiments/base-images/minimize.py /tmp/minimize.py
 RUN python /tmp/minimize.py && rm /tmp/minimize.py /tmp/minimize_runtime.py
