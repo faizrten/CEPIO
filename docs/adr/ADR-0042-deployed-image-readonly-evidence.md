@@ -352,8 +352,42 @@ The scan report SHA256 is
 `aba11eedad61600dcb711f36857e04db823f5914824b5584cb14e9275ace6c60`.
 Exact-image provenance, SBOM, build linkage and target consistency passed.
 
-Candidate and fresh deployed read-only results are pending. No finding is closed
-by the Dockerfile edit itself. On 2026-10-24 the Debian tracker still lists the
+Verified before/after results (all report hashes checked against their manifests):
+
+| Evidence | CRITICAL | HIGH | UNKNOWN | Result |
+| --- | ---: | ---: | ---: | --- |
+| Deployed baseline, attempt 1 above | 0 | 44 | 1 | G6 FAIL |
+| [PR candidate scan](https://github.com/faizrten/CEPIO/actions/runs/40097873402/artifacts/12560679590) | 0 | 44 | 1 | Runtime regressions PASS; vulnerability policy FAIL |
+| [Fresh deployed scan, attempt 2](https://github.com/faizrten/CEPIO/actions/runs/40086679368/attempts/2) | 0 | 44 | 1 | G6 FAIL; checker errors empty |
+
+The candidate ran at PR head `b407d83dbe8972d9b2c22c342a9bdb8feff4eb16`
+using GitHub's test-merge source `11d00d416eb20938f78412d1faa0c20a22c0c348`.
+Its image ID is `sha256:f519457703e1a5d373a3ee9cedb535d3f4c9f593b1fad18d500f6b5d91781091`;
+the exported archive config digest is
+`sha256:fce463916911e5450b4333cf9300a039f4f3170d1c2d6005b2741654954aa266`.
+The candidate scan SHA256 is
+`3541f6f9612a196058282d21c55f6a12bbd46e4ec63455442e7545e3cd3aaef9`.
+APT upgraded only `tzdata`, from `2026c-0+deb13u1` to `2026e-0+deb13u1`,
+with zero additions/removals; comparison of the before/after SBOMs confirms this
+is the only changed component version. The nine advisory groups and their
+45 package/version entries are identical (`os-triage.json` SHA256
+`f4958c3d9485299ab6bb323da2bc14640ccf83f88ddee6bb3838022331e9c15e`).
+Both scans also retain 58 MEDIUM and 61 LOW entries, zero Python blockers,
+143 SBOM components and setuptools 84.2.1. Candidate nonroot execution, zero
+setuid/setgid regular files, all 19 removed entry points, native-library checks,
+REST health and MCP smoke passed. No vulnerability was remediated by this refresh.
+
+The [fresh deployed artifact](https://github.com/faizrten/CEPIO/actions/runs/40086679368/artifacts/12561189867)
+has scan SHA256 `534d6ab90017e4b55ca1983576ec7eeb0c6bb79095a4b969ce60a64bf6c55f86`.
+It confirms the original deployed digest above with signed provenance, SBOM,
+build linkage and target consistency PASS. Its workflow failure is the expected
+vulnerability-gate failure, not a checker error. The candidate was not deployed.
+[Read-only access rerun, attempt 2](https://github.com/faizrten/CEPIO/actions/runs/40086677620/attempts/2)
+passed: health 200, anonymous protected surfaces 401, authenticated reader
+REST/Management/MCP 200, and genuine wrong-audience token 401 across all three
+surfaces. Same-API wrong-role and foreign-tenant live proof gaps remain open.
+
+On 2026-10-24 the Debian tracker still lists the
 stable Trixie versions in all nine advisory links above as vulnerable; no stable
 fixed version is available. The eight HIGH advisories account for 44 package
 entries; CVE-2026-82560 accounts for the one UNKNOWN. Keep each entry OPEN even
