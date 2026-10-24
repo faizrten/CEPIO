@@ -159,6 +159,24 @@ This remains distinct from:
 
 Customer/profile evidence cannot silently justify global Core/Common promotion.
 
+## Compounding industrial intelligence with enterprise sovereignty
+
+> **Collective industrial progress. Sovereign enterprise intelligence.**
+
+CEPIO's industrial expertise should compound across independently qualified domains while each enterprise retains control of proprietary operational data and derived intelligence. This extends [ADR-006: Enterprise Knowledge Sovereignty](adr/ADR-006-enterprise-knowledge-sovereignty.md) and [ADR-007: Open Interface, Protected Intelligence](adr/ADR-007-open-interface-protected-intelligence.md), without adding a new industrial source of truth.
+
+The design separates three boundaries:
+
+1. **Reusable CEPIO competence:** source-neutral capability/Skill contracts, independently authorized or authored industrial knowledge, qualified synthetic evaluations, and signed human-reviewed releases. The Capability Registry records bounded competence claims, not customer-private facts.
+2. **Customer-controlled operational intelligence:** asset state, investigations, source documents, customer-specific memory, embeddings, decision history, private model adaptations, procedures, thresholds and outcomes remain within that enterprise's authorization/deployment boundary.
+3. **Optional permissioned contributions:** no automatic transfer from customer to global. Any proposed contribution requires explicit usage rights, purpose-scoped authority, provenance/lineage, IP/confidentiality/leakage review, independent qualification and documented human approval; denial is the default.
+
+Protected CEPIO Labs owns synthetic generation, private qualification corpora and withheld evaluator truth. The customer runtime owns its authorized operational context. Industry IQ Studio and Teams/Copilot/other hosts consume the same CEPIO contracts rather than becoming additional truth stores. Synthetic artifacts are neither verified field evidence nor automatically safe for cross-customer use.
+
+**Persistence:** PostgreSQL can hold durable registry, provenance, authorization and evaluation metadata using approved separate trust domains; it does not make customer data globally shareable and does not replace source systems, existing bindings or generic cloud primitives. Isolation must include prompts, embeddings, logs, caches, agents, backups and exports—not just SQL table filters.
+
+**Promotion is asymmetric:** Global CEPIO releases may be deployed into customer environments after their normal gates; customer data, outcomes and derived intelligence cannot travel back into shared CEPIO knowledge without a separate reviewed authorization. Missing permission or failed cross-tenant tests block reuse and promotion. See [Capability Registry and Compounding Intelligence](capability-registry-and-compounding-intelligence.md) for evidence and regression boundaries.
+
 ## Memory and context
 
 CEPIO separates durable knowledge from ephemeral model/agent context.

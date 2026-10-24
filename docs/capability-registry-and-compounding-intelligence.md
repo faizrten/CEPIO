@@ -56,6 +56,18 @@ A customer profile may validate that a capability works in another deployment, a
 
 This is evidence-driven generalization, not self-training on customer data.
 
+## Intelligence Sovereignty Contract — boundary for global compounding
+
+The adopted product principle is **collective industrial progress with sovereign enterprise intelligence**. The registry records reusable, qualified *capability*, not aggregated ownership of customer operational memory. Existing PROFILE/customer isolation remains mandatory.
+
+Each globally considered capability evidence reference should carry, or resolve to, a reviewed provenance/rights declaration: original source and owner, tenant scope, source class, permitted uses (including whether shared evaluation or global learning is allowed), derivation lineage, version/hash, reviewer identity and expiry/retention. A missing or expired global-learning permission is a rejection—not a reason to infer permission from use at runtime.
+
+There are three provenance domains: (a) CEPIO-owned or lawfully licensed/reusable industrial knowledge, (b) customer-controlled operational intelligence, and (c) separately permissioned contributions after IP, confidentiality and leakage review. Customer-specific learned behavior, model adaptations, embeddings, prompts, telemetry and synthetic derivatives are not promoted globally by default. Independently authored or authorized Labs synthetic scenarios can improve general qualification **without** relying on customer records. Re-identification and trade-secret exposure risks remain even when data is called synthetic or anonymized.
+
+For a future production-qualified implementation, require fail-closed tests for cross-tenant retrieval, unauthorized training/evaluation reuse, mixed-tenant indices/caches, evaluator answer leakage, log/export disclosure, approval forgery and unauthorized action. The current v0.1 registry has narrower source/path rejection and human review controls; these new requirements are **target qualification criteria**, not claims of tests already passing.
+
+Capability promotion remains independent of scenario generation, deployment, customer-specific inference and release. No increase in maturity or score is earned for documenting this policy alone.
+
 ## Promotion policy
 
 `policies/capability-promotion-v0.1.yaml` requires:
