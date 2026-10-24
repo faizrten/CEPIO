@@ -48,18 +48,39 @@ The Teams Workflow webhook URL is runtime configuration and MUST NOT be committe
 - compact evidence statements;
 - optional HTTPS deep link to Industry IQ Studio.
 
-CEPIO projects the event into Adaptive Card v1.5 and wraps it in a `TeamsWorkflowEnvelope`:
+CEPIO projects the event into Adaptive Card v1.5 and keeps an **internal**
+`TeamsWorkflowEnvelope` containing `schema_version`, `event`, and
+`adaptive_card`. That envelope is a CEPIO governed Action payload, **not**
+the HTTP body accepted by the Teams Workflow webhook.
+
+The adapter sends Microsoft's documented *Teams webhook trigger* schema:
 
 ```json
 {
-  "schema_version": "0.1",
-  "event": { "...": "typed CEPIO attention event" },
-  "adaptive_card": { "...": "Adaptive Card v1.5" },
-  "cepio": { "...": "execution/idempotency metadata added by the adapter" }
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "type": "AdaptiveCard",
+        "version": "1.5",
+        "body": [{ "type": "TextBlock", "text": "CEPIO Industry IQ" }]
+      }
+    }
+  ]
 }
 ```
 
-The Power Automate / Teams Workflow should take `adaptive_card` from the webhook body and pass it to the Teams action that posts an Adaptive Card to the intended chat/channel/user.
+The adapter carries CEPIO idempotency in the outbound `X-CEPIO-Idempotency-Key`
+header and retains execution/action metadata in CEPIO governed runtime records;
+it does not send internal actor, destination, or policy metadata as unsupported
+top-level webhook fields. Teams is never an authoritative action ledger.
+
+The Power Automate flow should use the webhook body's first attachment
+`content` (the Adaptive Card), **not** a hypothetical top-level
+`adaptive_card` property. For the single-card CEPIO v0.1 payload, the
+expression is `first(triggerBody()?['attachments'])?['content']`.
 
 ## Governed adapter
 
@@ -95,18 +116,26 @@ A future callback/Teams-agent binding can promote delivery/response to a verifia
 
 ## Quick proof
 
-1. In Microsoft Teams Workflows, create a workflow using **When a Teams webhook request is received**.
-2. Add the Teams action that posts the received Adaptive Card to a test destination.
-3. Map the card input to the webhook body's `adaptive_card` property.
-4. Copy the generated workflow URL.
-5. In a local shell, set the URL as a process-only secret:
+1. In Teams Workflows (or Power Automate), create a new workflow with the
+   **When a Teams webhook request is received** trigger. For the local,
+   synthetic-data-only proof, select the appropriate unauthenticated webhook
+   option so the script can POST without a delegated Entra token; treat the
+   generated webhook URL as a bearer secret. Never use an unrestricted public
+   endpoint for real operational or customer-sensitive data.
+2. Add Microsoft Teams **Post card in a chat or channel**, choosing a
+   test channel/chat you control. In its Adaptive Card field use the Power Automate
+   expression `first(triggerBody()?['attachments'])?['content']`.
+   CEPIO v0.1 deliberately sends one card per request.
+3. Save the workflow, then copy its generated HTTPS webhook URL. Ensure the
+   Teams Workflows app/connector is allowed in the tenant.
+4. In a local shell, set the URL as a process-only secret:
 
 ```powershell
 $env:CEPIO_TEAMS_WORKFLOW_URL = '<workflow webhook URL>'
 python scripts/send_teams_attention_demo.py
 ```
 
-The demo sends a synthetic Rig 07 NPT attention event. It does not invoke SAP, PI, Fabric, or any customer system.
+Confirm both a successful workflow run and the rendered card in Teams; an HTTP 200/202 alone only acknowledges transport. The demo sends a synthetic Rig 07 NPT attention event. It does not invoke SAP, PI, Fabric, or any customer system.
 
 After testing:
 
