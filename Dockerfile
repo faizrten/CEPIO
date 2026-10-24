@@ -41,6 +41,10 @@ RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" \
        else \
          python -m pip install --no-cache-dir "$wheel"; \
        fi \
+    && python -m pip check \
+    && python -m pip uninstall --yes pip \
+    && rm -rf /usr/local/lib/python3.11/ensurepip \
+    && python -c "import importlib.util; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None" \
     && rm -f /tmp/cepio-*.whl
 
 RUN mkdir -p /app /data && chown -R cepio:cepio /app /data

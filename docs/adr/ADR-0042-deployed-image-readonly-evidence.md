@@ -64,3 +64,48 @@ readiness from this bounded check.
 
 References: [Trivy image scanning](https://trivy.dev/docs/latest/target/container_image/),
 [GitHub provenance verification](https://cli.github.com/manual/gh_attestation_verify).
+
+
+## 2026-10-24 follow-up: runner ownership, final read and runtime tooling
+
+The first live check completed scan/SBOM/provenance attempts, then reported a
+postcollection error. The old scanner ran as container root against a runner-owned
+temporary cache; root-owned cache directories are a cleanup failure mode not
+covered by mocks. Run the scanner with the runner UID/GID, `/docker` credentials,
+`/cache` storage and `/tmp` HOME. Keep the root filesystem read-only and never
+mount the Docker socket. Safe stage/type/code diagnostics now identify failures;
+the final configured-image read runs independently even after cleanup failure.
+A cleanup error still fails qualification. The original generic error alone
+does not prove which operation failed; a successful patched live run remains
+necessary to close that incident.
+
+Verified pip 26.2.2 wheel SHA256
+`fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70`
+contains `pip/_vendor/bom.cdx.json` (SHA256
+`7be976001ba70fe6b38530af13063bea96e1bd894c271c4e57908c737079ef93`)
+listing setuptools 70.3.0, msgpack 1.1.2 and urllib3 2.7.0. The wheel actually
+ships vendored msgpack/urllib3 code; the older setuptools entry must not be
+represented as the installed top-level setuptools when the image also records
+84.2.1 METADATA. Keep all old-image scan findings pending exact applicability
+review; add no ignore, VEX waiver or scanner exclusion.
+
+The final runtime needs no pip invocation. Install and validate dependencies at
+image build time, then uninstall pip and remove ensurepip (including bundled
+installer wheels). Keep patched top-level setuptools. Optional runtime extras
+must be selected during the build using CEPIO_RUNTIME_EXTRAS; use a rebuilt
+immutable image for dependency changes. Developer wheel installation is unchanged.
+This removes unused tooling and its vendor code/metadata rather than hiding it.
+
+Existing CI builds one candidate, inspects its immutable config ID/archive hash,
+scans it without executing target application code, and retains all severities
+and a full CycloneDX inventory. The targeted regression requires no Python
+HIGH/CRITICAL/UNKNOWN entries, no pip inventory and patched setuptools; the
+existing host/MCP smoke must also pass. This targeted regression does not waive
+remaining OS findings or the full deployed-image qualification check. Its
+manifest always says production_qualified=false, and reports full image-policy
+status separately. No candidate is deployed or signed by CI. Current deployed
+image findings cannot be cleared by a candidate PR alone.
+
+Upstream context: [pip's vendor SBOM](https://github.com/pypa/pip/blob/26.2.2/src/pip/_vendor/bom.cdx.json),
+[msgpack advisory](https://github.com/msgpack/msgpack-python/security/advisories/GHSA-6v7p-g79w-8964),
+[urllib3 advisory](https://github.com/advisories/GHSA-8988-9CW3-XX77).

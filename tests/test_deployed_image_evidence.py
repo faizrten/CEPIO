@@ -150,11 +150,23 @@ def test_unsigned_build_linkage_is_distinct_and_rejects_other_source_or_digest()
             probe.build_linkage(run, acr, SOURCE, IMAGE, "123")
 
 
-@pytest.mark.parametrize("failure", [None, "provenance", "drift", "linkage", "scan"])
+@pytest.mark.parametrize("failure", [None, "provenance", "drift", "linkage", "scan", "cleanup"])
 def test_full_readonly_report_retains_independent_failures_and_no_credentials(
     monkeypatch, tmp_path, capsys, failure
 ):
     monkeypatch.chdir(tmp_path)
+    if failure == "cleanup":
+        from contextlib import contextmanager
+
+        original = probe.tempfile.TemporaryDirectory
+
+        @contextmanager
+        def cleanup_failure(*args, **kwargs):
+            with original(*args, **kwargs) as directory:
+                yield directory
+            raise PermissionError("SECRET cleanup details")
+
+        monkeypatch.setattr(probe.tempfile, "TemporaryDirectory", cleanup_failure)
     for name, value in {
         "EXPECTED_DIGEST": DIGEST,
         "SOURCE_SHA": SOURCE,
@@ -205,6 +217,12 @@ def test_full_readonly_report_retains_independent_failures_and_no_credentials(
     report = json.loads((tmp_path / "evidence/deployed-image/manifest.json").read_text())
     assert report["qualified"] is (failure is None)
     assert report["checks"]["sbom"]["qualified"]
+    assert report["checks"]["target_consistency"]["qualified"] is (failure != "drift")
+    if failure == "cleanup":
+        assert report["errors"] == [
+            {"stage": "temporary-cleanup", "type": "PermissionError", "code": "CHECK_FAILED"}
+        ]
+
     assert all(len(value) == 64 for value in report["files_sha256"].values())
     login = next(args for args in calls if "--config" in args)
     assert not Path(login[login.index("--config") + 1]).exists()
@@ -279,3 +297,16 @@ def test_workflow_preserves_main_oidc_and_readonly_permissions():
     assert steps[0]["with"]["persist-credentials"] is False
     assert steps[-1]["if"] == "always()"
     assert steps[-1]["with"]["path"] == "evidence/deployed-image/"
+
+
+def test_scanner_runs_as_runner_with_owned_cache_and_no_root_home(tmp_path, monkeypatch):
+    monkeypatch.setattr(probe.os, "getuid", lambda: 1001, raising=False)
+    monkeypatch.setattr(probe.os, "getgid", lambda: 127, raising=False)
+    args = probe.scanner_command(tmp_path, tmp_path / "docker", tmp_path / "cache")
+    assert args[args.index("--user") + 1] == "1001:127"
+    assert "HOME=/tmp" in args and "DOCKER_CONFIG=/docker" in args
+    assert "/root" not in " ".join(args)
+    assert args[args.index("--cache-dir") + 1] == "/cache"
+    monkeypatch.setattr(probe.os, "getuid", lambda: 0)
+    with pytest.raises(ValueError, match="SCANNER_RUNNER_MUST_BE_NONROOT"):
+        probe.scanner_command(tmp_path, tmp_path, tmp_path)
