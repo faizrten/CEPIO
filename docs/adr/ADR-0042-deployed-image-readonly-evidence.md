@@ -305,3 +305,89 @@ changes no identity permissions or deployment authorization boundary.
 The builder process disables Python bytecode writes so its own helper imports
 cannot contaminate the clean source context; unexpected existing ignored files
 still fail the clean-worktree gate.
+
+### Alternative base evaluation — 2026-10-24 (experiment, not deployment)
+
+The isolated `security/base-image-evaluation` branch compares supported,
+digest-pinned bases while leaving the production Dockerfile, application code,
+dependency manifest, infrastructure, authorization and deployment workflows unchanged.
+The experiment has only `contents: read`, uses no cloud credentials or model calls,
+and never publishes an image. The test harness is in `experiments/base-images/`.
+
+Evidence: [completed matrix](https://github.com/faizrten/CEPIO/actions/runs/40101146245)
+at `9d76126c07e5d85b0075500ceec33564c21940ed`, using application main
+`f3f4e7ce8988f2b386b5f355fe7433ee0fa18e53`, and
+[passing standard CI](https://github.com/faizrten/CEPIO/actions/runs/40101146256).
+All four downloaded artifact ZIP digests and every report-listed file hash were
+verified. Earlier harness runs are superseded by this completed matrix.
+
+| Base / Python | Critical | High | Medium | Low | Unknown | Source tests |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Trixie / 3.11.17 control | 0 | 44 | 58 | 61 | 1 | 1,168 pass / 1 skip |
+| Bookworm / 3.11.17 | 2 | 61 | 111 | 107 | 1 | 1,168 pass / 1 skip |
+| Alpine 3.24.3 / 3.11.17 | 0 | 0 | 0 | 0 | 0 | 1,168 pass / 1 skip |
+| Ubuntu 24.04 / packaged 3.12.3 | 0 | 0 | 26 | 5 | 0 | 1,168 pass / 1 skip |
+
+The skipped test requires Node, absent from each Python test container; it is
+part of passing host CI. The source suite runs with networking disabled in a
+writable disposable copy, with all capabilities dropped. The exact installed
+runtime wheel separately passes nonroot/privilege-bit, absent-pip, preserved
+package inventory, SQLite, UUID, CA trust, localhost resolution, timezone,
+NumPy/SciPy, JWT, health, anonymous MCP denial, authenticated MCP initialization
+and the same eight-tool listing checks on all four bases. The same pinned Trivy
+0.76.1 scanner performs unfiltered image-identity-bound scans and CycloneDX SBOMs;
+runtime Python versions are constrained to the previous verified PR300 SBOM.
+
+Optional MCP/OpenTelemetry/Fabric SQL extras install, import and load the native
+SQL driver on all four bases. Alpine requires `libstdc++` in addition to the
+documented libtool/Kerberos prerequisites. These optional probes are separate
+images: the table scans the default runtime, not those extra-equipped images.
+No live SQL/Fabric connection or paid inference was attempted.
+
+**Recommendation:** Alpine 3.24 is the strongest candidate for a narrowly scoped
+default-runtime migration PR. The tested image is
+`python:3.11.17-alpine3.24@sha256:5fb4bc53dd0180955e31e5245b648bbb24a4ac4ab03a1de81513642325220bcd`.
+It preserves the Python minor version and passes the tested CEPIO behavior.
+The original 45 package-level findings have evidence beyond scanner silence:
+
+| Original finding group | Count | Alpine default-runtime disposition |
+| --- | ---: | --- |
+| CVE-2025-69720, ncurses | 4 HIGH | Retained ncurses 6.6_p20260516-r0 is newer than upstream fix 6.5-20251213. |
+| CVE-2026-76642, -78408, -78409, -78410, util-linux | 36 HIGH | Retained libuuid 2.42.3-r1 meets Alpine vendor fixes: 2.42.3-r0 for three issues and r1 for -78408. |
+| CVE-2026-16742, systemd | 2 HIGH | No systemd-source packages in preserved Alpine inventory/SBOM. |
+| CVE-2026-54369, ACL | 1 HIGH | No ACL-source packages in preserved Alpine inventory/SBOM. |
+| CVE-2026-9538 / -82560, Perl | 1 HIGH / 1 UNKNOWN | No Perl-source packages in preserved Alpine inventory/SBOM. |
+
+References: [Alpine vendor security database](https://secdb.alpinelinux.org/v3.24/main.json),
+[ncurses CVE record](https://www.cve.org/CVERecord?id=CVE-2025-69720),
+[upstream ncurses fix](https://invisible-island.net/ncurses/NEWS.html#index-t20251213).
+Alpine's main repository support runs to June 2028; Python 3.11 security support
+ends October 2027, so that earlier date constrains this combination. See
+[Alpine support](https://alpinelinux.org/releases/) and
+[Python lifecycle](https://devguide.python.org/versions/).
+
+**Ubuntu is not evidence that all original findings were fixed.** It installs
+fixed ncurses, systemd and Perl versions for -69720, -16742 and -9538, but
+[ACL -54369 is ignored by Ubuntu](https://ubuntu.com/security/CVE-2026-54369)
+because the backport is too intrusive; retained libacl1 is 2.3.2-1build1.1.
+The four util-linux advisories and [Perl -82560](https://ubuntu.com/security/CVE-2026-82560)
+remain vendor "Needs evaluation", with util-linux 2.39.3-9ubuntu6.6 and perl-base
+5.38.2-3.2ubuntu0.6 still in inventory. For example,
+[util-linux -76642](https://ubuntu.com/security/CVE-2026-76642).
+The clean HIGH/UNKNOWN scanner count cannot close those original advisories.
+Bookworm is rejected because it increases blocking findings. Trixie still has
+the original 44 HIGH and one UNKNOWN.
+
+Limits: linux/amd64 only; no live service, external DNS/TLS integration,
+performance/SLO, ARM64, optional-image security or deployment qualification.
+Alpine uses musl and BusyBox: removing standalone administrative links does not
+prove their BusyBox multicall equivalents are absent. A production migration
+must explicitly preserve the required hardening contract and scan its final
+Dockerfile output, including any selected extras. These findings authorize no
+waiver or deployment. The current deployed image remains 44 HIGH / 1 UNKNOWN,
+production-security G6 remains FAIL/HOLD, and canonical v1 maturity stays 69/100.
+
+Artifacts (30-day workflow retention): Alpine `12563211244`, Bookworm
+`12563027893`, Trixie `12562418607`, Ubuntu `12561949971`. Each includes full
+scanner JSON, SBOM, grouped OS triage, JUnit results, build/smoke logs and hashes.
+
