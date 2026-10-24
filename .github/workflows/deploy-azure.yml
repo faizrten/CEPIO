@@ -79,6 +79,7 @@ jobs:
         id: build
         env:
           GH_TOKEN: ${{ github.token }}
+          PYTHONDONTWRITEBYTECODE: "1"
         run: python3 scripts/build_demo_image.py
 
       - uses: actions/upload-artifact@v4

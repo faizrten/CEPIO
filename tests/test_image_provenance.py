@@ -311,3 +311,4 @@ def test_deployment_sign_verify_and_retention_precede_mutation_without_new_permi
     deploy = next(i for i, s in enumerate(steps) if s.get("name") == "Deploy immutable image")
     assert build < upload < deploy
     assert steps[build]["run"] == "python3 scripts/build_demo_image.py"
+    assert steps[build]["env"]["PYTHONDONTWRITEBYTECODE"] == "1"

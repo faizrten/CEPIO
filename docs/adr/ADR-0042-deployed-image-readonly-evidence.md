@@ -302,3 +302,6 @@ seven successful reusable CI validation jobs and one GitHub-hosted deploy job;
 missing, failed, extra or truncated job records fail closed before image outputs.
 The inactive historical proposal retains its former trigger by default. This
 changes no identity permissions or deployment authorization boundary.
+The builder process disables Python bytecode writes so its own helper imports
+cannot contaminate the clean source context; unexpected existing ignored files
+still fail the clean-worktree gate.
