@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import tarfile
 
-from check_deployed_image import command, scanner_command, sbom_summary, SEVERITIES
+from check_deployed_image import command, scanner_command, sbom_summary, os_triage, SEVERITIES
 
 
 def summarize(scan, sbom, image_id):
@@ -71,6 +71,52 @@ def archive_identity(path, expected_layers):
         return "sha256:" + hashlib.sha256(raw).hexdigest()
 
 
+def runtime_hardening():
+    # Inspect as root so unreadable paths cannot hide privileged regular files.
+    # This transient CI inspection never grants the deployed service root.
+    privileged = command(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "--read-only",
+            "--network",
+            "none",
+            "--user",
+            "0",
+            "--entrypoint",
+            "find",
+            "cepio:ci",
+            "/",
+            "-xdev",
+            "-type",
+            "f",
+            "-perm",
+            "/6000",
+            "-print",
+        ]
+    ).strip()
+    if privileged:
+        raise ValueError("PRIVILEGED_RUNTIME_FILES_PRESENT")
+    user = command(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "--read-only",
+            "--network",
+            "none",
+            "--entrypoint",
+            "id",
+            "cepio:ci",
+            "-u",
+        ]
+    ).strip()
+    if not user.isdecimal() or int(user) == 0:
+        raise ValueError("RUNTIME_USER_MUST_BE_NONROOT")
+    return {"nonroot": True, "setuid_setgid_files": 0}
+
+
 def main():
     evidence = Path("evidence/candidate-image")
     evidence.mkdir(parents=True, exist_ok=True)
@@ -100,6 +146,7 @@ def main():
                 "assert importlib.util.find_spec('ensurepip') is None",
             ]
         )
+        report["runtime_hardening"] = runtime_hardening()
         with tempfile.TemporaryDirectory(prefix="cepio-candidate-") as temporary:
             base = Path(temporary)
             config, cache, archive = base / "docker", base / "cache", base / "image.tar"
@@ -137,6 +184,13 @@ def main():
                     ],
                     timeout=660,
                 )
+        (evidence / "os-triage.json").write_text(
+            json.dumps(
+                os_triage(json.loads((evidence / "container-vulnerabilities.json").read_text())),
+                indent=2,
+            )
+            + "\n"
+        )
         report.update(
             summarize(
                 json.loads((evidence / "container-vulnerabilities.json").read_text()),

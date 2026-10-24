@@ -109,3 +109,59 @@ image findings cannot be cleared by a candidate PR alone.
 Upstream context: [pip's vendor SBOM](https://github.com/pypa/pip/blob/26.2.2/src/pip/_vendor/bom.cdx.json),
 [msgpack advisory](https://github.com/msgpack/msgpack-python/security/advisories/GHSA-6v7p-g79w-8964),
 [urllib3 advisory](https://github.com/advisories/GHSA-8988-9CW3-XX77).
+
+## 2026-10-24 OS and provenance triage
+
+Live [image check 40074019268](https://github.com/faizrten/CEPIO/actions/runs/40074019268)
+binds source `1579f53087456dd04dc4e628f866a85aa4c74b02` to deployed digest
+`sha256:de1b0c42f0a183f060983e88c3ca6f09d7279134cefebb739e9b6ebbe0a78747`.
+Its checksum-verified Debian 13.7 report has 44 HIGH package/advisory entries,
+one UNKNOWN and no CRITICAL. Python blockers are zero; SBOM has 143 components
+and only setuptools 84.2.1. This is a historical deployed result, not a result
+for the hardening change below.
+
+| Debian source | HIGH entries | Advisory / vendor triage | Next owner action |
+| --- | ---: | --- | --- |
+| util-linux | 36 | [76642](https://security-tracker.debian.org/tracker/CVE-2026-76642), [78408](https://security-tracker.debian.org/tracker/CVE-2026-78408), [78409](https://security-tracker.debian.org/tracker/CVE-2026-78409), [78410](https://security-tracker.debian.org/tracker/CVE-2026-78410): four advisories repeated across nine binary packages. Stable trixie/bookworm remain vulnerable; fixes listed in unstable/testing. | Base-image maintainer: track stable updates; qualify minimization separately. |
+| acl | 1 | [54369](https://security-tracker.debian.org/tracker/CVE-2026-54369): privileged path/ACL symlink handling; stable vulnerable, new ABI fix in unstable/testing. | Base-image maintainer: await/qualify vendor fix; no ad hoc ABI backport. |
+| ncurses | 4 | [69720](https://security-tracker.debian.org/tracker/CVE-2025-69720): infocmp utility overflow attributed to four source-related binary packages. Stable vulnerable; newer unstable/testing fixed. | Security owner: establish executable/module reachability; source-package attribution alone is not proof of application exploitation or a waiver. |
+| systemd | 2 | [16742](https://security-tracker.debian.org/tracker/CVE-2026-16742): systemd-homed issue attributed to libsystemd0/libudev1. Stable vulnerable. | Security owner: prove presence/use of affected component before any applicability disposition. |
+| perl | 1 | [9538](https://security-tracker.debian.org/tracker/CVE-2026-9538): Archive::Tar allocation DoS; stable fix postponed. Also one UNKNOWN [82560](https://security-tracker.debian.org/tracker/CVE-2026-82560), Pod::Text exhaustion, remains unfixed in Debian. | Security owner: verify shipped module paths and actual callers; retain UNKNOWN as blocking. |
+
+All nine advisories remain OPEN. No fixed version is listed in the scanned
+stable package entries. Vendor severity/deferral does not override the release
+gate. Do not mix unstable libraries into the runtime, force-remove essential
+packages, change scanner severity, or switch distributions just to reduce a
+count. Any future base migration requires the full host/MCP and dependency
+qualification plus a fresh exact-image scan.
+
+Safe bounded mitigation: remove all regular-file setuid/setgid bits in the final
+image, preserve package inventory and the existing nonroot service user. CEPIO
+does not require privilege-transition utilities. Existing candidate CI checks
+the complete root filesystem as root in an isolated read-only, network-disabled
+container, rejects any remaining privileged regular file, checks the default
+user is nonroot, and still runs the existing host/MCP smoke. This reduces
+file-based escalation opportunities; it does not patch libraries, prove all
+exploit preconditions absent, remove file capabilities, or waive any findings.
+
+Both image checkers retain checksum-bound `os-triage.json` grouped by advisory,
+including every HIGH/CRITICAL/UNKNOWN package entry, installed/fixed version and
+vendor status. Grouping is for owner review, not deduplication of gate counts.
+
+Provenance: the current demo build workflow invokes ACR build, records a digest
+and deploys it; it has no attestation-generation step and only contents-read /
+id-token-write permissions. The existing release workflow's attestation is for
+its separately built local archive and wheel, not the deployed ACR manifest.
+The exact deployed-subject GitHub API returned HTTP 404 on this review; that
+can mean absent or inaccessible and is not global proof of absence. Add safe
+read-only HTTP-status / first-page-count discovery alongside verification;
+discovery never earns signature qualification and no error bodies are logged.
+
+Build/provenance owner: propose a separately approved build-time, exact-manifest
+provenance design with trusted ACR build inputs/materials and workflow/source
+identity verification. GitHub attestation creation needs attestation-write
+permission (see [official guidance](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations)).
+This PR adds no permission, signing step, federation, role or registry write.
+Do not attest an old scan or unrelated archive as the deployed build, weaken
+the verifier, or claim source/build linkage is signed provenance. Production
+remains HOLD pending all applicable release gates; no maturity score changes.

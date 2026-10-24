@@ -90,6 +90,62 @@ def sbom_summary(data):
     }
 
 
+def os_triage(data):
+    """Group blocking OS entries without suppressing or reclassifying findings."""
+    advisories = {}
+    for result in data.get("Results", []):
+        if result.get("Class") != "os-pkgs":
+            continue
+        for finding in result.get("Vulnerabilities") or []:
+            if finding["Severity"] not in {"HIGH", "CRITICAL", "UNKNOWN"}:
+                continue
+            key = (finding["VulnerabilityID"], finding["Severity"])
+            entry = advisories.setdefault(
+                key,
+                {"id": key[0], "severity": key[1], "packages": [], "disposition": "OPEN"},
+            )
+            entry["packages"].append(
+                {
+                    "name": finding["PkgName"],
+                    "installed": finding.get("InstalledVersion", ""),
+                    "fixed": finding.get("FixedVersion", ""),
+                    "vendor_status": finding.get("Status", "unknown"),
+                }
+            )
+    return {
+        "advisories": [advisories[key] for key in sorted(advisories)],
+        "blocking_package_entries": sum(len(x["packages"]) for x in advisories.values()),
+        "limits": "Package attribution is not runtime reachability proof or a vulnerability waiver.",
+    }
+
+
+def provenance_discovery(digest):
+    """Report only an allowlisted HTTP status/count; never echo API bodies/errors."""
+    result = {"qualified": False, "evidence_type": "discovery_only_not_signature_verification"}
+    try:
+        response = subprocess.run(
+            ["gh", "api", "--include", f"repos/{REPOSITORY}/attestations/{digest}?per_page=100"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+        raw = response.stdout.replace("\r\n", "\n")
+        status = re.match(r"HTTP/[0-9.]+ (200|401|403|404|429|500|502|503)\b", raw)
+        result["http_status"] = int(status[1]) if status else None
+        if response.returncode == 0 and result["http_status"] == 200:
+            body = json.loads(raw.split("\n\n", 1)[1])
+            records = body.get("attestations")
+            if isinstance(records, list):
+                result["first_page_record_count"] = len(records)
+        result["interpretation"] = (
+            "404 may mean absent or inaccessible; API discovery never establishes signature validity."
+        )
+    except (OSError, subprocess.TimeoutExpired, ValueError, IndexError, AttributeError):
+        result["error"] = "DISCOVERY_UNAVAILABLE_OR_INVALID"
+    return result
+
+
 def provenance_summary(verified, digest):
     # Only call on successful gh attestation verify output, never raw bundle JSON.
     if not isinstance(verified, list) or not verified:
@@ -319,6 +375,7 @@ def main():
                     }
             # gh uses the temporary registry login, not a new permission grant.
             stage = "signed-provenance"
+            report["provenance_discovery"] = provenance_discovery(digest)
             old_config = os.environ.get("DOCKER_CONFIG")
             os.environ["DOCKER_CONFIG"] = str(docker_config)
             try:
@@ -376,6 +433,14 @@ def main():
         report["checks"].get(name, {}).get("qualified") is True
         for name in ("build_linkage", "scan", "sbom", "signed_provenance", "target_consistency")
     )
+    scan_path = evidence / "container-vulnerabilities.json"
+    if scan_path.exists():
+        try:
+            triage = os_triage(json.loads(scan_path.read_text()))
+            (evidence / "os-triage.json").write_text(json.dumps(triage, indent=2) + "\n")
+        except (ValueError, KeyError, TypeError, AttributeError):
+            report["errors"].append({"stage": "os-triage", "code": "INVALID_TRIAGE_INPUT"})
+            report["qualified"] = False
     report["files_sha256"] = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
         for path in evidence.glob("*.json")

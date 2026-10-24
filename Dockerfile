@@ -47,6 +47,11 @@ RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" \
     && python -c "import importlib.util; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None" \
     && rm -f /tmp/cepio-*.whl
 
+# The service never needs setuid/setgid helpers. Preserve OS packages and their
+# scanner inventory, but remove file-based privilege transitions from the runtime.
+RUN find / -xdev -type f -perm /6000 -exec chmod a-s {} + \
+    && test -z "$(find / -xdev -type f -perm /6000 -print -quit)"
+
 RUN mkdir -p /app /data && chown -R cepio:cepio /app /data
 USER cepio
 
