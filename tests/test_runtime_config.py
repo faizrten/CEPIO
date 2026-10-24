@@ -33,11 +33,14 @@ def test_invalid_persistence_fails_fast(monkeypatch):
         settings.sqlite_path()
 
 
-@pytest.mark.parametrize("url", [
-    "postgresql://migration-user:secret-password@private-host/db?token=secret-token",
-    "postgres://migration-user:secret-password@private-host/db",
-    "invalid://secret-token",
-])
+@pytest.mark.parametrize(
+    "url",
+    [
+        "postgresql://migration-user:secret-password@private-host/db?token=secret-token",
+        "postgres://migration-user:secret-password@private-host/db",
+        "invalid://secret-token",
+    ],
+)
 def test_unsupported_database_url_never_appears_in_error(monkeypatch, url):
     monkeypatch.setenv("CEPIO_DB_URL", url)
     settings = RuntimeSettings.from_env()

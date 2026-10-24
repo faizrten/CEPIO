@@ -32,9 +32,7 @@ class RuntimeSettings:
         resource_root = os.getenv("CEPIO_RESOURCE_ROOT") or None
         ontology_dir = os.getenv("CEPIO_ONTOLOGY_DIR") or None
         profiles = tuple(
-            item.strip()
-            for item in os.getenv("CEPIO_PROFILES", "").split(",")
-            if item.strip()
+            item.strip() for item in os.getenv("CEPIO_PROFILES", "").split(",") if item.strip()
         )
         return cls(
             environment=environment,
@@ -52,7 +50,7 @@ class RuntimeSettings:
             return None
         prefix = "sqlite:///"
         if self.db_url.startswith(prefix):
-            raw = self.db_url[len(prefix):]
+            raw = self.db_url[len(prefix) :]
             if not raw:
                 raise RuntimeError("CEPIO_DB_URL sqlite path is empty")
             path = Path(raw).expanduser()
