@@ -73,3 +73,28 @@ def test_old_tooling_inventory_blocks_remediation(component):
 def test_other_candidate_image_rejected():
     with pytest.raises(ValueError, match="CANDIDATE_IMAGE_ID_MISMATCH"):
         probe.summarize(scan(), sbom(), "sha256:" + "b" * 64)
+
+
+def test_exported_config_hash_tag_and_layer_chain_bind_candidate(tmp_path):
+    import io
+    import json
+    import hashlib
+    import tarfile
+
+    path = tmp_path / "candidate.tar"
+    layers = ["sha256:" + "c" * 64]
+    config = json.dumps({"rootfs": {"diff_ids": layers}}).encode()
+    with tarfile.open(path, "w") as archive:
+        for name, data in [
+            (
+                "manifest.json",
+                json.dumps([{"Config": "config.json", "RepoTags": ["cepio:ci"]}]).encode(),
+            ),
+            ("config.json", config),
+        ]:
+            member = tarfile.TarInfo(name)
+            member.size = len(data)
+            archive.addfile(member, io.BytesIO(data))
+    assert probe.archive_identity(path, layers) == "sha256:" + hashlib.sha256(config).hexdigest()
+    with pytest.raises(ValueError, match="CANDIDATE_ARCHIVE_LAYER_MISMATCH"):
+        probe.archive_identity(path, ["wrong"])

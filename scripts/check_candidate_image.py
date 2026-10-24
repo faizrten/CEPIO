@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
+import tarfile
 
 from check_deployed_image import command, scanner_command, sbom_summary, SEVERITIES
 
@@ -46,6 +47,30 @@ def summarize(scan, sbom, image_id):
     }
 
 
+def archive_identity(path, expected_layers):
+    # Read archive members only; never extract an image filesystem onto the runner.
+    with tarfile.open(path, "r") as archive:
+
+        def read_json(name):
+            member = archive.getmember(name)
+            if not member.isfile() or member.size > 2 * 1024 * 1024:
+                raise ValueError("INVALID_IMAGE_ARCHIVE_MEMBER")
+            raw = archive.extractfile(member).read()
+            return raw, json.loads(raw)
+
+        _, manifest = read_json("manifest.json")
+        if (
+            not isinstance(manifest, list)
+            or len(manifest) != 1
+            or "cepio:ci" not in manifest[0].get("RepoTags", [])
+        ):
+            raise ValueError("CANDIDATE_ARCHIVE_TAG_MISMATCH")
+        raw, config = read_json(manifest[0]["Config"])
+        if not expected_layers or config.get("rootfs", {}).get("diff_ids") != expected_layers:
+            raise ValueError("CANDIDATE_ARCHIVE_LAYER_MISMATCH")
+        return "sha256:" + hashlib.sha256(raw).hexdigest()
+
+
 def main():
     evidence = Path("evidence/candidate-image")
     evidence.mkdir(parents=True, exist_ok=True)
@@ -56,6 +81,11 @@ def main():
         ).strip()
         report["source_sha"] = command(["git", "rev-parse", "HEAD"]).strip()
         report["image_id"] = image_id
+        expected_layers = json.loads(
+            command(
+                ["docker", "image", "inspect", "--format", "{{json .RootFS.Layers}}", "cepio:ci"]
+            )
+        )
         # Read-only filesystem checks; no imports of target applications or inference.
         command(
             [
@@ -76,6 +106,12 @@ def main():
             config.mkdir()
             cache.mkdir()
             command(["docker", "save", "--output", str(archive), "cepio:ci"], timeout=180)
+            report["archive_config_digest"] = archive_identity(archive, expected_layers)
+            if (
+                command(["docker", "image", "inspect", "--format", "{{.Id}}", "cepio:ci"]).strip()
+                != image_id
+            ):
+                raise ValueError("CANDIDATE_CHANGED_DURING_EXPORT")
             with archive.open("rb") as stream:
                 report["archive_sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
             scan = scanner_command(evidence, config, cache)
@@ -105,7 +141,7 @@ def main():
             summarize(
                 json.loads((evidence / "container-vulnerabilities.json").read_text()),
                 json.loads((evidence / "container-sbom.json").read_text()),
-                image_id,
+                report["archive_config_digest"],
             )
         )
     except (ValueError, OSError, KeyError, TypeError, AttributeError):
