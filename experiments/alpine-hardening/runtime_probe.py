@@ -152,7 +152,7 @@ def offline(variant):
     )
     assert all(not Path(p).exists() and not Path(p).is_symlink() for p in manifest["removed_paths"])
     assert not Path("/bin/busybox").exists()
-    assert Path("/bin/sh").resolve() == Path("/bin/dash")
+    assert Path("/bin/sh").resolve() == Path(manifest["replaced_shell"]["target"])
     for folder in ("/bin", "/sbin", "/usr/bin", "/usr/sbin", "/usr/local/bin"):
         for p in Path(folder).iterdir():
             if p.is_file():
