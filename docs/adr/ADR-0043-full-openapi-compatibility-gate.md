@@ -46,3 +46,14 @@ on HOLD; no deployment, identity/permission change or infrastructure is added.
 
 Upstream references: [oasdiff 1.34.0](https://github.com/oasdiff/oasdiff/releases/tag/v1.34.0)
 and [breaking-change policy](https://github.com/oasdiff/oasdiff/blob/v1.34.0/docs/BREAKING-CHANGES.md).
+
+## Merge and deployment separation
+
+Azure demo and DEV deployment workflows accept manual dispatch only. Merges,
+pushes and successful CI cannot trigger deployment. Azure demo dispatch requires
+an exact reviewed main SHA, reruns existing CI, and verifies dispatched, checked-out
+and current main SHAs before login. Environment protections, existing OIDC scopes,
+startup/authentication checks and immutable image checks are retained. The
+read-only image evidence checker accepts historical automatic and future manual
+deployment records with the same successful source/build/image linkage checks.
+Production remains HOLD; this decision changes no permissions and authorizes no rollout.

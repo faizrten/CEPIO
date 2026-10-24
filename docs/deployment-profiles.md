@@ -61,10 +61,12 @@ request to `/api/v1/objects` returns HTTP 401 after deployment.
 ## GitHub Actions deployment
 
 `.github/workflows/deploy-azure.yml` deploys the existing Azure demo resources
-after **CEPIO CI** succeeds for a push to `main` in this repository. Pull-request,
-fork, failed, and non-main CI runs cannot enter the deployment job. The workflow
+only through a separately authorized manual dispatch on `main`, with an exact
+reviewed `source_sha`. Merging and successful push CI do not deploy. A manual
+dispatch reruns the existing **CEPIO CI** workflow before the deployment job.
+Pull-request, fork, failed, and non-main runs cannot enter that job. The workflow
 checks out the trusted `refs/heads/main` branch and verifies that both its local
-SHA and the current remote main SHA match the successful CI commit before Azure
+SHA, dispatched SHA and current remote main SHA match `source_sha` before Azure
 login. It rejects a superseded commit after approval, builds in ACR with a
 unique commit/run/attempt tag, and configures
 App Service with the resulting immutable image digest. Deployment jobs are
@@ -140,14 +142,16 @@ or enable privileged pull-request execution to work around missing approvals.
 
 1. Submit changes through a pull request and wait for CEPIO CI to pass.
 2. Merge to `main`; the main push runs CI again.
-3. Open **Actions > Deploy CEPIO to Azure** and approve the pending `azure-demo`
-   deployment after checking the commit.
+3. Only after separate rollout authorization, manually dispatch **Actions > Deploy
+   CEPIO to Azure** on `main` with its exact reviewed SHA. Retain existing
+   `azure-demo` environment protection and check the commit before any approval.
 4. Check the run summary for the commit, image digest, health URL, and HTTP 401
    anonymous-read check. Health must return JSON with `status: ok`.
 
-The workflow must first be merged onto the default branch before `workflow_run`
-can trigger it. If a deployment is rejected as superseded, approve the deployment
-for the latest successful main CI run instead. A failed build/rollout/check fails
+Production remains **HOLD**. This change authorizes no deployment, permission
+change or environment approval. Both Azure demo and DEV deployment workflows are
+manual-only. If a dispatch is rejected as superseded, review the new main commit
+and obtain rollout authorization again. A failed build/rollout/check fails
 the job explicitly; there is no automatic rollback. Inspect the failure before
 redeploying a known-good digest or reverting via a new reviewed main commit.
 
