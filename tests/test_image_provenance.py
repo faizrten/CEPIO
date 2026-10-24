@@ -218,6 +218,9 @@ def test_build_outputs_withheld_until_signing_and_verification(monkeypatch, tmp_
         if args[:2] == ["gh", "api"]:
             return json.dumps(jobs() if "/jobs?" in args[2] else run)
         if args[:3] == ["az", "acr", "build"]:
+            assert args[args.index("--build-arg") + 1] == "CEPIO_RUNTIME_EXTRAS=mcp"
+            assert args[args.index("--image") + 1] == "cepio:" + SOURCE + "-123-1"
+            assert "--no-logs" in args
             return json.dumps({"runId": "cbb"})
         if args[:4] == ["az", "acr", "task", "show-run"]:
             return json.dumps(acr)
