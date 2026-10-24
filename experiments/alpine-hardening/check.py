@@ -63,6 +63,20 @@ def require(label, command, timeout=900):
     return output
 
 
+def probe_result(output, required_key):
+    """Docker stdout/stderr frames can arrive in either order; select the schema."""
+    matches = []
+    for line in output.splitlines():
+        try:
+            value = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict) and required_key in value:
+            matches.append(value)
+    assert len(matches) == 1, "Expected exactly one probe result"
+    return matches[0]
+
+
 def main():
     if variant == "trixie-control":
         require(
@@ -102,7 +116,7 @@ def main():
             ],
             timeout=90,
         )
-        report["sql_control"] = json.loads(output.splitlines()[-1])
+        report["sql_control"] = probe_result(output, "tds_prelogin")
         report["isolated_checks_passed"] = True
         return
     require(
@@ -181,7 +195,7 @@ def main():
         ],
         timeout=90,
     )
-    report["runtime_integrations"] = json.loads(offline.splitlines()[-1])
+    report["runtime_integrations"] = probe_result(offline, "hardening_passed")
     online = require(
         "public-dns-https",
         [

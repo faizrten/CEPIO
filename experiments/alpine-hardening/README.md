@@ -22,10 +22,13 @@ authorization and management tests also run against the installed wheel inside
 the final hardened image, with test tools mounted externally and no networking.
 Those Fabric tests use synthetic connectors, not a real Fabric database.
 
-The optional driver is loaded and exercised through CEPIO's connector against a
-loopback-only TDS listener; a prelogin packet must arrive and the incomplete
-connection must fail closed. This verifies native execution and error handling,
-not authentication or SELECT execution. OpenTelemetry context propagation is
+The optional driver is loaded and exercised against a loopback-only TDS listener
+using its supported timeout API; a prelogin packet must arrive and the incomplete
+connection must fail closed. Separately, the driver's parser validates CEPIO's
+actual connection configuration without requesting a cloud token. A Trixie
+control distinguishes existing configuration defects from Alpine regressions.
+This verifies native execution and error handling, not authentication or SELECT
+execution. OpenTelemetry context propagation is
 tested without an exporter. A separate public Microsoft OpenID metadata GET
 checks external DNS and default CA trust without credentials or token requests.
 
@@ -39,3 +42,10 @@ read-only queries, Azure managed identity, private endpoint networking, ARM64,
 production performance and deployment provenance. A clean result cannot imply
 production qualification for those paths. No deployment, merge, permission
 expansion, model invocation or vulnerability waiver is part of this experiment.
+
+The unchanged production image-checking tools are also executed as read-only
+compatibility probes. A Debian-specific tool or inventory failure is recorded
+as a migration blocker; passing the isolated runtime checks does not bypass it.
+If CEPIO's Fabric configuration is rejected, the integrations job fails after
+retaining all other test and security results. Application fixes are outside
+this base-image/hardening-only change.

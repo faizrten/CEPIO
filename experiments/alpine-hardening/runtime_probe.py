@@ -48,6 +48,7 @@ def tls_checks():
             )
         )
         server_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        server_context.minimum_version = ssl.TLSVersion.TLSv1_2
         server_context.load_cert_chain(root / "cert.pem", root / "key.pem")
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
@@ -76,6 +77,7 @@ def tls_checks():
             (True, "wrong.invalid", False),
         ]:
             context = ssl.create_default_context(cafile=str(root / "cert.pem") if trusted else None)
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
             try:
                 with socket.create_connection(address, timeout=5) as connection:
                     with context.wrap_socket(connection, server_hostname=hostname) as channel:
@@ -231,7 +233,9 @@ def online():
     # Public metadata only: no tenant credentials, token request, inference or resource API.
     url = "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
     assert socket.getaddrinfo("login.microsoftonline.com", 443)
-    with urllib.request.urlopen(url, timeout=20, context=ssl.create_default_context()) as response:
+    context = ssl.create_default_context()
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
+    with urllib.request.urlopen(url, timeout=20, context=context) as response:
         assert response.status == 200
         metadata = json.load(response)
     assert metadata["jwks_uri"].startswith("https://login.microsoftonline.com/")
