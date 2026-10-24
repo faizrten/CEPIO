@@ -98,7 +98,7 @@ def tls_checks():
 def sql_checks():
     import mssql_python
     from azure.identity import ManagedIdentityCredential
-    from cepio.integrations.microsoft.fabric_sql import FabricSqlSettings
+    from cepio.integrations.microsoft.fabric_sql import FabricSqlSettings, _mssql_connect
     from mssql_python.connection_string_parser import _ConnectionStringParser
 
     info = mssql_python.get_native_provider_info()
@@ -136,7 +136,7 @@ def sql_checks():
     failed = False
     try:
         # Probe native transport separately using the driver's supported timeout API.
-        mssql_python.connect(
+        _mssql_connect(
             f"Server=127.0.0.1,{port};Database=fixture;UID=fixture;PWD=unused-fixture;"
             "Encrypt=yes;TrustServerCertificate=no;",
             timeout=2,

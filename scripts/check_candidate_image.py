@@ -74,47 +74,45 @@ def archive_identity(path, expected_layers):
 def runtime_hardening():
     # Inspect as root so unreadable paths cannot hide privileged regular files.
     # This transient CI inspection never grants the deployed service root.
-    privileged = command(
-        [
-            "docker",
-            "run",
-            "--rm",
-            "--read-only",
-            "--network",
-            "none",
-            "--user",
-            "0",
-            "--entrypoint",
-            "find",
-            "cepio:ci",
-            "/",
-            "-xdev",
-            "-type",
-            "f",
-            "-perm",
-            "/6000",
-            "-print",
-        ]
-    ).strip()
-    if privileged:
-        raise ValueError("PRIVILEGED_RUNTIME_FILES_PRESENT")
+    restrictions = [
+        "docker",
+        "run",
+        "--rm",
+        "--read-only",
+        "--network",
+        "none",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges",
+    ]
+    inspection = json.loads(
+        command(
+            [
+                *restrictions,
+                "--user",
+                "0",
+                "--entrypoint",
+                "python",
+                "cepio:ci",
+                "-c",
+                Path(__file__).with_name("inspect_runtime.py").read_text(),
+            ]
+        )
+    )
+    if inspection != {"setuid_setgid_files": 0, "file_capabilities": 0}:
+        raise ValueError("INVALID_RUNTIME_INSPECTION")
     user = command(
         [
-            "docker",
-            "run",
-            "--rm",
-            "--read-only",
-            "--network",
-            "none",
+            *restrictions,
             "--entrypoint",
-            "id",
+            "python",
             "cepio:ci",
-            "-u",
+            "-c",
+            "import os; print(os.getuid())",
         ]
     ).strip()
     if not user.isdecimal() or int(user) == 0:
         raise ValueError("RUNTIME_USER_MUST_BE_NONROOT")
-    return {"nonroot": True, "setuid_setgid_files": 0}
+    return {"nonroot": True, **inspection}
 
 
 def main():

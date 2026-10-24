@@ -455,3 +455,24 @@ Retained artifacts (30 days): default `12566086108`, integrations `12565559231`,
 Trixie control `12565558851`. ZIP SHA-256 digests and every report-listed evidence
 file hash were verified locally. The local v1 production-security scorecard and
 `alpine-hardening-assessment-2026-10-24.json` record the results and blockers.
+
+### Follow-up fixes under validation
+
+The authorized follow-up removes the unsupported connection-string timeout keyword
+and passes the configured 1–300 second timeout through `mssql_python.connect(timeout=)`.
+Encryption, server certificate validation, Entra authentication, allow-listed SQL
+and parameterized values are unchanged. Injected one-argument connection factories
+retain their existing interface.
+
+The candidate checker now uses Python for non-root and filesystem privilege
+inspection, including file capabilities, without requiring administrative CLI
+tools. Alpine verification checks the preserved apk inventory hash, removed paths,
+administrative command absence, dash shell and renamed BusyBox copies; missing or
+invalid evidence fails closed. Debian verification and all scanner thresholds,
+image archive identity checks and production-qualification restrictions remain.
+Regression fixtures cover inventory tampering, restored commands, copied BusyBox,
+invalid manifests, root users, privilege bits, capabilities and inspection errors.
+The isolated matrix executes the actual candidate checker against both final
+Alpine variants, plus the corrected SQL connector against Alpine and Trixie.
+Live authentication/query and private-network qualification still require separate
+evidence; these changes authorize no deployment or permission expansion.

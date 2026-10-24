@@ -2,7 +2,7 @@ name: CEPIO Alpine Hardening Checks
 on:
   push:
     branches: [security/base-image-evaluation]
-    paths: ['experiments/alpine-hardening/**', '.github/workflows/alpine-hardening.yml']
+    paths: ['experiments/alpine-hardening/**', 'scripts/**', 'src/cepio/integrations/microsoft/fabric_sql.py', 'tests/**', '.github/workflows/alpine-hardening.yml']
 permissions:
   contents: read
 jobs:

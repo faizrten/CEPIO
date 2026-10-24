@@ -5,6 +5,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
@@ -117,6 +118,7 @@ def main():
             timeout=90,
         )
         report["sql_control"] = probe_result(output, "tds_prelogin")
+        assert report["sql_control"]["cepio_connection_configuration"]["accepted"]
         report["isolated_checks_passed"] = True
         return
     require(
@@ -315,32 +317,21 @@ def main():
         ET.parse(evaluation.EVIDENCE / "installed-tests.xml").getroot().find("testsuite").attrib
     )
     report["hardening_and_test_suites_passed"] = True
-    pipeline_results = {}
-    for label, arguments in {
-        "find": ["find", "/", "-xdev", "-type", "f", "-perm", "/6000", "-print"],
-        "id": ["id", "-u"],
-        "inventory": ["python", "-c", (ROOT / "scripts/minimize_runtime.py").read_text()],
-    }.items():
-        code, _ = run(
-            "existing-gate-" + label,
-            [
-                "docker",
-                "run",
-                "--rm",
-                "--read-only",
-                "--network",
-                "none",
-                "--entrypoint",
-                arguments[0],
-                "cepio:ci",
-                *arguments[1:],
-            ],
-        )
-        pipeline_results[label] = {"exit_code": code, "compatible": code == 0}
-    report["existing_production_gate"] = pipeline_results
-    report["existing_production_gate_compatible"] = all(
-        v["compatible"] for v in pipeline_results.values()
+    # Execute the actual candidate checker, including its archive-bound scan.
+    require(
+        "production-candidate-checker",
+        [sys.executable, "scripts/check_candidate_image.py"],
+        timeout=1500,
     )
+    candidate = json.loads((ROOT / "evidence/candidate-image/manifest.json").read_text())
+    shutil.copytree(ROOT / "evidence/candidate-image", evaluation.EVIDENCE / "candidate-checker")
+    report["production_candidate_checker"] = candidate
+    report["existing_production_gate_compatible"] = (
+        candidate.get("targeted_remediation_passed") is True
+        and candidate.get("image_vulnerability_policy_passed") is True
+        and candidate.get("runtime_minimization", {}).get("os_inventory_unchanged") is True
+    )
+    assert report["existing_production_gate_compatible"]
     report["safe_to_switch_production_now"] = False
     assert report.get("vulnerability_gate_passed"), "Final runtime vulnerability gate failed"
     if variant == "integrations":
@@ -364,9 +355,11 @@ if __name__ == "__main__":
             "linux/amd64 isolated candidate. No live Fabric/SQL authentication or SELECT, Azure managed-identity token, private networking, deployment, provenance signing or model call. Loopback TDS checks prelogin and fail-closed connection handling, not a successful SQL session. Public Microsoft metadata GET uses no credentials. Production qualification remains false."
         )
         report["files_sha256"] = {
-            p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in evaluation.EVIDENCE.iterdir()
-            if p.is_file() and p.name != "report.json"
+            p.relative_to(evaluation.EVIDENCE).as_posix(): hashlib.sha256(
+                p.read_bytes()
+            ).hexdigest()
+            for p in evaluation.EVIDENCE.rglob("*")
+            if p.is_file() and p != evaluation.EVIDENCE / "report.json"
         }
         (evaluation.EVIDENCE / "report.json").write_text(json.dumps(report, indent=2) + "\n")
         print(
