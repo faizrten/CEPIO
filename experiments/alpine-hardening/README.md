@@ -1,8 +1,10 @@
 # Alpine hardening and integration qualification
 
 Candidate-only follow-up to the supported-base comparison in ADR-0042. Production
-Dockerfile, application code, release state, deployment workflows and permissions
-are unchanged. The branch-only workflow uses contents:read and no cloud identity.
+Dockerfile, release state, deployment workflows and permissions are unchanged.
+The authorized follow-up fixes Fabric's driver timeout argument and makes the
+candidate checker portable to Alpine. The branch-only workflow uses contents:read
+and no cloud identity.
 
 Two final images are built and scanned independently: default `mcp`, and
 `mcp,otel,fabric-sql`. Both use the pinned Python/Alpine base and prior runtime
@@ -43,9 +45,13 @@ production performance and deployment provenance. A clean result cannot imply
 production qualification for those paths. No deployment, merge, permission
 expansion, model invocation or vulnerability waiver is part of this experiment.
 
-The unchanged production image-checking tools are also executed as read-only
-compatibility probes. A Debian-specific tool or inventory failure is recorded
-as a migration blocker; passing the isolated runtime checks does not bypass it.
+The production candidate checker is executed directly, including its independent
+archive-bound scan. Python replaces the dependency on find/id, retaining non-root
+and privilege-bit inspection and adding file-capability rejection. Alpine's
+preserved inventory, removed commands, shell and BusyBox-copy absence are verified
+without weakening Debian checks or scanner thresholds. Full checker evidence is
+retained alongside the isolated checks.
 If CEPIO's Fabric configuration is rejected, the integrations job fails after
-retaining all other test and security results. Application fixes are outside
-this base-image/hardening-only change.
+retaining all other test and security results. The configured timeout is passed
+through the driver's supported keyword API; encryption and certificate validation
+remain required. Existing injected connection factories retain their interface.

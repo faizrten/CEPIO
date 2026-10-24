@@ -74,6 +74,8 @@ def archive_identity(path, expected_layers):
 def runtime_hardening():
     # Inspect as root so unreadable paths cannot hide privileged regular files.
     # This transient CI inspection never grants the deployed service root.
+    # Keep the existing inspector's read authority; dropping all capabilities here
+    # prevents traversing service-owned private directories. The UID probe drops all.
     restrictions = [
         "docker",
         "run",
@@ -81,7 +83,6 @@ def runtime_hardening():
         "--read-only",
         "--network",
         "none",
-        "--cap-drop=ALL",
         "--security-opt=no-new-privileges",
     ]
     inspection = json.loads(
@@ -103,6 +104,7 @@ def runtime_hardening():
     user = command(
         [
             *restrictions,
+            "--cap-drop=ALL",
             "--entrypoint",
             "python",
             "cepio:ci",
@@ -144,7 +146,9 @@ def main():
                 "assert importlib.util.find_spec('ensurepip') is None",
             ]
         )
+        report["inspection_stage"] = "runtime_hardening"
         report["runtime_hardening"] = runtime_hardening()
+        report["inspection_stage"] = "runtime_minimization"
         report["runtime_minimization"] = json.loads(
             command(
                 [
@@ -164,6 +168,7 @@ def main():
                 ]
             )
         )
+        report["inspection_stage"] = "native_libraries"
         # Exercise retained native libraries, default trust store, name service
         # and timezone data without external requests, tools or model inference.
         command(
@@ -186,6 +191,7 @@ def main():
                 "assert scipy.linalg.det(numpy.eye(2)) == 1",
             ]
         )
+        report["inspection_stage"] = "archive_and_scan"
         with tempfile.TemporaryDirectory(prefix="cepio-candidate-") as temporary:
             base = Path(temporary)
             config, cache, archive = base / "docker", base / "cache", base / "image.tar"
