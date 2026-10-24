@@ -147,6 +147,47 @@ def main():
             ]
         )
         report["runtime_hardening"] = runtime_hardening()
+        report["runtime_minimization"] = json.loads(
+            command(
+                [
+                    "docker",
+                    "run",
+                    "--rm",
+                    "--read-only",
+                    "--network",
+                    "none",
+                    "--user",
+                    "0",
+                    "--entrypoint",
+                    "python",
+                    "cepio:ci",
+                    "-c",
+                    Path(__file__).with_name("minimize_runtime.py").read_text(),
+                ]
+            )
+        )
+        # Exercise retained native libraries, default trust store, name service
+        # and timezone data without external requests, tools or model inference.
+        command(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--read-only",
+                "--network",
+                "none",
+                "--entrypoint",
+                "python",
+                "cepio:ci",
+                "-c",
+                "import ssl, socket, sqlite3, uuid, numpy, scipy.linalg; from zoneinfo import ZoneInfo; "
+                "assert ssl.create_default_context().get_ca_certs(); "
+                "assert socket.getaddrinfo('localhost', 8000); "
+                "assert sqlite3.connect(':memory:').execute('select 1').fetchone() == (1,); "
+                "assert uuid.uuid4(); assert ZoneInfo('UTC'); "
+                "assert scipy.linalg.det(numpy.eye(2)) == 1",
+            ]
+        )
         with tempfile.TemporaryDirectory(prefix="cepio-candidate-") as temporary:
             base = Path(temporary)
             config, cache, archive = base / "docker", base / "cache", base / "image.tar"

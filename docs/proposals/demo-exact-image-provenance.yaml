@@ -1,0 +1,34 @@
+# REVIEW ONLY: deliberately outside .github/workflows; no trigger or jobs.
+status: inactive_permission_review_required
+workflow: .github/workflows/deploy-azure.yml
+placement: after successful ACR build and before App Service mutation
+permission_delta_if_separately_approved:
+  attestations: write
+unchanged_permissions:
+  contents: read
+  id-token: write
+azure_entra_or_registry_grant_delta: none
+required_build_contract:
+  - Reject superseded source exactly as the existing workflow does.
+  - Prepare a clean source context for DEPLOY_SHA, apply Docker context exclusions, and hash the actual bytes submitted to ACR plus Dockerfile before submission.
+  - Capture the ACR build response and reread the authenticated ACR run record; require Succeeded, exact source-run-attempt tag and exact manifest digest.
+  - Retain sanitized source, context and Dockerfile hashes, ACR run ID, output digest and GitHub invocation; never retain registry credentials or complete cloud configuration.
+  - Build the custom predicate using scripts/propose_image_provenance.py with build-job-collected inputs; write only statement.predicate to evidence/build-predicate.json.
+  - Treat the signed claim as GitHub orchestration of ACR, not an ACR-signed isolated builder attestation or a SLSA level.
+proposed_signing_step:
+  name: Sign exact ACR manifest orchestration provenance
+  id: provenance
+  uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # official v4.2.1
+  with:
+    subject-name: cepiodemo31d48.azurecr.io/cepio
+    subject-digest: ${{ steps.build.outputs.digest }}
+    predicate-type: https://slsa.dev/provenance/v1
+    predicate-path: evidence/build-predicate.json
+    push-to-registry: false
+    create-storage-record: false
+required_followup_steps:
+  - Retain the signed bundle, sanitized build predicate and immutable source/build mapping using existing workflow artifacts.
+  - Verify with gh attestation verify oci://IMAGE_AT_DIGEST using the exact repository, deploy-azure signer workflow, source SHA/ref, SLSA v1 predicate and deny-self-hosted-runners constraints.
+  - Also validate subject name, custom build type, builder identity, material hashes and ACR/GitHub invocation against collected build records; a valid signature alone is insufficient.
+  - Fail before deployment on signing, verification, subject, source, materials or invocation mismatch. Never backfill an old image with caller-supplied provenance.
+  - Keep vulnerability/SBOM/authorization gates independent; a signed vulnerable image is still blocked for production.

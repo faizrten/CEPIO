@@ -165,3 +165,63 @@ This PR adds no permission, signing step, federation, role or registry write.
 Do not attest an old scan or unrelated archive as the deployed build, weaken
 the verifier, or claim source/build linkage is signed provenance. Production
 remains HOLD pending all applicable release gates; no maturity score changes.
+
+## Runtime minimization and exact-image provenance proposal
+
+After all dependency installation and user/directory setup, the final Docker
+stage removes unused mount/namespace, privilege-transition and terminal CLI
+entry points, Perl executables, and any shipped Archive::Tar / Pod::Text /
+Text::Wrap module entry files. The hosted HTTP service does not invoke these
+programs. Python, `/bin/sh`, CA roots, resolver/name service, timezone data and
+shared libraries remain. In particular, retain libuuid/libtinfo and other native
+dependencies rather than breaking Python modules or forcing essential-package
+removal. Installation and user creation occur before minimization. Rebuild the
+image for maintenance; administrative CLI and terminal/Perl tooling are outside
+the hosted image contract. Developer/source installations are unchanged.
+
+`scripts/minimize_runtime.py` defaults to read-only verification; only the
+Dockerfile uses `--apply`. It writes removed paths and a SHA256 of the unchanged
+dpkg status database into `/usr/local/share/cepio/runtime-minimization.json`.
+CI inspects the actual candidate as root, read-only and without networking,
+rejects remaining entry points or modified inventory, and exercises native
+NumPy/SciPy, SQLite, UUID, TLS trust, localhost resolution and UTC timezone
+support before the existing hosted MCP smoke. Shared library advisories and
+unknown severity stay blocking. Package-level scanner counts may remain
+unchanged because package records and libraries intentionally remain: removed
+entry points are bounded exposure reduction, not a CVE fix, complete component
+reachability analysis, VEX statement or release exception. All live-image
+findings remain OPEN until governed exact-artifact disposition.
+
+The [inactive provenance design](../proposals/demo-exact-image-provenance.yaml)
+is deliberately outside `.github/workflows`. It proposes signing the exact ACR
+manifest digest during the same deployment job, after the build and before
+deployment, with a custom SLSA v1 predicate that describes GitHub orchestration
+of a remote ACR build honestly. Source commit, actual submitted context bytes,
+Dockerfile hash, runtime extras, ACR run/tag/digest and GitHub invocation must
+be captured by the trusted job, not supplied by workflow-dispatch callers.
+The pure unsigned constructor has negative controls for subject/source/tag,
+builder workflow, failed build and material hash mismatch; its output explicitly
+is NOT evidence. It makes no network, signing, grant or infrastructure call.
+
+The proposed pinned official `actions/attest` step uses an exact subject-name
+and subject-digest, a custom predicate, GitHub storage and no registry signature
+push. Activation would need a separately approved `attestations: write` job
+permission; this PR applies no permission delta and adds no live signing step.
+Existing Entra OIDC identity and Azure/registry grants remain unchanged. Before
+activation the build/provenance owner must implement/review context capture and
+record collection, strict signed-bundle semantic verification, retention and
+fail-before-deploy ordering. Certificate/workflow/source validation and exact
+subject verification must remain mandatory. Do not claim an isolated ACR
+builder attestation, a SLSA assurance level or immutable dependency resolution
+from this orchestration proposal. The current image's missing/unverified
+provenance is not repaired by this document or an unsigned JSON statement.
+
+Release owner: review this bounded minimization on green CI; separately authorize
+merge/deploy and retain exact-image scan/OIDC evidence. Security/base-image owner:
+continue stable vendor tracking and component applicability review, especially
+retained shared libraries. Provenance owner: resolve the explicit design and
+permission review before enabling signing. Production HOLD and canonical
+maturity remain unchanged.
+
+References: [Docker multi-stage builds](https://docs.docker.com/build/building/multi-stage/),
+[official attestation action inputs](https://github.com/actions/attest/blob/v4/action.yml).
