@@ -75,6 +75,27 @@ def test_other_candidate_image_rejected():
         probe.summarize(scan(), sbom(), "sha256:" + "b" * 64)
 
 
+@pytest.mark.parametrize("files,uid", [("/usr/bin/su", "100"), ("", "0"), ("", "invalid")])
+def test_runtime_privilege_regressions_block_candidate(monkeypatch, files, uid):
+    responses = iter([files, uid])
+    monkeypatch.setattr(probe, "command", lambda args: next(responses))
+    with pytest.raises(ValueError):
+        probe.runtime_hardening()
+
+
+def test_runtime_hardening_checks_all_files_as_root_without_network(monkeypatch):
+    calls = []
+
+    def command(args):
+        calls.append(args)
+        return "100" if args[-1] == "-u" else ""
+
+    monkeypatch.setattr(probe, "command", command)
+    assert probe.runtime_hardening() == {"nonroot": True, "setuid_setgid_files": 0}
+    assert "0" in calls[0] and "/6000" in calls[0]
+    assert all("--read-only" in args and "none" in args for args in calls)
+
+
 def test_exported_config_hash_tag_and_layer_chain_bind_candidate(tmp_path):
     import io
     import json

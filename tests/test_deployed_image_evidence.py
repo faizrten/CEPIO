@@ -180,6 +180,7 @@ def test_full_readonly_report_retains_independent_failures_and_no_credentials(
     monkeypatch.delenv("DOCKER_CONFIG", raising=False)
     current = iter(["DOCKER|" + IMAGE, "DOCKER|other" if failure == "drift" else "DOCKER|" + IMAGE])
     monkeypatch.setattr(probe, "current_image", lambda: next(current))
+    monkeypatch.setattr(probe, "provenance_discovery", lambda digest: {"http_status": 404})
     calls = []
 
     def command(args, *, stdin=None, timeout=60):
@@ -310,3 +311,44 @@ def test_scanner_runs_as_runner_with_owned_cache_and_no_root_home(tmp_path, monk
     monkeypatch.setattr(probe.os, "getuid", lambda: 0)
     with pytest.raises(ValueError, match="SCANNER_RUNNER_MUST_BE_NONROOT"):
         probe.scanner_command(tmp_path, tmp_path, tmp_path)
+
+
+def test_os_triage_preserves_package_entries_and_unknowns_without_waivers():
+    data = scan()
+    data["Results"][0]["Vulnerabilities"] = [
+        {"VulnerabilityID": "CVE-1", "Severity": "HIGH", "PkgName": name}
+        for name in ["library", "utility"]
+    ] + [{"VulnerabilityID": "CVE-2", "Severity": "UNKNOWN", "PkgName": "other"}]
+    result = probe.os_triage(data)
+    assert result["blocking_package_entries"] == 3
+    assert len(result["advisories"]) == 2
+    assert all(x["disposition"] == "OPEN" for x in result["advisories"])
+    assert not probe.scan_summary(data, IMAGE)["qualified"]
+
+
+@pytest.mark.parametrize("status,count", [(200, 1), (404, None), (403, None)])
+def test_provenance_discovery_never_counts_as_verification(monkeypatch, status, count):
+    def run(args, **kwargs):
+        assert args[:3] == ["gh", "api", "--include"]
+        assert DIGEST in args[-1]
+        return SimpleNamespace(
+            returncode=0 if status == 200 else 1,
+            stdout=f"HTTP/2.0 {status} Status\nHeader: SECRET\n\n"
+            + json.dumps({"attestations": ["SECRET"]}),
+            stderr="SECRET bearer token",
+        )
+
+    monkeypatch.setattr(probe.subprocess, "run", run)
+    result = probe.provenance_discovery(DIGEST)
+    assert result["http_status"] == status
+    assert result.get("first_page_record_count") == count
+    assert not result["qualified"] and "SECRET" not in json.dumps(result)
+
+
+def test_provenance_discovery_timeout_stays_unverified(monkeypatch):
+    def run(*args, **kwargs):
+        raise subprocess.TimeoutExpired("SECRET", 60)
+
+    monkeypatch.setattr(probe.subprocess, "run", run)
+    result = probe.provenance_discovery(DIGEST)
+    assert not result["qualified"] and "SECRET" not in json.dumps(result)
