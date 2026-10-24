@@ -19,7 +19,8 @@ def statement(run, acr, source, digest, materials):
         for k in MATERIALS
     ):
         raise ValueError("INVALID_PROVENANCE_MATERIALS")
-    result = proposal(run, acr, source, digest, materials[MATERIALS[0]], materials[MATERIALS[1]])[
+    result = proposal(run, acr, source, digest, materials[MATERIALS[0]], materials[MATERIALS[1]],
+                      expected_event="workflow_dispatch")[
         "statement"
     ]
     definition = result["predicate"]["buildDefinition"]
@@ -38,10 +39,26 @@ def statement(run, acr, source, digest, materials):
 
 def hosted_runner(run_id, execute):
     jobs = json.loads(
-        execute(["gh", "api", f"repos/{REPO}/actions/runs/{run_id}/jobs?filter=latest"])
+        execute(["gh", "api", f"repos/{REPO}/actions/runs/{run_id}/jobs?filter=latest&per_page=100"])
     )
     matches = [j for j in jobs.get("jobs", []) if j.get("name") == "deploy"]
-    if len(matches) != 1 or jobs.get("total_count") != 1:
+    validation = {
+        "validate / " + name for name in (
+            "ci-unit", "ci-contracts", "ci-drilling", "ci-refinery",
+            "ci-package", "ci-container", "test",
+        )
+    }
+    entries = jobs.get("jobs", [])
+    if (
+        len(matches) != 1
+        or jobs.get("total_count") != len(entries)
+        or len(entries) != len(validation) + 1
+        or {j.get("name") for j in entries} != validation | {"deploy"}
+        or any(
+            j.get("status") != "completed" or j.get("conclusion") != "success"
+            for j in entries if j.get("name") in validation
+        )
+    ):
         raise ValueError("UNEXPECTED_PROVENANCE_RUNNER")
     job = matches[0]
     if (
@@ -76,7 +93,7 @@ def verify_command(image, source):
         "--certificate-github-workflow-repository",
         REPO,
         "--certificate-github-workflow-trigger",
-        "workflow_run",
+        "workflow_dispatch",
         image,
     ]
 

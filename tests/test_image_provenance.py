@@ -21,7 +21,7 @@ def records():
         "run_attempt": 1,
         "head_sha": SOURCE,
         "head_branch": "main",
-        "event": "workflow_run",
+        "event": "workflow_dispatch",
         "path": ".github/workflows/deploy-azure.yml",
         "repository": {"full_name": proof.REPO},
         "status": "in_progress",
@@ -57,9 +57,13 @@ def envelope(item):
 
 def jobs():
     return {
-        "total_count": 1,
+        "total_count": 8,
         "jobs": [
             {"name": "deploy", "runner_group_name": "GitHub Actions", "labels": ["ubuntu-latest"]}
+        ] + [
+            {"name": "validate / " + name, "status": "completed", "conclusion": "success"}
+            for name in ("ci-unit", "ci-contracts", "ci-drilling", "ci-refinery",
+                         "ci-package", "ci-container", "test")
         ],
     }
 
@@ -132,14 +136,14 @@ def test_verifier_keeps_exact_identity_claims_and_no_insecure_overrides():
     args = proof.verify_command(IMAGE, SOURCE)
     assert args[args.index("--certificate-identity") + 1] == proof.WORKFLOW + "@refs/heads/main"
     assert args[args.index("--certificate-github-workflow-sha") + 1] == SOURCE
-    assert args[args.index("--certificate-github-workflow-trigger") + 1] == "workflow_run"
+    assert args[args.index("--certificate-github-workflow-trigger") + 1] == "workflow_dispatch"
     assert "--check-claims=true" in args
     assert not any("ignore" in a or "regexp" in a or "insecure" in a for a in args)
     with pytest.raises(ValueError):
         proof.verify_command("repo:latest", SOURCE)
 
 
-@pytest.mark.parametrize("bad", ["self-hosted", "group", "missing", "multiple"])
+@pytest.mark.parametrize("bad", ["self-hosted", "group", "missing", "multiple", "validation", "automatic"])
 def test_untrusted_runners_are_rejected(bad):
     data = jobs()
     if bad == "self-hosted":
@@ -149,7 +153,12 @@ def test_untrusted_runners_are_rejected(bad):
     if bad == "missing":
         data["jobs"] = []
     if bad == "multiple":
-        data["total_count"] = 2
+        data["jobs"].append(copy.deepcopy(data["jobs"][0]))
+        data["total_count"] = len(data["jobs"])
+    if bad == "validation":
+        data["jobs"][1]["conclusion"] = "failure"
+    if bad == "automatic":
+        data = {"total_count": 1, "jobs": data["jobs"][:1]}
     with pytest.raises(ValueError):
         proof.hosted_runner(123, lambda args: json.dumps(data))
 
@@ -192,7 +201,7 @@ def test_build_outputs_withheld_until_signing_and_verification(monkeypatch, tmp_
         "GITHUB_RUN_ATTEMPT": "1",
         "GITHUB_REPOSITORY": proof.REPO,
         "GITHUB_REF": "refs/heads/main",
-        "GITHUB_EVENT_NAME": "workflow_run",
+        "GITHUB_EVENT_NAME": "workflow_dispatch",
         "AZURE_CONTAINER_REGISTRY": "cepiodemo31d48",
         "RUNNER_TEMP": str(temporary),
         "GITHUB_OUTPUT": str(tmp_path / "outputs"),

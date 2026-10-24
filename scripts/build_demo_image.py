@@ -31,7 +31,7 @@ def main():
     if (
         os.environ.get("GITHUB_REPOSITORY") != REPO
         or os.environ.get("GITHUB_REF") != "refs/heads/main"
-        or os.environ.get("GITHUB_EVENT_NAME") != "workflow_run"
+        or os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch"
         or os.environ.get("GITHUB_SHA") != source
     ):
         raise ValueError("UNEXPECTED_BUILD_CONTEXT")
@@ -48,7 +48,7 @@ def main():
         or run.get("head_branch") != "main"
         or run.get("path") != ".github/workflows/deploy-azure.yml"
         or run.get("repository", {}).get("full_name") != REPO
-        or run.get("event") != "workflow_run"
+        or run.get("event") != "workflow_dispatch"
         or run.get("status") != "in_progress"
     ):
         raise ValueError("UNEXPECTED_BUILD_RUN")

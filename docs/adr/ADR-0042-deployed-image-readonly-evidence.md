@@ -261,7 +261,7 @@ never customer data, tokens, complete cloud records or source archives.
 
 Before any App Service mutation, a separate `cosign verify-attestation` reads
 the registry and requires exact issuer, workflow certificate identity, source
-SHA, source ref, repository, workflow_run trigger, transparency verification and
+SHA, source ref, repository, workflow_dispatch trigger, transparency verification and
 default image-claim verification. Authenticated GitHub job metadata must show
 one GitHub-hosted `deploy` job, with ubuntu-latest and no self-hosted label. Only
 successful verifier stdout is decoded; its in-toto statement must exactly match
@@ -293,3 +293,12 @@ image remains production HOLD; every scan/SBOM/authorization gate is independent
 References: [Cosign attest](https://github.com/sigstore/cosign/blob/v3.1.4/doc/cosign_attest.md),
 [verification constraints](https://github.com/sigstore/cosign/blob/v3.1.4/doc/cosign_verify-attestation.md),
 [GitHub artifact download permission](https://docs.github.com/en/rest/actions/artifacts#download-an-artifact).
+
+### Compatibility with separately authorized manual deployment
+
+After ADR-0043, the active builder and certificate verifier require only
+`workflow_dispatch` on current main. The deployment run must contain exactly the
+seven successful reusable CI validation jobs and one GitHub-hosted deploy job;
+missing, failed, extra or truncated job records fail closed before image outputs.
+The inactive historical proposal retains its former trigger by default. This
+changes no identity permissions or deployment authorization boundary.
