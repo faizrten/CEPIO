@@ -175,6 +175,7 @@ def main():
         code, _ = run("tests-build", ["docker", "build", "--target", "test-runner", "-f", DOCKERFILE, "-t", "cepio:test", "."])
         if code == 0:
             run("source-suite", ["docker", "run", "--rm", "--network", "none", "--cap-drop=ALL",
+                "--user", f"{os.getuid()}:{os.getgid()}", "-e", "HOME=/tmp",
                 "--security-opt=no-new-privileges", "--tmpfs", "/tmp:exec",
                 "-v", f"{ROOT}:/work:ro", "-v", f"{EVIDENCE}:/evidence", "cepio:test",
                 "python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--basetemp=/tmp/pytest",
