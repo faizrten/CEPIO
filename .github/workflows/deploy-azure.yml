@@ -1,10 +1,12 @@
 name: Deploy CEPIO to Azure
 
 on:
-  workflow_run:
-    workflows: ["CEPIO CI"]
-    types: [completed]
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact reviewed main commit to deploy; production remains HOLD until separately authorized
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -14,12 +16,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    needs: validate
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      needs.validate.result == 'success'
     runs-on: ubuntu-latest
     environment: azure-demo
     timeout-minutes: 30
@@ -27,7 +33,7 @@ jobs:
       contents: read
       id-token: write
     env:
-      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+      DEPLOY_SHA: ${{ inputs.source_sha }}
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
       AZURE_CONTAINER_REGISTRY: ${{ vars.AZURE_CONTAINER_REGISTRY }}
@@ -41,10 +47,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Expected a full reviewed commit SHA."; exit 1; }
           checked_out_sha="$(git rev-parse HEAD)"
           main_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
-          if [[ "$checked_out_sha" != "$DEPLOY_SHA" || "$main_sha" != "$DEPLOY_SHA" ]]; then
-            echo "::error::This commit is no longer main. Approve the latest successful CI deployment instead."
+          if [[ "$checked_out_sha" != "$DEPLOY_SHA" || "$main_sha" != "$DEPLOY_SHA" || "$GITHUB_SHA" != "$DEPLOY_SHA" ]]; then
+            echo "::error::Requested commit must match the dispatched, validated and current main commit."
             exit 1
           fi
 

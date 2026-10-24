@@ -62,6 +62,12 @@ jobs:
       - run: python -m pip install -e '.[dev]'
       - run: python scripts/check_api_contract.py
       - run: python scripts/check_client_contract.py
+      - name: Install checksum-pinned OpenAPI comparator
+        run: bash scripts/install_oasdiff.sh "$RUNNER_TEMP/oasdiff"
+      - name: Compare complete application and Management OpenAPI contracts
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+        run: python scripts/check_openapi_compatibility.py --base "$BASE_REF" --surfaces application management --oasdiff "$RUNNER_TEMP/oasdiff/oasdiff"
       - run: mkdir -p evidence
       - run: python scripts/check_ontology_compat.py --json-report evidence/accepted-ontology.json
       - name: Compare public and persisted contracts with immutable PR base

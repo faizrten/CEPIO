@@ -166,7 +166,9 @@ def build_linkage(run, acr_run, source, image, deployment):
     if not (
         run.get("head_sha") == source
         and run.get("conclusion") == "success"
-        and run.get("event") == "workflow_run"
+        # Historical automatic runs and separately authorized manual runs retain
+        # the same successful source/build/image linkage requirements.
+        and run.get("event") in {"workflow_run", "workflow_dispatch"}
         and run.get("path") == ".github/workflows/deploy-azure.yml"
         and run.get("repository", {}).get("full_name") == REPOSITORY
         and acr_run.get("status") == "Succeeded"
