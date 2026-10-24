@@ -305,3 +305,62 @@ changes no identity permissions or deployment authorization boundary.
 The builder process disables Python bytecode writes so its own helper imports
 cannot contaminate the clean source context; unexpected existing ignored files
 still fail the clean-worktree gate.
+
+## Stable OS refresh and v1.0 production-security evidence — 2026-10-24
+
+The runtime and wheel builder now share the official multi-platform
+`python:3.11.17-slim-trixie` base, pinned to index digest
+`sha256:b7a9e5f6a93d6d4a31f129bbd4bdee69efccb6ded0fb230d78aafaf37af98377`.
+Docker Hub's manifest identifies the amd64 image as
+`sha256:b95327ce1439e687237841b0210677aeadd62d55a060a5f6bcb9c15bf6251dd3`
+and its source as docker-library/python commit
+`cede844ace77284e32c03b61ebc35cdfc945e862`, `3.11/slim-trixie`.
+This makes the existing Python 3.11 / Debian Trixie contract explicit. It does
+not claim that Python itself was older in the previously floating base.
+
+Before user creation, dependency installation and minimization, both stages
+receive available upgrades from the base's existing stable repositories.
+APT index errors fail the build; ordinary `upgrade --no-remove` neither removes
+packages nor installs additional packages. No testing/unstable repository,
+distribution migration, essential-package purge or advisory suppression is used.
+For a later refresh, rebuild with `docker build --pull --no-cache`; cached layers
+are not fresh vendor-update evidence. The base digest must be reviewed separately
+when a newer official Python image is adopted. APT and Python dependencies remain
+resolved at build time, so this is not a reproducible-build claim.
+
+The existing CI candidate lane retains the full scan/SBOM, inspects nonroot and
+privilege-bit/minimization controls, tests native libraries/TLS/DNS/timezones,
+and exercises REST health and authenticated MCP initialization. Candidate success
+only establishes its bounded regression checks; HIGH or UNKNOWN findings still
+fail image qualification. Deployment workflows remain manual and are outside
+this PR's validation. Runtime application code and Python dependency declarations
+are unchanged.
+
+Scope review: the 44 HIGH plus one UNKNOWN baseline belongs to CEPIO's Debian
+image. CEPIO-Labs main already uses a digest-pinned Python 3.11 Alpine 3.23 image
+with `apk upgrade`; Studio main uses its Next.js/Node package manifest and has no
+Dockerfile. Those distinct artifacts are not covered by the Debian scan and gain
+no qualification from this change.
+
+### Production-security scorecard: G6 remains FAIL / overall HOLD
+
+Baseline: [deployed read-only check, attempt 1](https://github.com/faizrten/CEPIO/actions/runs/40086679368/attempts/1)
+at source `892b977e2b5f9ad0a0272a55a8f0d2f6e07fdb72`, deployed digest
+`sha256:bed01bd89a0be190a7a95c4bf4d229276b7e8e2bfddea42e1e9ae0de7984009f`:
+0 CRITICAL, 44 HIGH, 58 MEDIUM, 61 LOW, 1 UNKNOWN; all findings are OS entries.
+The scan report SHA256 is
+`aba11eedad61600dcb711f36857e04db823f5914824b5584cb14e9275ace6c60`.
+Exact-image provenance, SBOM, build linkage and target consistency passed.
+
+Candidate and fresh deployed read-only results are pending. No finding is closed
+by the Dockerfile edit itself. On 2026-10-24 the Debian tracker still lists the
+stable Trixie versions in all nine advisory links above as vulnerable; no stable
+fixed version is available. The eight HIGH advisories account for 44 package
+entries; CVE-2026-82560 accounts for the one UNKNOWN. Keep each entry OPEN even
+where a vendor labels it minor or defers its fix. Upgrades must be measured by
+the retained scan, not inferred from a successful package-manager command.
+
+This security evidence does not change the canonical 69/100 v1 maturity score,
+published release status, remaining authorization proof gaps or other production
+gates. No broader grants, paid inference, infrastructure changes or deployment
+are part of this PR.
