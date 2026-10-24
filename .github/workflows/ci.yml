@@ -242,8 +242,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Install pinned verifier and public release fixture
+        run: python3 scripts/install_cosign.py --release-bundle
+      - name: Verify real public signature and fail-closed tamper controls
+        run: python3 scripts/check_cosign_verifier.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-cosign-verifier-${{ github.run_id }}
+          path: evidence/cosign-verifier/report.json
+          if-no-files-found: error
       - name: Build Developer Preview container
         run: docker build -t cepio:ci .
+      - name: Inspect candidate tooling removal and retain full scan/SBOM
+        run: python3 scripts/check_candidate_image.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cepio-candidate-image-${{ github.run_id }}
+          path: evidence/candidate-image/
+          if-no-files-found: error
       - name: Smoke test container outside Python checkout
         shell: bash
         run: |

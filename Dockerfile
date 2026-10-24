@@ -34,16 +34,30 @@ WORKDIR /app
 RUN addgroup --system cepio && adduser --system --ingroup cepio cepio
 
 COPY --from=builder /build/dist/cepio-*.whl /tmp/
-RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=83.0.0" \
+RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" \
     && wheel="$(ls /tmp/cepio-*.whl)" \
     && if [ -n "$CEPIO_RUNTIME_EXTRAS" ]; then \
          python -m pip install --no-cache-dir "${wheel}[${CEPIO_RUNTIME_EXTRAS}]"; \
        else \
          python -m pip install --no-cache-dir "$wheel"; \
        fi \
+    && python -m pip check \
+    && python -m pip uninstall --yes pip \
+    && rm -rf /usr/local/lib/python3.11/ensurepip \
+    && python -c "import importlib.util; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None" \
     && rm -f /tmp/cepio-*.whl
 
+# The service never needs setuid/setgid helpers. Preserve OS packages and their
+# scanner inventory, but remove file-based privilege transitions from the runtime.
+RUN find / -xdev -type f -perm /6000 -exec chmod a-s {} + \
+    && test -z "$(find / -xdev -type f -perm /6000 -print -quit)"
+
 RUN mkdir -p /app /data && chown -R cepio:cepio /app /data
+
+# Installation/user setup is complete. The HTTP host needs no mount/namespace,
+# terminal administration or Perl CLI. Keep shared libraries and dpkg inventory.
+COPY scripts/minimize_runtime.py /tmp/minimize_runtime.py
+RUN CEPIO_IMAGE_BUILD=1 python /tmp/minimize_runtime.py --apply && rm /tmp/minimize_runtime.py
 USER cepio
 
 EXPOSE 8000

@@ -88,8 +88,8 @@ class EntraTokenValidator:
         if not self.settings.audience:
             raise RuntimeError("CEPIO_ENTRA_AUDIENCE is required for Entra authentication")
         jwks_client = jwt.PyJWKClient(self.settings.resolved_jwks_uri())
-        signing_key = jwks_client.get_signing_key_from_jwt(token)
         try:
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
             claims = jwt.decode(
                 token,
                 signing_key.key,
@@ -98,6 +98,10 @@ class EntraTokenValidator:
                 issuer=self.settings.resolved_issuer(),
                 options={"require": ["exp", "iat"]},
             )
+            # Issuer and audience validation do not independently constrain tid,
+            # including when a custom issuer/JWKS binding is configured.
+            if self.settings.tenant_id and claims.get("tid") != self.settings.tenant_id:
+                raise jwt.InvalidTokenError("Tenant claim does not match configured tenant")
         except jwt.PyJWTError as exc:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
