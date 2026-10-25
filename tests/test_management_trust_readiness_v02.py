@@ -85,9 +85,7 @@ def test_live_binding_requires_current_scoped_probe():
         .verified_readiness
         == "stale"
     )
-    excessively_long = probe.model_copy(
-        update={"expires_at": now + timedelta(days=365)}
-    )
+    excessively_long = probe.model_copy(update={"expires_at": now + timedelta(days=365)})
     assert (
         _service(bindings=[_binding()], binding_verifications={"test-historian": excessively_long})
         .list_bindings()[0]
@@ -214,19 +212,27 @@ def test_investigation_observer_failures_keep_customer_counts_hidden():
     now = datetime.now(timezone.utc)
     snapshots = [
         InvestigationOperations(
-            state="not-connected", tenant_id="tenant-a", counts=None,
+            state="not-connected",
+            tenant_id="tenant-a",
+            counts=None,
             observed_at=now,
         ),
         InvestigationOperations(
-            state="available", tenant_id="tenant-a", counts={"running": 1},
+            state="available",
+            tenant_id="tenant-a",
+            counts={"running": 1},
             observed_at=now.replace(tzinfo=None),
         ),
         InvestigationOperations(
-            state="available", tenant_id="tenant-a", counts={"running": 1},
+            state="available",
+            tenant_id="tenant-a",
+            counts={"running": 1},
             observed_at=now + timedelta(minutes=2),
         ),
         InvestigationOperations.model_construct(
-            state="available", tenant_id="tenant-a", counts={"running": -1},
+            state="available",
+            tenant_id="tenant-a",
+            counts={"running": -1},
             observed_at=now,
         ),
     ]
