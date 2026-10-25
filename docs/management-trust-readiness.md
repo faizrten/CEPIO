@@ -4,7 +4,7 @@
 
 This change preserves CEPIO Management as a read-only control-plane projection over the same Core runtime as REST and MCP. The API does not run Skills, launch investigations, approve decisions, probe customer endpoints on request, or release raw customer evidence.
 
-- `/management/v1/health` is **process liveness only**, not proof of databases, SAP/PI, Foundry or model connectivity. Hosted response is marked `local_only=false`; local launcher remains loopback-only.
+- `/management/v1/health` is **process liveness only**, not proof of databases, SAP/PI, Foundry or model connectivity. Hosted response is marked `local_only=false` and `remote_management_access=authenticated-remote`; the legacy `management_access=loopback-only` field continues to describe the standalone local launcher for compatibility.
 - `/management/v1/capabilities` reports actual in-process Function, Decision and Action registrations plus the inventory origin for shipped Skill descriptors. `readiness_qualified=false` does not imply any Skill is ready for a specific actor, target or evidence set.
 - `/management/v1/bindings` preserves registration `status` for compatibility and **separately** reports `verified_readiness`. A `ready` registration alone never produces `verified`. Only server-supplied, evidence-referenced, unexpired checks are accepted; stale, failed and unverified states are explicit. No automated customer-network probe is launched.
 - `/management/v1/industry-iq` continues to report runtime-installed versions; exact-version matching deployment manifests add Core constraints and declared capability composition where available. Available source catalog entries are not installed packs.
