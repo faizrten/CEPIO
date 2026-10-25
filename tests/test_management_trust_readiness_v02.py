@@ -18,13 +18,23 @@ def _service(runtime=None, **kwargs):
     return CEPIOManagementService(
         runtime or build_runtime(),
         runtime_settings=RuntimeSettings(
-            environment="test", db_url="memory://", resource_root=None,
-            ontology_dir=None, profiles=(), validate_types=True,
-            validate_properties=True, strict_properties=False,
+            environment="test",
+            db_url="memory://",
+            resource_root=None,
+            ontology_dir=None,
+            profiles=(),
+            validate_types=True,
+            validate_properties=True,
+            strict_properties=False,
         ),
         auth_settings=AuthSettings(
-            mode="dev", environment="test", tenant_id=None, audience=None,
-            issuer=None, jwks_uri=None, group_role_map={},
+            mode="dev",
+            environment="test",
+            tenant_id=None,
+            audience=None,
+            issuer=None,
+            jwks_uri=None,
+            group_role_map={},
         ),
         **kwargs,
     )
@@ -32,8 +42,11 @@ def _service(runtime=None, **kwargs):
 
 def _binding():
     return BindingDescriptor(
-        binding_id="test-historian", provider="synthetic",
-        capability="resolve-evidence", mode="read", status="ready",
+        binding_id="test-historian",
+        provider="synthetic",
+        capability="resolve-evidence",
+        mode="read",
+        status="ready",
         authority="observation-only",
     )
 
@@ -49,7 +62,8 @@ def test_registration_is_not_live_readiness():
 def test_live_binding_requires_current_scoped_probe():
     now = datetime.now(timezone.utc)
     probe = BindingVerification(
-        binding_id="test-historian", result="passed",
+        binding_id="test-historian",
+        result="passed",
         checked_at=now - timedelta(minutes=1),
         expires_at=now + timedelta(minutes=9),
         evidence_ref="test-probe-123",
@@ -65,22 +79,41 @@ def test_live_binding_requires_current_scoped_probe():
     assert manager.capabilities().binding_inventory_state == "connected"
 
     expired = probe.model_copy(update={"expires_at": now - timedelta(seconds=1)})
-    assert _service(bindings=[_binding()], binding_verifications={"test-historian": expired}).list_bindings()[0].verified_readiness == "stale"
+    assert (
+        _service(bindings=[_binding()], binding_verifications={"test-historian": expired})
+        .list_bindings()[0]
+        .verified_readiness
+        == "stale"
+    )
     failed = probe.model_copy(update={"result": "failed"})
-    assert _service(bindings=[_binding()], binding_verifications={"test-historian": failed}).list_bindings()[0].verified_readiness == "failed"
+    assert (
+        _service(bindings=[_binding()], binding_verifications={"test-historian": failed})
+        .list_bindings()[0]
+        .verified_readiness
+        == "failed"
+    )
     future = probe.model_copy(update={"checked_at": now + timedelta(days=1)})
-    assert _service(bindings=[_binding()], binding_verifications={"test-historian": future}).list_bindings()[0].verified_readiness == "not-verified"
+    assert (
+        _service(bindings=[_binding()], binding_verifications={"test-historian": future})
+        .list_bindings()[0]
+        .verified_readiness
+        == "not-verified"
+    )
 
 
 def test_pack_deployment_manifest_is_version_specific():
     runtime = build_runtime()
     runtime.industry_iq_packs = {"example": "1.2.3"}
     manifest = IndustryIQPackManifest(
-        pack_id="example", version="1.2.3", requires_core=">=0.4.0,<1.0.0",
+        pack_id="example",
+        version="1.2.3",
+        requires_core=">=0.4.0,<1.0.0",
         functions={"assess"},
     )
     runtime.industry_iq_deployment_manifest = IndustryIQDeploymentManifest(
-        core_version="0.4.0", packs={"example": manifest}, install_order=["example"],
+        core_version="0.4.0",
+        packs={"example": manifest},
+        install_order=["example"],
     )
     pack = _service(runtime).list_industry_iq()[0]
     assert pack.deployment_recorded is True
@@ -111,7 +144,8 @@ def test_investigation_ops_is_tenant_scoped_and_rejects_mismatched_source():
 
     manager = _service(investigation_observer=observer)
     assert manager.investigation_operations("tenant-a").counts == {
-        "running": 2, "awaiting-approval": 1
+        "running": 2,
+        "awaiting-approval": 1,
     }
     assert manager.investigation_operations("tenant-b").state == "degraded"
     assert manager.investigation_operations("tenant-b").counts is None
