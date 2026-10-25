@@ -19,5 +19,9 @@ def test_management_snapshot_exact():
     if expected != actual:
         before = json.dumps(expected, indent=2, sort_keys=True).splitlines()
         after = json.dumps(actual, indent=2, sort_keys=True).splitlines()
-        diff = list(difflib.unified_diff(before, after, fromfile="reviewed", tofile="generated", lineterm=""))
+        diff = list(
+            difflib.unified_diff(
+                before, after, fromfile="reviewed", tofile="generated", lineterm=""
+            )
+        )
         raise AssertionError("Management OpenAPI snapshot differs:\n" + "\n".join(diff[:220]))
