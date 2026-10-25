@@ -1,5 +1,7 @@
 # Competency & Assurance
 
+**Product mandate:** [CEPIO's mission and Product North Star](../strategy/industry-iq-product-north-star.md) make independently qualified, professionally useful industrial competence the moat. Assurance must distinguish semantic, Skill, model-agent, platform and **live operational** evidence, and compare CEPIO Industry IQ against a model with equivalent enterprise evidence/tools. A synthetic PASS alone cannot substantiate real-world economic benefit or professional excellence.
+
 ## Why competency matters
 
 The CEPIO North Star is **thin infrastructure, thick Industry IQ**. Product maturity therefore cannot be measured by ontology size, connector count, cache size or runtime feature count alone.
