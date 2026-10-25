@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Mapping
+from datetime import datetime, timezone
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -30,6 +31,7 @@ class RuntimeHealth(BaseModel):
     status: Literal["healthy"] = "healthy"
     read_only: bool = True
     local_only: bool = True
+    scope: Literal["process-only"] = "process-only"
     metadata: ManagementMetadata = Field(default_factory=ManagementMetadata)
 
 
@@ -38,7 +40,7 @@ class RuntimeDescriptor(BaseModel):
     environment: str
     persistence_mode: Literal["memory", "sqlite", "external"]
     application_auth_mode: str
-    management_access: Literal["loopback-only"] = "loopback-only"
+    management_access: Literal["loopback-only", "authenticated-remote"] = "loopback-only"
     validate_types: bool
     validate_properties: bool
     strict_properties: bool
@@ -56,6 +58,7 @@ class SkillDescriptor(BaseModel):
     skill_id: str
     binding_id: str | None = None
     executable: bool
+    readiness: Literal["actor-preflight-required"] = "actor-preflight-required"
     required_industry_iq: dict[str, str] = Field(default_factory=dict)
     decision_capabilities: list[str] = Field(default_factory=list)
     action_capabilities: list[str] = Field(default_factory=list)
@@ -65,6 +68,22 @@ class SkillDescriptor(BaseModel):
 class IndustryIQPackDescriptor(BaseModel):
     pack_id: str
     version: str
+    deployment_recorded: bool = False
+    requires_core: str | None = None
+    requires_packs: dict[str, str] = Field(default_factory=dict)
+    functions: list[str] = Field(default_factory=list)
+    decisions: list[str] = Field(default_factory=list)
+    actions: list[str] = Field(default_factory=list)
+
+
+class BindingVerification(BaseModel):
+    """Server-supplied evidence from a completed, scoped and non-destructive probe."""
+
+    binding_id: str
+    result: Literal["passed", "failed"]
+    checked_at: datetime
+    expires_at: datetime
+    evidence_ref: str
 
 
 class BindingDescriptor(BaseModel):
@@ -79,6 +98,10 @@ class BindingDescriptor(BaseModel):
     source_system: str | None = None
     declared_capabilities: list[str] = Field(default_factory=list)
     binding_contract_version: str = BINDING_CONTRACT_VERSION
+    # Registration status is not proof of live source connectivity.
+    verified_readiness: Literal["not-verified", "verified", "failed", "stale"] = "not-verified"
+    last_checked_at: datetime | None = None
+    verification_ref: str | None = None
 
     @classmethod
     def from_registration(cls, registration: BindingRegistration) -> "BindingDescriptor":
@@ -112,9 +135,24 @@ class CapabilityInventory(BaseModel):
     industry_iq_pack_count: int
     binding_count: int
     profile_count: int
+    registered_function_count: int = 0
+    registered_decision_count: int = 0
+    registered_action_count: int = 0
+    binding_inventory_state: Literal["connected", "not-wired"] = "not-wired"
+    skill_inventory_source: Literal["shipped-specifications"] = "shipped-specifications"
+    readiness_qualified: bool = False
     application_contract_available: bool = True
     management_contract_version: str = MANAGEMENT_CONTRACT_VERSION
     binding_contract_version: str = BINDING_CONTRACT_VERSION
+
+
+class InvestigationOperations(BaseModel):
+    """No customer records; only a trusted, tenant-scoped aggregate may populate counts."""
+
+    state: Literal["not-connected", "available", "degraded"] = "not-connected"
+    counts: dict[str, int] | None = None
+    observed_at: datetime | None = None
+    reason: str = "No tenant-scoped investigation operations observer configured"
 
 
 class CEPIOManagementService:
@@ -134,6 +172,10 @@ class CEPIOManagementService:
         skill_specs: Iterable[SkillPreflightSpec] = (),
         executable_skill_ids: Iterable[str] = (),
         bindings: Iterable[BindingDescriptor] = (),
+        binding_inventory_connected: bool = False,
+        binding_verifications: Mapping[str, BindingVerification] | None = None,
+        remote_access: bool = False,
+        investigation_observer: Callable[[], InvestigationOperations] | None = None,
     ) -> None:
         self.runtime = runtime
         self.runtime_settings = runtime_settings
@@ -141,9 +183,13 @@ class CEPIOManagementService:
         self._skill_specs = tuple(skill_specs)
         self._executable_skill_ids = frozenset(executable_skill_ids)
         self._bindings = tuple(bindings)
+        self._binding_inventory_connected = binding_inventory_connected
+        self._binding_verifications = dict(binding_verifications or {})
+        self._remote_access = remote_access
+        self._investigation_observer = investigation_observer
 
     def health(self) -> RuntimeHealth:
-        return RuntimeHealth()
+        return RuntimeHealth(local_only=not self._remote_access)
 
     def runtime_descriptor(self) -> RuntimeDescriptor:
         db_url = self.runtime_settings.db_url
@@ -161,6 +207,7 @@ class CEPIOManagementService:
             validate_types=self.runtime_settings.validate_types,
             validate_properties=self.runtime_settings.validate_properties,
             strict_properties=self.runtime_settings.strict_properties,
+            management_access="authenticated-remote" if self._remote_access else "loopback-only",
         )
 
     def list_skills(self) -> list[SkillDescriptor]:
@@ -191,13 +238,64 @@ class CEPIOManagementService:
         return result
 
     def list_industry_iq(self) -> list[IndustryIQPackDescriptor]:
-        return [
-            IndustryIQPackDescriptor(pack_id=pack_id, version=version)
-            for pack_id, version in sorted(self.runtime.industry_iq_packs.items())
-        ]
+        deployment = getattr(self.runtime, "industry_iq_deployment_manifest", None)
+        manifests = getattr(deployment, "packs", {}) if deployment is not None else {}
+        result: list[IndustryIQPackDescriptor] = []
+        for pack_id, version in sorted(self.runtime.industry_iq_packs.items()):
+            manifest = manifests.get(pack_id) if isinstance(manifests, dict) else None
+            # Never attach a deployment manifest for a different version.
+            valid = manifest is not None and manifest.version == version
+            result.append(IndustryIQPackDescriptor(
+                pack_id=pack_id,
+                version=version,
+                deployment_recorded=valid,
+                requires_core=manifest.requires_core if valid else None,
+                requires_packs=dict(manifest.requires_packs) if valid else {},
+                functions=sorted(manifest.functions) if valid else [],
+                decisions=sorted(manifest.decisions) if valid else [],
+                actions=sorted(manifest.actions) if valid else [],
+            ))
+        return result
 
     def list_bindings(self) -> list[BindingDescriptor]:
-        return sorted(self._bindings, key=lambda item: item.binding_id)
+        now = datetime.now(timezone.utc)
+        result: list[BindingDescriptor] = []
+        for binding in sorted(self._bindings, key=lambda item: item.binding_id):
+            probe = self._binding_verifications.get(binding.binding_id)
+            if probe is None:
+                result.append(binding.model_copy(update={"verified_readiness": "not-verified"}))
+                continue
+            checked = probe.checked_at
+            expires = probe.expires_at
+            if checked.tzinfo is None or expires.tzinfo is None or checked > now or expires <= checked or not probe.evidence_ref.strip():
+                readiness = "not-verified"
+            elif expires <= now:
+                readiness = "stale"
+            elif probe.result == "passed" and binding.status == "ready":
+                readiness = "verified"
+            else:
+                readiness = "failed"
+            result.append(binding.model_copy(update={
+                "verified_readiness": readiness,
+                "last_checked_at": checked if readiness != "not-verified" else None,
+                "verification_ref": probe.evidence_ref if readiness != "not-verified" else None,
+            }))
+        return result
+
+    def investigation_operations(self) -> InvestigationOperations:
+        if self._investigation_observer is None:
+            return InvestigationOperations()
+        try:
+            snapshot = InvestigationOperations.model_validate(self._investigation_observer())
+            if snapshot.state != "available" or snapshot.observed_at is None or snapshot.counts is None:
+                return InvestigationOperations(state="degraded", reason="Observer returned incomplete operational evidence")
+            if snapshot.observed_at.tzinfo is None or snapshot.observed_at > datetime.now(timezone.utc):
+                return InvestigationOperations(state="degraded", reason="Observer timestamp is invalid")
+            if any(not key or not isinstance(value, int) or value < 0 for key, value in snapshot.counts.items()):
+                return InvestigationOperations(state="degraded", reason="Observer counts are invalid")
+            return snapshot
+        except Exception:
+            return InvestigationOperations(state="degraded", reason="Trusted observer unavailable")
 
     def list_profiles(self) -> list[ProfileDescriptor]:
         profile_versions = getattr(self.runtime, "profile_versions", {})
@@ -216,4 +314,8 @@ class CEPIOManagementService:
             industry_iq_pack_count=len(self.runtime.industry_iq_packs),
             binding_count=len(self._bindings),
             profile_count=len(self.list_profiles()),
+            registered_function_count=len(getattr(self.runtime, "_functions", {})),
+            registered_decision_count=len(getattr(self.runtime, "_decisions", {})),
+            registered_action_count=len(getattr(self.runtime, "_actions", {})),
+            binding_inventory_state="connected" if self._binding_inventory_connected else "not-wired",
         )
