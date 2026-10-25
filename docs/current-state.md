@@ -1,5 +1,7 @@
 # CEPIO Current State
 
+**Strategy reference (26 October 2026):** [CEPIO Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md) establishes the professional companion mission, Industrial Competence Network and sovereignty doctrine. The dated implementation baseline and maturity scores **below retain their own dates**; strategic approval must not be confused with new live qualification or product-release advancement.
+
 **Snapshot date:** 2026-10-20  
 **Capability snapshot baseline (pre-reconciliation `main`):** `85d9b6ead10038a74c141799b682b845d49ce24b`
 
