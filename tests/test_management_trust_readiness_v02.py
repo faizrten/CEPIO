@@ -92,6 +92,13 @@ def test_live_binding_requires_current_scoped_probe():
         .verified_readiness
         == "failed"
     )
+    wrong_binding = probe.model_copy(update={"binding_id": "another-binding"})
+    assert (
+        _service(bindings=[_binding()], binding_verifications={"test-historian": wrong_binding})
+        .list_bindings()[0]
+        .verified_readiness
+        == "not-verified"
+    )
     future = probe.model_copy(update={"checked_at": now + timedelta(days=1)})
     assert (
         _service(bindings=[_binding()], binding_verifications={"test-historian": future})
