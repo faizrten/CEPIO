@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Mapping
 
 from .application_runtime import shipped_executable_skill_ids, shipped_skill_specs
 from .auth import AuthSettings
 from .config import RuntimeSettings
-from .management_contract import BindingDescriptor, CEPIOManagementService
+from .management_contract import BindingDescriptor, BindingVerification, CEPIOManagementService, InvestigationOperations
 from .platform_bindings import BindingRegistration
 from .runtime import CEPIORuntime
 
@@ -16,6 +16,10 @@ def build_management_service(
     runtime_settings: RuntimeSettings | None = None,
     auth_settings: AuthSettings | None = None,
     bindings: Iterable[BindingDescriptor] = (),
+    binding_inventory_connected: bool = False,
+    binding_verifications: Mapping[str, BindingVerification] | None = None,
+    remote_access: bool = False,
+    investigation_observer: Callable[[], InvestigationOperations] | None = None,
 ) -> CEPIOManagementService:
     """Build the read-only CEPIO management contract for one runtime instance."""
 
@@ -26,6 +30,10 @@ def build_management_service(
         skill_specs=shipped_skill_specs(),
         executable_skill_ids=shipped_executable_skill_ids(),
         bindings=bindings,
+        binding_inventory_connected=binding_inventory_connected,
+        binding_verifications=binding_verifications,
+        remote_access=remote_access,
+        investigation_observer=investigation_observer,
     )
 
 
@@ -46,4 +54,5 @@ def build_management_service_from_registrations(
             BindingDescriptor.from_registration(registration)
             for registration in binding_registrations
         ),
+        binding_inventory_connected=True,
     )
