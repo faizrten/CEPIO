@@ -90,6 +90,14 @@ def build_remote_management_router(service: CEPIOManagementService) -> APIRouter
         return service.list_bindings()
 
     @router.get(
+        "/investigations",
+        response_model=InvestigationOperations,
+        tags=["management-operations"],
+    )
+    def investigations(actor: ActorContext = Depends(require_management_reader)) -> InvestigationOperations:
+        return service.investigation_operations(actor.tenant_id)
+
+    @router.get(
         "/profiles",
         response_model=list[ProfileDescriptor],
         tags=["management-configuration"],
