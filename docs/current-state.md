@@ -9,6 +9,14 @@ This page is the narrative current-state snapshot for CEPIO. The pinned SHA iden
 2. **repository mainline capability** — merged implementation that may be ahead of the published release;
 3. **v1 maturity scorecard** — an independently governed evidence-backed completion model.
 
+## Maintenance update: Scenario Lab ownership
+
+The drilling synthetic MVP generators, dataset contracts and acceptance harness
+have moved to CEPIO Labs. Public runtime/API behavior and release claims are
+unchanged. See [migration scope and contributor workflow](scenario-lab-migration.md);
+the Fabric-dependent synthetic adapter and broader embedded fixtures remain a
+separate cutover task. Scenario Lab is not promoted to a supported product service.
+
 ## North Star
 
 > **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
