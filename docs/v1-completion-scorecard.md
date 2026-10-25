@@ -1,5 +1,7 @@
 # CEPIO v1.0 completion scorecard
 
+**Strategy alignment:** The [canonical Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md) adds professional usefulness, the Industrial Competence Network, sovereignty and compounding to the **interpretation** of maturity. This documentation change earns **zero additional points** and does not change the fixed 100-point scoring weights, evidence baseline or release-gate requirements. Any future reweighting requires the separate v1 scorecard governance process.
+
 The canonical CEPIO v1.0 maturity score lives in [`config/v1-scorecard.yaml`](../config/v1-scorecard.yaml).
 
 It is a **100-point, evidence-backed product-maturity score** aligned to CEPIO's North Star:
