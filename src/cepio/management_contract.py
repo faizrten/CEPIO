@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable
+from collections.abc import Callable, Mapping
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
@@ -177,10 +178,6 @@ class CEPIOManagementService:
         skill_specs: Iterable[SkillPreflightSpec] = (),
         executable_skill_ids: Iterable[str] = (),
         bindings: Iterable[BindingDescriptor] = (),
-        binding_inventory_connected: bool = False,
-        binding_verifications: Mapping[str, BindingVerification] | None = None,
-        remote_access: bool = False,
-        investigation_observer: Callable[[str], InvestigationOperations] | None = None,
     ) -> None:
         self.runtime = runtime
         self.runtime_settings = runtime_settings
@@ -188,10 +185,29 @@ class CEPIOManagementService:
         self._skill_specs = tuple(skill_specs)
         self._executable_skill_ids = frozenset(executable_skill_ids)
         self._bindings = tuple(bindings)
-        self._binding_inventory_connected = binding_inventory_connected
-        self._binding_verifications = dict(binding_verifications or {})
-        self._remote_access = remote_access
-        self._investigation_observer = investigation_observer
+        self._binding_inventory_connected = False
+        self._binding_verifications: dict[str, BindingVerification] = {}
+        self._remote_access = False
+        self._investigation_observer: Callable[[str], InvestigationOperations] | None = None
+
+    def configure_sources(
+        self,
+        *,
+        binding_inventory_connected: bool | None = None,
+        binding_verifications: Mapping[str, BindingVerification] | None = None,
+        remote_access: bool | None = None,
+        investigation_observer: Callable[[str], InvestigationOperations] | None = None,
+    ) -> CEPIOManagementService:
+        """Configure trusted host-supplied sources without changing v0.1 constructor ABI."""
+        if binding_inventory_connected is not None:
+            self._binding_inventory_connected = binding_inventory_connected
+        if binding_verifications is not None:
+            self._binding_verifications = dict(binding_verifications)
+        if remote_access is not None:
+            self._remote_access = remote_access
+        if investigation_observer is not None:
+            self._investigation_observer = investigation_observer
+        return self
 
     def health(self) -> RuntimeHealth:
         return RuntimeHealth(local_only=not self._remote_access)
