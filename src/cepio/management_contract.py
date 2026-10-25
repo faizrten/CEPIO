@@ -246,16 +246,21 @@ class CEPIOManagementService:
             manifest = manifests.get(pack_id) if isinstance(manifests, dict) else None
             # Never attach a deployment manifest for a different version.
             valid = manifest is not None and manifest.version == version
-            result.append(IndustryIQPackDescriptor(
-                pack_id=pack_id,
-                version=version,
-                deployment_recorded=valid,
-                requires_core=manifest.requires_core if valid else None,
-                requires_packs=dict(manifest.requires_packs) if valid else {},
-                functions=sorted(manifest.functions) if valid else [],
-                decisions=sorted(manifest.decisions) if valid else [],
-                actions=sorted(manifest.actions) if valid else [],
-            ))
+            if valid and manifest is not None:
+                result.append(
+                    IndustryIQPackDescriptor(
+                        pack_id=pack_id,
+                        version=version,
+                        deployment_recorded=True,
+                        requires_core=manifest.requires_core,
+                        requires_packs=dict(manifest.requires_packs),
+                        functions=sorted(manifest.functions),
+                        decisions=sorted(manifest.decisions),
+                        actions=sorted(manifest.actions),
+                    )
+                )
+            else:
+                result.append(IndustryIQPackDescriptor(pack_id=pack_id, version=version))
         return result
 
     def list_bindings(self) -> list[BindingDescriptor]:
@@ -268,7 +273,13 @@ class CEPIOManagementService:
                 continue
             checked = probe.checked_at
             expires = probe.expires_at
-            if checked.tzinfo is None or expires.tzinfo is None or checked > now or expires <= checked or not probe.evidence_ref.strip():
+            if (
+                checked.tzinfo is None
+                or expires.tzinfo is None
+                or checked > now
+                or expires <= checked
+                or not probe.evidence_ref.strip()
+            ):
                 readiness = "not-verified"
             elif expires <= now:
                 readiness = "stale"
@@ -276,26 +287,51 @@ class CEPIOManagementService:
                 readiness = "verified"
             else:
                 readiness = "failed"
-            result.append(binding.model_copy(update={
-                "verified_readiness": readiness,
-                "last_checked_at": checked if readiness != "not-verified" else None,
-                "verification_ref": probe.evidence_ref if readiness != "not-verified" else None,
-            }))
+            result.append(
+                binding.model_copy(
+                    update={
+                        "verified_readiness": readiness,
+                        "last_checked_at": checked if readiness != "not-verified" else None,
+                        "verification_ref": probe.evidence_ref
+                        if readiness != "not-verified"
+                        else None,
+                    }
+                )
+            )
         return result
 
     def investigation_operations(self, tenant_id: str | None = None) -> InvestigationOperations:
         if self._investigation_observer is None or not tenant_id:
             return InvestigationOperations()
         try:
-            snapshot = InvestigationOperations.model_validate(self._investigation_observer(tenant_id))
+            snapshot = InvestigationOperations.model_validate(
+                self._investigation_observer(tenant_id)
+            )
             if snapshot.tenant_id != tenant_id:
-                return InvestigationOperations(state="degraded", reason="Investigation scope mismatch")
-            if snapshot.state != "available" or snapshot.observed_at is None or snapshot.counts is None:
-                return InvestigationOperations(state="degraded", reason="Observer returned incomplete operational evidence")
-            if snapshot.observed_at.tzinfo is None or snapshot.observed_at > datetime.now(timezone.utc):
-                return InvestigationOperations(state="degraded", reason="Observer timestamp is invalid")
-            if any(not key or type(value) is not int or value < 0 for key, value in snapshot.counts.items()):
-                return InvestigationOperations(state="degraded", reason="Observer counts are invalid")
+                return InvestigationOperations(
+                    state="degraded", reason="Investigation scope mismatch"
+                )
+            if (
+                snapshot.state != "available"
+                or snapshot.observed_at is None
+                or snapshot.counts is None
+            ):
+                return InvestigationOperations(
+                    state="degraded", reason="Observer returned incomplete operational evidence"
+                )
+            if snapshot.observed_at.tzinfo is None or snapshot.observed_at > datetime.now(
+                timezone.utc
+            ):
+                return InvestigationOperations(
+                    state="degraded", reason="Observer timestamp is invalid"
+                )
+            if any(
+                not key or type(value) is not int or value < 0
+                for key, value in snapshot.counts.items()
+            ):
+                return InvestigationOperations(
+                    state="degraded", reason="Observer counts are invalid"
+                )
             return snapshot
         except Exception:
             return InvestigationOperations(state="degraded", reason="Trusted observer unavailable")
@@ -320,5 +356,7 @@ class CEPIOManagementService:
             registered_function_count=len(getattr(self.runtime, "_functions", {})),
             registered_decision_count=len(getattr(self.runtime, "_decisions", {})),
             registered_action_count=len(getattr(self.runtime, "_actions", {})),
-            binding_inventory_state="connected" if self._binding_inventory_connected else "not-wired",
+            binding_inventory_state="connected"
+            if self._binding_inventory_connected
+            else "not-wired",
         )
