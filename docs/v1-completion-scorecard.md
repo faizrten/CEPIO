@@ -60,6 +60,19 @@ Every gate has a fixed point budget, earned points, status and structured eviden
 
 See [`docs/governance/v1-scorecard-governance.md`](governance/v1-scorecard-governance.md) for the authority and change-control contract.
 
+## Strategic North Star indicators — separate from the canonical 100-point score
+
+The adopted direction is **collective industrial progress with sovereign enterprise intelligence**. We therefore track two complementary *non-scoring* indicators. They guide investment and evidence gathering but do not replace, inflate or reweight the canonical 69/100 baseline:
+
+| Strategic indicator | Evidence measures | Qualification rule |
+| --- | --- | --- |
+| **Industrial Competence Compounding** | Independently qualified reusable capabilities; number of independent supported domains; held-out accuracy/abstention and critical-safety error rate; cross-domain regression survival; marginal effort to onboard another industry domain | Freeze candidate, evaluation corpus and baseline; preserve negative outcomes; no synthetic-only claim of field reliability |
+| **Intelligence Sovereignty Assurance** | Completeness of provenance/permissions; critical data paths with verified negative tenant-isolation tests; unauthorized cross-boundary transfers; reviewed contribution approvals; derivative leakage findings; retention/revocation tests | Any unauthorized transfer or critical privacy/IP boundary failure is a **hard release blocker**, regardless of aggregate metrics |
+
+Every reported measure must state its owner, numerator and denominator where applicable, date/window, source evidence, maturity state and limits. Blank or unmeasured is **unknown**, not zero risk or success. Outcomes measured from customer operations remain within that customer's boundary unless a separately authorized disclosure is permitted.
+
+This extends [ADR-006](adr/ADR-006-enterprise-knowledge-sovereignty.md), [ADR-007](adr/ADR-007-open-interface-protected-intelligence.md), [architecture](architecture.md), and the [Capability Registry](capability-registry-and-compounding-intelligence.md). Roadmap work targets the approved synthetic/qualification and customer-private-memory boundaries; no existing release requirements are waived.
+
 ## Calculator
 
 Validate the canonical scorecard:

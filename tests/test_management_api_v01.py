@@ -68,6 +68,7 @@ def test_local_management_api_exposes_only_read_only_management_routes():
         "/management/v1/industry-iq",
         "/management/v1/bindings",
         "/management/v1/profiles",
+        "/management/v1/investigations",
     }
     for path in expected:
         response = client.get(path)
@@ -106,9 +107,16 @@ def test_management_api_payloads_are_durable_descriptors():
             "source_system": "synthetic-reference",
             "declared_capabilities": ["resolve-evidence"],
             "binding_contract_version": "0.1",
+            "verified_readiness": "not-verified",
+            "last_checked_at": None,
+            "verification_ref": None,
         }
     ]
     assert capabilities["binding_contract_version"] == "0.1"
+    assert capabilities["binding_inventory_state"] == "connected"
+    assert capabilities["readiness_qualified"] is False
+    assert bindings[0]["verified_readiness"] == "not-verified"
+    assert client.get("/management/v1/investigations").json()["state"] == "not-connected"
 
 
 def test_management_api_rejects_non_loopback_clients():

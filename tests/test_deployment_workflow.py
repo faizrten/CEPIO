@@ -14,25 +14,27 @@ def workflow():
     return yaml.load(path.read_text(), Loader=yaml.BaseLoader)
 
 
-def test_deployment_requires_successful_main_push_ci(workflow):
-    assert workflow["on"] == {
-        "workflow_run": {
-            "workflows": ["CEPIO CI"],
-            "types": ["completed"],
-            "branches": ["main"],
-        }
-    }
+def test_deployment_requires_explicit_dispatch_and_successful_main_ci(workflow):
+    assert set(workflow["on"]) == {"workflow_dispatch"}
+    source = workflow["on"]["workflow_dispatch"]["inputs"]["source_sha"]
+    assert source["required"] == "true" and source["type"] == "string"
+    validate = workflow["jobs"]["validate"]
+    assert validate["uses"] == "./.github/workflows/ci.yml"
+    assert (
+        validate["if"]
+        == "github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'"
+    )
     ci = yaml.load(
         (ROOT / ".github" / "workflows" / "ci.yml").read_text(),
         Loader=yaml.BaseLoader,
     )
     assert ci["name"] == "CEPIO CI"
     assert " ".join(workflow["jobs"]["deploy"]["if"].split()) == (
-        "github.event.workflow_run.conclusion == 'success' && "
-        "github.event.workflow_run.event == 'push' && "
-        "github.event.workflow_run.head_branch == 'main' && "
-        "github.event.workflow_run.head_repository.full_name == github.repository"
+        "github.event_name == 'workflow_dispatch' && "
+        "github.ref == 'refs/heads/main' && "
+        "needs.validate.result == 'success'"
     )
+    assert workflow["jobs"]["deploy"]["needs"] == "validate"
 
 
 def test_deployment_uses_environment_scoped_oidc(workflow):
@@ -57,7 +59,7 @@ def test_deployment_checks_out_tested_commit_without_saved_credentials(workflow)
         "ref": "refs/heads/main",
         "persist-credentials": "false",
     }
-    assert deploy["env"]["DEPLOY_SHA"] == "${{ github.event.workflow_run.head_sha }}"
+    assert deploy["env"]["DEPLOY_SHA"] == "${{ inputs.source_sha }}"
     assert workflow["concurrency"] == {
         "group": "cepio-azure-demo",
         "cancel-in-progress": "false",
@@ -70,20 +72,42 @@ def test_deployment_checks_out_tested_commit_without_saved_credentials(workflow)
     assert guard < login
     assert 'checked_out_sha="$(git rev-parse HEAD)"' in steps[guard]["run"]
     assert (
-        '[[ "$checked_out_sha" != "$DEPLOY_SHA" || "$main_sha" != "$DEPLOY_SHA" ]]'
+        '[[ "$checked_out_sha" != "$DEPLOY_SHA" || "$main_sha" != "$DEPLOY_SHA" || "$GITHUB_SHA" != "$DEPLOY_SHA" ]]'
         in steps[guard]["run"]
     )
     assert "exit 1" in steps[guard]["run"]
+    assert "^[0-9a-f]{40}$" in steps[guard]["run"]
+
+
+def test_dev_cannot_deploy_on_merge_or_non_main_dispatch():
+    dev = yaml.load((ROOT / ".github/workflows/deploy-dev.yml").read_text(), Loader=yaml.BaseLoader)
+    assert set(dev["on"]) == {"workflow_dispatch"}
+    assert (
+        dev["jobs"]["validate"]["if"]
+        == "${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}"
+    )
+    assert dev["jobs"]["validate"]["uses"] == "./.github/workflows/ci.yml"
+    assert dev["jobs"]["deploy"]["needs"] == "validate"
+    assert dev["permissions"] == {"contents": "read", "id-token": "write"}
+    assert dev["jobs"]["deploy"]["environment"] == "dev"
+    steps = dev["jobs"]["deploy"]["steps"]
+    guard = next(
+        i
+        for i, s in enumerate(steps)
+        if s.get("name") == "Reject superseded manual dispatch before Azure login"
+    )
+    login = next(i for i, s in enumerate(steps) if s.get("uses") == AZURE_LOGIN)
+    assert guard < login
+    assert '"$main_sha" == "$GITHUB_SHA"' in steps[guard]["run"]
 
 
 def test_deployment_pins_built_image_digest(workflow):
     steps = workflow["jobs"]["deploy"]["steps"]
     build = next(step for step in steps if step.get("id") == "build")["run"]
     deploy = next(step for step in steps if step.get("name") == "Deploy immutable image")
-    assert "${DEPLOY_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" in build
-    assert "--no-logs" in build
-    assert "sha256:[0-9a-f]{64}" in build
-    assert "image=${server}/cepio@${digest}" in build
+    assert build == "python3 scripts/build_demo_image.py"
+    # The helper's functional tests reject wrong source/run/attempt tags and
+    # registry digests and withhold outputs on signing/verification failure.
     assert deploy["env"]["IMAGE"] == "${{ steps.build.outputs.image }}"
     assert '--container-image-name "$IMAGE"' in deploy["run"]
     assert '[[ "$configured" != "DOCKER|$IMAGE" ]]' in deploy["run"]

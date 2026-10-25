@@ -53,6 +53,11 @@ RUN find / -xdev -type f -perm /6000 -exec chmod a-s {} + \
     && test -z "$(find / -xdev -type f -perm /6000 -print -quit)"
 
 RUN mkdir -p /app /data && chown -R cepio:cepio /app /data
+
+# Installation/user setup is complete. The HTTP host needs no mount/namespace,
+# terminal administration or Perl CLI. Keep shared libraries and dpkg inventory.
+COPY scripts/minimize_runtime.py /tmp/minimize_runtime.py
+RUN CEPIO_IMAGE_BUILD=1 python /tmp/minimize_runtime.py --apply && rm /tmp/minimize_runtime.py
 USER cepio
 
 EXPOSE 8000

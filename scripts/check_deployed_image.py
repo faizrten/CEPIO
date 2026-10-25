@@ -8,6 +8,8 @@ import re
 import subprocess
 import tempfile
 
+from image_provenance import verify as verify_image_provenance
+
 
 REGISTRY = "cepiodemo31d48.azurecr.io"
 SCANNER = (
@@ -164,7 +166,9 @@ def build_linkage(run, acr_run, source, image, deployment):
     if not (
         run.get("head_sha") == source
         and run.get("conclusion") == "success"
-        and run.get("event") == "workflow_run"
+        # Historical automatic runs and separately authorized manual runs retain
+        # the same successful source/build/image linkage requirements.
+        and run.get("event") in {"workflow_run", "workflow_dispatch"}
         and run.get("path") == ".github/workflows/deploy-azure.yml"
         and run.get("repository", {}).get("full_name") == REPOSITORY
         and acr_run.get("status") == "Succeeded"
@@ -379,33 +383,10 @@ def main():
             old_config = os.environ.get("DOCKER_CONFIG")
             os.environ["DOCKER_CONFIG"] = str(docker_config)
             try:
-                verified = json.loads(
-                    command(
-                        [
-                            "gh",
-                            "attestation",
-                            "verify",
-                            "oci://" + image,
-                            "--repo",
-                            REPOSITORY,
-                            "--signer-workflow",
-                            REPOSITORY + "/.github/workflows/deploy-azure.yml",
-                            "--source-digest",
-                            source,
-                            "--source-ref",
-                            "refs/heads/main",
-                            "--deny-self-hosted-runners",
-                            "--predicate-type",
-                            "https://slsa.dev/provenance/v1",
-                            "--format",
-                            "json",
-                        ],
-                        timeout=180,
-                    )
-                )
-                report["checks"]["signed_provenance"] = provenance_summary(verified, digest)
-                (evidence / "verified-provenance.json").write_text(
-                    json.dumps(verified, indent=2) + "\n"
+                if not report["checks"]["build_linkage"]["qualified"]:
+                    raise ValueError("BUILD_LINKAGE_UNAVAILABLE_OR_MISMATCHED")
+                report["checks"]["signed_provenance"] = verify_image_provenance(
+                    image, source, run, acr_run, evidence, command
                 )
             except (ValueError, OSError, KeyError, TypeError, AttributeError):
                 report["checks"]["signed_provenance"] = {
