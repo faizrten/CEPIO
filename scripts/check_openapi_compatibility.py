@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from copy import deepcopy
+import difflib
 import io
 import json
 import os
@@ -87,7 +88,14 @@ def operations(schema):
 
 def check_snapshot(root, surface, schema):
     path = root / SNAPSHOTS[surface]
-    if not path.is_file() or json.loads(path.read_text(encoding="utf-8")) != schema:
+    if not path.is_file():
+        raise ValueError(f"Missing reviewed {surface} OpenAPI snapshot")
+    reviewed = json.loads(path.read_text(encoding="utf-8"))
+    if reviewed != schema:
+        before = json.dumps(reviewed, indent=2, sort_keys=True).splitlines()
+        after = json.dumps(schema, indent=2, sort_keys=True).splitlines()
+        diff = list(difflib.unified_diff(before, after, fromfile="reviewed", tofile="generated"))
+        print("\n".join(diff[:120]), file=sys.stderr)
         raise ValueError(f"Generated {surface} schema drifted from its reviewed full snapshot")
 
 
