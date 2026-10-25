@@ -18,6 +18,7 @@ EXPECTED_PATHS = {
     "/management/v1/industry-iq",
     "/management/v1/bindings",
     "/management/v1/profiles",
+    "/management/v1/investigations",
 }
 
 
@@ -114,11 +115,13 @@ def test_host_composition_exposes_public_and_remote_management_contracts(monkeyp
 
     client = TestClient(app)
     assert client.get("/api/v1/health").status_code == 200
+    # Remote Management metadata must never describe an authenticated remote host as loopback-only.
+    # Unauthenticated management access remains denied.
     assert client.get("/management/v1/health").status_code == 403
-    assert (
-        client.get(
-            "/management/v1/health",
-            headers={"X-CEPIO-Dev-Roles": "cepio_management_reader"},
-        ).status_code
-        == 200
+    response = client.get(
+        "/management/v1/health",
+        headers={"X-CEPIO-Dev-Roles": "cepio_management_reader"},
     )
+    assert response.status_code == 200
+    assert response.json()["local_only"] is False
+    assert response.json()["scope"] == "process-only"
