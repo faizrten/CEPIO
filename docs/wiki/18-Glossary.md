@@ -1,5 +1,7 @@
 # Glossary
 
+**Product terminology authority:** [CEPIO Product North Star & Strategic Doctrine](../strategy/industry-iq-product-north-star.md). **Industrial Competence Network** means versioned, permissioned, independently qualified reusable industrial competence and assurance—not pooled enterprise customer data. **Industry IQ Companion** means the proposed persona-adaptive professional experience through approved host surfaces; it is not a new CEPIO agent runtime. **Intelligence sovereignty** means customer-specific operational data and derivative knowledge remain within authorized customer control.
+
 **Action** — Governed operation that changes CEPIO state or causes an external side effect. Action authority is separate from reasoning/recommendation authority.
 
 **Actor** — Authenticated human, application, service/workload or AI identity evaluated by CEPIO policy and authority contracts.
