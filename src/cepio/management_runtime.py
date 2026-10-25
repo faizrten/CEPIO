@@ -5,7 +5,12 @@ from collections.abc import Callable, Iterable, Mapping
 from .application_runtime import shipped_executable_skill_ids, shipped_skill_specs
 from .auth import AuthSettings
 from .config import RuntimeSettings
-from .management_contract import BindingDescriptor, BindingVerification, CEPIOManagementService, InvestigationOperations
+from .management_contract import (
+    BindingDescriptor,
+    BindingVerification,
+    CEPIOManagementService,
+    InvestigationOperations,
+)
 from .platform_bindings import BindingRegistration
 from .runtime import CEPIORuntime
 
