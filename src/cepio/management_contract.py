@@ -40,7 +40,8 @@ class RuntimeDescriptor(BaseModel):
     environment: str
     persistence_mode: Literal["memory", "sqlite", "external"]
     application_auth_mode: str
-    management_access: Literal["loopback-only", "authenticated-remote"] = "loopback-only"
+    management_access: Literal["loopback-only"] = "loopback-only"
+    remote_management_access: Literal["authenticated-remote"] | None = None
     validate_types: bool
     validate_properties: bool
     strict_properties: bool
@@ -208,7 +209,7 @@ class CEPIOManagementService:
             validate_types=self.runtime_settings.validate_types,
             validate_properties=self.runtime_settings.validate_properties,
             strict_properties=self.runtime_settings.strict_properties,
-            management_access="authenticated-remote" if self._remote_access else "loopback-only",
+            remote_management_access="authenticated-remote" if self._remote_access else None,
         )
 
     def list_skills(self) -> list[SkillDescriptor]:
