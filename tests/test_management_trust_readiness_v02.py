@@ -166,3 +166,62 @@ def test_health_is_process_only_and_remote_mode_is_reported():
     assert manager.health().local_only is False
     assert manager.runtime_descriptor().management_access == "loopback-only"
     assert manager.runtime_descriptor().remote_management_access == "authenticated-remote"
+
+
+def test_invalid_binding_probes_fail_closed():
+    now = datetime.now(timezone.utc)
+    evidence = BindingVerification(
+        binding_id="test-historian",
+        result="passed",
+        checked_at=now - timedelta(minutes=1),
+        expires_at=now + timedelta(minutes=1),
+        evidence_ref="synthetic-check",
+    )
+    changes = (
+        {"checked_at": now.replace(tzinfo=None)},
+        {"expires_at": now - timedelta(minutes=2)},
+        {"evidence_ref": "  "},
+    )
+    for patch in changes:
+        probe = evidence.model_copy(update=patch)
+        item = _service(
+            bindings=[_binding()],
+            binding_verifications={"test-historian": probe},
+        ).list_bindings()[0]
+        assert item.verified_readiness == "not-verified"
+
+
+def test_investigation_observer_failures_keep_customer_counts_hidden():
+    now = datetime.now(timezone.utc)
+    snapshots = [
+        InvestigationOperations(
+            state="not-connected", tenant_id="tenant-a", counts=None,
+            observed_at=now,
+        ),
+        InvestigationOperations(
+            state="available", tenant_id="tenant-a", counts={"running": 1},
+            observed_at=now.replace(tzinfo=None),
+        ),
+        InvestigationOperations(
+            state="available", tenant_id="tenant-a", counts={"running": 1},
+            observed_at=now + timedelta(minutes=2),
+        ),
+        InvestigationOperations.model_construct(
+            state="available", tenant_id="tenant-a", counts={"running": -1},
+            observed_at=now,
+        ),
+    ]
+    for snapshot in snapshots:
+        manager = _service(investigation_observer=lambda tenant, data=snapshot: data)
+        outcome = manager.investigation_operations("tenant-a")
+        assert outcome.state == "degraded"
+        assert outcome.counts is None
+
+    def broken_observer(tenant):
+        raise RuntimeError("private upstream error")
+
+    broken = _service(investigation_observer=broken_observer)
+    result = broken.investigation_operations("tenant-a")
+    assert result.state == "degraded"
+    assert result.counts is None
+    assert "private upstream error" not in result.reason
