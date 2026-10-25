@@ -305,3 +305,239 @@ changes no identity permissions or deployment authorization boundary.
 The builder process disables Python bytecode writes so its own helper imports
 cannot contaminate the clean source context; unexpected existing ignored files
 still fail the clean-worktree gate.
+
+### Alternative base evaluation — 2026-10-24 (experiment, not deployment)
+
+The isolated `security/base-image-evaluation` branch compares supported,
+digest-pinned bases while leaving the production Dockerfile, application code,
+dependency manifest, infrastructure, authorization and deployment workflows unchanged.
+The experiment has only `contents: read`, uses no cloud credentials or model calls,
+and never publishes an image. The test harness is in `experiments/base-images/`.
+
+Evidence: [completed matrix](https://github.com/faizrten/CEPIO/actions/runs/40101146245)
+at `9d76126c07e5d85b0075500ceec33564c21940ed`, using application main
+`f3f4e7ce8988f2b386b5f355fe7433ee0fa18e53`, and
+[passing standard CI](https://github.com/faizrten/CEPIO/actions/runs/40101146256).
+All four downloaded artifact ZIP digests and every report-listed file hash were
+verified. Earlier harness runs are superseded by this completed matrix.
+
+| Base / Python | Critical | High | Medium | Low | Unknown | Source tests |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Trixie / 3.11.17 control | 0 | 44 | 58 | 61 | 1 | 1,168 pass / 1 skip |
+| Bookworm / 3.11.17 | 2 | 61 | 111 | 107 | 1 | 1,168 pass / 1 skip |
+| Alpine 3.24.3 / 3.11.17 | 0 | 0 | 0 | 0 | 0 | 1,168 pass / 1 skip |
+| Ubuntu 24.04 / packaged 3.12.3 | 0 | 0 | 26 | 5 | 0 | 1,168 pass / 1 skip |
+
+The skipped test requires Node, absent from each Python test container; it is
+part of passing host CI. The source suite runs with networking disabled in a
+writable disposable copy, with all capabilities dropped. The exact installed
+runtime wheel separately passes nonroot/privilege-bit, absent-pip, preserved
+package inventory, SQLite, UUID, CA trust, localhost resolution, timezone,
+NumPy/SciPy, JWT, health, anonymous MCP denial, authenticated MCP initialization
+and the same eight-tool listing checks on all four bases. The same pinned Trivy
+0.76.1 scanner performs unfiltered image-identity-bound scans and CycloneDX SBOMs;
+runtime Python versions are constrained to the previous verified PR300 SBOM.
+
+Optional MCP/OpenTelemetry/Fabric SQL extras install, import and load the native
+SQL driver on all four bases. Alpine requires `libstdc++` in addition to the
+documented libtool/Kerberos prerequisites. These optional probes are separate
+images: the table scans the default runtime, not those extra-equipped images.
+No live SQL/Fabric connection or paid inference was attempted.
+
+**Recommendation:** Alpine 3.24 is the strongest candidate for a narrowly scoped
+default-runtime migration PR. The tested image is
+`python:3.11.17-alpine3.24@sha256:5fb4bc53dd0180955e31e5245b648bbb24a4ac4ab03a1de81513642325220bcd`.
+It preserves the Python minor version and passes the tested CEPIO behavior.
+The original 45 package-level findings have evidence beyond scanner silence:
+
+| Original finding group | Count | Alpine default-runtime disposition |
+| --- | ---: | --- |
+| CVE-2025-69720, ncurses | 4 HIGH | Retained ncurses 6.6_p20260516-r0 is newer than upstream fix 6.5-20251213. |
+| CVE-2026-76642, -78408, -78409, -78410, util-linux | 36 HIGH | Retained libuuid 2.42.3-r1 meets Alpine vendor fixes: 2.42.3-r0 for three issues and r1 for -78408. |
+| CVE-2026-16742, systemd | 2 HIGH | No systemd-source packages in preserved Alpine inventory/SBOM. |
+| CVE-2026-54369, ACL | 1 HIGH | No ACL-source packages in preserved Alpine inventory/SBOM. |
+| CVE-2026-9538 / -82560, Perl | 1 HIGH / 1 UNKNOWN | No Perl-source packages in preserved Alpine inventory/SBOM. |
+
+References: [Alpine vendor security database](https://secdb.alpinelinux.org/v3.24/main.json),
+[ncurses CVE record](https://www.cve.org/CVERecord?id=CVE-2025-69720),
+[upstream ncurses fix](https://invisible-island.net/ncurses/NEWS.html#index-t20251213).
+Alpine's main repository support runs to June 2028; Python 3.11 security support
+ends October 2027, so that earlier date constrains this combination. See
+[Alpine support](https://alpinelinux.org/releases/) and
+[Python lifecycle](https://devguide.python.org/versions/).
+
+**Ubuntu is not evidence that all original findings were fixed.** It installs
+fixed ncurses, systemd and Perl versions for -69720, -16742 and -9538, but
+[ACL -54369 is ignored by Ubuntu](https://ubuntu.com/security/CVE-2026-54369)
+because the backport is too intrusive; retained libacl1 is 2.3.2-1build1.1.
+The four util-linux advisories and [Perl -82560](https://ubuntu.com/security/CVE-2026-82560)
+remain vendor "Needs evaluation", with util-linux 2.39.3-9ubuntu6.6 and perl-base
+5.38.2-3.2ubuntu0.6 still in inventory. For example,
+[util-linux -76642](https://ubuntu.com/security/CVE-2026-76642).
+The clean HIGH/UNKNOWN scanner count cannot close those original advisories.
+Bookworm is rejected because it increases blocking findings. Trixie still has
+the original 44 HIGH and one UNKNOWN.
+
+Limits: linux/amd64 only; no live service, external DNS/TLS integration,
+performance/SLO, ARM64, optional-image security or deployment qualification.
+Alpine uses musl and BusyBox: removing standalone administrative links does not
+prove their BusyBox multicall equivalents are absent. A production migration
+must explicitly preserve the required hardening contract and scan its final
+Dockerfile output, including any selected extras. These findings authorize no
+waiver or deployment. The current deployed image remains 44 HIGH / 1 UNKNOWN,
+production-security G6 remains FAIL/HOLD, and canonical v1 maturity stays 69/100.
+
+Artifacts (30-day workflow retention): Alpine `12563211244`, Bookworm
+`12563027893`, Trixie `12562418607`, Ubuntu `12561949971`. Each includes full
+scanner JSON, SBOM, grouped OS triage, JUnit results, build/smoke logs and hashes.
+
+### Alpine follow-up: removal of BusyBox and final optional-runtime scans
+
+`experiments/alpine-hardening/` adds isolated default and optional-extra final
+images. A supported dash shell preserves the existing startup command while the
+BusyBox executable and its aliases are removed after installation. The preserved
+apk inventory continues to describe installed package provenance for scanning;
+it is never edited to erase findings. Runtime probes require the administrative
+commands, BusyBox copies, privilege bits and file capabilities to be absent.
+
+The follow-up scans both final runtime variants, exercises installed-wheel
+authorization/Management/MCP/Fabric contracts, TLS trust rejection, persistent
+SQLite reopening, public Microsoft DNS/HTTPS, and real SQL-driver prelogin with
+a loopback fixture. These tests use no cloud credentials or model calls. The
+existing full source suite is also rerun. Live Fabric authentication/queries,
+managed identity and private networking remain unqualified by these isolated
+checks. Verified results follow; this harness makes no production or maturity
+claim.
+
+### Verified Alpine hardening outcome: production switch remains blocked
+
+The [completed hardening run](https://github.com/faizrten/CEPIO/actions/runs/40108881924)
+tested commit `5c7e2c271af27fe2fc38ea2d4f11368eabe3e104` on linux/amd64.
+Both final Alpine images (default and `mcp,otel,fabric-sql`) have **0 CRITICAL,
+0 HIGH, 0 MEDIUM, 0 LOW and 0 UNKNOWN** in the retained Trivy reports.
+Each passed 1,168 source tests with one Node-dependent skip and all 93
+installed-wheel integration/authorization tests. Host CI covers the Node test.
+CodeQL passed after making the TLS fixture's minimum version explicitly TLS 1.2.
+
+Both images removed BusyBox and 304 aliases, retained dash startup/PORT behavior,
+ran as non-root, preserved apk inventory, and passed absence checks for
+administrative commands, privilege bits and file capabilities. Native libraries,
+REST/MCP, SQLite reopen, TLS trust/hostname rejection, public Microsoft DNS/HTTPS
+and OpenTelemetry context checks passed where applicable. No telemetry exporter,
+cloud authentication or paid inference was invoked.
+
+The optional-runtime job **fails**, correctly, on the existing CEPIO Fabric
+connection configuration. `FabricSqlSettings.connection_string` supplies
+`Connection Timeout=...`, which installed `mssql-python==1.16.0` rejects with
+`Unknown keyword 'connection timeout' is not recognized`. The same rejection
+was reproduced on Trixie. With the driver's supported `timeout=` argument,
+both native drivers sent an 88-byte TDS prelogin packet to the loopback fixture
+and rejected the closed peer. This proves native initialization and protocol
+startup, not successful authentication or a SQL query. Mocked integration tests
+did not expose this existing application issue; no application fix is included.
+
+Read-only probes also establish that the unchanged production candidate checker
+cannot qualify this Alpine image: it requires removed `find`/`id` commands and
+the Debian dpkg/minimization manifest. The isolated harness does not waive or
+replace that gate. A reviewed portability update is needed before qualification.
+Live Fabric authentication/SELECT, managed identity and private endpoint
+networking remain unverified without authorized credentials and environment.
+
+**Decision: not safe to switch production now.** The security and isolated
+hardening results are favorable, but the existing gate incompatibility and
+Fabric configuration failure must be resolved and relevant live integration
+evidence obtained. Production Dockerfile, application code, manifests and
+infrastructure are unchanged; no deployment, merge or permission expansion.
+The last verified deployed findings remain 44 HIGH / 1 UNKNOWN, G6 remains
+FAIL/HOLD, and canonical v1 maturity remains 69/100. No open-PR credit is added.
+
+Retained artifacts (30 days): default `12566086108`, integrations `12565559231`,
+Trixie control `12565558851`. ZIP SHA-256 digests and every report-listed evidence
+file hash were verified locally. The local v1 production-security scorecard and
+`alpine-hardening-assessment-2026-10-24.json` record the results and blockers.
+
+### Verified timeout and candidate-checker fixes
+
+The authorized follow-up removes the unsupported connection-string timeout keyword
+and passes the configured 1–300 second timeout through `mssql_python.connect(timeout=)`.
+Encryption, server certificate validation, Entra authentication, allow-listed SQL
+and parameterized values are unchanged. Injected one-argument connection factories
+retain their existing interface.
+
+The candidate checker now uses Python for non-root and filesystem privilege
+inspection, including file capabilities, without requiring administrative CLI
+tools. Alpine verification checks the preserved apk inventory hash, removed paths,
+administrative command absence, dash shell and renamed BusyBox copies; missing or
+invalid evidence fails closed. Debian verification and all scanner thresholds,
+image archive identity checks and production-qualification restrictions remain.
+Regression fixtures cover inventory tampering, restored commands, copied BusyBox,
+invalid manifests, root users, privilege bits, capabilities and inspection errors.
+The isolated matrix executes the actual candidate checker against both final
+Alpine variants, plus the corrected SQL connector against Alpine and Trixie.
+Live authentication/query and private-network qualification still require separate
+evidence; these changes authorize no deployment or permission expansion.
+
+The [completed follow-up run](https://github.com/faizrten/CEPIO/actions/runs/40110762560)
+at `c1052ca88814c1f296a4673d3cba06950b83221f` closes the two implementation blockers
+above. Both final Alpine variants pass the actual candidate checker, including
+its independent archive-bound scan, inventory verification, non-root checks,
+privilege-bit and file-capability rejection. Both scans agree on zero findings at
+every severity and on the exact image identity. Both variants pass 1,183 source
+tests (one Node-dependent skip covered by host CI) and 96 installed-wheel tests.
+The Linux regression fixtures pass, including tampered inventory, restored
+administrative commands, renamed BusyBox binaries, malformed manifests and
+privilege regressions. Legitimate package records named `busybox` remain retained;
+binary-copy detection compares content, and known command paths must be absent.
+The Debian container CI also passes with the updated checker.
+
+The real driver parser accepts CEPIO's corrected configuration on Alpine and
+Trixie. The CEPIO connector using the supported timeout API sends an 88-byte TDS
+prelogin packet on both and rejects the incomplete fixture connection. These are
+isolated transport tests, not live authenticated Fabric query evidence.
+
+Artifacts: default `12566845756`, integrations `12567030564`, Trixie control
+`12566970375`. ZIP digests, report evidence hashes, nested candidate-checker hashes
+and image/config identity agreement were independently verified locally. The local
+security scorecard and `alpine-fixes-assessment-2026-10-24.json` record these verified
+fixes without overwriting historical failed results.
+
+**Remaining switch conditions:** live Fabric authentication and read-only query
+qualification with the intended existing identity; private-network/DNS/TLS and
+managed-identity evidence where used; reviewed production Dockerfile migration,
+exact final artifact security/provenance qualification, and rollout/rollback
+approval. The production Dockerfile still selects the existing base. No merge,
+deployment, infrastructure change, cloud permission expansion or inference was
+performed. Production remains G6 FAIL/HOLD and canonical maturity remains 69/100.
+
+### Proposed default-runtime migration without Fabric
+
+The user has confirmed Fabric is not provisioned. Live Fabric testing is deferred
+and is not a blocker for qualification of the default runtime without Fabric.
+The root Dockerfile now proposes the tested digest-pinned Alpine runtime and
+reviewed version constraints, with the build hardener promoted to
+`scripts/harden_alpine.py`. The branch workflow validates the actual root
+Dockerfile in `nonfabric` mode; optional SQL transport is absent. Existing pure
+unit tests may still cover its code, but no Fabric connection is attempted.
+Named-volume persistence across separate containers supplements the prior
+SQLite reopen check. Signed-token authorization and REST/Management/MCP tests run
+against the installed wheel.
+
+Verified root-Dockerfile run:
+[40113997169](https://github.com/faizrten/CEPIO/actions/runs/40113997169), source
+`3afa74ef37ac2a91795d74061f534261d42de5fa`, artifact `12567233053`.
+Both archive-bound scans report zero findings at every severity and agree on image
+identity. The runtime passes 1,183 source tests with one Node-dependent skip
+covered by host CI, all 96 installed-wheel tests, native/TLS and REST/MCP checks,
+and actual candidate-checker hardening/inventory checks. Named-volume SQLite data
+written by one non-root container is reopened by a separate container. The SQL
+driver is absent. No live Fabric test or public Microsoft metadata request ran.
+Artifact ZIP, evidence-file and nested checker hashes were verified locally;
+the scorecard records this in `nonfabric-migration-assessment-2026-10-24.json`.
+This validates the proposed default image for review; deployment-specific identity,
+startup/probe and volume ownership checks, exact release provenance and an
+authorized rollout remain required. Production remains HOLD until then.
+
+The [migration and rollback instructions](../operations/alpine-migration-rollback.md)
+cover previous immutable image retention, identity/provenance, data and ownership
+checks, rollback triggers, configuration preservation and post-rollback checks.
+They require a separately authorized rollout and do not execute a deployment.
