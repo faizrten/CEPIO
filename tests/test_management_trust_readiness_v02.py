@@ -85,6 +85,15 @@ def test_live_binding_requires_current_scoped_probe():
         .verified_readiness
         == "stale"
     )
+    excessively_long = probe.model_copy(
+        update={"expires_at": now + timedelta(days=365)}
+    )
+    assert (
+        _service(bindings=[_binding()], binding_verifications={"test-historian": excessively_long})
+        .list_bindings()[0]
+        .verified_readiness
+        == "not-verified"
+    )
     failed = probe.model_copy(update={"result": "failed"})
     assert (
         _service(bindings=[_binding()], binding_verifications={"test-historian": failed})
@@ -154,6 +163,16 @@ def test_investigation_ops_is_tenant_scoped_and_rejects_mismatched_source():
         "running": 2,
         "awaiting-approval": 1,
     }
+    stale_manager = _service(
+        investigation_observer=lambda tenant: InvestigationOperations(
+            state="available",
+            tenant_id=tenant,
+            counts={"running": 4},
+            observed_at=datetime.now(timezone.utc) - timedelta(minutes=6),
+        )
+    )
+    assert stale_manager.investigation_operations("tenant-a").state == "degraded"
+    assert stale_manager.investigation_operations("tenant-a").counts is None
     assert manager.investigation_operations("tenant-b").state == "degraded"
     assert manager.investigation_operations("tenant-b").counts is None
     assert manager.investigation_operations(None).state == "not-connected"
