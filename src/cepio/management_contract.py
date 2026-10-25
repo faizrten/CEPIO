@@ -268,7 +268,7 @@ class CEPIOManagementService:
         result: list[BindingDescriptor] = []
         for binding in sorted(self._bindings, key=lambda item: item.binding_id):
             probe = self._binding_verifications.get(binding.binding_id)
-            if probe is None:
+            if probe is None or probe.binding_id != binding.binding_id:
                 result.append(binding.model_copy(update={"verified_readiness": "not-verified"}))
                 continue
             checked = probe.checked_at
