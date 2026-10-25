@@ -356,11 +356,8 @@
             "type": "string"
           },
           "management_access": {
+            "const": "loopback-only",
             "default": "loopback-only",
-            "enum": [
-              "loopback-only",
-              "authenticated-remote"
-            ],
             "title": "Management Access",
             "type": "string"
           },
@@ -375,6 +372,18 @@
             ],
             "title": "Persistence Mode",
             "type": "string"
+          },
+          "remote_management_access": {
+            "anyOf": [
+              {
+                "const": "authenticated-remote",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remote Management Access"
           },
           "strict_properties": {
             "title": "Strict Properties",
