@@ -13,7 +13,7 @@ Industry IQ Studio must not mistake absent registrations for definitive absence 
 ## Decision
 
 1. Keep Application REST/MCP and Management as separate contracts over the *same* CEPIO runtime. Do not add a microservice or change authority to issue industrial Actions.
-2. Define Health as process-only, distinguishing local loopback and authenticated remote access in the appropriate projection.
+2. Define Health as process-only, distinguishing local loopback and authenticated remote access in a new additive `remote_management_access` field while preserving the legacy standalone-local descriptor contract.
 3. Report actual in-process Function/Decision/Action registration counts. Label Skill metadata as shipped specifications and require runtime actor-aware preflight for a readiness claim.
 4. Preserve registered binding status for compatibility; add independent `verified_readiness` constrained to an explicit server-supplied check with bounded freshness and evidence reference. No external probes are executed by Management GET endpoints.
 5. Show precise installed pack IDs/versions and only attach capability/dependency composition when a matching runtime deployment manifest exists.
