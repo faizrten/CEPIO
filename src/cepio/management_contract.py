@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,6 +19,9 @@ from .skill_preflight import SkillPreflightSpec
 
 
 MANAGEMENT_CONTRACT_VERSION: Literal["0.1.0"] = "0.1.0"
+
+BINDING_PROOF_MAX_TTL = timedelta(hours=1)
+INVESTIGATION_SNAPSHOT_MAX_AGE = timedelta(minutes=5)
 
 
 class ManagementMetadata(BaseModel):
@@ -279,6 +282,7 @@ class CEPIOManagementService:
                 or expires.tzinfo is None
                 or checked > now
                 or expires <= checked
+                or expires - checked > BINDING_PROOF_MAX_TTL
                 or not probe.evidence_ref.strip()
             ):
                 readiness = "not-verified"
@@ -325,6 +329,10 @@ class CEPIOManagementService:
             ):
                 return InvestigationOperations(
                     state="degraded", reason="Observer timestamp is invalid"
+                )
+            if datetime.now(timezone.utc) - snapshot.observed_at > INVESTIGATION_SNAPSHOT_MAX_AGE:
+                return InvestigationOperations(
+                    state="degraded", reason="Investigation aggregate is stale"
                 )
             if any(
                 not key or type(value) is not int or value < 0
