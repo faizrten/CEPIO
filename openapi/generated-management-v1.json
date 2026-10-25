@@ -28,6 +28,19 @@
             "title": "Declared Capabilities",
             "type": "array"
           },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Checked At"
+          },
           "mode": {
             "enum": [
               "read",
@@ -60,6 +73,29 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "verification_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Verification Ref"
+          },
+          "verified_readiness": {
+            "default": "not-verified",
+            "enum": [
+              "not-verified",
+              "verified",
+              "failed",
+              "stale"
+            ],
+            "title": "Verified Readiness",
+            "type": "string"
           }
         },
         "required": [
@@ -89,6 +125,15 @@
             "title": "Binding Count",
             "type": "integer"
           },
+          "binding_inventory_state": {
+            "default": "not-wired",
+            "enum": [
+              "connected",
+              "not-wired"
+            ],
+            "title": "Binding Inventory State",
+            "type": "string"
+          },
           "executable_skill_count": {
             "title": "Executable Skill Count",
             "type": "integer"
@@ -106,9 +151,35 @@
             "title": "Profile Count",
             "type": "integer"
           },
+          "readiness_qualified": {
+            "default": false,
+            "title": "Readiness Qualified",
+            "type": "boolean"
+          },
+          "registered_action_count": {
+            "default": 0,
+            "title": "Registered Action Count",
+            "type": "integer"
+          },
+          "registered_decision_count": {
+            "default": 0,
+            "title": "Registered Decision Count",
+            "type": "integer"
+          },
+          "registered_function_count": {
+            "default": 0,
+            "title": "Registered Function Count",
+            "type": "integer"
+          },
           "skill_count": {
             "title": "Skill Count",
             "type": "integer"
+          },
+          "skill_inventory_source": {
+            "const": "shipped-specifications",
+            "default": "shipped-specifications",
+            "title": "Skill Inventory Source",
+            "type": "string"
           }
         },
         "required": [
@@ -123,9 +194,54 @@
       },
       "IndustryIQPackDescriptor": {
         "properties": {
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "decisions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "deployment_recorded": {
+            "default": false,
+            "title": "Deployment Recorded",
+            "type": "boolean"
+          },
+          "functions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Functions",
+            "type": "array"
+          },
           "pack_id": {
             "title": "Pack Id",
             "type": "string"
+          },
+          "requires_core": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Requires Core"
+          },
+          "requires_packs": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Requires Packs",
+            "type": "object"
           },
           "version": {
             "title": "Version",
@@ -137,6 +253,68 @@
           "version"
         ],
         "title": "IndustryIQPackDescriptor",
+        "type": "object"
+      },
+      "InvestigationOperations": {
+        "description": "No customer records; only a trusted, tenant-scoped aggregate may populate counts.",
+        "properties": {
+          "counts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Counts"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Observed At"
+          },
+          "reason": {
+            "default": "No tenant-scoped investigation operations observer configured",
+            "title": "Reason",
+            "type": "string"
+          },
+          "state": {
+            "default": "not-connected",
+            "enum": [
+              "not-connected",
+              "available",
+              "degraded"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tenant Id"
+          }
+        },
+        "title": "InvestigationOperations",
         "type": "object"
       },
       "ManagementMetadata": {
@@ -184,8 +362,11 @@
             "type": "string"
           },
           "management_access": {
-            "const": "loopback-only",
             "default": "loopback-only",
+            "enum": [
+              "loopback-only",
+              "authenticated-remote"
+            ],
             "title": "Management Access",
             "type": "string"
           },
@@ -240,6 +421,12 @@
             "default": true,
             "title": "Read Only",
             "type": "boolean"
+          },
+          "scope": {
+            "const": "process-only",
+            "default": "process-only",
+            "title": "Scope",
+            "type": "string"
           },
           "status": {
             "const": "healthy",
@@ -316,6 +503,12 @@
           "executable": {
             "title": "Executable",
             "type": "boolean"
+          },
+          "readiness": {
+            "const": "actor-preflight-required",
+            "default": "actor-preflight-required",
+            "title": "Readiness",
+            "type": "string"
           },
           "required_industry_iq": {
             "additionalProperties": {
@@ -460,6 +653,32 @@
         "summary": "Industry Iq",
         "tags": [
           "management-capabilities"
+        ]
+      }
+    },
+    "/management/v1/investigations": {
+      "get": {
+        "operationId": "investigations_management_v1_investigations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationOperations"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Investigations",
+        "tags": [
+          "management-operations"
         ]
       }
     },
