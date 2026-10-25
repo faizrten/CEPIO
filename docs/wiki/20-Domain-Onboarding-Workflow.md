@@ -1,5 +1,7 @@
 # Domain Onboarding Workflow
 
+**North Star:** Domain onboarding grows the independently qualified [Industrial Competence Network](../strategy/industry-iq-product-north-star.md), not just ontology coverage. Cross-domain promotion is governed, never a transfer of customer intelligence by default. Customer-specific domain/profile mappings and derivatives must remain within their authorized enterprise boundary.
+
 CEPIO Domain Onboarding is the governed control-plane workflow for adding an Industry IQ domain without turning each vertical into a bespoke implementation.
 
 ## Flow

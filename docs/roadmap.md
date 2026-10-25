@@ -1,8 +1,12 @@
 # CEPIO Execution Roadmap
 
+**Strategic destination:** The indispensable expert companion for every industrial professional; mission: democratize industrial expertise and elevate human professional excellence. This roadmap contains **release gates**, not a second product vision. Read the [canonical Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md) for the six pillars, Industrial Competence Network, sovereignty and measurable professional value.
+
+**Roadmap principle:** each gate must strengthen independently qualified industrial competence, bounded professional usefulness or justified operational outcomes. Keep future Companion/Assurance/Attention services as logical proposals until qualified. No change to existing release qualifications or 100-point score is implied.
+
 See [Version naming and delivery status](version-naming.md) for version scopes, [Current State](current-state.md) for the dated mainline snapshot and [v1.0 completion scorecard](v1-completion-scorecard.md) for independently governed maturity scoring.
 
-## North Star
+## Technology North Star
 
 > **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
 

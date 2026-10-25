@@ -1,5 +1,7 @@
 # Compounding Industrial Intelligence
 
+**Sovereignty doctrine:** [Collective industrial progress. Sovereign enterprise intelligence.](../strategy/industry-iq-product-north-star.md) CEPIO-owned/authorized reusable competence may compound through evidence, rights review, independent tests and human promotion. Customer telemetry, prompts, embeddings, agent traces, thresholds, Decisions, Outcomes and derivatives **do not** enter global learning by default; anonymization or synthetic-looking transformation is not permission. See [ADR-0044](../adr/ADR-0044-sovereign-compounding-industrial-intelligence.md).
+
 CEPIO compounds industrial intelligence by promoting only reusable, evidence-backed capability discovered through domain onboarding.
 
 ## Flywheel

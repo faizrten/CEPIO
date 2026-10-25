@@ -1,5 +1,12 @@
 # CEPIO Wiki
 
+**Mission:** Democratize industrial expertise and elevate human professional excellence.  
+**Product North Star:** The indispensable expert companion for every industrial professional.  
+**Technology:** Thin infrastructure. Thick Industry IQ.  
+**Moat:** Industrial Competence Network, independently qualified and continuously compounding without using customer intelligence by default.
+
+Read the [canonical Product North Star & Strategic Doctrine](../strategy/industry-iq-product-north-star.md). This Wiki describes the *technical means* and recorded capabilities; it does not convert strategic direction into production guarantees.
+
 **CEPIO — Common Energy & Process Industry Ontology**
 
 > **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
@@ -8,7 +15,7 @@ The Wiki is the reader-oriented narrative/navigation layer over the executable c
 
 For the latest repository posture, start with [CEPIO Current State](../current-state.md).
 
-## North Star
+## Technical North Star
 
 > **Thin infrastructure. Thick Industry IQ.**
 

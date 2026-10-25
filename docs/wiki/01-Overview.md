@@ -1,5 +1,9 @@
 # CEPIO Overview
 
+**What CEPIO is building:** An indispensable expert companion for every industrial professional, beginning with Energy & Process Industries. Its mission is to democratize industrial expertise and elevate professional excellence. The durable moat is a qualified **Industrial Competence Network**; customer-specific intelligence remains sovereign.
+
+See [Product North Star & Strategic Doctrine](../strategy/industry-iq-product-north-star.md). The industrial operating abstraction described below is the **technology foundation**, not the complete professional product promise.
+
 ## Purpose
 
 Industrial enterprises increasingly have capable systems of record, data platforms, search/index services and frontier models. The harder problem is giving people and AI systems enough **industrial operating competence** to understand what the enterprise means, what evidence is trustworthy, what uncertainty remains, which decisions matter, who has authority and how action should be governed.

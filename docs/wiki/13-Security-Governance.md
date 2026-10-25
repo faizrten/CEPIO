@@ -1,5 +1,7 @@
 # Security and Governance
 
+**Sovereignty principle:** [Collective industrial progress. Sovereign enterprise intelligence.](../strategy/industry-iq-product-north-star.md) Governing an agent or Skill is not permission to reuse customer data, prompts, embeddings, traces, outputs or derived synthetic analogues for global CEPIO learning. Preserve tenant, model-provider, cache/index and IP rights boundaries. Unknown or expired permission must fail closed.
+
 ## Security objective
 
 CEPIO can influence enterprise Decisions and invoke governed external Actions. Security, identity and authority therefore belong inside the operating contract, not only in UI or platform configuration.

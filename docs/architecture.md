@@ -1,5 +1,9 @@
 # CEPIO Architecture
 
+**Product destination:** [Indispensable industrial expert companion](strategy/industry-iq-product-north-star.md); **mission:** democratize industrial expertise and elevate professional excellence. The architecture is the portable, Microsoft-native reference for that product—not the product identity itself.
+
+**Competitive asset:** the Industrial Competence Network (qualified expert methods, Skills, decisions and assurance). **Customer doctrine:** collective industrial progress, sovereign enterprise intelligence. Host agents and users consume these through the same governed operating contract; tenant intelligence does not become shared CEPIO knowledge by default.
+
 ## Design target
 
 > **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**

@@ -1,12 +1,19 @@
 # CEPIO
 
+**Mission:** Democratize industrial expertise and elevate human professional excellence.  
+**Product North Star:** **The indispensable expert companion for every industrial professional.**  
+**Moat:** The **Industrial Competence Network**, with independent qualification and enterprise sovereignty.  
+**Technical doctrine:** Thin infrastructure. Thick Industry IQ.  
+
+Read the [canonical CEPIO Product North Star & Strategic Doctrine](docs/strategy/industry-iq-product-north-star.md) before interpreting architecture, roadmap or maturity claims. The companion vision is a **strategic objective**, not a claim of field-qualified functionality.
+
 **Common Energy & Process Industry Ontology**
 
 > **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
 
 CEPIO gives humans, applications and AI agents a shared operating understanding of industrial assets, processes, work, risk, performance, decisions and governed actions while preserving authoritative source systems and enterprise-specific operating knowledge.
 
-## North Star
+## Technical North Star
 
 > **Thin infrastructure. Thick Industry IQ.**
 

@@ -1,5 +1,7 @@
 # Microsoft-native Reliability Agent Lighthouse
 
+**Product purpose:** This lighthouse is the first implementation proof toward the [indispensable industrial expert companion](strategy/industry-iq-product-north-star.md), not a generic agent framework demo. Success means a professional receives an evidence-based, qualified, useful investigation and a governed, verifiable outcome. Offline model/Skill admission and live enterprise benefit are **distinct qualification levels**. The differentiated Reliability casebooks/evaluations remain private and customer intelligence remains sovereign.
+
 **Program issue:** #246  
 **Architecture decision:** ADR-0032  
 **Classification:** PUBLIC execution contract; protected Industry IQ/evaluation internals remain in CEPIO-Labs.
