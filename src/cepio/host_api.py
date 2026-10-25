@@ -22,7 +22,7 @@ from .public_api import app
 # All three surfaces converge on the same runtime, policy engine and industrial
 # capability contracts. The standalone `cepio-management` process remains
 # loopback-only and remote management mutation remains intentionally absent.
-_management_service = build_management_service(legacy.runtime)
+_management_service = build_management_service(legacy.runtime, remote_access=True)
 app.include_router(build_remote_management_router(_management_service))
 
 
