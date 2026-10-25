@@ -151,6 +151,7 @@ class InvestigationOperations(BaseModel):
 
     state: Literal["not-connected", "available", "degraded"] = "not-connected"
     counts: dict[str, int] | None = None
+    tenant_id: str | None = None
     observed_at: datetime | None = None
     reason: str = "No tenant-scoped investigation operations observer configured"
 
@@ -175,7 +176,7 @@ class CEPIOManagementService:
         binding_inventory_connected: bool = False,
         binding_verifications: Mapping[str, BindingVerification] | None = None,
         remote_access: bool = False,
-        investigation_observer: Callable[[], InvestigationOperations] | None = None,
+        investigation_observer: Callable[[str], InvestigationOperations] | None = None,
     ) -> None:
         self.runtime = runtime
         self.runtime_settings = runtime_settings
@@ -282,16 +283,18 @@ class CEPIOManagementService:
             }))
         return result
 
-    def investigation_operations(self) -> InvestigationOperations:
-        if self._investigation_observer is None:
+    def investigation_operations(self, tenant_id: str | None = None) -> InvestigationOperations:
+        if self._investigation_observer is None or not tenant_id:
             return InvestigationOperations()
         try:
-            snapshot = InvestigationOperations.model_validate(self._investigation_observer())
+            snapshot = InvestigationOperations.model_validate(self._investigation_observer(tenant_id))
+            if snapshot.tenant_id != tenant_id:
+                return InvestigationOperations(state="degraded", reason="Investigation scope mismatch")
             if snapshot.state != "available" or snapshot.observed_at is None or snapshot.counts is None:
                 return InvestigationOperations(state="degraded", reason="Observer returned incomplete operational evidence")
             if snapshot.observed_at.tzinfo is None or snapshot.observed_at > datetime.now(timezone.utc):
                 return InvestigationOperations(state="degraded", reason="Observer timestamp is invalid")
-            if any(not key or not isinstance(value, int) or value < 0 for key, value in snapshot.counts.items()):
+            if any(not key or type(value) is not int or value < 0 for key, value in snapshot.counts.items()):
                 return InvestigationOperations(state="degraded", reason="Observer counts are invalid")
             return snapshot
         except Exception:
