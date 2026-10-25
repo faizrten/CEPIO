@@ -8,6 +8,7 @@ from .management_contract import (
     CapabilityInventory,
     CEPIOManagementService,
     IndustryIQPackDescriptor,
+    InvestigationOperations,
     ProfileDescriptor,
     RuntimeDescriptor,
     RuntimeHealth,
