@@ -15,6 +15,7 @@ from cepio.management_contract import (
 
 
 def _service(runtime=None, **kwargs):
+    bindings = kwargs.pop("bindings", ())
     service = CEPIOManagementService(
         runtime or build_runtime(),
         runtime_settings=RuntimeSettings(
@@ -36,6 +37,7 @@ def _service(runtime=None, **kwargs):
             jwks_uri=None,
             group_role_map={},
         ),
+        bindings=bindings,
     )
     return service.configure_sources(**kwargs)
 
