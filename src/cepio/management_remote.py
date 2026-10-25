@@ -8,12 +8,12 @@ from .management_contract import (
     CapabilityInventory,
     CEPIOManagementService,
     IndustryIQPackDescriptor,
-    InvestigationOperations,
     ProfileDescriptor,
     RuntimeDescriptor,
     RuntimeHealth,
     SkillDescriptor,
 )
+from .management_contract import InvestigationOperations
 
 
 MANAGEMENT_API_PREFIX = "/management/v1"
