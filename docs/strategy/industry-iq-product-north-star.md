@@ -13,7 +13,7 @@
 | **Product North Star — what** | **The indispensable expert companion for every industrial professional.** | Useful in the flow of work: understand, prioritize, investigate, recommend, learn, and support governed outcomes. |
 | **Technology — how** | **Thin infrastructure. Thick Industry IQ.** | Portable industrial operating intelligence, initially for Energy & Process Industries; reuse commodity infrastructure rather than reproducing it. |
 | **Moat — what compounds** | **Industrial Competence Network.** | Versioned and independently qualified Skills, expert methods, decision/risk patterns, competence claims and assurance evidence. |
-| **Sovereignty** | **Collective industrial progress. Sovereign enterprise intelligence.** | Compound legally usable reusable competence without taking ownership of customer data, methods, decisions or derived intelligence. |
+| **Sovereignty** | **Collective industrial progress. Sovereign enterprise intelligence.** | Compound lawfully sourced and qualified reusable competence without taking ownership of customer data, methods, decisions or derived intelligence. |
 | **Compounding** | **Own the competence. Prove the competence. Distribute the competence. Compound the competence.** | Every promotion requires rights/provenance, independent evidence, regression and accountable approval, not merely more content. |
 
 Our aspiration is that CEPIO becomes the trusted expert companion to industrial professionals across industries. **The present beachhead is Energy & Process Industries**, with an initial emphasis on reliability/maintenance, drilling and process operations. Cross-industry competence is a hypothesis to demonstrate, not a current claim.
