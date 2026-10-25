@@ -38,7 +38,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Last Checked At"
           },
           "mode": {
@@ -83,7 +82,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Verification Ref"
           },
           "verified_readiness": {
@@ -233,7 +231,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Requires Core"
           },
           "requires_packs": {
@@ -270,7 +267,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Counts"
           },
           "observed_at": {
@@ -283,7 +279,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Observed At"
           },
           "reason": {
@@ -310,7 +305,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Tenant Id"
           }
         },
