@@ -164,4 +164,5 @@ def test_health_is_process_only_and_remote_mode_is_reported():
     assert manager.health().status == "healthy"
     assert manager.health().scope == "process-only"
     assert manager.health().local_only is False
-    assert manager.runtime_descriptor().management_access == "authenticated-remote"
+    assert manager.runtime_descriptor().management_access == "loopback-only"
+    assert manager.runtime_descriptor().remote_management_access == "authenticated-remote"
