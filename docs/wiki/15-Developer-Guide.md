@@ -1,5 +1,7 @@
 # Developer Guide
 
+**Product-first engineering rule:** Build for the [indispensable industrial professional companion](../strategy/industry-iq-product-north-star.md) by improving qualified industrial competence, evidential trust, professional usefulness and customer sovereignty. The technical rule below—thin core, thick Industry IQ—governs implementation but is not the entire product mission. Do not equate a passing unit test or synthetic scenario with field qualification.
+
 ## Engineering North Star
 
 > **CEPIO is the portable Industrial Operating Intelligence layer for Energy & Process Industries: thin in infrastructure, thick in Industry IQ.**
