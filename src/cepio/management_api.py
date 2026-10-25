@@ -18,6 +18,7 @@ from .management_contract import (
     RuntimeHealth,
     SkillDescriptor,
 )
+from .management_contract import InvestigationOperations
 from .management_runtime import build_management_service
 
 
@@ -100,6 +101,15 @@ def create_management_app(service: CEPIOManagementService) -> FastAPI:
     )
     def bindings() -> list[BindingDescriptor]:
         return service.list_bindings()
+
+    @app.get(
+        f"{MANAGEMENT_API_PREFIX}/investigations",
+        response_model=InvestigationOperations,
+        tags=["operations"],
+    )
+    def investigations() -> InvestigationOperations:
+        # Loopback-only management cannot supply an authenticated tenant context.
+        return service.investigation_operations()
 
     @app.get(
         f"{MANAGEMENT_API_PREFIX}/profiles",

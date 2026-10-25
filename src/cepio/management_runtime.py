@@ -38,7 +38,7 @@ def build_management_service_from_registrations(
 ) -> CEPIOManagementService:
     """Build Management from canonical Binding Contract registrations."""
 
-    return build_management_service(
+    service = build_management_service(
         runtime,
         runtime_settings=runtime_settings,
         auth_settings=auth_settings,
@@ -47,3 +47,4 @@ def build_management_service_from_registrations(
             for registration in binding_registrations
         ),
     )
+    return service.configure_sources(binding_inventory_connected=True)
