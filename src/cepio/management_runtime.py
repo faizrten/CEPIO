@@ -19,7 +19,7 @@ def build_management_service(
     binding_inventory_connected: bool = False,
     binding_verifications: Mapping[str, BindingVerification] | None = None,
     remote_access: bool = False,
-    investigation_observer: Callable[[], InvestigationOperations] | None = None,
+    investigation_observer: Callable[[str], InvestigationOperations] | None = None,
 ) -> CEPIOManagementService:
     """Build the read-only CEPIO management contract for one runtime instance."""
 
