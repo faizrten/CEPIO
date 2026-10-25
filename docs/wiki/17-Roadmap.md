@@ -1,5 +1,7 @@
 # Roadmap to CEPIO v1.0
 
+**Product destination:** [CEPIO Product North Star & Strategic Doctrine](../strategy/industry-iq-product-north-star.md) — democratize industrial expertise through an indispensable industrial expert companion. **Technical approach:** thin infrastructure, thick Industry IQ. This page tracks release qualifications; proposed Companion/Assurance/Attention logical services are not automatically delivered or scored.
+
 See [Version Naming](../version-naming.md) for version scopes, [Current State](../current-state.md) for the dated repository snapshot and the [Execution Roadmap](../roadmap.md) for authoritative release gates.
 
 ## Roadmap North Star
