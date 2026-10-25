@@ -1,5 +1,7 @@
 # Architecture
 
+**Product context:** CEPIO's [Product North Star & Strategic Doctrine](../strategy/industry-iq-product-north-star.md) defines a professional-first expert companion. The architecture below implements the **thin-core / thick-Industry-IQ** technology doctrine. Agent hosting stays with Microsoft or a replaceable host; CEPIO owns industrial agency, decision authority and qualification—not generic model/runtime infrastructure.
+
 ## Architecture North Star
 
 > **Thin infrastructure. Thick Industry IQ.**
