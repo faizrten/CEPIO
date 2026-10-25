@@ -13,12 +13,12 @@ from .management_contract import (
     CapabilityInventory,
     CEPIOManagementService,
     IndustryIQPackDescriptor,
-    InvestigationOperations,
     ProfileDescriptor,
     RuntimeDescriptor,
     RuntimeHealth,
     SkillDescriptor,
 )
+from .management_contract import InvestigationOperations
 from .management_runtime import build_management_service
 
 
