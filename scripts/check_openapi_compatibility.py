@@ -89,7 +89,7 @@ def operations(schema):
 def check_snapshot(root, surface, schema):
     path = root / SNAPSHOTS[surface]
     if not path.is_file():
-        raise ValueError(f"Missing reviewed {surface} OpenAPI snapshot")
+        raise ValueError(f"Generated {surface} schema drifted from its reviewed full snapshot")
     reviewed = json.loads(path.read_text(encoding="utf-8"))
     if reviewed != schema:
         before = json.dumps(reviewed, indent=2, sort_keys=True).splitlines()
