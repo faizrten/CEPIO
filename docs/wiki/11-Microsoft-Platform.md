@@ -1,5 +1,7 @@
 # Microsoft Platform
 
+**Strategic boundary:** [Microsoft-native, platform-independent CEPIO](../strategy/industry-iq-product-north-star.md) uses Foundry/Copilot/Teams/Entra/Fabric where advantageous, but **Microsoft owns generic agent execution while CEPIO owns industrial agency**. The same qualified Industry IQ and authority contracts must remain replaceable across agent hosts and bindings (e.g. Cognite), with enterprise data and customer-derived intelligence sovereign.
+
 ## Principle
 
 CEPIO is Microsoft-native in reference implementation while remaining portable in canonical industrial contracts.
