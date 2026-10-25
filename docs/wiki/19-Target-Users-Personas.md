@@ -1,5 +1,7 @@
 # Target Users / Personas
 
+**Product North Star:** [The indispensable expert companion for every industrial professional](../strategy/industry-iq-product-north-star.md). The **professional** is the ultimate beneficiary; an authenticated AI agent, Studio or application is a delivery/execution channel, not the principal reason the product exists. Trustworthy job completion, professional learning and verified industrial outcomes—not merely tooling reuse—must guide persona priorities.
+
 ## Who CEPIO is for
 
 CEPIO is built for **industrial engineers, planners and operational leaders who need trusted cross-system intelligence to make and execute decisions**, and for the digital, data, integration and AI teams building the applications and agents that support them.
