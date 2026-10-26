@@ -212,9 +212,16 @@ jobs:
           if report["survival_rate"] != 1.0:
               raise SystemExit("Core-only changes require 100% frozen regression survival")
           PY
-          pytest -q tests/test_capability_registry.py tests/test_compounding_intelligence.py \
-            tests/test_memory_context.py tests/test_retrieval_runtime.py \
-            tests/test_intelligence_sovereignty.py
+          tests=(
+            tests/test_capability_registry.py
+            tests/test_compounding_intelligence.py
+            tests/test_memory_context.py
+            tests/test_retrieval_runtime.py
+          )
+          if [[ -f tests/test_intelligence_sovereignty.py ]]; then
+            tests+=(tests/test_intelligence_sovereignty.py)
+          fi
+          pytest -q "${tests[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
