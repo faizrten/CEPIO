@@ -25,9 +25,14 @@ from cepio.performance_industry_iq import (
     PerformanceReasoningError,
     PerformanceReasoningRequest,
 )
-from cepio.performance_registry import InMemoryPerformanceContractStore, PerformanceContractRegistry
+from cepio.performance_registry import (
+    InMemoryPerformanceContractStore,
+    PerformanceContractRegistry,
+    PerformanceContractRegistryError,
+)
 from cepio.performance_runtime import PerformanceObservation
 from cepio.performance_service import PerformanceService
+from cepio.runtime import AuthorizationError
 from scripts.drilling_performance_activation_v01 import (
     CONTRACT_ID,
     EVALUATED_AT,
@@ -262,3 +267,58 @@ def test_rest_preview_denies_cross_tenant_and_simulation_false():
     payload["simulation_only"] = False
     response = client.post("/experimental/performance/v0.1/executive/preview", json=payload)
     assert response.status_code == 422
+
+
+def test_unrequested_financial_metric_is_not_surfaced():
+    _, service, request, context = _fixture()
+    package = service.preview(request.model_copy(update={"financial_node_id": None}), context)
+    assert package.financial_status == "not_requested"
+    assert package.financial_observation is None
+
+
+def test_preview_rejects_revision_drift(monkeypatch):
+    _, service, request, context = _fixture()
+    performance = service.iq_service.performance_service
+    original = performance.evaluate
+    def changed(*args, **kwargs):
+        result = original(*args, **kwargs)
+        return result.model_copy(update={"source_revision_hashes": ("injected-drift",)})
+    monkeypatch.setattr(performance, "evaluate", changed)
+    with pytest.raises(ExecutivePerformanceError) as error:
+        service.preview(request, context)
+    assert error.value.code == "REVISION_CHANGED"
+
+
+@pytest.mark.parametrize(
+    ("error", "status", "code"),
+    [
+        (AuthorizationError("denied"), 403, "performance_unauthorized"),
+        (PerformanceReasoningError("SOURCE_SUBJECT_MISMATCH", "mismatch"), 422, "SOURCE_SUBJECT_MISMATCH"),
+        (PerformanceContractRegistryError("REVISION_NOT_FOUND", "not found"), 404, "REVISION_NOT_FOUND"),
+        (PerformanceContractRegistryError("REVISION_INVALID", "invalid"), 422, "REVISION_INVALID"),
+        (ExecutivePerformanceError("INVALID_FINANCIAL_NODE", "invalid"), 422, "INVALID_FINANCIAL_NODE"),
+        (ValueError("bad evidence"), 422, "performance_preview_invalid"),
+    ],
+)
+def test_experimental_rest_error_mapping_stays_fail_closed(monkeypatch, error, status, code):
+    client, request = _client()
+    target = next(
+        route for route in client.app.routes
+        if getattr(route, "path", "") == "/experimental/performance/v0.1/executive/preview"
+    )
+    # FastAPI route is a closure over the captured service.
+    router_service = None
+    for cell in target.endpoint.__closure__ or ():
+        if isinstance(cell.cell_contents, ExecutivePerformanceService):
+            router_service = cell.cell_contents
+            break
+    assert router_service is not None
+    def fail(*args, **kwargs):
+        raise error
+    monkeypatch.setattr(router_service, "preview", fail)
+    response = client.post(
+        "/experimental/performance/v0.1/executive/preview",
+        json=request.model_dump(mode="json"),
+    )
+    assert response.status_code == status
+    assert response.json()["detail"]["code"] == code
