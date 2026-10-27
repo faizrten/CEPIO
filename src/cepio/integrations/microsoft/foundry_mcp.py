@@ -11,19 +11,17 @@ from ...runtime import CEPIORuntime
 from .foundry_gateway import ActorProvider, CEPIOMCPGateway
 
 
-def build_mcp_server(
-    runtime: CEPIORuntime,
-    actor_provider: ActorProvider,
-    *,
-    tool_profile: Literal["read_only", "full"] = "full",
-):
-    """Default to the original eight tools; allow a deployer-pinned read-only surface."""
-    if tool_profile not in {"read_only", "full"}:
-        raise ValueError("Unsupported MCP tool profile")
+def build_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
+    """Backward-compatible eight-tool MCP server for the standard CEPIO host."""
+    return _build_mcp_server(CEPIOMCPGateway(runtime, actor_provider), include_actions=True)
+
+
+def build_copilot_read_only_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
+    """Dedicated four-tool surface. Tool visibility is deployment pinned, not agent-chosen."""
     return _build_mcp_server(
         CEPIOMCPGateway(runtime, actor_provider),
-        include_actions=tool_profile == "full",
-        include_analysis=tool_profile == "full",
+        include_actions=False,
+        include_analysis=False,
     )
 
 
@@ -31,21 +29,17 @@ def build_mcp_server_with_application_service(
     application_service: CEPIOApplicationService,
     actor_provider: ActorProvider,
     *,
-    tool_profile: Literal["read_only", "g1", "full"] = "g1",
+    tool_profile: Literal["g1", "full"] = "g1",
 ):
     """Explicit protected-IQ composition; G1 defaults to six read/Skill tools.
 
     No tool-profile name comes from an agent request. Only the deployer supplies
     it during server construction. The existing public builder remains unchanged.
     """
-    if tool_profile not in {"read_only", "g1", "full"}:
+    if tool_profile not in {"g1", "full"}:
         raise ValueError("Unsupported MCP tool profile")
     gateway = CEPIOMCPGateway.with_application_service(application_service, actor_provider)
-    return _build_mcp_server(
-        gateway,
-        include_actions=tool_profile == "full",
-        include_analysis=tool_profile != "read_only",
-    )
+    return _build_mcp_server(gateway, include_actions=tool_profile == "full")
 
 
 def _build_mcp_server(
@@ -102,6 +96,7 @@ def _build_mcp_server(
         return gateway.explain_property(object_id, property_name)
 
     if include_analysis:
+
         @mcp.tool(name="cepio_call_function", title="Call governed CEPIO function")
         def cepio_call_function(function_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             """Invoke an explicitly policy-authorized deterministic CEPIO function."""
@@ -109,7 +104,7 @@ def _build_mcp_server(
             if hasattr(value, "model_dump"):
                 value = value.model_dump(mode="json")
             return {"result": value}
-    
+
         @mcp.tool(name="cepio_evaluate_skill", title="Evaluate governed CEPIO Skill")
         def cepio_evaluate_skill(invocation: SkillInvocation) -> dict[str, Any]:
             """Evaluate one admitted executable Skill through the shared application contract."""
