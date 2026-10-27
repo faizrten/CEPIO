@@ -3,10 +3,17 @@ name: CEPIO Domain Onboarding
 on:
   pull_request:
     paths:
+      - '.github/workflows/domain-onboarding.yml'
       - 'src/cepio/domain_onboarding.py'
       - 'src/cepio/icc_qualification.py'
       - 'src/cepio/persona_binding.py'
       - 'src/cepio/capability_registry.py'
+      - 'src/cepio/sovereignty.py'
+      - 'src/cepio/memory.py'
+      - 'src/cepio/retrieval_runtime.py'
+      - 'tests/test_intelligence_sovereignty.py'
+      - 'tests/test_memory_context.py'
+      - 'tests/test_retrieval_runtime.py'
       - 'scripts/run_domain_onboarding.py'
       - 'scripts/run_icc_persona_qualification.py'
       - 'scripts/run_compounding_intelligence.py'
@@ -95,9 +102,30 @@ jobs:
             mapfile -t manifests < <(
               git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- 'generalization/domain-packs/*.yaml'
             )
+            if [[ ${#manifests[@]} -eq 0 ]]; then
+              # No implicit onboarding target. Only a tightly scoped Core-contract
+              # PR can take this independent qualification path.
+              mapfile -t changed_paths < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+              for changed_path in "${changed_paths[@]}"; do
+                case "$changed_path" in
+                  .github/workflows/domain-onboarding.yml|\
+                  src/cepio/capability_registry.py|src/cepio/sovereignty.py|\
+                  src/cepio/memory.py|src/cepio/retrieval_runtime.py|\
+                  tests/test_capability_registry.py|tests/test_intelligence_sovereignty.py|\
+                  tests/test_retrieval_runtime.py|docs/*)
+                    ;;
+                  *)
+                    echo "::error::A domain manifest is mandatory for changes outside the approved Core-contract surface: $changed_path"
+                    exit 2
+                    ;;
+                esac
+              done
+              echo "DOMAIN_QUALIFICATION_MODE=core" >> "$GITHUB_ENV"
+              echo "Core-only change: frozen cross-domain suite and Core contract tests are mandatory."
+              exit 0
+            fi
             if [[ ${#manifests[@]} -ne 1 ]]; then
               echo "::error::PR-triggered Domain Onboarding requires exactly one changed domain-pack manifest; found ${#manifests[@]}."
-              printf 'candidate manifest: %s\n' "${manifests[@]}"
               exit 2
             fi
             DOMAIN_MANIFEST="${manifests[0]}"
@@ -121,6 +149,7 @@ jobs:
           echo "Resolved manifest: $DOMAIN_MANIFEST"
           echo "Resolved persona: ${PERSONA_ID:-<domain-wide>}"
       - name: Run governed Domain Onboarding workflow
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' }}
         run: >-
           PYTHONPATH=src python scripts/run_domain_onboarding.py
           --manifest "$DOMAIN_MANIFEST"
@@ -129,7 +158,7 @@ jobs:
           --json-out domain-onboarding-report.json
           --fail-on-blocked
       - name: Run persona-scoped ICC qualification
-        if: ${{ env.PERSONA_ID != '' }}
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' && env.PERSONA_ID != '' }}
         run: >-
           PYTHONPATH=src python scripts/run_icc_persona_qualification.py
           --manifest "$DOMAIN_MANIFEST"
@@ -139,6 +168,7 @@ jobs:
           --json-out icc-qualification-report.json
           --fail-on-blocked
       - name: Run compounding industrial-intelligence loop
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' }}
         shell: bash
         run: |
           args=(
@@ -163,12 +193,41 @@ jobs:
           fi
           PYTHONPATH=src python scripts/run_compounding_intelligence.py "${args[@]}"
       - name: Run Domain Onboarding, ICC and compounding contract tests
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' }}
         run: >-
           pytest -q
           tests/test_domain_onboarding_workflow.py
           tests/test_icc_persona_qualification.py
           tests/test_capability_registry.py
           tests/test_compounding_intelligence.py
+      - name: Qualify Core-only changes against frozen cross-domain regression
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE == 'core' }}
+        run: |
+          PYTHONPATH=src python - <<'PY'
+          from pathlib import Path
+          from scripts.run_compounding_intelligence import run_cross_domain_regression
+
+          root = Path.cwd()
+          report = run_cross_domain_regression(
+              root, root / "generalization/regression/industrial-common-v0.1.yaml"
+          )
+          print(
+              f"Frozen regression: {report['passed_targets']}/{report['target_count']} "
+              f"survival={report['survival_rate']:.3f}"
+          )
+          if report["survival_rate"] != 1.0:
+              raise SystemExit("Core-only changes require 100% frozen regression survival")
+          PY
+          tests=(
+            tests/test_capability_registry.py
+            tests/test_compounding_intelligence.py
+            tests/test_memory_context.py
+            tests/test_retrieval_runtime.py
+          )
+          if [[ -f tests/test_intelligence_sovereignty.py ]]; then
+            tests+=(tests/test_intelligence_sovereignty.py)
+          fi
+          pytest -q "${tests[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
