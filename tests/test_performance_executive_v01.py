@@ -225,6 +225,29 @@ def test_rest_preview_exposes_read_only_schema_without_actor_in_body():
     )
 
 
+def test_rest_preview_requires_admin_role_and_explicit_evaluation_time():
+    client, request = _client()
+    client.app.dependency_overrides[get_actor_context] = lambda: ActorContext(
+        actor_id="synthetic-readonly",
+        roles={"performance_reader"},
+        tenant_id=ORG,
+    )
+    response = client.post(
+        "/experimental/performance/v0.1/executive/preview",
+        json=request.model_dump(mode="json"),
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "executive_preview_admin_required"
+
+    _, service, request, context = _fixture()
+    missing_time = request.model_copy(
+        update={"reasoning": request.reasoning.model_copy(update={"evaluated_at": None})}
+    )
+    with pytest.raises(ExecutivePerformanceError) as error:
+        service.preview(missing_time, context)
+    assert error.value.code == "EVALUATION_TIME_REQUIRED"
+
+
 def test_rest_preview_denies_cross_tenant_and_simulation_false():
     client, request = _client(tenant="different-tenant")
     response = client.post(
