@@ -94,7 +94,6 @@ def build_performance_executive_router(service: ExecutivePerformanceService) -> 
     return router
 
 
-
 def mount_experimental_performance_executive(
     app: FastAPI, runtime: CEPIORuntime, performance_service: PerformanceService
 ) -> None:
