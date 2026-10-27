@@ -14,6 +14,8 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 ## Start here
 
 - **[Current State](current-state.md)** â€” dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
+- **[Rig 07 Performance Activation](drilling-performance-activation-v0.1.md)** — deterministic synthetic drilling performance acceptance and policy-safe recommendation.
+- [Intelligence Sovereignty Contract v0.1 — first enforcement slice](intelligence-sovereignty-v0.1.md) — tagged evidence use, lineage and provisional qualification boundaries.
 - **[CEPIO Wiki](wiki/Home.md)** â€” reader-oriented product, architecture, runtime, Industry IQ and roadmap navigation.
 - **[Architecture](architecture.md)** â€” current portable Industrial Operating Intelligence architecture.
 - **[Execution Roadmap](roadmap.md)** â€” authoritative product release gates from FOUNDATION through GUARANTEE.
@@ -101,7 +103,6 @@ Binding principle:
 ## Capability and compounding intelligence
 
 - [Capability Registry & Compounding Industrial Intelligence](capability-registry-and-compounding-intelligence.md)
-- [Intelligence Sovereignty Contract v0.1 — first enforcement slice](intelligence-sovereignty-v0.1.md) — tagged evidence use, lineage and provisional qualification boundaries.
 - [Domain Onboarding workflow](wiki/20-Domain-Onboarding-Workflow.md)
 - [Compounding Industrial Intelligence Wiki](wiki/21-Compounding-Industrial-Intelligence.md)
 
