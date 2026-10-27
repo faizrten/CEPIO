@@ -65,6 +65,7 @@ class MemoryRecord(BaseModel):
     summary: str
     provenance: MemoryProvenance
     tenant_id: str | None = None
+    sovereignty_source_id: str | None = None
     reference: MemoryReference | None = None
     classification: str = "internal"
     created_at: datetime = Field(default_factory=utcnow)
@@ -82,6 +83,8 @@ class MemoryRecord(BaseModel):
             raise ValueError("tenant/profile memory requires tenant_id")
         if (self.kind == MemoryKind.PROFILE) != (self.scope == MemoryScope.PROFILE):
             raise ValueError("PROFILE kind and PROFILE scope must be used together")
+        if self.sovereignty_source_id is not None and not self.sovereignty_source_id.strip():
+            raise ValueError("sovereignty_source_id must be nonblank")
         if self.expires_at is not None and self.expires_at <= self.created_at:
             raise ValueError("expires_at must be later than created_at")
         return self
