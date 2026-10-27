@@ -37,6 +37,15 @@ def build_performance_executive_router(service: ExecutivePerformanceService) -> 
         request: Request,
         actor: ActorContext = Depends(get_actor_context),
     ) -> ExecutivePerformancePackage:
+        # Until server-bound evidence is qualified this surface is administrator-only.
+        if "cepio_admin" not in actor.roles:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "executive_preview_admin_required",
+                    "message": "Experimental executive preview requires CEPIO administrator role",
+                },
+            )
         # No caller-supplied actor, roles, tenant or authorization claims.
         context = ExecutionContext(
             actor_id=actor.actor_id,
