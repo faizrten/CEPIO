@@ -401,7 +401,5 @@ def test_executive_preview_disallows_non_currency_metric_and_objective():
     _, service, request, context = _fixture()
     for node_id in (NPT, KR):
         with pytest.raises(ExecutivePerformanceError) as error:
-            service.preview(
-                request.model_copy(update={"financial_node_id": node_id}), context
-            )
+            service.preview(request.model_copy(update={"financial_node_id": node_id}), context)
         assert error.value.code == "INVALID_FINANCIAL_NODE"
