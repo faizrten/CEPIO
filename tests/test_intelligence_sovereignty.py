@@ -598,9 +598,7 @@ def sovereign_rights(tenant="alpha"):
 def test_authorized_memory_store_rechecks_revocation_on_every_operation(tmp_path, durable):
     raw = SQLiteMemoryStore(tmp_path / "memory.sqlite") if durable else InMemoryMemoryStore()
     rights = sovereign_rights()
-    session = SovereignMemoryStore(
-        raw, principal=sovereign_actor(), rights_provider=lambda: rights
-    )
+    session = SovereignMemoryStore(raw, principal=sovereign_actor(), rights_provider=lambda: rights)
     record = sovereign_fixture()
     try:
         session.put(record)
@@ -622,9 +620,7 @@ def test_authorized_memory_store_rechecks_revocation_on_every_operation(tmp_path
 
 def test_authorized_memory_store_does_not_trust_caller_tenant():
     raw = InMemoryMemoryStore()
-    alpha = SovereignMemoryStore(
-        raw, principal=sovereign_actor(), rights_provider=sovereign_rights
-    )
+    alpha = SovereignMemoryStore(raw, principal=sovereign_actor(), rights_provider=sovereign_rights)
     beta = SovereignMemoryStore(
         raw, principal=sovereign_actor("beta"), rights_provider=sovereign_rights
     )
@@ -646,7 +642,8 @@ def test_authorized_memory_store_does_not_trust_caller_tenant():
 def test_authorized_memory_store_denies_untagged_and_unverified_lineage():
     raw = InMemoryMemoryStore()
     session = SovereignMemoryStore(
-        raw, principal=sovereign_actor(), rights_provider=sovereign_rights
+        raw,
+        principal=sovereign_actor(), rights_provider=sovereign_rights
     )
     source = sovereign_fixture()
     missing_tag = source.model_copy(update={"sovereignty_source_id": None})
@@ -679,14 +676,8 @@ def test_authorized_memory_store_global_reads_need_share_grant_and_no_global_wri
         sovereignty_source_id="public-source",
     )
     raw.put(shared)
-    rights = {
-        "public-source": grant(
-            "public-source", uses={PermittedUse.SHARED_RETRIEVAL}
-        )
-    }
-    session = SovereignMemoryStore(
-        raw, principal=sovereign_actor(), rights_provider=lambda: rights
-    )
+    rights = {"public-source": grant("public-source", uses={PermittedUse.SHARED_RETRIEVAL})}
+    session = SovereignMemoryStore(raw, principal=sovereign_actor(), rights_provider=lambda: rights)
     assert session.get("shared").id == "shared"
     assert len(session.query(MemoryQuery())) == 1
     with pytest.raises(MemoryAccessError, match="shared memory publication"):
@@ -702,21 +693,15 @@ def test_authorized_memory_store_global_reads_need_share_grant_and_no_global_wri
 def test_authorized_memory_store_fails_closed_on_unavailable_rights_and_actor():
     raw = InMemoryMemoryStore()
     with pytest.raises(MemoryAccessError, match="authenticated actor"):
-        SovereignMemoryStore(
-            raw, principal=sovereign_actor(None), rights_provider=lambda: {}
-        )
+        SovereignMemoryStore(raw, principal=sovereign_actor(None), rights_provider=lambda: {})
     with pytest.raises(MemoryAccessError, match="provider"):
-        SovereignMemoryStore(
-            raw, principal=sovereign_actor(), rights_provider=None
-        )
+        SovereignMemoryStore(raw, principal=sovereign_actor(), rights_provider=None)
     session = SovereignMemoryStore(
         raw, principal=sovereign_actor(),
         rights_provider=lambda: (_ for _ in ()).throw(RuntimeError("private")),
     )
     with pytest.raises(MemoryAccessError, match="authority unavailable"):
         session.query(MemoryQuery())
-    invalid = SovereignMemoryStore(
-        raw, principal=sovereign_actor(), rights_provider=lambda: None
-    )
+    invalid = SovereignMemoryStore(raw, principal=sovereign_actor(), rights_provider=lambda: None)
     with pytest.raises(MemoryAccessError, match="authority unavailable"):
         invalid.get("nonexistent")
