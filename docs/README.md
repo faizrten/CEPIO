@@ -87,6 +87,7 @@ See [Current State](current-state.md).
 - [Microsoft Fabric / Fabric IQ](integrations/microsoft-fabric-iq.md)
 - [Microsoft Fabric Live Binding Proof](integrations/microsoft-fabric-live-binding-proof.md)
 - [Foundry + MCP](foundry-mcp.md)
+- [Microsoft 365 Copilot managed agent (read-only P0)](integrations/microsoft-365-copilot-managed-agent.md)
 - [Reliability Agent Lighthouse](reliability-agent-lighthouse.md)
 - [Foundry Reliability G1](foundry-reliability-g1.md)
 - [NVIDIA cuGraph](integrations/nvidia-cugraph.md)
