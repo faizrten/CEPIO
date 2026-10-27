@@ -16,8 +16,7 @@ def governance_python():
     start = next(i for i, line in enumerate(lines) if "python - <<'PY'" in line)
     end = next(i for i in range(start + 1, len(lines)) if lines[i].strip() == "PY")
     code = "\n".join(
-        line[10:] if line.startswith("          ") else line
-        for line in lines[start + 1 : end]
+        line[10:] if line.startswith("          ") else line for line in lines[start + 1 : end]
     )
     compile(code, str(WORKFLOW), "exec")
     return code
@@ -27,13 +26,9 @@ SUMMARY = "A harmless documentation change describing how to use the public inte
 
 
 def simple_body(risk="low", summary=SUMMARY, with_ip=True):
-    body = (
-        "## Summary\n" + summary + "\n\n## Risk classification\n- [x] " + risk + "\n"
-    )
+    body = "## Summary\n" + summary + "\n\n## Risk classification\n- [x] " + risk + "\n"
     if with_ip:
-        body += (
-            "\n## IP / publication review\n- [x] **PUBLIC** — reviewed for publication.\n"
-        )
+        body += "\n## IP / publication review\n- [x] **PUBLIC** — reviewed for publication.\n"
     return body
 
 
