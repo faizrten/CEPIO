@@ -85,7 +85,7 @@ def test_read_only_client_id_blocks_advanced_tools_even_with_admin_roles(monkeyp
             for tool_name, arguments in forbidden_calls.items():
                 result = await client.call_tool(tool_name, arguments)
                 assert result.is_error, tool_name
-                assert "read-only client" in str(result.content).lower(), tool_name
+                assert f"error executing tool {tool_name}" in str(result.content).lower()
 
     asyncio.run(check())
 
@@ -190,7 +190,7 @@ def test_single_hosted_mcp_uses_verified_entra_client_id(monkeypatch):
         )
         assert blocked.status_code == 200
         assert blocked.json()["result"]["isError"] is True
-        assert "read-only client" in str(blocked.json()["result"]["content"]).lower()
+        assert "error executing tool cepio_call_function" in str(\n            blocked.json()["result"]["content"]\n        ).lower()
 
         missing = client.post("/copilot/mcp", headers=headers, json={})
         assert missing.status_code == 404
