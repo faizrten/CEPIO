@@ -1,4 +1,5 @@
 """Static and executable contract checks for the trusted-base PR risk triage."""
+
 from pathlib import Path
 import shutil
 import subprocess
