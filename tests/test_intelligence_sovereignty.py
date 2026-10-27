@@ -642,8 +642,7 @@ def test_authorized_memory_store_does_not_trust_caller_tenant():
 def test_authorized_memory_store_denies_untagged_and_unverified_lineage():
     raw = InMemoryMemoryStore()
     session = SovereignMemoryStore(
-        raw,
-        principal=sovereign_actor(), rights_provider=sovereign_rights
+        raw, principal=sovereign_actor(), rights_provider=sovereign_rights
     )
     source = sovereign_fixture()
     missing_tag = source.model_copy(update={"sovereignty_source_id": None})
@@ -697,7 +696,8 @@ def test_authorized_memory_store_fails_closed_on_unavailable_rights_and_actor():
     with pytest.raises(MemoryAccessError, match="provider"):
         SovereignMemoryStore(raw, principal=sovereign_actor(), rights_provider=None)
     session = SovereignMemoryStore(
-        raw, principal=sovereign_actor(),
+        raw,
+        principal=sovereign_actor(),
         rights_provider=lambda: (_ for _ in ()).throw(RuntimeError("private")),
     )
     with pytest.raises(MemoryAccessError, match="authority unavailable"):
