@@ -9,7 +9,8 @@ from typing import Literal
 from ...application_contract import SkillInvocation
 from ...application_contract import CEPIOApplicationService
 from ...query import ObjectQuery
-from ...runtime import AuthorizationError, CEPIORuntime
+from ...runtime import AuthorizationError
+from ...runtime import CEPIORuntime
 from .foundry_gateway import ActorProvider, CEPIOMCPGateway
 
 
