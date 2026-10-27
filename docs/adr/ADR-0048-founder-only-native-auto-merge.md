@@ -1,29 +1,27 @@
-# ADR-0048: Founder-only auto-merge admission with existing GitHub checks
+# ADR-0048: Founder-only R0/R1 merge qualification and safe activation boundary
 
-Status: Proposed until qualification and merge
+Status: Proposed until required checks pass
 
 ## Decision
 
-Keep GitHub Actions and the existing CEPIO Core `main` ruleset. Add a trusted default-branch `workflow_run` admission job triggered by a successful **CEPIO CI** pull-request run. It may **enable GitHub's native auto-merge**, but it is prohibited from calling the merge API, approving reviews, bypassing branch protection, or changing required checks. It has `contents: read` and `pull-requests: write`, no checkout, no secrets, and no infrastructure permissions. The native merge is delayed until all existing required reviews/status checks and strict branch freshness rules are satisfied.
+Keep GitHub Actions and the existing CEPIO Core main ruleset. Introduce a trusted, default-branch `workflow_run` that **qualifies** exceptionally low-risk founder-authored pull requests after a successful CEPIO CI run. The workflow is **read-only** (`contents: read`, `pull-requests: read`), has no checkout, no deployment credentials, and no merge API mutation. GitHub's native auto-merge remains available to the founder in the repository interface and still enforces all required security, quality, coverage, code-scanning and governance checks.
 
-The admission service is intentionally limited to PRs both *authored by* the sole founder (`faizrten`) and *sourced from* `faizrten/CEPIO`, with an unchanged SHA matching the successful PR CI run. It rejects forks, drafts, deletions, renames, binary changes, mixed changes, stale runs, large diffs, unknown paths, and sensitive or foundational files. It rereads the PR immediately before admission.
+The workflow validates that the PR belongs to `faizrten/CEPIO`, was authored by `faizrten`, is not a draft, and that its head SHA exactly matches the completed PR CI run. It reads the file list from the GitHub API, rejects stale results and rechecks the PR before returning a qualification.
 
-- **R0 automatic:** At most three small `.md` changes (at most 150 changed lines total) strictly within the explicitly allowlisted public glossary, developer guide, reference scenarios, API examples/client guide, and developer preflight/bindings documentation. The owner selects `low` and the public-IP classification.
-- **R1 owner-opted:** At most two *new* `tests/test_*.py` files (250 changed lines total), with security/governance/deployment-related test names excluded. The owner selects `medium`, confirms public-IP attestations and checks `R1 auto-merge authorized by founder` in a `## Review automation` section. Existing tests cannot be modified or deleted through this path.
-- **R2/R3:** Never admitted to automatic merge; keep founder-controlled oversight and existing governance/approval boundaries.
+- **R0:** At most three small, explicitly allowlisted documentation files and 150 changed lines, with a checked low-risk and PUBLIC IP classification.
+- **R1:** At most two *new* `tests/test_*.py` files totaling 250 changed lines, excluding security, governance, migration, deployment and other protected tests. Requires medium risk, explicit `R1 auto-merge authorized by founder` opt-in and all existing public-IP attestations.
+- **R2/R3:** Never qualified by this narrower policy; they remain manually controlled under existing gates.
 
-This is deliberately narrower than the advisory R0–R3 classifier. The classifier is informational and must not authorize merges.
+Rename, deletion, binary, excessive, unknown, mixed or externally authored PRs are denied. Qualifications are advisory and do not grant approval or bypass any GitHub rule.
 
-## Security and operational safeguards
+## Why unattended auto-merge is not yet activated
 
-A successful CI run alone does not authorize merge: the native GitHub auto-merge mutation leaves status checks, CodeQL, quality/coverage, publication review and all ruleset controls in force. If GitHub refuses auto-merge, the workflow logs a warning and performs no direct merge. Production deployments, cloud permissions, paid Foundry inference, spending controls and tenant data boundaries are unchanged.
+We evaluated enabling `enablePullRequestAutoMerge` through the standard GitHub Actions `GITHUB_TOKEN`. Current GitHub documentation and community examples indicate this can require both `contents: write` and `pull-requests: write`. More importantly, operations performed with the default Actions token can suppress subsequent workflow triggers, notably `push` CI after merges. Unattended merging without proving the post-merge verification path would weaken CEPIO's release assurance.
 
-The `workflow_run` trust boundary runs the reviewed default-branch workflow and **never checks out or executes the PR head**. External PRs do not qualify even if their CI succeeds. The path checks are defensive filters, not proof of document confidentiality; the founder remains accountable for confirming publication scope.
+Therefore, this milestone deliberately does not grant repository write scopes or activate the merge mutation. Before enabling unattended merge, use an appropriately scoped GitHub App installation identity, verify that merges it initiates trigger the expected post-merge workflows, and run a live R0 negative/positive test under the unchanged ruleset. Never use direct merge, administrative bypass, or a PAT copied into code.
 
-CEPIO Labs and Industry IQ Studio retain advisory risk triage only. Their private repository auto-merge settings and effective protections have not been qualified for unattended merging.
+## Tests and rollback
 
-## Validation and rollback
+Credential-free Node.js acceptance tests execute the embedded admission logic with mocked GitHub APIs for eligible R0/R1 cases and denied unauthorized, forked, stale, protected, renamed, binary, changed-head and missing-opt-in cases. Full GitHub CI and existing main protection must pass.
 
-The acceptance test runs the actual embedded policy script offline with mocked GitHub APIs, covering eligible R0/R1 and at least 14 denial cases. Normal CI, security, governance, and quality checks must pass on this PR before merging. Confirm a future eligible PR is admitted but *not* merged until required checks finish, and verify an R2/R3 PR remains manual.
-
-To roll back, remove `.github/workflows/owner-auto-merge.yml`. GitHub auto-merge already enabled on individual PRs can be disabled manually. No repository settings need to change.
+Rollback: remove `.github/workflows/owner-auto-merge.yml`. This has no effect on production deployment, model inference, cloud roles, repository rulesets, or existing GitHub auto-merge settings. CEPIO Labs and Industry IQ Studio retain advisory risk triage because their private repository merge protections and auto-merge settings have not yet been qualified.
