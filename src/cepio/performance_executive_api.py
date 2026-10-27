@@ -6,9 +6,12 @@ promoted to verified enterprise evidence or persisted as Decisions.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+import os
+
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 
 from .application_contract import ExecutionContext
+from .application_runtime import build_application_service
 from .auth import ActorContext, get_actor_context
 from .performance_executive import (
     ExecutivePackageRequest,
@@ -16,8 +19,15 @@ from .performance_executive import (
     ExecutivePerformancePackage,
     ExecutivePerformanceService,
 )
-from .performance_industry_iq import PerformanceReasoningError
+from .performance_industry_iq import (
+    PERFORMANCE_RESPONSE_DECISION_TYPE,
+    PERFORMANCE_RESPONSE_IQ_PACK,
+    PerformanceIndustryIQService,
+    PerformanceReasoningError,
+)
 from .performance_registry import PerformanceContractRegistryError
+from .performance_service import PerformanceService
+from .runtime import CEPIORuntime
 from .runtime import AuthorizationError
 
 
@@ -82,3 +92,23 @@ def build_performance_executive_router(service: ExecutivePerformanceService) -> 
             ) from exc
 
     return router
+
+
+
+def mount_experimental_performance_executive(
+    app: FastAPI, runtime: CEPIORuntime, performance_service: PerformanceService
+) -> None:
+    """Mount only on explicit opt-in, preserving the existing stable public API."""
+    if os.getenv("CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE", "").lower() != "true":
+        return
+    if not runtime.has_decision(PERFORMANCE_RESPONSE_DECISION_TYPE):
+        PERFORMANCE_RESPONSE_IQ_PACK.install(runtime)
+    app.include_router(
+        build_performance_executive_router(
+            ExecutivePerformanceService(
+                PerformanceIndustryIQService(
+                    performance_service, build_application_service(runtime)
+                )
+            )
+        )
+    )
