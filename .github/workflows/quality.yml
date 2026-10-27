@@ -168,11 +168,11 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: cepio-coverage-head-${{ github.run_id }}
           path: evidence/head
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: cepio-coverage-base-${{ github.run_id }}
           path: evidence/base
