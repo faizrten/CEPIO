@@ -737,4 +737,3 @@ def test_authorized_memory_store_rejects_stale_backend_and_missing_erasure():
         rights_provider=sovereign_rights,
     )
     assert empty.forget("does-not-exist") is False
-
