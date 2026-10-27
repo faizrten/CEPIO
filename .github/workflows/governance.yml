@@ -15,6 +15,18 @@ jobs:
     name: governance
     runs-on: ubuntu-latest
     steps:
+      - name: Verify docs-only eligibility from the PR file list
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.repo, pull_number: context.issue.number, per_page: 100
+            });
+            const docsOnly = files.length > 0 && files.length < 3000 && files.every(file =>
+              file.status !== 'removed' && !file.previous_filename &&
+              /^(?:README\.md|docs\/(?!adr\/|governance\/)[^/].*)$/.test(file.filename)
+            );
+            core.exportVariable('CEPIO_DOCS_ONLY', String(docsOnly));
       - name: Validate pull request governance metadata
         env:
           GITHUB_EVENT_PATH: ${{ github.event_path }}
@@ -32,7 +44,18 @@ jobs:
           body = pr.get("body") or ""
           title = pr.get("title") or ""
 
-          required_headings = [
+          # Only proven docs-only PRs with an explicitly selected LOW risk
+          # may use the small solo-founder template. Any code, rename, deletion,
+          # unknown path, or higher risk retains all original requirements.
+          streamlined = (
+              os.environ.get("CEPIO_DOCS_ONLY") == "true"
+              and bool(re.search(r"(?m)^- \[[xX]\] low\s*$", body))
+          )
+          required_headings = ([
+              "## Summary",
+              "## Risk classification",
+              "## IP / publication review",
+          ] if streamlined else [
               "## Linked issue",
               "## Change class",
               "## Architecture / semantic impact",
@@ -40,7 +63,7 @@ jobs:
               "## IP / publication review",
               "## Documentation impact",
               "## Breaking changes / migration",
-          ]
+          ])
 
           failures = []
           for heading in required_headings:
@@ -49,7 +72,7 @@ jobs:
 
           issue_ref = re.search(r"(?im)^\s*(?:closes|fixes|refs|references)\s+#\d+\b", body)
           explicit_na = re.search(r"(?im)^\s*N/A\s*[—-]\s*.+$", body)
-          if not issue_ref and not explicit_na:
+          if not streamlined and not issue_ref and not explicit_na:
               failures.append(
                   "Linked issue must contain 'Closes #<n>', 'Fixes #<n>', 'Refs #<n>', "
                   "or an explicit 'N/A — <reason>'."
@@ -60,8 +83,13 @@ jobs:
               body,
               flags=re.IGNORECASE | re.DOTALL,
           )
-          if change_class_block and not re.search(r"(?m)^\s*- \[[xX]\] ", change_class_block.group("section")):
+          if not streamlined and change_class_block and not re.search(r"(?m)^\s*- \[[xX]\] ", change_class_block.group("section")):
               failures.append("Select at least one Change class checkbox.")
+
+          if streamlined:
+              summary_section = re.search(r"## Summary\s*\n(?P<text>.*?)(?=\n## |\Z)", body, re.DOTALL)
+              if not summary_section or len(summary_section.group("text").strip()) < 20:
+                  failures.append("Docs-only PR requires a meaningful 20+ character summary.")
 
           if title.lower().startswith("wip"):
               failures.append("PR title must not start with WIP; use GitHub Draft PR state instead.")

@@ -67,6 +67,29 @@ The hosted MCP server publishes exactly eight governed tools:
 
 `cepio_recommend_action` and `cepio_execute_action` are deliberately separate. Reasoning authority does not imply execution authority.
 
+## One MCP endpoint for Copilot Studio and Foundry
+
+Use the existing `/mcp` endpoint for all agent clients; **there is no
+`/copilot/mcp` endpoint**. The eight governed tool definitions remain
+available for protocol compatibility. Microsoft Copilot Studio can disable
+individual tools per agent, while CEPIO continues to authorize every call.
+
+For the P0 Copilot read-only managed agent, the CEPIO host must set
+`CEPIO_MCP_READ_ONLY_CLIENT_IDS` to the approved Copilot OAuth application
+client ID (or comma-separated client IDs) **before publishing the connection**.
+This additional deny-only guard derives the calling client ID from verified
+Entra `azp`/`appid` claims and blocks four advanced tool calls for that
+client: `cepio_call_function`, `cepio_evaluate_skill`,
+`cepio_recommend_action` and `cepio_execute_action`. Even an elevated
+delegated user cannot bypass that client restriction. Existing CEPIO actor
+authorization, tenant policy and action approvals remain independent.
+An unset client ID list preserves the existing Foundry host behavior, so
+Copilot integration is **not qualified** until the deployed host's list and
+token identity have been checked. Microsoft tool switches alone cannot
+secure industrial operations.
+
+See [Microsoft 365 Copilot managed-agent runbook](integrations/microsoft-365-copilot-managed-agent.md).
+
 ## Identity contract
 
 MCP tool arguments never contain `actor_id`, `actor_roles`, bearer tokens or other authority assertions.
