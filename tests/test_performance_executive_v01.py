@@ -423,5 +423,9 @@ def test_experimental_host_route_is_installed_only_on_explicit_opt_in(monkeypatc
     monkeypatch.setenv("CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE", "true")
     mount_experimental_performance_executive(host, runtime, performance)
     assert runtime.has_decision("performance-deviation-response")
-    assert route in [getattr(item, "path", "") for item in host.routes], [(type(item).__name__, getattr(item, "path", ""), getattr(item, "name", "")) for item in host.routes]
+    mounted = [
+        (type(item).__name__, getattr(item, "path", ""), getattr(item, "name", ""))
+        for item in host.routes
+    ]
+    assert route in [item[1] for item in mounted], mounted
     assert route not in host.openapi()["paths"]
