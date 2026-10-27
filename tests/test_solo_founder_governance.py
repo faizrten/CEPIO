@@ -15,7 +15,10 @@ def governance_python():
     lines = WORKFLOW.read_text(encoding="utf-8").splitlines()
     start = next(i for i, line in enumerate(lines) if "python - <<'PY'" in line)
     end = next(i for i in range(start + 1, len(lines)) if lines[i].strip() == "PY")
-    code = "\n".join(line[10:] if line.startswith("          ") else line for line in lines[start + 1 : end])
+    code = "\n".join(
+        line[10:] if line.startswith("          ") else line
+        for line in lines[start + 1 : end]
+    )
     compile(code, str(WORKFLOW), "exec")
     return code
 
@@ -24,9 +27,13 @@ SUMMARY = "A harmless documentation change describing how to use the public inte
 
 
 def simple_body(risk="low", summary=SUMMARY, with_ip=True):
-    body = "## Summary\n" + summary + "\n\n## Risk classification\n- [x] " + risk + "\n"
+    body = (
+        "## Summary\n" + summary + "\n\n## Risk classification\n- [x] " + risk + "\n"
+    )
     if with_ip:
-        body += "\n## IP / publication review\n- [x] **PUBLIC** — reviewed for publication.\n"
+        body += (
+            "\n## IP / publication review\n- [x] **PUBLIC** — reviewed for publication.\n"
+        )
     return body
 
 
@@ -34,11 +41,21 @@ class SoloFounderGovernanceTests(unittest.TestCase):
     def execute(self, body, *, docs_only, title="docs: update quickstart"):
         with tempfile.TemporaryDirectory() as directory:
             event = Path(directory) / "event.json"
-            event.write_text(json.dumps({"pull_request": {"body": body, "title": title}}), encoding="utf-8")
-            environment = {**os.environ, "GITHUB_EVENT_PATH": str(event), "CEPIO_DOCS_ONLY": str(docs_only).lower()}
+            event.write_text(
+                json.dumps({"pull_request": {"body": body, "title": title}}),
+                encoding="utf-8",
+            )
+            environment = {
+                **os.environ,
+                "GITHUB_EVENT_PATH": str(event),
+                "CEPIO_DOCS_ONLY": str(docs_only).lower(),
+            }
             return subprocess.run(
                 [sys.executable, "-c", governance_python()],
-                env=environment, capture_output=True, text=True, check=False,
+                env=environment,
+                capture_output=True,
+                text=True,
+                check=False,
             )
 
     def test_low_risk_verified_docs_accepts_short_form(self):
@@ -53,7 +70,9 @@ class SoloFounderGovernanceTests(unittest.TestCase):
     def test_medium_or_high_risk_cannot_claim_short_form(self):
         for risk in ("medium", "high"):
             with self.subTest(risk=risk):
-                self.assertNotEqual(self.execute(simple_body(risk=risk), docs_only=True).returncode, 0)
+                self.assertNotEqual(
+                    self.execute(simple_body(risk=risk), docs_only=True).returncode, 0
+                )
 
     def test_missing_ip_review_rejected(self):
         result = self.execute(simple_body(with_ip=False), docs_only=True)
