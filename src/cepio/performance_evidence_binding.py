@@ -211,8 +211,6 @@ class HostBoundPerformanceEvidenceService:
             observations.append(observed)
             records.append(source)
 
-        if not observations or not any(x.node_id == plan.focus_node_id for x in observations):
-            raise BoundEvidenceError("FOCUS_EVIDENCE_MISSING", "No direct focus evidence")
         reasoning = PerformanceReasoningRequest(
             contract_id=plan.contract_id,
             contract_version=plan.contract_version,
