@@ -43,10 +43,7 @@ def test_rig07_activation_uses_reference_inheritance_and_tenant_provenance():
     )
     assert len(result.assessment.source_revision_hashes) == 2
     assert all(result.assessment.source_revision_hashes)
-    assert (
-        result.resolution.resolved.source_for("node", NPT).source_contract_id
-        == CONTRACT_ID
-    )
+    assert result.resolution.resolved.source_for("node", NPT).source_contract_id == CONTRACT_ID
     assert next(node for node in reference.nodes if node.id == NPT).formula_ref is None
     assert next(node for node in contract.nodes if node.id == NPT).target.value == 0.08
     assert any(
@@ -56,8 +53,7 @@ def test_rig07_activation_uses_reference_inheritance_and_tenant_provenance():
         for item in contract.accountabilities
     )
     assert not any(
-        item.subject_id == "drilling.reference.rig-manager"
-        and item.node_id == UPTIME
+        item.subject_id == "drilling.reference.rig-manager" and item.node_id == UPTIME
         for item in contract.accountabilities
     )
 
@@ -95,8 +91,7 @@ def test_financial_exposure_needs_approved_contract_evidence():
     assert financial.value is None
     assert financial.status == PerformanceStatus.unknown
     assert all(
-        execution.formula_ref
-        != "logic://synthetic-rigco/rig07/revenue-leakage/v1"
+        execution.formula_ref != "logic://synthetic-rigco/rig07/revenue-leakage/v1"
         for execution in missing.business_logic_executions
     )
 
