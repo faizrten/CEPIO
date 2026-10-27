@@ -1,7 +1,7 @@
-"""Bounded Copilot Studio read-only MCP profile: tool discovery and auth gates.
+"""One canonical CEPIO /mcp: Copilot client restrictions are enforced server-side.
 
-This is protocol/unit qualification with synthetic actors, not a live Microsoft
-Copilot Studio, Entra consent or customer-data integration test.
+These are synthetic Entra/protocol tests, not actual Copilot Studio or live
+customer-tenancy qualification. No actual access tokens or clients are provisioned.
 """
 
 from __future__ import annotations
@@ -9,89 +9,147 @@ from __future__ import annotations
 import asyncio
 from types import SimpleNamespace
 
+import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
+from cepio.application_contract import SkillInvocation
 from cepio.bootstrap import build_runtime
 from cepio.integrations.microsoft import hosted_mcp
-from cepio.integrations.microsoft.foundry_gateway import (
-    ActorContext,
-    FixedActorProvider,
-)
+from cepio.integrations.microsoft.foundry_gateway import ActorContext, FixedActorProvider
 from cepio.integrations.microsoft.foundry_mcp import (
-    build_copilot_read_only_mcp_server,
+    _enforce_mcp_client_tool_policy,
     build_mcp_server,
 )
+from cepio.model import ObjectRef
+from cepio.runtime import AuthorizationError
 
 
-READ_ONLY_TOOLS = {
+READ_TOOLS = {
     "cepio_get_object",
     "cepio_query_objects",
     "cepio_get_state_at",
     "cepio_explain_property",
 }
+RESTRICTED_TOOLS = {
+    "cepio_call_function",
+    "cepio_evaluate_skill",
+    "cepio_recommend_action",
+    "cepio_execute_action",
+}
 
 
-def test_copilot_read_only_inprocess_discovers_no_mutation_or_skill_tools():
+def _gateway(client_id: str):
+    from cepio.integrations.microsoft.foundry_gateway import CEPIOMCPGateway
+
+    actor = ActorContext(
+        subject_id="synthetic-admin",
+        roles={"cepio_admin", "maintenance_engineer"},
+        client_id=client_id,
+        auth_mode="oauth2",
+        tenant_id="test-tenant",
+    )
+    return CEPIOMCPGateway(build_runtime(), FixedActorProvider(actor))
+
+
+def test_read_only_client_id_blocks_advanced_tools_even_with_admin_roles(monkeypatch):
     from mcp import Client
 
-    runtime = build_runtime()
-    provider = FixedActorProvider(
-        ActorContext(
-            subject_id="copilot-synthetic-reader",
-            roles={"maintenance_engineer"},
-            tenant_id="test-tenant",
-        )
-    )
-    server = build_copilot_read_only_mcp_server(runtime, provider)
-    standard = build_mcp_server(runtime, provider)
+    monkeypatch.setenv("CEPIO_MCP_READ_ONLY_CLIENT_IDS", "COPILOT-CLIENT,another-client")
+    gateway = _gateway("copilot-client")
+    server = build_mcp_server(gateway.runtime, gateway.actor_provider)
 
     async def check():
-        async with Client(server) as client:
+        async with Client(server, raise_exceptions=False) as client:
             names = {tool.name for tool in (await client.list_tools()).tools}
-            assert names == READ_ONLY_TOOLS
-        async with Client(standard) as client:
-            names = {tool.name for tool in (await client.list_tools()).tools}
-            assert "cepio_execute_action" in names
-            assert "cepio_evaluate_skill" in names
+            # A single consistent MCP schema is advertised; the agent disables
+            # unneeded tools and CEPIO enforces the client restriction on calls.
+            assert names == READ_TOOLS | RESTRICTED_TOOLS
+            inv = SkillInvocation(
+                skill_id="synthetic.reliability.review",
+                subject=ObjectRef(id="EQ-07", type="Equipment"),
+                evidence=[],
+            )
+            forbidden_calls = {
+                "cepio_call_function": {"function_name": "calculateAssetRisk", "arguments": {}},
+                "cepio_evaluate_skill": {"invocation": inv.model_dump(mode="json")},
+                "cepio_recommend_action": {
+                    "action_type": "maintenance_review",
+                    "target_id": "EQ-07",
+                },
+                "cepio_execute_action": {
+                    "action_type": "maintenance_review",
+                    "target_id": "EQ-07",
+                },
+            }
+            for tool_name, arguments in forbidden_calls.items():
+                result = await client.call_tool(tool_name, arguments)
+                assert result.is_error, tool_name
+                assert "read-only client" in str(result.content).lower(), tool_name
 
     asyncio.run(check())
 
 
-def test_copilot_hosted_endpoint_is_separate_authenticated_and_read_only(monkeypatch):
+def test_unlisted_client_keeps_existing_cepio_policy_path(monkeypatch):
+    monkeypatch.setenv("CEPIO_MCP_READ_ONLY_CLIENT_IDS", "copilot-client")
+    _enforce_mcp_client_tool_policy(_gateway("foundry-client"), "cepio_execute_action")
+    with pytest.raises(AuthorizationError, match="read-only client"):
+        _enforce_mcp_client_tool_policy(_gateway("CoPiLoT-ClIeNt"), "cepio_execute_action")
+
+
+def test_single_hosted_mcp_uses_verified_entra_client_id(monkeypatch):
     monkeypatch.setenv("CEPIO_ENVIRONMENT", "production")
     monkeypatch.setenv("CEPIO_AUTH_MODE", "entra")
+    monkeypatch.setenv("CEPIO_MCP_READ_ONLY_CLIENT_IDS", "copilot-client")
 
     class FakeValidator:
-        def __init__(self, settings):
+        def __init__(self, _settings):
             pass
 
         def validate(self, token):
-            if token != "synthetic-copilot-reader":
-                raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
-            return SimpleNamespace(
-                actor_id="test-reader",
-                tenant_id="test-tenant",
-                roles={"maintenance_engineer"},
-                claims={"oid": "test-reader", "scp": "access_as_user"},
-            )
+            if token == "synthetic-copilot":
+                return SimpleNamespace(
+                    actor_id="synthetic-admin",
+                    tenant_id="test-tenant",
+                    roles={"cepio_admin", "maintenance_engineer"},
+                    claims={
+                        "oid": "synthetic-admin",
+                        "tid": "test-tenant",
+                        "scp": "access_as_user",
+                        "azp": "copilot-client",
+                    },
+                )
+            if token == "synthetic-no-role":
+                return SimpleNamespace(
+                    actor_id="unmapped",
+                    tenant_id="test-tenant",
+                    roles=set(),
+                    claims={"oid": "unmapped", "azp": "copilot-client"},
+                )
+            raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
 
     monkeypatch.setattr(hosted_mcp, "EntraTokenValidator", FakeValidator)
     from cepio.host_api import app
 
     headers = {
-        "Authorization": "Bearer synthetic-copilot-reader",
+        "Authorization": "Bearer synthetic-copilot",
         "Content-Type": "application/json",
         "Accept": "application/json, text/event-stream",
     }
+
     with TestClient(app) as client:
         for auth_headers in ({}, {"X-CEPIO-Dev-Roles": "cepio_admin"}):
-            response = client.post("/copilot/mcp", json={}, headers=auth_headers)
-            assert response.status_code == 401
-            assert response.headers["www-authenticate"] == "Bearer"
+            denied = client.post("/mcp", headers=auth_headers, json={})
+            assert denied.status_code == 401
+            assert denied.headers["www-authenticate"] == "Bearer"
+
+        forbidden_role = client.post(
+            "/mcp", headers={"Authorization": "Bearer synthetic-no-role"}, json={}
+        )
+        assert forbidden_role.status_code == 403
 
         init = client.post(
-            "/copilot/mcp",
+            "/mcp",
             headers=headers,
             json={
                 "jsonrpc": "2.0",
@@ -108,37 +166,33 @@ def test_copilot_hosted_endpoint_is_separate_authenticated_and_read_only(monkeyp
         headers["MCP-Protocol-Version"] = init.json()["result"]["protocolVersion"]
 
         listed = client.post(
-            "/copilot/mcp",
+            "/mcp",
             headers=headers,
             json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
         )
         assert listed.status_code == 200
-        assert {tool["name"] for tool in listed.json()["result"]["tools"]} == READ_ONLY_TOOLS
+        assert {tool["name"] for tool in listed.json()["result"]["tools"]} == (
+            READ_TOOLS | RESTRICTED_TOOLS
+        )
 
-        standard_init = client.post(
+        blocked = client.post(
             "/mcp",
             headers=headers,
             json={
                 "jsonrpc": "2.0",
                 "id": 3,
-                "method": "initialize",
+                "method": "tools/call",
                 "params": {
-                    "protocolVersion": "2025-03-26",
-                    "capabilities": {},
-                    "clientInfo": {"name": "regression-test", "version": "1"},
+                    "name": "cepio_call_function",
+                    "arguments": {"function_name": "calculateAssetRisk", "arguments": {}},
                 },
             },
         )
-        assert standard_init.status_code == 200
-        standard_headers = dict(headers)
-        standard_headers["MCP-Protocol-Version"] = standard_init.json()["result"]["protocolVersion"]
-        standard_list = client.post(
-            "/mcp",
-            headers=standard_headers,
-            json={"jsonrpc": "2.0", "id": 4, "method": "tools/list", "params": {}},
-        )
-        assert standard_list.status_code == 200
-        assert "cepio_execute_action" in {
-            tool["name"] for tool in standard_list.json()["result"]["tools"]
-        }
+        assert blocked.status_code == 200
+        assert blocked.json()["result"]["isError"] is True
+        assert "read-only client" in str(blocked.json()["result"]["content"]).lower()
+
+        missing = client.post("/copilot/mcp", headers=headers, json={})
+        assert missing.status_code == 404
+        assert "/mcp" not in client.get("/openapi.json").json()["paths"]
         assert "/copilot/mcp" not in client.get("/openapi.json").json()["paths"]
