@@ -418,14 +418,17 @@ def test_experimental_host_route_is_installed_only_on_explicit_opt_in(monkeypatc
 
     monkeypatch.delenv("CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE", raising=False)
     mount_experimental_performance_executive(host, runtime, performance)
-    assert route not in [getattr(item, "path", "") for item in host.routes]
+    assert TestClient(host).post(route, json={}).status_code == 404
 
     monkeypatch.setenv("CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE", "true")
     mount_experimental_performance_executive(host, runtime, performance)
     assert runtime.has_decision("performance-deviation-response")
-    mounted = [
-        (type(item).__name__, getattr(item, "path", ""), getattr(item, "name", ""))
-        for item in host.routes
-    ]
-    assert route in [item[1] for item in mounted], mounted
+    # Recent FastAPI releases wrap included routers in _IncludedRouter. Route
+    # behavior, not a top-level .routes implementation detail, is contractual.
+    from cepio.auth import ActorContext, get_actor_context
+
+    host.dependency_overrides[get_actor_context] = lambda: ActorContext(
+        actor_id="synthetic-test", roles={"cepio_admin"}, tenant_id="synthetic-rigco"
+    )
+    assert TestClient(host).post(route, json={}).status_code == 422
     assert route not in host.openapi()["paths"]
