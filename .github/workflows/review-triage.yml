@@ -1,0 +1,50 @@
+name: CEPIO Review Triage (advisory)
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  triage:
+    name: review-risk-triage
+    runs-on: ubuntu-latest
+    steps:
+      # Trusted base workflow, never checkout or execute pull-request content.
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.repo, pull_number: context.issue.number, per_page: 100
+            });
+            if (!files.length || files.length >= 3000) {
+              core.setFailed('Cannot reliably classify this pull request: empty or oversized file list.');
+              return;
+            }
+            const risk = path => {
+              // Unknown paths default to foundational review; only an explicit docs allowlist is routine.
+              if (/^(?:\.github\/|deploy\/|infra\/|infrastructure\/|migrations?\/|policies\/|quality\/|compatibility\/|openapi\/|ontologies\/|scripts\/check_|docs\/(?:adr|governance)\/)/i.test(path) ||
+                  /(^|\/)(?:Dockerfile[^/]*|.*(?:auth|sovereignty|security|policy|rbac|permission|secret|credential|budget|billing|migration|production|release|gateway|tenant|audit|provenance|deployment|enforcement)[^/]*)$/i.test(path) ||
+                  /^(?:pyproject\.toml|package(?:-lock)?\.json|requirements[^/]*|uv\.lock|poetry\.lock)$/i.test(path))
+                return 3;
+              if (/^(?:docs\/(?!adr\/|governance\/)|README\.md$|THIRD_PARTY_NOTICES\.md$)/i.test(path))
+                return 0;
+              if (/^(?:tests\/|examples\/|fixtures\/|generalization\/(?:scenario-lab|evaluation)\/)/i.test(path))
+                return 1;
+              return 2;
+            };
+            const paths = files.flatMap(f => [f.filename, f.previous_filename].filter(Boolean));
+            const levels = paths.map(risk);
+            let level = Math.max(...levels);
+            if (files.some(f => f.status === 'removed') && level < 1) level = 1;
+            if (files.length > 100) level = Math.max(level, 2);
+            const names = ['R0 / routine docs', 'R1 / standard', 'R2 / foundational', 'R3 / critical'];
+            core.notice('CEPIO review suggestion: ' + names[level] + ' (' + files.length + ' files).');
+            await core.summary
+              .addHeading('CEPIO solo-founder review triage')
+              .addRaw('Suggested risk: **' + names[level] + '**\n\n')
+              .addRaw('This is **advisory**: existing governance, quality, security, release, and branch protections remain authoritative. Classification cannot authorize deployment, paid inference, data publication, or bypass approvals.\n\n')
+              .addRaw('Changed files: ' + files.length + '. Renamed original paths and deletions are considered.\n\n')
+              .addList(paths.slice(0, 30).map(p => 'R' + risk(p) + ': ' + p))
+              .write();
