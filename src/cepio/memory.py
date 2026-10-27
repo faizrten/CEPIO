@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -10,6 +11,13 @@ from threading import RLock
 from typing import Protocol
 
 from pydantic import BaseModel, Field, model_validator
+
+from .sovereignty import (
+    IntelligenceSovereigntyContract,
+    PermittedUse,
+    SovereigntyDenied,
+    authorize_source_use,
+)
 
 
 def utcnow() -> datetime:
@@ -65,6 +73,7 @@ class MemoryRecord(BaseModel):
     summary: str
     provenance: MemoryProvenance
     tenant_id: str | None = None
+    sovereignty_source_id: str | None = None
     reference: MemoryReference | None = None
     classification: str = "internal"
     created_at: datetime = Field(default_factory=utcnow)
@@ -82,6 +91,8 @@ class MemoryRecord(BaseModel):
             raise ValueError("tenant/profile memory requires tenant_id")
         if (self.kind == MemoryKind.PROFILE) != (self.scope == MemoryScope.PROFILE):
             raise ValueError("PROFILE kind and PROFILE scope must be used together")
+        if self.sovereignty_source_id is not None and not self.sovereignty_source_id.strip():
+            raise ValueError("sovereignty_source_id must be nonblank")
         if self.expires_at is not None and self.expires_at <= self.created_at:
             raise ValueError("expires_at must be later than created_at")
         return self
@@ -153,6 +164,151 @@ def _can_forget(record: MemoryRecord, tenant_id: str | None) -> bool:
     return (record.scope == MemoryScope.GLOBAL and tenant_id is None) or (
         record.scope != MemoryScope.GLOBAL and record.tenant_id == tenant_id
     )
+
+
+class BoundMemoryPrincipal(Protocol):
+    """Already-authenticated host identity. Not a caller/model request field."""
+
+    actor_id: str
+    tenant_id: str | None
+
+
+class SovereignMemoryStore:
+    """Opt-in rights gate around an existing MemoryStore.
+
+    Trusted hosts inject an authenticated actor and a fresh, independently
+    verified rights provider. This adapter does not verify the grant issuer,
+    replace database RLS, or secure access that bypasses this wrapper.
+    """
+
+    def __init__(
+        self,
+        store: MemoryStore,
+        *,
+        principal: BoundMemoryPrincipal,
+        rights_provider: Callable[[], Mapping[str, IntelligenceSovereigntyContract]],
+    ) -> None:
+        if not principal.actor_id or not principal.tenant_id:
+            raise MemoryAccessError("authenticated actor and tenant binding required")
+        if not callable(rights_provider):
+            raise MemoryAccessError("trusted source rights provider required")
+        self._store = store
+        self._tenant_id = principal.tenant_id
+        self._rights_provider = rights_provider
+
+    def _rights(self) -> Mapping[str, IntelligenceSovereigntyContract]:
+        try:
+            rights = self._rights_provider()
+        except Exception as exc:
+            raise MemoryAccessError("source rights authority unavailable") from exc
+        if not isinstance(rights, Mapping):
+            raise MemoryAccessError("source rights authority unavailable")
+        return rights
+
+    def _authorize(
+        self,
+        record: MemoryRecord,
+        rights: Mapping[str, IntelligenceSovereigntyContract],
+        *,
+        use: PermittedUse,
+        at: datetime,
+    ) -> None:
+        if record.scope != MemoryScope.GLOBAL and record.tenant_id != self._tenant_id:
+            raise MemoryAccessError("memory is outside authenticated tenant boundary")
+        source_ids = set(record.provenance.source_ids)
+        if (
+            not record.sovereignty_source_id
+            or record.sovereignty_source_id not in source_ids
+            or not source_ids
+            or any(not source_id or not source_id.strip() for source_id in source_ids)
+        ):
+            raise MemoryAccessError("complete source lineage required")
+        try:
+            for source_id in sorted(source_ids):
+                authorize_source_use(
+                    source_id,
+                    records=rights,
+                    use=use,
+                    tenant_id=self._tenant_id,
+                    at=at,
+                )
+        except SovereigntyDenied as exc:
+            raise MemoryAccessError("memory source use is not authorized") from exc
+
+    def _tenant_argument(self, tenant_id: str | None) -> str:
+        if tenant_id is not None and tenant_id != self._tenant_id:
+            raise MemoryAccessError("caller cannot change authenticated tenant")
+        return self._tenant_id
+
+    def put(self, record: MemoryRecord) -> MemoryRecord:
+        # Shared publication remains a separate, human-governed capability path.
+        if record.scope == MemoryScope.GLOBAL:
+            raise MemoryAccessError("shared memory publication not authorized")
+        rights = self._rights()
+        self._authorize(
+            record,
+            rights,
+            use=PermittedUse.TENANT_ADAPTATION,
+            at=utcnow(),
+        )
+        return self._store.put(record)
+
+    def get(self, memory_id: str, tenant_id: str | None = None) -> MemoryRecord | None:
+        bound_tenant = self._tenant_argument(tenant_id)
+        rights = self._rights()
+        record = self._store.get(memory_id, bound_tenant)
+        if record is None:
+            return None
+        if record.expired_at(utcnow()):
+            return None
+        self._authorize(
+            record,
+            rights,
+            use=(
+                PermittedUse.SHARED_RETRIEVAL
+                if record.scope == MemoryScope.GLOBAL
+                else PermittedUse.TENANT_INFERENCE
+            ),
+            at=utcnow(),
+        )
+        return record
+
+    def query(self, query: MemoryQuery) -> list[MemoryRecord]:
+        bound_tenant = self._tenant_argument(query.tenant_id)
+        rights = self._rights()
+        at = utcnow()
+        bounded_query = query.model_copy(update={"tenant_id": bound_tenant, "at": at})
+        permitted: list[MemoryRecord] = []
+        for record in self._store.query(bounded_query):
+            if record.expired_at(at):
+                continue
+            try:
+                self._authorize(
+                    record,
+                    rights,
+                    use=(
+                        PermittedUse.SHARED_RETRIEVAL
+                        if record.scope == MemoryScope.GLOBAL
+                        else PermittedUse.TENANT_INFERENCE
+                    ),
+                    at=at,
+                )
+            except MemoryAccessError:
+                continue
+            permitted.append(record)
+        return permitted
+
+    def forget(self, memory_id: str, tenant_id: str | None = None) -> bool:
+        bound_tenant = self._tenant_argument(tenant_id)
+        self._rights()
+        record = self._store.get(memory_id, bound_tenant)
+        if record is None:
+            return False
+        # Deletion must remain possible after a source grant is revoked.
+        # The governing host must separately authorize the erasure action.
+        if record.scope == MemoryScope.GLOBAL or record.tenant_id != bound_tenant:
+            raise MemoryAccessError("shared or foreign memory erasure not authorized")
+        return self._store.forget(memory_id, bound_tenant)
 
 
 class InMemoryMemoryStore(MemoryStore):
