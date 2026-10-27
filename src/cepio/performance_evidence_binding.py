@@ -194,7 +194,9 @@ class HostBoundPerformanceEvidenceService:
         for item in plan.records:
             node = nodes.get(item.node_id)
             if node is None:
-                raise BoundEvidenceError("NODE_NOT_FOUND", "Configured KPI not in effective contract")
+                raise BoundEvidenceError(
+                    "NODE_NOT_FOUND", "Configured KPI not in effective contract"
+                )
             try:
                 envelope = self.binding.resolve_evidence(item.external_id)
             except KeyError as exc:
@@ -254,7 +256,9 @@ class HostBoundPerformanceEvidenceService:
         try:
             payload = BoundEvidencePayload.model_validate(envelope.evidence)
         except ValueError as exc:
-            raise BoundEvidenceError("INVALID_SOURCE_PAYLOAD", "Source evidence is malformed") from exc
+            raise BoundEvidenceError(
+                "INVALID_SOURCE_PAYLOAD", "Source evidence is malformed"
+            ) from exc
         if payload.organization_id != plan.organization_id or payload.subject_id != plan.subject.id:
             raise BoundEvidenceError(
                 "SOURCE_SCOPE_MISMATCH", "Source record organization or subject differs"
