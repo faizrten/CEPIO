@@ -363,3 +363,45 @@ def test_unqualified_financial_observation_is_not_reported(monkeypatch):
     package = service.preview(request, context)
     assert package.financial_observation is None
     assert package.financial_status == "evidence_missing"
+
+
+@pytest.mark.parametrize(
+    ("financial_change", "expected_status"),
+    [
+        ({"value": None}, "evidence_missing"),
+        ({"evidence_refs": ()}, "evidence_missing"),
+        ({"status": PerformanceStatus.unknown}, "evidence_missing"),
+        ({"status": PerformanceStatus.not_evaluated}, "evidence_missing"),
+    ],
+)
+def test_finance_requires_observed_qualified_value_and_evidence(
+    monkeypatch, financial_change, expected_status
+):
+    _, service, request, context = _fixture()
+    performance = service.iq_service.performance_service
+    original = performance.evaluate
+
+    def alter_financial(*args, **kwargs):
+        result = original(*args, **kwargs)
+        nodes = tuple(
+            item.model_copy(update=financial_change) if item.node_id == LEAKAGE else item
+            for item in result.evaluation.nodes
+        )
+        return result.model_copy(
+            update={"evaluation": result.evaluation.model_copy(update={"nodes": nodes})}
+        )
+
+    monkeypatch.setattr(performance, "evaluate", alter_financial)
+    package = service.preview(request, context)
+    assert package.financial_status == expected_status
+    assert package.financial_observation is None
+
+
+def test_executive_preview_disallows_non_currency_metric_and_objective():
+    _, service, request, context = _fixture()
+    for node_id in (NPT, KR):
+        with pytest.raises(ExecutivePerformanceError) as error:
+            service.preview(
+                request.model_copy(update={"financial_node_id": node_id}), context
+            )
+        assert error.value.code == "INVALID_FINANCIAL_NODE"
