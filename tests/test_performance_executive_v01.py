@@ -203,6 +203,7 @@ def test_non_financial_metric_cannot_be_labeled_financial():
 def _client(tenant: str = ORG):
     _, service, request, _ = _fixture()
     app = FastAPI()
+    app.state.preview_service = service
     app.include_router(build_performance_executive_router(service))
     app.dependency_overrides[get_actor_context] = lambda: ActorContext(
         actor_id="synthetic-ceo",
@@ -320,18 +321,7 @@ def test_preview_rejects_revision_drift(monkeypatch):
 )
 def test_experimental_rest_error_mapping_stays_fail_closed(monkeypatch, error, status, code):
     client, request = _client()
-    target = next(
-        route
-        for route in client.app.routes
-        if getattr(route, "path", "") == "/experimental/performance/v0.1/executive/preview"
-    )
-    # FastAPI route is a closure over the captured service.
-    router_service = None
-    for cell in target.endpoint.__closure__ or ():
-        if isinstance(cell.cell_contents, ExecutivePerformanceService):
-            router_service = cell.cell_contents
-            break
-    assert router_service is not None
+    router_service = client.app.state.preview_service
 
     def fail(*args, **kwargs):
         raise error
