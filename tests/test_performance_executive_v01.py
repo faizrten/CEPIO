@@ -403,3 +403,35 @@ def test_executive_preview_disallows_non_currency_metric_and_objective():
         with pytest.raises(ExecutivePerformanceError) as error:
             service.preview(request.model_copy(update={"financial_node_id": node_id}), context)
         assert error.value.code == "INVALID_FINANCIAL_NODE"
+
+
+def test_experimental_host_route_is_installed_only_on_explicit_opt_in(monkeypatch):
+    """Exercise the real application startup gate in an isolated FastAPI host."""
+    import importlib.util
+
+    from cepio import api as legacy_api
+    from cepio.bootstrap import build_runtime
+
+    original = importlib.util.find_spec("cepio.public_api")
+    assert original is not None and original.origin is not None
+    host = FastAPI()
+    runtime = build_runtime()
+    monkeypatch.setattr(legacy_api, "app", host)
+    monkeypatch.setattr(legacy_api, "runtime", runtime)
+    monkeypatch.setenv("CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE", "true")
+    spec = importlib.util.spec_from_file_location(
+        "cepio._experimental_preview_startup_test", original.origin
+    )
+    assert spec is not None and spec.loader is not None
+    isolated = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(isolated)
+    assert runtime.has_decision("performance-deviation-response")
+    assert any(
+        getattr(route, "path", "") == "/experimental/performance/v0.1/executive/preview"
+        for route in isolated.app.routes
+    )
+    # This new host is separate from the supported public API host. The
+    # opt-in adapter deliberately does not become an OpenAPI /api/v1 route.
+    assert "/experimental/performance/v0.1/executive/preview" not in isolated.app.openapi()[
+        "paths"
+    ]
