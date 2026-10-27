@@ -166,23 +166,35 @@ class ExecutivePerformanceService:
         )
 
         financial_observation = None
-        financial_status = "not_requested"
+        financial_status: Literal[
+            "not_requested", "evidence_missing", "observed_unverified"
+        ] = "not_requested"
         if request.financial_node_id is not None:
             node = nodes.get(request.financial_node_id)
-            if node is None or node.kind not in {
-                PerformanceNodeKind.metric,
-                PerformanceNodeKind.kpi,
-            } or node.unit not in {"currency", "currency_per_period"}:
+            if (
+                node is None
+                or node.kind
+                not in {
+                    PerformanceNodeKind.metric,
+                    PerformanceNodeKind.kpi,
+                }
+                or node.unit not in {"currency", "currency_per_period"}
+            ):
                 raise ExecutivePerformanceError(
                     "INVALID_FINANCIAL_NODE",
                     "Financial observation must refer to an existing currency KPI or metric",
                 )
             item = response.evaluation.node(request.financial_node_id)
             financial_status = "evidence_missing"
-            if item.value is not None and item.evidence_refs and item.status not in {
-                PerformanceStatus.unknown,
-                PerformanceStatus.not_evaluated,
-            }:
+            if (
+                item.value is not None
+                and item.evidence_refs
+                and item.status
+                not in {
+                    PerformanceStatus.unknown,
+                    PerformanceStatus.not_evaluated,
+                }
+            ):
                 financial_observation = ExecutiveFinancialObservation(
                     node_id=node.id,
                     name=node.name,
