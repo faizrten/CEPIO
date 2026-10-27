@@ -113,9 +113,7 @@ def test_copilot_hosted_endpoint_is_separate_authenticated_and_read_only(monkeyp
             json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
         )
         assert listed.status_code == 200
-        assert {
-            tool["name"] for tool in listed.json()["result"]["tools"]
-        } == READ_ONLY_TOOLS
+        assert {tool["name"] for tool in listed.json()["result"]["tools"]} == READ_ONLY_TOOLS
 
         standard_init = client.post(
             "/mcp",
@@ -133,9 +131,7 @@ def test_copilot_hosted_endpoint_is_separate_authenticated_and_read_only(monkeyp
         )
         assert standard_init.status_code == 200
         standard_headers = dict(headers)
-        standard_headers["MCP-Protocol-Version"] = standard_init.json()["result"][
-            "protocolVersion"
-        ]
+        standard_headers["MCP-Protocol-Version"] = standard_init.json()["result"]["protocolVersion"]
         standard_list = client.post(
             "/mcp",
             headers=standard_headers,
