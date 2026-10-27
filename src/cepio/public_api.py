@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from typing import Any
 from uuid import uuid4
 
@@ -31,7 +30,7 @@ app.description = (
 performance_service = build_performance_service()
 app.include_router(build_performance_router(performance_service))
 
-# The opt-in adapter checks its own flag and never changes stable /api/v1.
+# Experimental route is opt-in; the stable API is unchanged.
 mount_experimental_performance_executive(app, legacy.runtime, performance_service)
 
 
