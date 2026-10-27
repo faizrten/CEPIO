@@ -94,9 +94,7 @@ def organization_overlay() -> PerformanceContractOverlayV2:
         extends_contract_id=reference.id,
         subjects=(
             PerformanceSubject(id=ORG, kind="enterprise", name="SYNTHETIC RigCo"),
-            PerformanceSubject(
-                id=RIG_TEAM, kind="team", name="Rig 07 operations", parent_id=ORG
-            ),
+            PerformanceSubject(id=RIG_TEAM, kind="team", name="Rig 07 operations", parent_id=ORG),
             PerformanceSubject(
                 id=RIG_MANAGER, kind="role", name="Rig 07 Manager", parent_id=RIG_TEAM
             ),
@@ -124,9 +122,7 @@ def organization_overlay() -> PerformanceContractOverlayV2:
                         field="definition",
                         value="Classified equipment-related NPT hours / eligible rig hours.",
                     ),
-                    PerformanceFieldSet(
-                        field="target", value={"operator": "lte", "value": 0.08}
-                    ),
+                    PerformanceFieldSet(field="target", value={"operator": "lte", "value": 0.08}),
                 ),
                 reason="Synthetic RigCo defines its own NPT clock, taxonomy and target.",
             ),
@@ -140,9 +136,7 @@ def organization_overlay() -> PerformanceContractOverlayV2:
                         field="definition",
                         value="(Scheduled - attributable downtime) / scheduled hours.",
                     ),
-                    PerformanceFieldSet(
-                        field="target", value={"operator": "gte", "value": 0.95}
-                    ),
+                    PerformanceFieldSet(field="target", value={"operator": "gte", "value": 0.95}),
                 ),
                 reason="Synthetic customer-specific operating uptime convention.",
             ),
@@ -156,9 +150,7 @@ def organization_overlay() -> PerformanceContractOverlayV2:
                         value="Confirmed nonbillable hours * approved contractual hourly rate; "
                         "synthetic gross revenue exposure, not EBITDA or cash loss.",
                     ),
-                    PerformanceFieldSet(
-                        field="target", value={"operator": "lte", "value": 0.0}
-                    ),
+                    PerformanceFieldSet(field="target", value={"operator": "lte", "value": 0.0}),
                 ),
                 reason="Only contract-confirmed leakage may be quantified.",
             ),
@@ -230,8 +222,9 @@ def _trusted_logic() -> PerformanceBusinessLogicRuntime:
     )
     functions.register_function(
         "demo_rig07_uptime",
-        lambda runtime, attributable_downtime_hours, scheduled_hours: 1.0
-        - _bounded_ratio(attributable_downtime_hours, scheduled_hours),
+        lambda runtime, attributable_downtime_hours, scheduled_hours: (
+            1.0 - _bounded_ratio(attributable_downtime_hours, scheduled_hours)
+        ),
         input_model=UptimeInputs,
         output_type=float,
     )
@@ -246,7 +239,12 @@ def _trusted_logic() -> PerformanceBusinessLogicRuntime:
     registry = BusinessLogicRegistry()
     for ref, function, names, unit in (
         (NPT_FORMULA, "demo_rig07_npt_ratio", ("classified_npt_hours", "eligible_hours"), "ratio"),
-        (UPTIME_FORMULA, "demo_rig07_uptime", ("attributable_downtime_hours", "scheduled_hours"), "ratio"),
+        (
+            UPTIME_FORMULA,
+            "demo_rig07_uptime",
+            ("attributable_downtime_hours", "scheduled_hours"),
+            "ratio",
+        ),
         (
             LEAKAGE_FORMULA,
             "demo_rig07_revenue_exposure",
@@ -334,9 +332,7 @@ def run_activation(
     materialized = _trusted_logic().materialize_many(
         contract, invocations, evaluated_at=EVALUATED_AT
     )
-    observations: list[RuntimeObservation] = [
-        item.observation for item in materialized
-    ]
+    observations: list[RuntimeObservation] = [item.observation for item in materialized]
     if include_guardrail_evidence:
         observations.extend(
             RuntimeObservation(
@@ -345,7 +341,7 @@ def run_activation(
                 observed_at=EVALUATED_AT - timedelta(minutes=10),
                 evidence_refs=(f"synthetic://rig07/{name}-verified-register",),
             )
-            for node, name in ( (SAFETY, "safety"), (WELL_CONTROL, "well-control") )
+            for node, name in ((SAFETY, "safety"), (WELL_CONTROL, "well-control"))
         )
     assessment = PerformanceService(registry).evaluate(
         CONTRACT_ID, observations, evaluated_at=EVALUATED_AT
@@ -374,8 +370,7 @@ def main() -> None:
             for node in result.assessment.evaluation.nodes
         },
         "recommend_only_candidates": [
-            candidate.model_dump(mode="json")
-            for candidate in result.assessment.workflow_candidates
+            candidate.model_dump(mode="json") for candidate in result.assessment.workflow_candidates
         ],
         "formula_provenance": [
             {"formula_ref": execution.formula_ref, "definition_hash": execution.definition_hash}
