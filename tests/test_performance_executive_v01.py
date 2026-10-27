@@ -333,3 +333,34 @@ def test_experimental_rest_error_mapping_stays_fail_closed(monkeypatch, error, s
     )
     assert response.status_code == status
     assert response.json()["detail"]["code"] == code
+
+
+
+def test_unknown_financial_node_is_rejected():
+    _, service, request, context = _fixture()
+    invalid = request.model_copy(update={"financial_node_id": "no-such-finance-node"})
+    with pytest.raises(ExecutivePerformanceError) as error:
+        service.preview(invalid, context)
+    assert error.value.code == "INVALID_FINANCIAL_NODE"
+
+
+def test_unqualified_financial_observation_is_not_reported(monkeypatch):
+    _, service, request, context = _fixture()
+    performance = service.iq_service.performance_service
+    original = performance.evaluate
+
+    def without_qualified_financial_status(*args, **kwargs):
+        response = original(*args, **kwargs)
+        nodes = tuple(
+            item.model_copy(update={"status": PerformanceStatus.not_evaluated})
+            if item.node_id == LEAKAGE
+            else item
+            for item in response.evaluation.nodes
+        )
+        evaluation = response.evaluation.model_copy(update={"nodes": nodes})
+        return response.model_copy(update={"evaluation": evaluation})
+
+    monkeypatch.setattr(performance, "evaluate", without_qualified_financial_status)
+    package = service.preview(request, context)
+    assert package.financial_observation is None
+    assert package.financial_status == "evidence_missing"
