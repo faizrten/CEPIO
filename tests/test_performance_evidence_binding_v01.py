@@ -101,7 +101,9 @@ def envelope(
             "subject_id": subject,
             "node_id": node_id,
             "value": value,
-            "observed_at": observed_at.isoformat() if hasattr(observed_at, "isoformat") else observed_at,
+            "observed_at": observed_at.isoformat()
+            if hasattr(observed_at, "isoformat")
+            else observed_at,
             "formula_ref": formula_ref,
         },
     )
@@ -140,12 +142,19 @@ def plan() -> HostEvidencePlan:
 def fixture(*, data=None, registered_status=BindingRuntimeStatus.ready, plan_override=None):
     runtime = build_runtime()
     runtime.upsert_object(
-        OntologyObject(id=RIG.id, type=RIG.type, name="SYNTHETIC Rig 07", properties={"sharingScope": "internal"})
+        OntologyObject(
+            id=RIG.id,
+            type=RIG.type,
+            name="SYNTHETIC Rig 07",
+            properties={"sharingScope": "internal"},
+        )
     )
     install_industry_iq_packs(runtime, [PERFORMANCE_RESPONSE_IQ_PACK])
     application = CEPIOApplicationService(runtime)
     registry = PerformanceContractRegistry(InMemoryPerformanceContractStore())
-    registry.register(drilling_contractor_performance_pack(), activate=True, created_at=EVALUATED_AT)
+    registry.register(
+        drilling_contractor_performance_pack(), activate=True, created_at=EVALUATED_AT
+    )
     registry.register(organization_overlay(), activate=True, created_at=EVALUATED_AT)
     performance = PerformanceService(registry)
     binding = FakeBoundEvidence(data if data is not None else entries())
@@ -217,16 +226,25 @@ def test_no_caller_payload_fields_and_unconfigured_plan_fail_closed():
     assert binding.calls == []
     with pytest.raises(ValidationError):
         BoundEvidenceRequest.model_validate(
-            {"plan_id": "rig07-ceo-performance", "evaluated_at": EVALUATED_AT,
-             "observations": [{"value": 1}], "organization_id": "another-tenant"}
+            {
+                "plan_id": "rig07-ceo-performance",
+                "evaluated_at": EVALUATED_AT,
+                "observations": [{"value": 1}],
+                "organization_id": "another-tenant",
+            }
         )
     with pytest.raises(ValidationError):
-        BoundEvidenceRequest(plan_id="rig07-ceo-performance", evaluated_at=EVALUATED_AT, simulation_only=False)
+        BoundEvidenceRequest(
+            plan_id="rig07-ceo-performance", evaluated_at=EVALUATED_AT, simulation_only=False
+        )
 
 
 def test_tenant_rejected_before_source_access_and_no_runtime_write():
     service, binding, _, _ = fixture()
-    assert_error("ORGANIZATION_SCOPE_MISMATCH", lambda: service.materialize(request(), context("different-org")))
+    assert_error(
+        "ORGANIZATION_SCOPE_MISMATCH",
+        lambda: service.materialize(request(), context("different-org")),
+    )
     assert binding.calls == []
 
 
@@ -314,9 +332,14 @@ def test_wrong_source_record_identity_is_rejected():
 def test_invalid_configured_node_or_focus_is_rejected_before_reasoning():
     cfg = plan()
     cfg = cfg.model_copy(
-        update={"records": cfg.records + (
-            HostEvidenceRecord(node_id="not-in-contract", external_id="x", max_age_seconds=3600),
-        )}
+        update={
+            "records": cfg.records
+            + (
+                HostEvidenceRecord(
+                    node_id="not-in-contract", external_id="x", max_age_seconds=3600
+                ),
+            )
+        }
     )
     data = entries()
     data["x"] = envelope("x", "not-in-contract", 1.0)
@@ -332,17 +355,19 @@ def test_invalid_configured_node_or_focus_is_rejected_before_reasoning():
 def test_host_plan_rejects_duplicate_and_optional_focus():
     cfg = plan()
     with pytest.raises(ValueError):
-        HostEvidencePlan(
-            **{**cfg.model_dump(), "records": (cfg.records[0], cfg.records[0])}
-        )
+        HostEvidencePlan(**{**cfg.model_dump(), "records": (cfg.records[0], cfg.records[0])})
+    with pytest.raises(ValueError):
+        HostEvidencePlan(**{**cfg.model_dump(), "records": (cfg.records[1],)})
     with pytest.raises(ValueError):
         HostEvidencePlan(
-            **{**cfg.model_dump(), "records": (cfg.records[1],)}
-        )
-    with pytest.raises(ValueError):
-        HostEvidencePlan(
-            **{**cfg.model_dump(),
-               "records": (HostEvidenceRecord(node_id=NPT, external_id="rig07-npt", max_age_seconds=3600, required=False),)}
+            **{
+                **cfg.model_dump(),
+                "records": (
+                    HostEvidenceRecord(
+                        node_id=NPT, external_id="rig07-npt", max_age_seconds=3600, required=False
+                    ),
+                ),
+            }
         )
 
 
@@ -393,13 +418,18 @@ def test_naive_evaluation_time_and_duplicate_plan_fail_closed():
     assert_error(
         "TIMEZONE_REQUIRED",
         lambda: service.materialize(
-            BoundEvidenceRequest(plan_id="rig07-ceo-performance", evaluated_at=EVALUATED_AT.replace(tzinfo=None)),
+            BoundEvidenceRequest(
+                plan_id="rig07-ceo-performance", evaluated_at=EVALUATED_AT.replace(tzinfo=None)
+            ),
             context(),
         ),
     )
     assert binding.calls == []
     with pytest.raises(ValueError):
         HostBoundPerformanceEvidenceService(
-            performance, app, binding, register_evidence_binding(binding, capability_id=CAP),
+            performance,
+            app,
+            binding,
+            register_evidence_binding(binding, capability_id=CAP),
             (plan(), plan()),
         )
