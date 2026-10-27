@@ -190,7 +190,9 @@ def test_single_hosted_mcp_uses_verified_entra_client_id(monkeypatch):
         )
         assert blocked.status_code == 200
         assert blocked.json()["result"]["isError"] is True
-        assert "error executing tool cepio_call_function" in str(\n            blocked.json()["result"]["content"]\n        ).lower()
+        assert "error executing tool cepio_call_function" in str(
+            blocked.json()["result"]["content"]
+        ).lower()
 
         missing = client.post("/copilot/mcp", headers=headers, json={})
         assert missing.status_code == 404
