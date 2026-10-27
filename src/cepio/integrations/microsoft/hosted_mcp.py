@@ -154,20 +154,24 @@ class MCPActorBindingMiddleware:
             await self.app(scope, receive, send)
 
 
-def build_hosted_mcp(runtime: CEPIORuntime):
+def build_hosted_mcp(
+    runtime: CEPIORuntime, *, tool_profile: Literal["read_only", "full"] = "full"
+):
     """Build CEPIO's authenticated Streamable HTTP MCP surface.
 
     The returned MCP server owns the session manager; the outer host application
     must enter ``server.session_manager.run()`` in its lifespan before serving.
     """
 
-    return _build_hosted_mcp(runtime)
+    if tool_profile not in {"read_only", "full"}:
+        raise ValueError("Unsupported MCP tool profile")
+    return _build_hosted_mcp(runtime, tool_profile=tool_profile)
 
 
 def build_hosted_mcp_with_application_service(
     application_service: CEPIOApplicationService,
     *,
-    tool_profile: Literal["g1", "full"] = "g1",
+    tool_profile: Literal["read_only", "g1", "full"] = "g1",
 ):
     """Externally compose protected Skills into authenticated hosted MCP.
 
@@ -182,11 +186,14 @@ def build_hosted_mcp_with_application_service(
 def _build_hosted_mcp(
     runtime: CEPIORuntime,
     application_service: CEPIOApplicationService | None = None,
-    tool_profile: Literal["g1", "full"] = "g1",
+    tool_profile: Literal["read_only", "g1", "full"] = "g1",
 ):
     actor_provider = ContextVarActorProvider()
     if application_service is None:
-        server = build_mcp_server(runtime, actor_provider)
+        server = build_mcp_server(
+            runtime, actor_provider,
+            tool_profile="read_only" if tool_profile == "read_only" else "full",
+        )
     else:
         server = build_mcp_server_with_application_service(
             application_service, actor_provider, tool_profile=tool_profile
