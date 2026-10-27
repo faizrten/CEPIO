@@ -288,6 +288,7 @@ def test_preview_rejects_revision_drift(monkeypatch):
         if calls[0] > 1:
             return result.model_copy(update={"source_revision_hashes": ("injected-drift",)})
         return result
+
     monkeypatch.setattr(performance, "evaluate", changed)
     with pytest.raises(ExecutivePerformanceError) as error:
         service.preview(request, context)
@@ -298,17 +299,30 @@ def test_preview_rejects_revision_drift(monkeypatch):
     ("error", "status", "code"),
     [
         (AuthorizationError("denied"), 403, "performance_unauthorized"),
-        (PerformanceReasoningError("SOURCE_SUBJECT_MISMATCH", "mismatch"), 422, "SOURCE_SUBJECT_MISMATCH"),
-        (PerformanceContractRegistryError("REVISION_NOT_FOUND", "not found"), 404, "REVISION_NOT_FOUND"),
+        (
+            PerformanceReasoningError("SOURCE_SUBJECT_MISMATCH", "mismatch"),
+            422,
+            "SOURCE_SUBJECT_MISMATCH",
+        ),
+        (
+            PerformanceContractRegistryError("REVISION_NOT_FOUND", "not found"),
+            404,
+            "REVISION_NOT_FOUND",
+        ),
         (PerformanceContractRegistryError("REVISION_INVALID", "invalid"), 422, "REVISION_INVALID"),
-        (ExecutivePerformanceError("INVALID_FINANCIAL_NODE", "invalid"), 422, "INVALID_FINANCIAL_NODE"),
+        (
+            ExecutivePerformanceError("INVALID_FINANCIAL_NODE", "invalid"),
+            422,
+            "INVALID_FINANCIAL_NODE",
+        ),
         (ValueError("bad evidence"), 422, "performance_preview_invalid"),
     ],
 )
 def test_experimental_rest_error_mapping_stays_fail_closed(monkeypatch, error, status, code):
     client, request = _client()
     target = next(
-        route for route in client.app.routes
+        route
+        for route in client.app.routes
         if getattr(route, "path", "") == "/experimental/performance/v0.1/executive/preview"
     )
     # FastAPI route is a closure over the captured service.
@@ -318,8 +332,10 @@ def test_experimental_rest_error_mapping_stays_fail_closed(monkeypatch, error, s
             router_service = cell.cell_contents
             break
     assert router_service is not None
+
     def fail(*args, **kwargs):
         raise error
+
     monkeypatch.setattr(router_service, "preview", fail)
     response = client.post(
         "/experimental/performance/v0.1/executive/preview",
