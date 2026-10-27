@@ -406,30 +406,22 @@ def test_executive_preview_disallows_non_currency_metric_and_objective():
 
 
 def test_experimental_host_route_is_installed_only_on_explicit_opt_in(monkeypatch):
-    """Exercise the real application startup gate in an isolated FastAPI host."""
-    import importlib.util
-
-    from cepio import api as legacy_api
+    """Use an isolated FastAPI host; never mutate the production API module."""
     from cepio.bootstrap import build_runtime
+    from cepio.performance_executive_api import mount_experimental_performance_executive
 
-    original = importlib.util.find_spec("cepio.public_api")
-    assert original is not None and original.origin is not None
     host = FastAPI()
     runtime = build_runtime()
-    monkeypatch.setattr(legacy_api, "app", host)
-    monkeypatch.setattr(legacy_api, "runtime", runtime)
+    registry = PerformanceContractRegistry(InMemoryPerformanceContractStore())
+    performance = PerformanceService(registry)
+    route = "/experimental/performance/v0.1/executive/preview"
+
+    monkeypatch.delenv("CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE", raising=False)
+    mount_experimental_performance_executive(host, runtime, performance)
+    assert route not in [getattr(item, "path", "") for item in host.routes]
+
     monkeypatch.setenv("CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE", "true")
-    spec = importlib.util.spec_from_file_location(
-        "cepio._experimental_preview_startup_test", original.origin
-    )
-    assert spec is not None and spec.loader is not None
-    isolated = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(isolated)
+    mount_experimental_performance_executive(host, runtime, performance)
     assert runtime.has_decision("performance-deviation-response")
-    paths = [getattr(route, "path", "") for route in isolated.app.routes]
-    assert "/experimental/performance/v0.1/executive/preview" in paths, paths
-    # This new host is separate from the supported public API host. The
-    # opt-in adapter deliberately does not become an OpenAPI /api/v1 route.
-    assert "/experimental/performance/v0.1/executive/preview" not in isolated.app.openapi()[
-        "paths"
-    ]
+    assert route in [getattr(item, "path", "") for item in host.routes]
+    assert route not in host.openapi()["paths"]
