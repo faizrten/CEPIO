@@ -12,7 +12,10 @@ def js_body():
     text = WORKFLOW.read_text(encoding="utf-8")
     start = text.index("          script: |\n") + len("          script: |\n")
     content = text[start:].splitlines()
-    return "\n".join(line[12:] if line.startswith("            ") else line for line in content) + "\n"
+    return (
+        "\n".join(line[12:] if line.startswith("            ") else line for line in content)
+        + "\n"
+    )
 
 
 class ReviewTriageContracts(unittest.TestCase):
@@ -33,7 +36,12 @@ class ReviewTriageContracts(unittest.TestCase):
         node = shutil.which("node")
         if node is None:
             self.skipTest("Node.js not installed in this local runner")
-        result = subprocess.run([node, "--check", "-"], input="(async () => {\n" + js_body() + "})();\n", text=True, capture_output=True)
+        result = subprocess.run(
+            [node, "--check", "-"],
+            input="(async () => {\n" + js_body() + "})();\n",
+            text=True,
+            capture_output=True,
+        )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
