@@ -1,0 +1,97 @@
+name: CEPIO Owner-Only Auto-Merge Admission
+on:
+  workflow_run:
+    workflows: ["CEPIO CI"]
+    types: [completed]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  admission:
+    # Trusted default-branch workflow after CI. Never checkout or execute PR code.
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            if (!Array.isArray(run.pull_requests) || run.pull_requests.length !== 1) {
+              core.notice('No unique pull request associated with successful CI; manual merge remains.');
+              return;
+            }
+            const runPr = run.pull_requests[0];
+            const number = runPr.number;
+            if (!Number.isInteger(number)) return;
+            const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: number});
+            // Strict founder / source / immutable tested-head boundaries.
+            if (pr.state !== 'open' || pr.draft || pr.merged ||
+                pr.base.ref !== 'main' || pr.user?.login !== 'faizrten' ||
+                pr.head.repo?.full_name !== 'faizrten/CEPIO' ||
+                pr.base.repo?.full_name !== 'faizrten/CEPIO' ||
+                pr.head.sha !== run.head_sha ||
+                pr.requested_reviewers?.length || pr.requested_teams?.length) {
+              core.notice('PR is not founder-authored, up-to-date with this CI run, or eligible; no auto-merge.');
+              return;
+            }
+            const body = pr.body || '';
+            const publicIp = /^- \[[xX]\] \*\*PUBLIC\*\*/m.test(body) &&
+              !/^- \[[xX]\] \*\*(?:PROTECTED|CUSTOMER CONFIDENTIAL)/m.test(body);
+            if (!publicIp) {
+              core.notice('Missing explicit public IP classification; no auto-merge.');
+              return;
+            }
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.repo, pull_number: number, per_page: 100
+            });
+            if (!files.length || files.length > 3 ||
+                files.some(f => !['added', 'modified'].includes(f.status) ||
+                  !!f.previous_filename || typeof f.patch !== 'string')) {
+              core.notice('Unknown, excessive, deleted, renamed or binary change; manual merge required.');
+              return;
+            }
+            const safeDoc = path =>
+              /^(?:docs\/wiki\/(?:15-Developer-Guide|16-Reference-Scenarios|18-Glossary)\.md|docs\/(?:api-examples|api-client-guide)\.md|docs\/developer\/(?:platform-bindings|preflight)\.md)$/.test(path);
+            const safeAdditiveTest = f =>
+              f.status === 'added' && /^tests\/test_[a-z0-9_]+\.py$/.test(f.filename) &&
+              !/(security|auth|governance|policy|permission|sovereignty|audit|coverage|quality|migration|deployment|secrets|budget|release|gate|triage|merge)/.test(f.filename);
+            const changes = files.reduce((n, f) => n + f.additions + f.deletions, 0);
+            let tier;
+            if (files.every(f => safeDoc(f.filename)) && changes <= 150 &&
+                /^- \[[xX]\] low\s*$/m.test(body)) {
+              tier = 'R0';
+            } else if (files.length <= 2 && files.every(safeAdditiveTest) &&
+                       changes <= 250 && /^- \[[xX]\] medium\s*$/m.test(body) &&
+                       /^- \[[xX]\] R1 auto-merge authorized by founder\s*$/m.test(body) &&
+                       /^- \[[xX]\] No customer-confidential data,/m.test(body) &&
+                       /^- \[[xX]\] No protected benchmark\/evaluation corpus/m.test(body) &&
+                       /^- \[[xX]\] I considered whether the same ecosystem value/m.test(body) &&
+                       /^- \[[xX]\] Publication value exceeds replication\/IP-exposure risk\./m.test(body)) {
+              tier = 'R1';
+            } else {
+              core.notice('R2/R3 or non-allowlisted R0/R1 change: founder-controlled review.');
+              return;
+            }
+            // Recheck the head after listing files; never admit stale/replaced changes.
+            const {data: fresh} = await github.rest.pulls.get({...context.repo, pull_number: number});
+            if (fresh.head.sha !== pr.head.sha || fresh.state !== 'open' || fresh.draft ||
+                fresh.base.ref !== 'main' || fresh.body !== pr.body) {
+              core.notice('PR changed during admission; no auto-merge.');
+              return;
+            }
+            core.notice('Admitted ' + tier + ' owner-only PR #' + number +
+              ' to GitHub native auto-merge; all required status/review rules remain enforced.');
+            // Only enable native merge-when-ready. Never call mergePullRequest directly.
+            try {
+              await github.graphql(
+                'mutation($id: ID!) { enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: SQUASH}) { clientMutationId } }',
+                {id: pr.node_id}
+              );
+              await core.summary.addHeading('Founder-only auto-merge admitted')
+                .addRaw('PR #' + number + ': **' + tier + '**. GitHub will enforce all existing branch rules, tests, and review requirements before merging.').write();
+            } catch (error) {
+              core.warning('Native auto-merge was not enabled; PR stays subject to ordinary manual merge: ' + error.message);
+            }
