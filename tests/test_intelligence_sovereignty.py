@@ -705,3 +705,36 @@ def test_authorized_memory_store_fails_closed_on_unavailable_rights_and_actor():
     invalid = SovereignMemoryStore(raw, principal=sovereign_actor(), rights_provider=lambda: None)
     with pytest.raises(MemoryAccessError, match="authority unavailable"):
         invalid.get("nonexistent")
+
+
+def test_authorized_memory_store_rejects_stale_backend_and_missing_erasure():
+    stale = sovereign_fixture().model_copy(
+        update={
+            "created_at": datetime.now(timezone.utc) - timedelta(days=2),
+            "expires_at": datetime.now(timezone.utc) - timedelta(days=1),
+        }
+    )
+
+    class UnfilteredBackend:
+        def get(self, memory_id, tenant_id=None):
+            return stale
+
+        def query(self, query):
+            return [stale]
+
+    session = SovereignMemoryStore(
+        UnfilteredBackend(),
+        principal=sovereign_actor(),
+        rights_provider=sovereign_rights,
+    )
+    assert session.get(stale.id) is None
+    # A historical query timestamp cannot revive backend-returned stale memory.
+    assert session.query(MemoryQuery(at=AT)) == []
+
+    empty = SovereignMemoryStore(
+        InMemoryMemoryStore(),
+        principal=sovereign_actor(),
+        rights_provider=sovereign_rights,
+    )
+    assert empty.forget("does-not-exist") is False
+
