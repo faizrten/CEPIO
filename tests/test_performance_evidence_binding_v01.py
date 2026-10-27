@@ -433,3 +433,19 @@ def test_naive_evaluation_time_and_duplicate_plan_fail_closed():
             register_evidence_binding(binding, capability_id=CAP),
             (plan(), plan()),
         )
+
+
+def test_non_evidence_binding_mode_is_rejected():
+    _, binding, application, performance = fixture()
+    invalid_manifest = binding.manifest.model_copy(
+        update={"mode": BindingMode.governed_action}
+    )
+    binding.manifest = invalid_manifest
+    registration = register_evidence_binding(FakeBoundEvidence(entries()), capability_id=CAP)
+    invalid_registration = registration.model_copy(update={"manifest": invalid_manifest})
+    assert_error(
+        "READ_ONLY_BINDING_REQUIRED",
+        lambda: HostBoundPerformanceEvidenceService(
+            performance, application, binding, invalid_registration, (plan(),)
+        ),
+    )
