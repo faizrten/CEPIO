@@ -280,9 +280,14 @@ def test_preview_rejects_revision_drift(monkeypatch):
     _, service, request, context = _fixture()
     performance = service.iq_service.performance_service
     original = performance.evaluate
+    calls = [0]
+
     def changed(*args, **kwargs):
+        calls[0] += 1
         result = original(*args, **kwargs)
-        return result.model_copy(update={"source_revision_hashes": ("injected-drift",)})
+        if calls[0] > 1:
+            return result.model_copy(update={"source_revision_hashes": ("injected-drift",)})
+        return result
     monkeypatch.setattr(performance, "evaluate", changed)
     with pytest.raises(ExecutivePerformanceError) as error:
         service.preview(request, context)
