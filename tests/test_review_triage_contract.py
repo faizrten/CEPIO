@@ -13,8 +13,7 @@ def js_body():
     start = text.index("          script: |\n") + len("          script: |\n")
     content = text[start:].splitlines()
     return (
-        "\n".join(line[12:] if line.startswith("            ") else line for line in content)
-        + "\n"
+        "\n".join(line[12:] if line.startswith("            ") else line for line in content) + "\n"
     )
 
 
