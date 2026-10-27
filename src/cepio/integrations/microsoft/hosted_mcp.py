@@ -13,7 +13,6 @@ from ...auth import AuthSettings, EntraTokenValidator
 from ...application_contract import CEPIOApplicationService
 from ...runtime import CEPIORuntime
 from .foundry_gateway import ActorContext, ContextVarActorProvider
-from .foundry_mcp import build_copilot_read_only_mcp_server
 from .foundry_mcp import build_mcp_server
 from .foundry_mcp import build_mcp_server_with_application_service
 
@@ -180,28 +179,15 @@ def build_hosted_mcp_with_application_service(
     return _build_hosted_mcp(application_service.runtime, application_service, tool_profile)
 
 
-def build_hosted_copilot_read_only_mcp(runtime: CEPIORuntime):
-    """Explicit authenticated four-tool Copilot route with no Skill or Action tools."""
-    return _build_hosted_mcp(runtime, read_only=True)
-
-
 def _build_hosted_mcp(
     runtime: CEPIORuntime,
     application_service: CEPIOApplicationService | None = None,
     tool_profile: Literal["g1", "full"] = "g1",
-    *,
-    read_only: bool = False,
 ):
     actor_provider = ContextVarActorProvider()
     if application_service is None:
-        server = (
-            build_copilot_read_only_mcp_server(runtime, actor_provider)
-            if read_only
-            else build_mcp_server(runtime, actor_provider)
-        )
+        server = build_mcp_server(runtime, actor_provider)
     else:
-        if read_only:
-            raise ValueError("Read-only Copilot MCP does not accept an external Skill service")
         server = build_mcp_server_with_application_service(
             application_service, actor_provider, tool_profile=tool_profile
         )
