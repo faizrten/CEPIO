@@ -166,9 +166,9 @@ class ExecutivePerformanceService:
         )
 
         financial_observation = None
-        financial_status: Literal[
-            "not_requested", "evidence_missing", "observed_unverified"
-        ] = "not_requested"
+        financial_status: Literal["not_requested", "evidence_missing", "observed_unverified"] = (
+            "not_requested"
+        )
         if request.financial_node_id is not None:
             node = nodes.get(request.financial_node_id)
             if (
