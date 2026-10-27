@@ -11,7 +11,6 @@ from cepio.performance_business_logic import (
     BusinessLogicExecutionError,
     BusinessLogicInput,
 )
-from cepio.performance_registry import PerformanceContractRegistryError
 from cepio.performance_runtime import PerformanceStatus
 from scripts.drilling_performance_activation_v01 import (
     CONTRACT_ID,
