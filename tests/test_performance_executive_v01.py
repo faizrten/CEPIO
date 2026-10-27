@@ -426,10 +426,8 @@ def test_experimental_host_route_is_installed_only_on_explicit_opt_in(monkeypatc
     isolated = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(isolated)
     assert runtime.has_decision("performance-deviation-response")
-    assert any(
-        getattr(route, "path", "") == "/experimental/performance/v0.1/executive/preview"
-        for route in isolated.app.routes
-    )
+    paths = [getattr(route, "path", "") for route in isolated.app.routes]
+    assert "/experimental/performance/v0.1/executive/preview" in paths, paths
     # This new host is separate from the supported public API host. The
     # opt-in adapter deliberately does not become an OpenAPI /api/v1 route.
     assert "/experimental/performance/v0.1/executive/preview" not in isolated.app.openapi()[
