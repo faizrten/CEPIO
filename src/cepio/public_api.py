@@ -15,6 +15,7 @@ from .auth import ActorContext, get_actor_context
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import Decision, ErrorEnvelope, OntologyObject, OperationalEvent, Relationship
 from .performance_api import build_performance_router
+from .performance_executive_api import mount_experimental_performance_executive
 from .performance_service import build_performance_service
 from .query import InvalidQueryCursor, ObjectQuery, ObjectQueryResult, QueryBudgetExceeded
 from .runtime import AuthorizationError
@@ -28,6 +29,9 @@ app.description = (
 )
 performance_service = build_performance_service()
 app.include_router(build_performance_router(performance_service))
+
+# Experimental route is opt-in; the stable API is unchanged.
+mount_experimental_performance_executive(app, legacy.runtime, performance_service)
 
 
 def _request_id(request: Request) -> str:
