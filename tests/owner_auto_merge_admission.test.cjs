@@ -9,7 +9,8 @@ const workflow = fs.readFileSync(
 const marker = '          script: |\n';
 assert.equal(workflow.split(marker).length, 2, 'Expected exactly one trusted workflow script');
 assert.match(workflow, /workflow_run:/);
-assert.match(workflow, /pull-requests: write/);
+assert.match(workflow, /pull-requests: read/);
+assert.doesNotMatch(workflow, /pull-requests: write|contents: write|enablePullRequestAutoMerge/);
 assert.doesNotMatch(workflow, /actions\/checkout@|id-token: write|contents: write/);
 assert.doesNotMatch(workflow, /mergePullRequest\s*\(/);
 const script = workflow.split(marker)[1].split('\n')
@@ -36,7 +37,6 @@ async function caseRun(changes = {}) {
     requested_reviewers:[],requested_teams:[],
     ...(changes.pr || {}),
   };
-  let mutationCount = 0;
   let getCount = 0;
   const github = {
     rest:{pulls:{
@@ -44,7 +44,7 @@ async function caseRun(changes = {}) {
       listFiles:async()=>{},
     }},
     paginate:async()=>changes.files || [file],
-    graphql:async(query)=>{assert.match(query,/enablePullRequestAutoMerge/); mutationCount++; return {};},
+    graphql:async()=>{throw Error('read-only qualification must not mutate GitHub');},
   };
   const logs=[];
   const core={
@@ -56,26 +56,26 @@ async function caseRun(changes = {}) {
     pull_requests:changes.associations === undefined ? [{number:12}]:changes.associations,
   }}};
   await run(context,github,core);
-  return {mutationCount,logs};
+  return {qualified:logs.some(x=>x.startsWith('Qualified ')),logs};
 }
 
 (async()=>{
-  assert.equal((await caseRun()).mutationCount,1,'R0 glossary change should admit');
-  assert.equal((await caseRun({files:[{filename:'docs/adr/ADR-999.md',status:'modified',additions:1,deletions:1,patch:'x'}]})).mutationCount,0);
-  assert.equal((await caseRun({pr:{user:{login:'contributor'}}})).mutationCount,0);
-  assert.equal((await caseRun({pr:{head:{sha:SHA,repo:{full_name:'contributor/CEPIO'}}}})).mutationCount,0);
-  assert.equal((await caseRun({pr:{body:low.replace(MARKER,'- [x] **CUSTOMER CONFIDENTIAL**')}})).mutationCount,0);
-  assert.equal((await caseRun({runSha:'b'.repeat(40)})).mutationCount,0);
-  assert.equal((await caseRun({pr:{draft:true}})).mutationCount,0);
-  assert.equal((await caseRun({files:[{filename:'.github/workflows/ci.yml',status:'modified',additions:5,deletions:0,patch:'x'}]})).mutationCount,0);
-  assert.equal((await caseRun({files:[{filename:'docs/wiki/18-Glossary.md',status:'renamed',previous_filename:'docs/evil.md',additions:1,deletions:1,patch:'x'}]})).mutationCount,0);
-  assert.equal((await caseRun({files:[{filename:'docs/wiki/18-Glossary.md',status:'modified',additions:1,deletions:0}]})).mutationCount,0);
-  assert.equal((await caseRun({fresh:{head:{sha:'b'.repeat(40),repo:{full_name:'faizrten/CEPIO'}}}})).mutationCount,0);
-  assert.equal((await caseRun({associations:[]})).mutationCount,0);
+  assert.equal((await caseRun()).qualified,true,'R0 glossary change should qualify');
+  assert.equal((await caseRun({files:[{filename:'docs/adr/ADR-999.md',status:'modified',additions:1,deletions:1,patch:'x'}]})).qualified,false);
+  assert.equal((await caseRun({pr:{user:{login:'contributor'}}})).qualified,false);
+  assert.equal((await caseRun({pr:{head:{sha:SHA,repo:{full_name:'contributor/CEPIO'}}}})).qualified,false);
+  assert.equal((await caseRun({pr:{body:low.replace(MARKER,'- [x] **CUSTOMER CONFIDENTIAL**')}})).qualified,false);
+  assert.equal((await caseRun({runSha:'b'.repeat(40)})).qualified,false);
+  assert.equal((await caseRun({pr:{draft:true}})).qualified,false);
+  assert.equal((await caseRun({files:[{filename:'.github/workflows/ci.yml',status:'modified',additions:5,deletions:0,patch:'x'}]})).qualified,false);
+  assert.equal((await caseRun({files:[{filename:'docs/wiki/18-Glossary.md',status:'renamed',previous_filename:'docs/evil.md',additions:1,deletions:1,patch:'x'}]})).qualified,false);
+  assert.equal((await caseRun({files:[{filename:'docs/wiki/18-Glossary.md',status:'modified',additions:1,deletions:0}]})).qualified,false);
+  assert.equal((await caseRun({fresh:{head:{sha:'b'.repeat(40),repo:{full_name:'faizrten/CEPIO'}}}})).qualified,false);
+  assert.equal((await caseRun({associations:[]})).qualified,false);
   const file={filename:'tests/test_new_synthetic_example.py',status:'added',additions:10,deletions:0,patch:'new'};
-  assert.equal((await caseRun({pr:{body:med},files:[file]})).mutationCount,1,'Owner-opted additive R1 test should admit');
-  assert.equal((await caseRun({pr:{body:med.replace('- [x] R1 auto-merge authorized by founder','- [ ] R1 auto-merge authorized by founder')},files:[file]})).mutationCount,0);
-  assert.equal((await caseRun({pr:{body:med},files:[{...file,status:'modified'}]})).mutationCount,0);
-  assert.equal((await caseRun({pr:{body:med},files:[{...file,filename:'tests/test_security_regression.py'}]})).mutationCount,0);
-  console.log('PASS: 16 founder-only automation cases, including R0/R1 admission and R2/R3 denials');
+  assert.equal((await caseRun({pr:{body:med},files:[file]})).qualified,true,'Owner-opted additive R1 test should qualify');
+  assert.equal((await caseRun({pr:{body:med.replace('- [x] R1 auto-merge authorized by founder','- [ ] R1 auto-merge authorized by founder')},files:[file]})).qualified,false);
+  assert.equal((await caseRun({pr:{body:med},files:[{...file,status:'modified'}]})).qualified,false);
+  assert.equal((await caseRun({pr:{body:med},files:[{...file,filename:'tests/test_security_regression.py'}]})).qualified,false);
+  console.log('PASS: 16 founder-only automation cases, including R0/R1 qualification and R2/R3 denials');
 })().catch(err=>{console.error(err);process.exitCode=1;});
