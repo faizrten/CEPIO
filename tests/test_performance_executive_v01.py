@@ -335,7 +335,6 @@ def test_experimental_rest_error_mapping_stays_fail_closed(monkeypatch, error, s
     assert response.json()["detail"]["code"] == code
 
 
-
 def test_unknown_financial_node_is_rejected():
     _, service, request, context = _fixture()
     invalid = request.model_copy(update={"financial_node_id": "no-such-finance-node"})
