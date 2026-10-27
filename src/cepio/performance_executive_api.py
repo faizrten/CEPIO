@@ -38,8 +38,10 @@ def build_performance_executive_router(service: ExecutivePerformanceService) -> 
         actor: ActorContext = Depends(get_actor_context),
     ) -> ExecutivePerformancePackage:
         # No caller-supplied actor, roles, tenant or authorization claims.
-        context = ExecutionContext.from_principal(
-            actor,
+        context = ExecutionContext(
+            actor_id=actor.actor_id,
+            actor_roles=frozenset(actor.roles),
+            tenant_id=actor.tenant_id,
             correlation_id=getattr(request.state, "request_id", None),
         )
         try:
@@ -56,11 +58,7 @@ def build_performance_executive_router(service: ExecutivePerformanceService) -> 
                 detail={"code": exc.code, "message": str(exc)},
             ) from exc
         except PerformanceContractRegistryError as exc:
-            status = (
-                404
-                if exc.code in {"REVISION_NOT_FOUND", "ACTIVE_REVISION_NOT_FOUND"}
-                else 422
-            )
+            status = 404 if exc.code in {"REVISION_NOT_FOUND", "ACTIVE_REVISION_NOT_FOUND"} else 422
             raise HTTPException(
                 status_code=status,
                 detail={"code": exc.code, "message": str(exc)},
