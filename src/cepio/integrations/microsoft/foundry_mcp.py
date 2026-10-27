@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from datetime import datetime
 from typing import Any
 from typing import Literal
@@ -7,22 +9,13 @@ from typing import Literal
 from ...application_contract import SkillInvocation
 from ...application_contract import CEPIOApplicationService
 from ...query import ObjectQuery
-from ...runtime import CEPIORuntime
+from ...runtime import AuthorizationError, CEPIORuntime
 from .foundry_gateway import ActorProvider, CEPIOMCPGateway
 
 
 def build_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
     """Backward-compatible eight-tool MCP server for the standard CEPIO host."""
     return _build_mcp_server(CEPIOMCPGateway(runtime, actor_provider), include_actions=True)
-
-
-def build_copilot_read_only_mcp_server(runtime: CEPIORuntime, actor_provider: ActorProvider):
-    """Dedicated four-tool surface. Tool visibility is deployment pinned, not agent-chosen."""
-    return _build_mcp_server(
-        CEPIOMCPGateway(runtime, actor_provider),
-        include_actions=False,
-        include_analysis=False,
-    )
 
 
 def build_mcp_server_with_application_service(
@@ -42,9 +35,25 @@ def build_mcp_server_with_application_service(
     return _build_mcp_server(gateway, include_actions=tool_profile == "full")
 
 
-def _build_mcp_server(
-    gateway: CEPIOMCPGateway, *, include_actions: bool, include_analysis: bool = True
-):
+def _enforce_mcp_client_tool_policy(gateway: CEPIOMCPGateway, tool: str) -> None:
+    """Enforce deployment-pinned read-only OAuth clients on the canonical MCP endpoint.
+
+    Client identity is obtained from the verified bearer token, NEVER tool inputs
+    or untrusted HTTP headers. UI tool toggles are not an authorization boundary.
+    Existing CEPIO per-actor/tenant/Skill/Action policy still applies separately.
+    """
+    configured = os.getenv("CEPIO_MCP_READ_ONLY_CLIENT_IDS", "")
+    read_only_ids = {value.strip().lower() for value in configured.split(",") if value.strip()}
+    if not read_only_ids:
+        return
+    actor = gateway.actor_provider.current_actor()
+    if actor.client_id and actor.client_id.lower() in read_only_ids:
+        raise AuthorizationError(
+            f"MCP tool {tool} is disabled for this read-only client application"
+        )
+
+
+def _build_mcp_server(gateway: CEPIOMCPGateway, *, include_actions: bool):
     """Register the same governed MCP tools over one selected application service."""
     try:
         from mcp.server.mcpserver import MCPServer
@@ -54,16 +63,10 @@ def _build_mcp_server(
     mcp = MCPServer(
         "CEPIO Industrial Operating Gateway",
         instructions=(
-            "Read-only CEPIO investigation tools: object query, point-in-time state and "
-            "property provenance. Never treat model output as source evidence or grant "
-            "execution authority."
-            if not include_analysis
-            else (
-                "Use CEPIO tools for governed industrial object queries, temporal state, "
-                "lineage, functions, Skills and actions. Never infer authorization from the model. "
-                "cepio_evaluate_skill may produce a governed Decision but does not grant action "
-                "authority; cepio_execute_action remains a separate governed operation."
-            )
+            "Use CEPIO tools for governed industrial object queries, temporal state, "
+            "lineage, functions, Skills and actions. Never infer authorization from the model. "
+            "cepio_evaluate_skill may produce a governed Decision but does not grant action "
+            "authority; cepio_execute_action remains a separate governed operation."
         ),
     )
 
@@ -95,20 +98,20 @@ def _build_mcp_server(
         """Explain provenance for a property only when the actor may read that property."""
         return gateway.explain_property(object_id, property_name)
 
-    if include_analysis:
+    @mcp.tool(name="cepio_call_function", title="Call governed CEPIO function")
+    def cepio_call_function(function_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        """Invoke an explicitly policy-authorized deterministic CEPIO function."""
+        _enforce_mcp_client_tool_policy(gateway, "cepio_call_function")
+        value = gateway.call_function(function_name, arguments)
+        if hasattr(value, "model_dump"):
+            value = value.model_dump(mode="json")
+        return {"result": value}
 
-        @mcp.tool(name="cepio_call_function", title="Call governed CEPIO function")
-        def cepio_call_function(function_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-            """Invoke an explicitly policy-authorized deterministic CEPIO function."""
-            value = gateway.call_function(function_name, arguments)
-            if hasattr(value, "model_dump"):
-                value = value.model_dump(mode="json")
-            return {"result": value}
-
-        @mcp.tool(name="cepio_evaluate_skill", title="Evaluate governed CEPIO Skill")
-        def cepio_evaluate_skill(invocation: SkillInvocation) -> dict[str, Any]:
-            """Evaluate one admitted executable Skill through the shared application contract."""
-            return gateway.evaluate_skill(invocation).model_dump(mode="json")
+    @mcp.tool(name="cepio_evaluate_skill", title="Evaluate governed CEPIO Skill")
+    def cepio_evaluate_skill(invocation: SkillInvocation) -> dict[str, Any]:
+        """Evaluate one admitted executable Skill through the shared application contract."""
+        _enforce_mcp_client_tool_policy(gateway, "cepio_evaluate_skill")
+        return gateway.evaluate_skill(invocation).model_dump(mode="json")
 
     if include_actions:
 
@@ -121,6 +124,7 @@ def _build_mcp_server(
             decision_id: str | None = None,
         ) -> dict[str, Any]:
             """Evaluate whether the actor may recommend/execute an action without executing it."""
+            _enforce_mcp_client_tool_policy(gateway, "cepio_recommend_action")
             return gateway.recommend_action(
                 action_type,
                 target_id,
@@ -139,6 +143,7 @@ def _build_mcp_server(
             decision_id: str | None = None,
         ) -> dict[str, Any]:
             """Execute a CEPIO action through runtime policy, preconditions and audit controls."""
+            _enforce_mcp_client_tool_policy(gateway, "cepio_execute_action")
             return gateway.execute_action(
                 action_type,
                 target_id,
