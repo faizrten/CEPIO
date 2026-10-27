@@ -63,7 +63,7 @@ jobs:
               "## IP / publication review",
               "## Documentation impact",
               "## Breaking changes / migration",
-          ]
+          ])
 
           failures = []
           for heading in required_headings:
