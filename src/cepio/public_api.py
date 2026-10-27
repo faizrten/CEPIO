@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 
 from typing import Any
 from uuid import uuid4
@@ -17,13 +16,7 @@ from .auth import ActorContext, get_actor_context
 from .graph_analytics import BlastRadiusResult, CentralityResult, CommunityResult, GraphBackendInfo
 from .model import Decision, ErrorEnvelope, OntologyObject, OperationalEvent, Relationship
 from .performance_api import build_performance_router
-from .performance_executive import ExecutivePerformanceService
-from .performance_executive_api import build_performance_executive_router
-from .performance_industry_iq import (
-    PERFORMANCE_RESPONSE_DECISION_TYPE,
-    PERFORMANCE_RESPONSE_IQ_PACK,
-    PerformanceIndustryIQService,
-)
+from .performance_executive_api import mount_experimental_performance_executive
 from .performance_service import build_performance_service
 from .query import InvalidQueryCursor, ObjectQuery, ObjectQueryResult, QueryBudgetExceeded
 from .runtime import AuthorizationError
@@ -38,21 +31,8 @@ app.description = (
 performance_service = build_performance_service()
 app.include_router(build_performance_router(performance_service))
 
-# Explicit opt-in while evidence binding and live host qualification remain incomplete.
-# The preview never persists a Decision or invokes a workflow/action.
-if os.getenv("CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE", "").lower() == "true":
-    if not legacy.runtime.has_decision(PERFORMANCE_RESPONSE_DECISION_TYPE):
-        PERFORMANCE_RESPONSE_IQ_PACK.install(legacy.runtime)
-    app.include_router(
-        build_performance_executive_router(
-            ExecutivePerformanceService(
-                PerformanceIndustryIQService(
-                    performance_service,
-                    build_application_service(legacy.runtime),
-                )
-            )
-        )
-    )
+# The opt-in adapter checks its own flag and never changes stable /api/v1.
+mount_experimental_performance_executive(app, legacy.runtime, performance_service)
 
 
 def _request_id(request: Request) -> str:
