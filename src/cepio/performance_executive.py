@@ -109,6 +109,11 @@ class ExecutivePerformanceService:
     def preview(
         self, request: ExecutivePackageRequest, context: ExecutionContext
     ) -> ExecutivePerformancePackage:
+        if request.reasoning.evaluated_at is None:
+            raise ExecutivePerformanceError(
+                "EVALUATION_TIME_REQUIRED",
+                "An explicit evaluated_at is required for a reproducible preview",
+            )
         # This first call owns tenant authorization, source-subject matching,
         # CEPIO object read authorization and contract version pinning.
         iq = self.iq_service.reason(request.reasoning, context)
