@@ -45,7 +45,9 @@ CEPIO_ENABLE_EXPERIMENTAL_PERFORMANCE_EXECUTIVE=true
 ```
 
 When enabled at application startup, the existing authenticated CEPIO public
-host mounts:
+host mounts an **administrator-only** preview. A trusted actor with
+`cepio_admin` must be supplied by the host, and `evaluated_at` is mandatory
+for reproducible evidence evaluation. The host mounts:
 
 ```text
 POST /experimental/performance/v0.1/executive/preview
