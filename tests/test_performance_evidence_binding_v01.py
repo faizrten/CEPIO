@@ -38,7 +38,6 @@ from cepio.runtime import AuthorizationError
 from scripts.drilling_performance_activation_v01 import (
     CONTRACT_ID,
     EVALUATED_AT,
-    KR,
     LEAKAGE,
     NPT,
     NPT_FORMULA,
@@ -350,7 +349,7 @@ def test_host_plan_rejects_duplicate_and_optional_focus():
 def test_materializer_denies_object_reads_and_wrong_type():
     service, binding, _, _ = fixture()
     with pytest.raises(AuthorizationError):
-        service.materialize(request(), context(role="auditor"))
+        service.materialize(request(), context(role="unknown_role"))
     assert binding.calls == []
     cfg = plan().model_copy(update={"subject": ObjectRef(id=RIG.id, type="Well")})
     service, binding, _, _ = fixture(plan_override=cfg)
