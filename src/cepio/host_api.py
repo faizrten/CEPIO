@@ -8,6 +8,7 @@ from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from . import api as legacy
+from .integrations.microsoft.hosted_mcp import build_hosted_copilot_read_only_mcp
 from .integrations.microsoft.hosted_mcp import build_hosted_mcp
 from .management_remote import build_remote_management_router
 from .management_runtime import build_management_service
@@ -68,9 +69,7 @@ async def _hosted_lifespan(host_app: FastAPI) -> AsyncIterator[None]:
     # fresh MCP server for every parent lifespan because the official MCP session
     # manager is intentionally single-use and cannot be restarted after shutdown.
     mcp_server, mcp_http_app = build_hosted_mcp(legacy.runtime)
-    copilot_server, copilot_http_app = build_hosted_mcp(
-        legacy.runtime, tool_profile="read_only"
-    )
+    copilot_server, copilot_http_app = build_hosted_copilot_read_only_mcp(legacy.runtime)
     _mcp_mount.current_app = mcp_http_app
     _copilot_mcp_mount.current_app = copilot_http_app
     try:
