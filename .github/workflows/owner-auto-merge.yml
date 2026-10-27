@@ -1,11 +1,11 @@
-name: CEPIO Owner-Only Auto-Merge Admission
+name: CEPIO Founder-Only Merge Qualification
 on:
   workflow_run:
     workflows: ["CEPIO CI"]
     types: [completed]
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 jobs:
   admission:
     # Trusted default-branch workflow after CI. Never checkout or execute PR code.
@@ -82,16 +82,5 @@ jobs:
               core.notice('PR changed during admission; no auto-merge.');
               return;
             }
-            core.notice('Admitted ' + tier + ' owner-only PR #' + number +
-              ' to GitHub native auto-merge; all required status/review rules remain enforced.');
-            // Only enable native merge-when-ready. Never call mergePullRequest directly.
-            try {
-              await github.graphql(
-                'mutation($id: ID!) { enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: SQUASH}) { clientMutationId } }',
-                {id: pr.node_id}
-              );
-              await core.summary.addHeading('Founder-only auto-merge admitted')
-                .addRaw('PR #' + number + ': **' + tier + '**. GitHub will enforce all existing branch rules, tests, and review requirements before merging.').write();
-            } catch (error) {
-              core.warning('Native auto-merge was not enabled; PR stays subject to ordinary manual merge: ' + error.message);
-            }
+            core.notice('Qualified ' + tier + ' for founder-controlled merge.');
+            await core.summary.addHeading('Founder-only merge eligibility').addRaw('Qualified R0/R1. Use the native GitHub auto-merge setting after reviewing the eligibility result; all existing required checks remain active.').write();
