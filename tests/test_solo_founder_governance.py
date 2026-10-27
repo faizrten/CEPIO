@@ -1,4 +1,5 @@
 """Regression tests for narrowly scoped solo-founder PR governance relaxation."""
+
 import json
 import os
 from pathlib import Path
