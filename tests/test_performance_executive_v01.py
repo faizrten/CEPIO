@@ -65,9 +65,7 @@ def _fixture(*, financial: bool = True, safety: bool = True):
     )
     registry.register(organization_overlay(), activate=True, created_at=EVALUATED_AT)
     service = ExecutivePerformanceService(
-        PerformanceIndustryIQService(
-            PerformanceService(registry), CEPIOApplicationService(runtime)
-        )
+        PerformanceIndustryIQService(PerformanceService(registry), CEPIOApplicationService(runtime))
     )
     # This subject binding is ONLY a controlled synthetic fixture. Production
     # evidence-to-object linkage must originate in an authorized data binding.
@@ -124,7 +122,9 @@ def test_rig07_executive_preview_reuses_iq_and_preserves_all_five_boundaries():
     assert package.financial_status == "observed_unverified"
     assert package.financial_observation is not None
     assert package.financial_observation.value == pytest.approx(32000.0)
-    assert package.financial_observation.interpretation == "caller_supplied_unverified_currency_metric"
+    assert (
+        package.financial_observation.interpretation == "caller_supplied_unverified_currency_metric"
+    )
     assert package.decision_proposal.recommended_action is None
     assert package.decision_proposal.confidence is None
     assert package.workflow_candidates[0].authority == "recommend_only"
@@ -181,9 +181,7 @@ def test_missing_direct_npt_evidence_cannot_create_decision_proposal():
     _, service, request, context = _fixture()
     obs = tuple(item for item in request.reasoning.observations if item.node_id != NPT)
     revised = request.model_copy(
-        update={
-            "reasoning": request.reasoning.model_copy(update={"observations": obs})
-        }
+        update={"reasoning": request.reasoning.model_copy(update={"observations": obs})}
     )
     with pytest.raises(PerformanceReasoningError) as error:
         service.preview(revised, context)
@@ -221,9 +219,10 @@ def test_rest_preview_exposes_read_only_schema_without_actor_in_body():
     assert body["decision_persisted"] is False
     assert body["financial_status"] == "observed_unverified"
     assert body["decision_proposal"]["recommended_action"] is None
-    assert "/experimental/performance/v0.1/executive/preview" not in client.get(
-        "/openapi.json"
-    ).json()["paths"]
+    assert (
+        "/experimental/performance/v0.1/executive/preview"
+        not in client.get("/openapi.json").json()["paths"]
+    )
 
 
 def test_rest_preview_denies_cross_tenant_and_simulation_false():
