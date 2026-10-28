@@ -1,7 +1,7 @@
 # CEPIO — Product North Star & Strategic Doctrine
 
 **Status:** Approved product direction; not a release/field-qualification claim.  
-**Adoption:** 22 October 2026; sovereignty and compounding refinement 24 October 2026; consolidated 26 October 2026.  
+**Adoption:** 22 October 2026; sovereignty and compounding refinement 24 October 2026; consolidated 26 October 2026; approachable AI-learning and technical-judgment evolution proposed 28 October 2026.  
 **Classification:** PUBLIC strategy. Protected industrial methods and customer context are not published here.  
 **Authority:** This document governs CEPIO's **strategic intent**. Executable contracts and accepted ADRs govern implementation; [Current State](../current-state.md), [Execution Roadmap](../roadmap.md), [v1 scorecard](../v1-completion-scorecard.md) and [RELEASE.md](../../RELEASE.md) separately govern qualification and release claims.
 
@@ -10,11 +10,19 @@
 | Pillar | Authoritative statement | Implication |
 | --- | --- | --- |
 | **Mission — why** | **Democratize industrial expertise and elevate human professional excellence.** | Enable better professional judgment and capability; preserve accountable human decisions. |
-| **Product North Star — what** | **The indispensable expert companion for every industrial professional.** | Useful in the flow of work: understand, prioritize, investigate, recommend, learn, and support governed outcomes. |
+| **Product North Star — what** | **The most trusted AI companion for every industry professional.** | Useful in the flow of work: understand, prioritize, investigate, recommend, learn, and support governed outcomes. |
 | **Technology — how** | **Thin infrastructure. Thick Industry IQ.** | Portable industrial operating intelligence, initially for Energy & Process Industries; reuse commodity infrastructure rather than reproducing it. |
 | **Moat — what compounds** | **Industrial Competence Network.** | Versioned and independently qualified Skills, expert methods, decision/risk patterns, competence claims and assurance evidence. |
 | **Sovereignty** | **Collective industrial progress. Sovereign enterprise intelligence.** | Compound lawfully sourced and qualified reusable competence without taking ownership of customer data, methods, decisions or derived intelligence. |
 | **Compounding** | **Own the competence. Prove the competence. Distribute the competence. Compound the competence.** | Every promotion requires rights/provenance, independent evidence, regression and accountable approval, not merely more content. |
+
+## Our vision in everyday language
+
+> **A trusted AI companion for every industry professional—learning, growing and advancing industrial expertise alongside people.**
+>
+> **Learn together. Grow smarter. Achieve more.**
+
+CEPIO aims to make expertise easier to access, help people solve complex industrial problems confidently, and continuously improve through human experience, qualified research and verified feedback. The aspiration is an indispensable professional companion, not the replacement of accountable professionals.
 
 Our aspiration is that CEPIO becomes the trusted expert companion to industrial professionals across industries. **The present beachhead is Energy & Process Industries**, with an initial emphasis on reliability/maintenance, drilling and process operations. Cross-industry competence is a hypothesis to demonstrate, not a current claim.
 
@@ -30,7 +38,7 @@ CEPIO should help a professional:
 6. **Trust and verify:** show provenance, freshness, authorization, qualification ceilings and explicit limitations.
 7. **Work where I already am:** headless-first services through Teams, Microsoft 365 Copilot, Foundry-hosted agents, approved third-party hosts and an optional deeper Industry IQ Studio.
 
-**No presumed autonomy:** CEPIO can enable proactive, bounded host agents but is not itself a substitute for human technical authority. Neither generated conclusions nor synthetic test fixtures are automatically field evidence.
+**No self-granted authority:** CEPIO may progressively support qualified AI technical assessment and explicitly delegated, bounded technical judgments. Technical competence does not itself confer governance or operational authority; an AI cannot approve its own promotion, change its own authority ceiling or bypass accountable human safety/operational control. Neither generated conclusions nor synthetic test fixtures are automatically field evidence.
 
 ## Product architecture and ownership
 
@@ -58,6 +66,19 @@ Enterprise-authoritative source data and customer-controlled knowledge
 **Microsoft-native reference, not Microsoft-locked.** Microsoft Foundry/Copilot own generic agent hosting, model/tool loops, triggers, conversational interfaces and Teams approval UX; Fabric and Entra provide platform context and identity. CEPIO owns industrial operating meaning, admissible competence, evidence, Decisions, authority ceilings, Action contracts and Outcome semantics. **Microsoft owns agent execution. CEPIO owns industrial agency.** A non-Microsoft host must satisfy the same CEPIO operating contract, not require a fork.
 
 **Engineering filter:** **Reuse → Bind → Extend → Own.** Reject generic CEPIO model hosting, agent frameworks, graph databases, search engines, vector stores, orchestration platforms or duplicated enterprise graphs without a clearly demonstrated industrial operating contract gap.
+
+## How intelligence improves and earns trust — proposed evolution
+
+CEPIO's long-term internal technology ambition is a **self-evolving Industrial Competence Network**. This is the system behind the approachable Companion promise, not the user-facing product name or a claim of current capability.
+
+- **Teach together:** experts correct CEPIO, while AI researchers and teachers propose new lessons, capability changes and synthetic scenarios from rights-cleared knowledge and development failures.
+- **Challenge independently:** separate evaluators, deterministic engineering checks and sealed holdouts test proposed improvements. A model's agreement with its own output is not qualification.
+- **Earn technical judgment:** specialized AI Technical Assessors may issue scope-limited, evidence-backed reviews and, only after independent qualification and explicit organizational delegation, approve defined lower-risk technical artifacts. Technical review, release governance and permission to act on live assets are separate authorities.
+- **Improve responsibly:** only versioned, rights-cleared improvements passing independent tests and applicable promotion governance can enter reusable Industry IQ. Customer data, derived intelligence and outcomes stay tenant-private unless specifically permitted through independent rights review.
+
+The initial learning modes are **knowledge evolution** and **capability/Skill evolution**. Model retraining, recursive research improvements, autonomous high-risk approvals and industrial world models are longer-horizon hypotheses requiring separate safety, evidence and deployment gates. We preserve the existing source-controlled human architecture approval for global capability promotion until an explicit independently reviewed policy change is adopted; AI does not grant itself that change.
+
+The first target proof is **Rig 07:** an AI Teacher proposes a correction; a distinct Examiner challenges it with protected negative cases; an AI Technical Assessor issues a bounded verdict; a human release reviewer decides whether to promote the versioned capability. The process records baseline versus candidate results, safety failures, evidence traceability, cost and review effort.
 
 ## Industrial Competence Network — our differentiated asset
 
@@ -114,6 +135,7 @@ Maintain these as strategic indicators without inventing scores. The numerical v
 3. **Industrial assurance:** prove Industry IQ adds value on independent cases relative to matched model/evidence baselines; negative tests and failed qualifications remain visible.
 4. **Portability:** same qualified capability across Fabric and Cognite bindings without Core change or duplicating source graphs.
 5. **Enterprise and professional proof:** tenant specialization, consent/rights and security boundaries, repeat usefulness, cross-enterprise reuse and observable outcomes.
+6. **Teaching and technical assessment proof (proposed):** Rig 07 AI Teacher → independent Examiner → scope-limited AI Technical Assessor → human-governed version promotion. Prove uplift on independently controlled cases; no self-authorization or field-ready claims.
 
 Gate owners and release definitions remain in the [execution roadmap](../roadmap.md); implementation and independently qualified claims must not be conflated with a vision statement.
 
