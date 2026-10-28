@@ -8,6 +8,7 @@ to execute an Action or implicit Decision persistence is provided.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import secrets
 import threading
@@ -307,13 +308,20 @@ class AssuredPerformanceService:
             "source_snapshot_sha256": _sha256(entry.bound.model_dump(mode="json")),
             "decision_package_sha256": _sha256(package.model_dump(mode="json")),
         }
-        normalized = json.loads(
-            json.dumps(receipt_data, default=lambda v: v.isoformat(), sort_keys=True)
+        receipt = DecisionAssuranceReceipt(
+            **receipt_data, receipt_sha256="0" * 64
         )
-        return AssuredExecutiveResult(
-            package=package,
-            receipt=DecisionAssuranceReceipt(
-                **receipt_data,
-                receipt_sha256=_sha256(normalized),
-            ),
+        receipt = receipt.model_copy(
+            update={
+                "receipt_sha256": _sha256(
+                    receipt.model_dump(mode="json", exclude={"receipt_sha256"})
+                )
+            }
         )
+        return AssuredExecutiveResult(package=package, receipt=receipt)
+
+
+def verify_assurance_receipt(receipt: DecisionAssuranceReceipt) -> bool:
+    """Detect local receipt edits; this cannot authenticate an external issuer."""
+    expected = _sha256(receipt.model_dump(mode="json", exclude={"receipt_sha256"}))
+    return hmac.compare_digest(expected, receipt.receipt_sha256)
