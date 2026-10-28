@@ -16,6 +16,7 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 - **[Current State](current-state.md)** â€” dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
 - **[Rig 07 Performance Activation](drilling-performance-activation-v0.1.md)** — deterministic synthetic drilling performance acceptance and policy-safe recommendation.
 - **[CEPIO Wiki](wiki/Home.md)**
+- **[Evidence and Decision Assurance v0.2](performance-evidence-decision-assurance-v0.2.md)**
 - **[Executive Performance Preview v0.1](performance-executive-preview-v0.1.md)** — opt-in read-only headless decision package.
 - **[Host-bound Performance Evidence v0.1](performance-host-bound-evidence-v0.1.md)** — tenant-scoped versioned read-only source materialization. â€” reader-oriented product, architecture, runtime, Industry IQ and roadmap navigation.
 - **[Architecture](architecture.md)** â€” current portable Industrial Operating Intelligence architecture.
