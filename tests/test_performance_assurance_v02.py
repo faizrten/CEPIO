@@ -214,10 +214,13 @@ def test_missing_policy_and_unknown_plan_refused():
     service, _, _ = make_service()
     with pytest.raises(ValueError):
         AssuredPerformanceService(service._evidence, service._executive, ())
-    fails("PLAN_UNKNOWN", lambda: service.issue(
-        EvidenceHandleRequest(plan_id="not-configured", evaluated_at=EVALUATED_AT),
-        context(),
-    ))
+    fails(
+        "PLAN_UNKNOWN",
+        lambda: service.issue(
+            EvidenceHandleRequest(plan_id="not-configured", evaluated_at=EVALUATED_AT),
+            context(),
+        ),
+    )
 
 
 def test_subject_disagreement_blocks_handle(monkeypatch):
@@ -226,9 +229,7 @@ def test_subject_disagreement_blocks_handle(monkeypatch):
 
     def changed(*args, **kwargs):
         bound = original(*args, **kwargs)
-        reasoning = bound.reasoning_request.model_copy(
-            update={"node_id": "different-kpi"}
-        )
+        reasoning = bound.reasoning_request.model_copy(update={"node_id": "different-kpi"})
         return bound.model_copy(update={"reasoning_request": reasoning})
 
     monkeypatch.setattr(service._evidence, "materialize", changed)
