@@ -150,3 +150,34 @@ def test_optional_finance_and_safety_remain_unknown():
     assert result.package.financial_observation is None
     assert len(result.receipt.source_record_keys) == 2
     assert verify_assurance_receipt(result.receipt)
+
+
+def test_receipt_edit_and_client_evidence_are_not_trusted():
+    service, _, _ = make_service()
+    token = service.issue(request(), context()).handle
+    receipt = service.preview(token, context()).receipt
+    assert verify_assurance_receipt(receipt)
+    assert not verify_assurance_receipt(
+        receipt.model_copy(update={"actor_id": "other-actor"})
+    )
+    with pytest.raises(ValidationError):
+        EvidenceHandleRequest.model_validate({
+            "plan_id": "rig07-ceo-performance",
+            "evaluated_at": EVALUATED_AT,
+            "observations": [{"value": 0.0}],
+            "evidence_trust": "source_attested",
+        })
+
+
+def test_bad_host_policy_and_clock_fail_closed():
+    with pytest.raises(ValueError):
+        make_service(policies=(policy(), policy()))
+    duplicate = policy().model_copy(update={
+        "source_locks": (policy().source_locks[0], policy().source_locks[0])
+    })
+    with pytest.raises(ValueError):
+        make_service(policies=(duplicate,))
+    service, _, _ = make_service(
+        clock=[EVALUATED_AT.replace(tzinfo=None)]
+    )
+    fails("TRUSTED_CLOCK_INVALID", lambda: service.issue(request(), context()))
