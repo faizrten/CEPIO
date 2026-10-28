@@ -232,3 +232,29 @@ def test_subject_disagreement_blocks_handle(monkeypatch):
 
     monkeypatch.setattr(service._evidence, "materialize", changed)
     fails("BOUND_RESULT_INVALID", lambda: service.issue(request(), context()))
+
+
+def test_decision_output_revision_drift_rejected(monkeypatch):
+    service, _, _ = make_service()
+    token = service.issue(request(), context()).handle
+    original = service._executive.preview
+
+    def changed(*args, **kwargs):
+        package = original(*args, **kwargs)
+        return package.model_copy(update={"contract_version": "other-revision"})
+
+    monkeypatch.setattr(service._executive, "preview", changed)
+    fails("DECISION_PROVENANCE_DRIFT", lambda: service.preview(token, context()))
+
+
+def test_unexpected_action_flag_blocks_receipt(monkeypatch):
+    service, _, _ = make_service()
+    token = service.issue(request(), context()).handle
+    original = service._executive.preview
+
+    def changed(*args, **kwargs):
+        package = original(*args, **kwargs)
+        return package.model_copy(update={"action_executed": True})
+
+    monkeypatch.setattr(service._executive, "preview", changed)
+    fails("UNSAFE_EXECUTION_STATE", lambda: service.preview(token, context()))
