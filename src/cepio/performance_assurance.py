@@ -87,9 +87,7 @@ class EvidenceHandle(BaseModel):
     contract_version: str
     expires_at: datetime
     mode: Literal["current", "historical_replay"]
-    evidence_trust: Literal["host_bound_not_source_attested"] = (
-        "host_bound_not_source_attested"
-    )
+    evidence_trust: Literal["host_bound_not_source_attested"] = "host_bound_not_source_attested"
 
 
 class DecisionAssuranceReceipt(BaseModel):
@@ -112,12 +110,8 @@ class DecisionAssuranceReceipt(BaseModel):
     source_record_keys: tuple[str, ...]
     source_snapshot_sha256: str
     decision_package_sha256: str
-    evidence_trust: Literal["host_bound_not_source_attested"] = (
-        "host_bound_not_source_attested"
-    )
-    assurance_status: Literal["development_conformance_only"] = (
-        "development_conformance_only"
-    )
+    evidence_trust: Literal["host_bound_not_source_attested"] = "host_bound_not_source_attested"
+    assurance_status: Literal["development_conformance_only"] = "development_conformance_only"
     authority: Literal["recommend_only"] = "recommend_only"
     policy_required: Literal[True] = True
     decision_persisted: Literal[False] = False
@@ -182,12 +176,12 @@ class AssuredPerformanceService:
     def _now(self) -> datetime:
         now = self._clock()
         if now.tzinfo is None:
-            raise AssuranceError("TRUSTED_CLOCK_INVALID", "Trusted host clock must include timezone")
+            raise AssuranceError(
+                "TRUSTED_CLOCK_INVALID", "Trusted host clock must include timezone"
+            )
         return now
 
-    def issue(
-        self, request: EvidenceHandleRequest, context: ExecutionContext
-    ) -> EvidenceHandle:
+    def issue(self, request: EvidenceHandleRequest, context: ExecutionContext) -> EvidenceHandle:
         policy = self._policies.get(request.plan_id)
         if policy is None:
             raise AssuranceError("PLAN_UNKNOWN", "Host plan is not configured")
@@ -198,10 +192,13 @@ class AssuredPerformanceService:
         now = self._now()
         if request.evaluated_at.tzinfo is None or request.evaluated_at > now:
             raise AssuranceError("EVALUATION_TIME_INVALID", "No naive or future evaluation times")
-        if request.mode == "current" and (
-            now - request.evaluated_at
-        ).total_seconds() > policy.max_current_clock_skew_seconds:
-            raise AssuranceError("CURRENT_EVIDENCE_STALE", "Current mode requires recent evaluation")
+        if (
+            request.mode == "current"
+            and (now - request.evaluated_at).total_seconds() > policy.max_current_clock_skew_seconds
+        ):
+            raise AssuranceError(
+                "CURRENT_EVIDENCE_STALE", "Current mode requires recent evaluation"
+            )
         # Only the server-side configured materializer chooses source record IDs.
         bound = self._evidence.materialize(
             BoundEvidenceRequest(
@@ -223,7 +220,10 @@ class AssuredPerformanceService:
             if item is None:
                 # Optional evidence may be absent; it remains unknown downstream.
                 continue
-            if item.reference_key != lock.reference_key or item.record_version != lock.record_version:
+            if (
+                item.reference_key != lock.reference_key
+                or item.record_version != lock.record_version
+            ):
                 raise AssuranceError("SOURCE_VERSION_CONFLICT", "Source identity/version drift")
         if set(actual) - {p.node_id for p in policy.source_locks}:
             raise AssuranceError("UNPINNED_SOURCE", "Unregistered source cannot become evidence")
@@ -308,8 +308,8 @@ class AssuredPerformanceService:
             "source_snapshot_sha256": _sha256(entry.bound.model_dump(mode="json")),
             "decision_package_sha256": _sha256(package.model_dump(mode="json")),
         }
-        receipt = DecisionAssuranceReceipt(
-            **receipt_data, receipt_sha256="0" * 64
+        receipt = DecisionAssuranceReceipt.model_validate(
+            {**receipt_data, "receipt_sha256": "0" * 64}
         )
         receipt = receipt.model_copy(
             update={
