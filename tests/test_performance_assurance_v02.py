@@ -118,3 +118,35 @@ def test_historical_replay_does_not_imply_current_freshness():
             evaluated_at=EVALUATED_AT.replace(tzinfo=None),
         ), context()))
     assert source.calls == []
+
+
+def test_version_conflicts_are_denied():
+    changed = policy().model_copy(update={
+        "source_locks": (
+            SourceVersionLock(
+                node_id=NPT, reference_key=source_key("rig07-npt"),
+                record_version="revision-002",
+            ),
+            *policy().source_locks[1:],
+        ),
+    })
+    service, _, _ = make_service(policies=(changed,))
+    fails("SOURCE_VERSION_CONFLICT", lambda: service.issue(request(), context()))
+    limited = policy().model_copy(update={
+        "source_locks": policy().source_locks[:2]
+    })
+    service, _, _ = make_service(policies=(limited,))
+    fails("UNPINNED_SOURCE", lambda: service.issue(request(), context()))
+
+
+def test_optional_finance_and_safety_remain_unknown():
+    data = entries()
+    del data["rig07-leakage"]
+    del data["rig07-safety"]
+    service, _, _ = make_service(data=data)
+    token = service.issue(request(), context()).handle
+    result = service.preview(token, context(), financial_node_id=LEAKAGE)
+    assert result.package.financial_status == "evidence_missing"
+    assert result.package.financial_observation is None
+    assert len(result.receipt.source_record_keys) == 2
+    assert verify_assurance_receipt(result.receipt)
