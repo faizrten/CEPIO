@@ -25,6 +25,7 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 - **[Canonical v1.0 Completion Scorecard](v1-completion-scorecard.md)** â€” governed evidence-backed 100-point maturity model.
 - **[v1.0 Scorecard Governance](governance/v1-scorecard-governance.md)** â€” scoring authority, evidence and change-control contract.
 - **[CEPIO v0.4 FOUNDATION Developer Preview](developer-preview.md)** â€” qualified published-release installation/support boundary.
+- **[Agent Delivery Protocol v0.1](developer/agent-delivery-protocol.md)** — evidence-led agent engineering, bounded PRs, and advisory industrial-judgment evaluation.
 - **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** â€” quality, security, compatibility and release evidence controls.
 
 - [Deployed image read-only evidence](adr/ADR-0042-deployed-image-readonly-evidence.md) — exact digest scans, SBOM and provenance verification boundaries.
