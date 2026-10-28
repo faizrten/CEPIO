@@ -208,7 +208,11 @@ class RetrievalEngine:
             metrics.raw_hits += len(hits)
             for hit in hits:
                 record = hit.record
-                if not record.visible_to(intent.tenant_id) or record.expired_at(intent.at):
+                # A historical query timestamp must never resurrect expired content.
+                # The host's current clock governs release, not caller intent.at.
+                if not record.visible_to(intent.tenant_id) or record.expired_at(
+                    datetime.now(timezone.utc)
+                ):
                     metrics.dropped_boundary_hits += 1
                     continue
                 if record.sovereignty_source_id is None:
