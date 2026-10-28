@@ -12,6 +12,7 @@ from cepio.performance_assurance import (
     EvidenceHandleRequest,
     SourceVersionLock,
     verify_assurance_receipt,
+    verify_assured_result,
 )
 from cepio.performance_executive import ExecutivePerformanceService
 from cepio.performance_industry_iq import PerformanceIndustryIQService
