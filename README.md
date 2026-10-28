@@ -1,7 +1,7 @@
 # CEPIO
 
 **Mission:** Democratize industrial expertise and elevate human professional excellence.  
-**Product North Star:** **The indispensable expert companion for every industrial professional.**  
+**Product North Star:** **The most trusted AI companion for every industry professional — learning, growing and advancing industrial expertise alongside people.**  
 **Moat:** The **Industrial Competence Network**, with independent qualification and enterprise sovereignty.  
 **Technical doctrine:** Thin infrastructure. Thick Industry IQ.  
 
