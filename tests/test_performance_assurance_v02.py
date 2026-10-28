@@ -207,3 +207,13 @@ def test_bad_host_policy_and_clock_fail_closed():
         make_service(policies=(duplicate,))
     service, _, _ = make_service(clock=[EVALUATED_AT.replace(tzinfo=None)])
     fails("TRUSTED_CLOCK_INVALID", lambda: service.issue(request(), context()))
+
+
+def test_missing_policy_and_unknown_plan_refused():
+    service, _, _ = make_service()
+    with pytest.raises(ValueError):
+        AssuredPerformanceService(service._evidence, service._executive, ())
+    fails("PLAN_UNKNOWN", lambda: service.issue(
+        EvidenceHandleRequest(plan_id="not-configured", evaluated_at=EVALUATED_AT),
+        context(),
+    ))
