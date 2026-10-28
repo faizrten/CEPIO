@@ -259,3 +259,12 @@ def test_unexpected_action_flag_blocks_receipt(monkeypatch):
 
     monkeypatch.setattr(service._executive, "preview", changed)
     fails("UNSAFE_EXECUTION_STATE", lambda: service.preview(token, context()))
+
+
+def test_assured_package_digest_matches_receipt():
+    service, _, _ = make_service()
+    handle = service.issue(request(), context()).handle
+    output = service.preview(handle, context())
+    assert verify_assured_result(output)
+    changed = output.model_copy(update={"package": output.package.model_copy(update={"contract_id": "different"})})
+    assert not verify_assured_result(changed)
