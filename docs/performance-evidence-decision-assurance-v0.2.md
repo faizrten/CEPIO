@@ -34,7 +34,7 @@ includes actor, tenant, source record/version keys, contract revision hashes,
 policy ID/version, evaluation time, evidence snapshot digest and Decision
 package digest. `verify_assurance_receipt` detects changes to the local receipt.
 
-SHA-256 hashes are **integrity checks, not issuer signatures**. A malicious
+SHA-256 hashes are **integrity checks, not issuer signatures**. The companion `verify_assured_result` checks both the receipt and the exact executive payload fingerprint; verifying only the receipt does not validate an accompanying payload. A malicious
 party who controls both the receipt and its hash can forge a new receipt.
 An external-source signature, independently secured issuer identity, durable
 append-only receipt store, and verified source-side formula execution are
