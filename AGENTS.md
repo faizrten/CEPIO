@@ -300,6 +300,18 @@ Focused technical docs and ADRs remain authoritative for their bounded contracts
 
 Historical benchmark files should remain historical evidence. If their framing is superseded, add context or links rather than falsifying the historical result.
 
+## Agent delivery discipline (bounded and evidence-led)
+
+When coding with AI agents, use the [Agent Delivery Protocol v0.1](docs/developer/agent-delivery-protocol.md) as **advisory engineering guidance**:
+
+- **Think before editing:** name the desired observable outcome, verified starting evidence, consequential assumptions and open unknowns.
+- **Simplest justified solution:** locate and reuse existing Core, Industry IQ and provider capabilities before creating abstractions.
+- **Surgical scope:** state intended files and non-goals; avoid incidental refactors, new generic agent frameworks or protected-IP leakage.
+- **Goal-driven verification:** identify positive and negative acceptance checks before implementation; inspect the final diff and record exact tested evidence and gaps.
+- **Preserve hard boundaries:** natural-language guidance never replaces host-derived identity, runtime policy/approval, tenant/source-use controls, security gates or real source write/verify/reconcile checks.
+
+Do not turn this into a required new agent runtime, extra infrastructure, paid inference, PR approval, or release-point claim. Keep routine R0 documentation work lightweight under existing repository governance.
+
 ## Definition of done for engineering changes
 
 A change is not complete until:
