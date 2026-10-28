@@ -266,5 +266,7 @@ def test_assured_package_digest_matches_receipt():
     handle = service.issue(request(), context()).handle
     output = service.preview(handle, context())
     assert verify_assured_result(output)
-    changed = output.model_copy(update={"package": output.package.model_copy(update={"contract_id": "different"})})
+    changed = output.model_copy(
+        update={"package": output.package.model_copy(update={"contract_id": "different"})}
+    )
     assert not verify_assured_result(changed)
