@@ -1,0 +1,1 @@
+"""Assurance contract behavior tests."""
