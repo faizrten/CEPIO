@@ -270,3 +270,8 @@ def test_assured_package_digest_matches_receipt():
         update={"package": output.package.model_copy(update={"contract_id": "different"})}
     )
     assert not verify_assured_result(changed)
+
+    altered_receipt = output.model_copy(
+        update={"receipt": output.receipt.model_copy(update={"actor_id": "different"})}
+    )
+    assert not verify_assured_result(altered_receipt)
