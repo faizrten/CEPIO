@@ -63,3 +63,58 @@ def fails(code, callback):
     with pytest.raises(AssuranceError) as caught:
         callback()
     assert caught.value.code == code
+
+
+def test_issued_handle_produces_stable_nonexecuting_receipt():
+    service, binding, _ = make_service()
+    handle = service.issue(request(), context())
+    assert len(handle.handle) > 32
+    calls = len(binding.calls)
+    result = service.preview(handle.handle, context(), financial_node_id=LEAKAGE)
+    assert len(binding.calls) == calls
+    assert result.receipt.evidence_trust == "host_bound_not_source_attested"
+    assert result.receipt.assurance_status == "development_conformance_only"
+    assert len(result.receipt.source_record_keys) == 4
+    assert result.package.financial_observation.value == 32000
+    assert result.package.evidence_status == "caller_supplied_unverified"
+    assert result.receipt.authority == "recommend_only"
+    assert not result.receipt.decision_persisted
+    assert not result.receipt.workflow_started
+    assert not result.receipt.action_executed
+    assert verify_assurance_receipt(result.receipt)
+    assert service.preview(handle.handle, context(), financial_node_id=LEAKAGE) == result
+
+
+def test_handle_rejects_cross_tenant_actor_and_role():
+    service, _, _ = make_service()
+    handle = service.issue(request(), context()).handle
+    fails("HANDLE_UNKNOWN", lambda: service.preview("not-real", context()))
+    fails("HANDLE_ACCESS_DENIED", lambda: service.preview(handle, context("other-tenant")))
+    fails("HANDLE_ACCESS_DENIED", lambda: service.preview(
+        handle, context().model_copy(update={"actor_id": "another-actor"})))
+    fails("HANDLE_ACCESS_DENIED", lambda: service.preview(handle, context(role="auditor")))
+    fails("TENANT_DENIED", lambda: service.issue(request(), context("other-tenant")))
+    fails("ROLE_DENIED", lambda: service.issue(request(), context(role="auditor")))
+
+
+def test_expiry_and_capacity_are_fail_closed():
+    service, _, clock = make_service(capacity=1)
+    handle = service.issue(request(), context()).handle
+    fails("HANDLE_CAPACITY", lambda: service.issue(request(), context()))
+    clock[0] += timedelta(seconds=301)
+    fails("HANDLE_EXPIRED", lambda: service.preview(handle, context()))
+    assert service.issue(request(), context()).handle != handle
+
+
+def test_historical_replay_does_not_imply_current_freshness():
+    service, source, _ = make_service()
+    fails("CURRENT_EVIDENCE_STALE", lambda: service.issue(
+        request(mode="current"), context()))
+    fails("EVALUATION_TIME_INVALID", lambda: service.issue(
+        request(offset=90), context()))
+    fails("EVALUATION_TIME_INVALID", lambda: service.issue(
+        EvidenceHandleRequest(
+            plan_id="rig07-ceo-performance",
+            evaluated_at=EVALUATED_AT.replace(tzinfo=None),
+        ), context()))
+    assert source.calls == []
