@@ -551,3 +551,41 @@ def test_source_authorization_bounds_deep_ancestry_without_release():
             tenant_id=None,
             at=AT,
         )
+
+
+def test_historical_retrieval_cannot_resurrect_expired_memory():
+    """The caller's historical intent.at is not a bypass for current expiry."""
+    from cepio.retrieval import RetrievalEngine
+
+    record = MemoryRecord(
+        id="expired-memory",
+        kind=MemoryKind.SEMANTIC,
+        scope=MemoryScope.TENANT,
+        tenant_id="alpha",
+        summary="synthetic past-only record",
+        provenance={"source_kind": "synthetic", "source_ids": ["tenant-source"]},
+        sovereignty_source_id="tenant-source",
+        created_at=AT - timedelta(days=2),
+        expires_at=AT + timedelta(hours=1),
+    )
+    engine = RetrievalEngine(
+        CapabilityRouter(CapabilityRegistry(id="test", version="0.1")),
+        RetrievalPlanner(),
+        [OneHitBackend(record)],
+    )
+    engine.configure_source_rights(
+        {
+            "tenant-source": grant(
+                "tenant-source",
+                source_class=SourceClass.CUSTOMER,
+                tenant_id="alpha",
+                uses={PermittedUse.TENANT_INFERENCE},
+            )
+        },
+        require_source_tags=True,
+    )
+    result = engine.retrieve(
+        RetrievalIntent(tenant_id="alpha", kinds={MemoryKind.SEMANTIC}, at=AT)
+    )
+    assert result.candidates == []
+    assert result.metrics.dropped_boundary_hits == 1
