@@ -325,3 +325,10 @@ def verify_assurance_receipt(receipt: DecisionAssuranceReceipt) -> bool:
     """Detect local receipt edits; this cannot authenticate an external issuer."""
     expected = _sha256(receipt.model_dump(mode="json", exclude={"receipt_sha256"}))
     return hmac.compare_digest(expected, receipt.receipt_sha256)
+
+
+def verify_assured_result(result: AssuredExecutiveResult) -> bool:
+    if not verify_assurance_receipt(result.receipt):
+        return False
+    expected = _sha256(result.package.model_dump(mode="json"))
+    return hmac.compare_digest(expected, result.receipt.decision_package_sha256)
