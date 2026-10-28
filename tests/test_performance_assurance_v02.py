@@ -217,3 +217,18 @@ def test_missing_policy_and_unknown_plan_refused():
         EvidenceHandleRequest(plan_id="not-configured", evaluated_at=EVALUATED_AT),
         context(),
     ))
+
+
+def test_subject_disagreement_blocks_handle(monkeypatch):
+    service, _, _ = make_service()
+    original = service._evidence.materialize
+
+    def changed(*args, **kwargs):
+        bound = original(*args, **kwargs)
+        reasoning = bound.reasoning_request.model_copy(
+            update={"node_id": "different-kpi"}
+        )
+        return bound.model_copy(update={"reasoning_request": reasoning})
+
+    monkeypatch.setattr(service._evidence, "materialize", changed)
+    fails("BOUND_RESULT_INVALID", lambda: service.issue(request(), context()))
