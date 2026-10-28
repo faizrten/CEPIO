@@ -1,6 +1,6 @@
 # CEPIO Execution Roadmap
 
-**Strategic destination:** The indispensable expert companion for every industrial professional; mission: democratize industrial expertise and elevate human professional excellence. This roadmap contains **release gates**, not a second product vision. Read the [canonical Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md) for the six pillars, Industrial Competence Network, sovereignty and measurable professional value.
+**Strategic destination:** The most trusted AI companion for every industry professional, learning and growing alongside people; mission: democratize industrial expertise and elevate human professional excellence. The proposed AI Teacher / independent Examiner / bounded AI Technical Assessor research slice does not supersede existing release gates. This roadmap contains **release gates**, not a second product vision. Read the [canonical Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md) for the six pillars, Industrial Competence Network, sovereignty and measurable professional value.
 
 **Roadmap principle:** each gate must strengthen independently qualified industrial competence, bounded professional usefulness or justified operational outcomes. Keep future Companion/Assurance/Attention services as logical proposals until qualified. No change to existing release qualifications or 100-point score is implied.
 
