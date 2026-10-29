@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import math
+from datetime import datetime, timezone
+from typing import Mapping
 
 from pydantic import BaseModel, Field
 
@@ -27,6 +29,13 @@ from .retrieval_contracts import (
     RetrievalStep,
     RetrievalStrategy,
     RetrievedMemory,
+)
+
+from .sovereignty import (
+    IntelligenceSovereigntyContract,
+    PermittedUse,
+    SovereigntyDenied,
+    authorize_source_use,
 )
 
 
@@ -133,6 +142,19 @@ class RetrievalEngine:
             raise ValueError("rrf_k must be positive")
         self.backends = {item.strategy: item for item in backends}
         self.rrf_k = rrf_k
+        self.sovereignty_records: Mapping[str, IntelligenceSovereigntyContract] = {}
+        self.require_source_tags = False
+
+    def configure_source_rights(
+        self,
+        records: Mapping[str, IntelligenceSovereigntyContract],
+        *,
+        require_source_tags: bool = True,
+    ) -> None:
+        """Configure a trusted host-supplied snapshot; never use request assertions."""
+
+        self.sovereignty_records = dict(records)
+        self.require_source_tags = require_source_tags
 
     def retrieve(self, intent: RetrievalIntent) -> RetrievalResult:
         routing = self.router.route(intent)
@@ -186,9 +208,44 @@ class RetrievalEngine:
             metrics.raw_hits += len(hits)
             for hit in hits:
                 record = hit.record
-                if not record.visible_to(intent.tenant_id) or record.expired_at(intent.at):
+                # A historical query timestamp must never resurrect expired content.
+                # The host's current clock governs release, not caller intent.at.
+                if not record.visible_to(intent.tenant_id) or record.expired_at(
+                    datetime.now(timezone.utc)
+                ):
                     metrics.dropped_boundary_hits += 1
                     continue
+                if record.sovereignty_source_id is None:
+                    if self.require_source_tags:
+                        metrics.dropped_boundary_hits += 1
+                        continue
+                else:
+                    # A tagged derivative must identify all known contributing
+                    # sources. Query-time is never a substitute for current rights.
+                    sources = set(record.provenance.source_ids)
+                    sources.add(record.sovereignty_source_id)
+                    if self.require_source_tags and (
+                        not record.provenance.source_ids
+                        or record.sovereignty_source_id not in record.provenance.source_ids
+                    ):
+                        metrics.dropped_boundary_hits += 1
+                        continue
+                    try:
+                        for source_id in sorted(sources):
+                            authorize_source_use(
+                                source_id,
+                                records=self.sovereignty_records,
+                                use=(
+                                    PermittedUse.SHARED_RETRIEVAL
+                                    if record.scope.value == "GLOBAL"
+                                    else PermittedUse.TENANT_INFERENCE
+                                ),
+                                tenant_id=intent.tenant_id,
+                                at=datetime.now(timezone.utc),
+                            )
+                    except SovereigntyDenied:
+                        metrics.dropped_boundary_hits += 1
+                        continue
                 entry = fused.setdefault(
                     record.id,
                     _FusedHit(record=record.model_copy(deep=True)),

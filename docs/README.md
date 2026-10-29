@@ -107,6 +107,7 @@ Binding principle:
 ## Capability and compounding intelligence
 
 - [Capability Registry & Compounding Industrial Intelligence](capability-registry-and-compounding-intelligence.md)
+- [Intelligence Sovereignty Contract v0.1 — first enforcement slice](intelligence-sovereignty-v0.1.md) — tagged evidence use, lineage and provisional qualification boundaries.
 - [Domain Onboarding workflow](wiki/20-Domain-Onboarding-Workflow.md)
 - [Compounding Industrial Intelligence Wiki](wiki/21-Compounding-Industrial-Intelligence.md)
 
