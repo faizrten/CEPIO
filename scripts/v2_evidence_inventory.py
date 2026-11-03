@@ -50,17 +50,13 @@ def validate_inventory(inventory: dict[str, Any], rubric: dict[str, Any]) -> dic
     snapshot = inventory.get("public_snapshot")
     if not isinstance(snapshot, dict) or snapshot.get("branch") != "main":
         raise EvidenceInventoryError("inventory requires an explicit mainline snapshot")
-    if not isinstance(snapshot.get("commit"), str) or not SHA_RE.fullmatch(
-        snapshot["commit"]
-    ):
+    if not isinstance(snapshot.get("commit"), str) or not SHA_RE.fullmatch(snapshot["commit"]):
         raise EvidenceInventoryError("inventory requires exact pinned git SHA")
     if not isinstance(snapshot.get("source_scope"), str) or (
         "no protected" not in snapshot["source_scope"].lower()
     ):
         raise EvidenceInventoryError("scope must disclose that private proofs were not inspected")
-    if not isinstance(inventory.get("limitations"), list) or len(
-        inventory["limitations"]
-    ) < 4:
+    if not isinstance(inventory.get("limitations"), list) or len(inventory["limitations"]) < 4:
         raise EvidenceInventoryError("evidence limitations must be explicit")
 
     expected: dict[str, tuple[int, str]] = {}
@@ -80,9 +76,7 @@ def validate_inventory(inventory: dict[str, Any], rubric: dict[str, Any]) -> dic
         if gate_id not in expected or gate_id in seen:
             raise EvidenceInventoryError("unknown or duplicate candidate gate")
         seen.add(gate_id)
-        if row.get("scoring_status") != "not_assessed" or forbidden_keys.intersection(
-            row
-        ):
+        if row.get("scoring_status") != "not_assessed" or forbidden_keys.intersection(row):
             raise EvidenceInventoryError(f"gate {gate_id} attempts premature qualification")
         refs = row.get("candidate_public_refs")
         if not isinstance(refs, list) or len(set(refs)) != len(refs):
