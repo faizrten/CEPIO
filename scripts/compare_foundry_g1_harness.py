@@ -85,11 +85,7 @@ def compare_artifacts(control: Any, candidate: Any) -> dict[str, Any]:
         elif control_model != candidate_model:
             confounders.append("Model identities differ; harness-only attribution is invalid")
 
-    protocol_ready = (
-        baseline["protocol_pass"]
-        and experimental["protocol_pass"]
-        and not confounders
-    )
+    protocol_ready = baseline["protocol_pass"] and experimental["protocol_pass"] and not confounders
 
     return {
         "schema_version": "1.0",
