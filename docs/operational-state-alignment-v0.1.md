@@ -75,8 +75,11 @@ Skill, persist a Decision or dispatch any source write.
 
 Source record/version consistency is not cryptographic source attestation.
 Two bindings can be fabricated or ultimately share a non-independent upstream
-origin. The current M2 temporal read is valid-time based; it does not certify
-what CEPIO or the operator actually knew at an earlier transaction time.
+origin. M2 now constrains historical CEPIO object selection by valid time and an
+`evaluated_at` transaction-time cutoff, preventing later object corrections
+from being used retroactively. However, the external record is resolved at
+inspection time: it does not prove the source record was available to an
+operator at the historical evaluation time.
 A successful synthetic value comparison also does not validate sensor
 calibration, engineering formulas, industrial safety envelopes, or the
 domain-specific rule translating telemetry into operating state.
