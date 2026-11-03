@@ -3,6 +3,7 @@
 This is a narrow policy exception to *new domain onboarding*, not an exemption
 from CI, independent regression qualification, source rights, or promotion review.
 """
+
 from __future__ import annotations
 
 import subprocess
