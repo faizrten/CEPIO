@@ -22,6 +22,7 @@ ALLOWED_PATHS = frozenset(
         "tests/test_regression_only_scope_v01.py",
         "scripts/check_regression_only_scope.py",
         "docs/evidence-decision-cross-domain-v0.1.md",
+        "docs/adr/ADR-0048-cross-domain-regression-only-qualification.md",
         ".github/workflows/domain-onboarding.yml",
     }
 )
