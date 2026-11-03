@@ -1,17 +1,31 @@
 """Offline ACCC admission tests; no model, network, source or Action execution."""
+
 from cepio.accc_readonly import (
-    CompositionRequest, CompositionStatus, ReadOnlyComposer, TrustedAdmission, HostBoundComposer,
+    CompositionRequest,
+    CompositionStatus,
+    ReadOnlyComposer,
+    TrustedAdmission,
+    HostBoundComposer,
 )
 from cepio.capability_registry import (
-    CapabilityLayer, CapabilityMaturity, CapabilityProvenance, CapabilityRecord, CapabilityRegistry,
+    CapabilityLayer,
+    CapabilityMaturity,
+    CapabilityProvenance,
+    CapabilityRecord,
+    CapabilityRegistry,
 )
 
 
 def composer(maturity=CapabilityMaturity.QUALIFIED):
     cap = CapabilityRecord(
-        id="k201", version="0.1", title="K201 vibration", description="reliability",
-        layer=CapabilityLayer.DOMAIN, maturity=maturity,
-        validated_domains={"reliability"}, skills={"inspect-vibration"},
+        id="k201",
+        version="0.1",
+        title="K201 vibration",
+        description="reliability",
+        layer=CapabilityLayer.DOMAIN,
+        maturity=maturity,
+        validated_domains={"reliability"},
+        skills={"inspect-vibration"},
         evidence_requirements={"vibration-observation"},
         provenance=CapabilityProvenance(mode="synthetic"),
     )
@@ -19,16 +33,24 @@ def composer(maturity=CapabilityMaturity.QUALIFIED):
 
 
 def admission(**kwargs):
-    values = dict(actor_id="engineer", tenant_id="tenant-a", authorization_valid=True,
-                  approved_capability_ids={"k201"}, ready_skill_ids={"inspect-vibration"},
-                  verified_evidence_types={"vibration-observation"})
+    values = dict(
+        actor_id="engineer",
+        tenant_id="tenant-a",
+        authorization_valid=True,
+        approved_capability_ids={"k201"},
+        ready_skill_ids={"inspect-vibration"},
+        verified_evidence_types={"vibration-observation"},
+    )
     values.update(kwargs)
     return TrustedAdmission(**values)
 
 
 def request():
-    return CompositionRequest(query_text="K201 vibration reliability", domain="reliability",
-                              required_capability_ids={"k201"})
+    return CompositionRequest(
+        query_text="K201 vibration reliability",
+        domain="reliability",
+        required_capability_ids={"k201"},
+    )
 
 
 def test_admissible_plan_is_read_only():
@@ -104,16 +126,25 @@ def test_host_bound_composer_fails_closed_when_resolver_unavailable():
 
 def test_required_capability_does_not_admit_lexical_neighbor():
     from cepio.capability_registry import CapabilityRecord, CapabilityRegistry
+
     neighbor = CapabilityRecord(
-        id="neighbor", version="0.1", title="K201 vibration neighbor",
-        description="reliability", layer=CapabilityLayer.DOMAIN,
-        maturity=CapabilityMaturity.QUALIFIED, validated_domains={"reliability"},
+        id="neighbor",
+        version="0.1",
+        title="K201 vibration neighbor",
+        description="reliability",
+        layer=CapabilityLayer.DOMAIN,
+        maturity=CapabilityMaturity.QUALIFIED,
+        validated_domains={"reliability"},
         provenance=CapabilityProvenance(mode="synthetic"),
     )
     original = composer().registry.capabilities[0]
-    candidate = ReadOnlyComposer(CapabilityRegistry(
-        id="test", version="1", capabilities=[original, neighbor],
-    ))
+    candidate = ReadOnlyComposer(
+        CapabilityRegistry(
+            id="test",
+            version="1",
+            capabilities=[original, neighbor],
+        )
+    )
     result = candidate.compose(request(), admission())
     assert result.status == CompositionStatus.READY
     assert result.capability_ids == ["k201"]
@@ -121,15 +152,24 @@ def test_required_capability_does_not_admit_lexical_neighbor():
 
 def test_profile_capability_cannot_be_admitted_by_offline_stub():
     profile = CapabilityRecord(
-        id="k201", version="0.1", title="K201 vibration",
-        description="reliability", layer=CapabilityLayer.PROFILE,
-        maturity=CapabilityMaturity.QUALIFIED, validated_domains={"reliability"},
-        skills={"inspect-vibration"}, evidence_requirements={"vibration-observation"},
+        id="k201",
+        version="0.1",
+        title="K201 vibration",
+        description="reliability",
+        layer=CapabilityLayer.PROFILE,
+        maturity=CapabilityMaturity.QUALIFIED,
+        validated_domains={"reliability"},
+        skills={"inspect-vibration"},
+        evidence_requirements={"vibration-observation"},
         provenance=CapabilityProvenance(mode="synthetic"),
     )
-    candidate = ReadOnlyComposer(CapabilityRegistry(
-        id="test", version="1", capabilities=[profile],
-    ))
+    candidate = ReadOnlyComposer(
+        CapabilityRegistry(
+            id="test",
+            version="1",
+            capabilities=[profile],
+        )
+    )
     result = candidate.compose(request(), admission())
     assert result.status == CompositionStatus.BLOCKED
     assert "PROFILE_CAPABILITY_NOT_SUPPORTED" in result.blockers
