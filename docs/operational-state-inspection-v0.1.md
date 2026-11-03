@@ -25,7 +25,7 @@ This is a small **read-only** reference that composes existing:
    capability / ready status, evidence-only interface and versioned source identity.
 3. Authorizes the subject **before accessing the source**. M1 also applies
    actor/property/relationship filtering to first-hop objects.
-4. Reads a historical object by **valid time** from the CEPIO temporal repository.
+4. Reads a historical object by **valid time**, constrained to transactions recorded no later than `evaluated_at` through CEPIO's existing bitemporal repository.
    The historical object is reauthorized and property-filtered separately so an
    earlier broader sharing scope never bypasses current actor restrictions.
 5. Resolves only the plan-pinned source record, validates source-system / kind /
@@ -44,7 +44,7 @@ A matching, versioned source record is **reference consistency**. It is not:
 - cryptographic proof that the record originated from a trusted provider;
 - proof that its measurement actually corresponds to a CEPIO state property;
 - an authorized, live operational snapshot or certified source freshness;
-- as-of-transaction evidence availability (the reference is resolved now);
+- historical availability of the external source record (the source is resolved now);
 - a production multi-tenant permission boundary, source-use grant or
   authorization to issue an external Action.
 
