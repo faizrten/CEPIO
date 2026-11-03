@@ -111,7 +111,10 @@ def inspect_operational_state(
         raise OperationalStateReadError("TIME_INVALID", "Valid time cannot follow evaluation time")
     if context.tenant_id is None or context.tenant_id != plan.organization_id:
         raise OperationalStateReadError("TENANT_DENIED", "Host tenant does not match the plan")
-    if registration.manifest != binding.manifest or registration.capability_id != plan.capability_id:
+    if (
+        registration.manifest != binding.manifest
+        or registration.capability_id != plan.capability_id
+    ):
         raise OperationalStateReadError("BINDING_MISMATCH", "Configured binding contract differs")
     if registration.status != BindingRuntimeStatus.ready:
         raise OperationalStateReadError("BINDING_NOT_READY", "Configured binding is not ready")
@@ -123,7 +126,9 @@ def inspect_operational_state(
             BindingCapability.versioned_identity,
         }.issubset(binding.manifest.capabilities)
     ):
-        raise OperationalStateReadError("READ_ONLY_VERSIONED_REQUIRED", "Read-only versioned binding required")
+        raise OperationalStateReadError(
+            "READ_ONLY_VERSIONED_REQUIRED", "Read-only versioned binding required"
+        )
 
     # Authorize the object before touching the external source.
     inspection = inspect_operational_object(
@@ -141,9 +146,13 @@ def inspect_operational_state(
     try:
         historical = temporal_reader(plan.subject.id, valid_at)
     except KeyError as exc:
-        raise OperationalStateReadError("HISTORY_MISSING", "No object state valid at requested time") from exc
+        raise OperationalStateReadError(
+            "HISTORY_MISSING", "No object state valid at requested time"
+        ) from exc
     if historical.id != current.id or historical.type != current.type:
-        raise OperationalStateReadError("HISTORY_IDENTITY_MISMATCH", "Temporal object identity differs")
+        raise OperationalStateReadError(
+            "HISTORY_IDENTITY_MISMATCH", "Temporal object identity differs"
+        )
     roles = set(context.actor_roles)
     policy = service.runtime.policy_engine
     if not policy.can_read_object(roles, historical):
@@ -154,7 +163,9 @@ def inspect_operational_state(
     try:
         envelope = binding.resolve_evidence(plan.external_id)
     except KeyError as exc:
-        raise OperationalStateReadError("SOURCE_MISSING", "Configured source record is missing") from exc
+        raise OperationalStateReadError(
+            "SOURCE_MISSING", "Configured source record is missing"
+        ) from exc
     reference = envelope.reference
     if (
         reference.source_system != binding.manifest.source_system
@@ -163,18 +174,26 @@ def inspect_operational_state(
         or reference.record_version is None
         or not str(reference.record_version).strip()
     ):
-        raise OperationalStateReadError("SOURCE_IDENTITY_MISMATCH", "Source record identity/version differs")
+        raise OperationalStateReadError(
+            "SOURCE_IDENTITY_MISMATCH", "Source record identity/version differs"
+        )
     try:
         metadata = SourceObservationMetadata.model_validate(envelope.evidence)
     except ValueError as exc:
-        raise OperationalStateReadError("SOURCE_METADATA_INVALID", "Source observation metadata invalid") from exc
+        raise OperationalStateReadError(
+            "SOURCE_METADATA_INVALID", "Source observation metadata invalid"
+        ) from exc
     if metadata.organization_id != plan.organization_id or metadata.subject_id != current.id:
         raise OperationalStateReadError("SOURCE_SCOPE_MISMATCH", "Source observation scope differs")
     if metadata.observed_at.tzinfo is None or metadata.observed_at > valid_at:
-        raise OperationalStateReadError("SOURCE_TIME_INVALID", "Source time invalid for requested state")
+        raise OperationalStateReadError(
+            "SOURCE_TIME_INVALID", "Source time invalid for requested state"
+        )
     age_seconds = (valid_at - metadata.observed_at).total_seconds()
     if age_seconds > plan.max_age_seconds:
-        raise OperationalStateReadError("SOURCE_STALE", "Source observation is outside configured age window")
+        raise OperationalStateReadError(
+            "SOURCE_STALE", "Source observation is outside configured age window"
+        )
 
     return OperationalStateInspection(
         object_inspection=inspection,
