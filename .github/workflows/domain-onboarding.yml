@@ -25,6 +25,9 @@ on:
       - 'generalization/persona-bindings/**'
       - 'generalization/capabilities/**'
       - 'generalization/regression/**'
+      - 'scripts/check_regression_only_scope.py'
+      - 'tests/test_evidence_decision_reassessment_v01.py'
+      - 'tests/test_regression_only_scope_v01.py'
       - 'generalization/archetypes/**'
       - 'generalization/personas/**'
       - 'generalization/standards/**'
@@ -103,6 +106,13 @@ jobs:
               git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- 'generalization/domain-packs/*.yaml'
             )
             if [[ ${#manifests[@]} -eq 0 ]]; then
+              # Only the explicit regression fixture+test allowlist may take
+              # the independent, non-promoting regression qualification path.
+              if python scripts/check_regression_only_scope.py "$BASE_SHA" "$HEAD_SHA"; then
+                echo "DOMAIN_QUALIFICATION_MODE=regression" >> "$GITHUB_ENV"
+                echo "Regression-only change: require frozen cross-domain survival and negative controls."
+                exit 0
+              fi
               # No implicit onboarding target. Only a tightly scoped Core-contract
               # PR can take this independent qualification path.
               mapfile -t changed_paths < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
@@ -149,7 +159,7 @@ jobs:
           echo "Resolved manifest: $DOMAIN_MANIFEST"
           echo "Resolved persona: ${PERSONA_ID:-<domain-wide>}"
       - name: Run governed Domain Onboarding workflow
-        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' }}
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' && env.DOMAIN_QUALIFICATION_MODE != 'regression' }}
         run: >-
           PYTHONPATH=src python scripts/run_domain_onboarding.py
           --manifest "$DOMAIN_MANIFEST"
@@ -158,7 +168,7 @@ jobs:
           --json-out domain-onboarding-report.json
           --fail-on-blocked
       - name: Run persona-scoped ICC qualification
-        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' && env.PERSONA_ID != '' }}
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' && env.DOMAIN_QUALIFICATION_MODE != 'regression' && env.PERSONA_ID != '' }}
         run: >-
           PYTHONPATH=src python scripts/run_icc_persona_qualification.py
           --manifest "$DOMAIN_MANIFEST"
@@ -168,7 +178,7 @@ jobs:
           --json-out icc-qualification-report.json
           --fail-on-blocked
       - name: Run compounding industrial-intelligence loop
-        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' }}
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' && env.DOMAIN_QUALIFICATION_MODE != 'regression' }}
         shell: bash
         run: |
           args=(
@@ -193,7 +203,7 @@ jobs:
           fi
           PYTHONPATH=src python scripts/run_compounding_intelligence.py "${args[@]}"
       - name: Run Domain Onboarding, ICC and compounding contract tests
-        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' }}
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE != 'core' && env.DOMAIN_QUALIFICATION_MODE != 'regression' }}
         run: >-
           pytest -q
           tests/test_domain_onboarding_workflow.py
@@ -228,6 +238,27 @@ jobs:
             tests+=(tests/test_intelligence_sovereignty.py)
           fi
           pytest -q "${tests[@]}"
+      - name: Qualify cross-domain regression-only
+        if: ${{ env.DOMAIN_QUALIFICATION_MODE == 'regression' }}
+        run: |
+          PYTHONPATH=src python - <<'PY'
+          from pathlib import Path
+          from scripts.run_compounding_intelligence import run_cross_domain_regression
+
+          root = Path.cwd()
+          report = run_cross_domain_regression(
+              root, root / "generalization/regression/industrial-common-v0.1.yaml"
+          )
+          print(
+              f"Frozen regression: {report['passed_targets']}/{report['target_count']} "
+              f"survival={report['survival_rate']:.3f}"
+          )
+          if report["survival_rate"] != 1.0:
+              raise SystemExit("Cross-domain regression requires 100% frozen survival")
+          PY
+          PYTHONPATH=src pytest -q \
+            tests/test_evidence_decision_reassessment_v01.py \
+            tests/test_regression_only_scope_v01.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
