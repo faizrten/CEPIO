@@ -204,8 +204,17 @@ def test_two_bindings_from_same_upstream_system_are_not_independent():
     second.reference = second.reference.model_copy(
         update={"source_system": "synthetic-1"}
     )
-    config[2][1].registration = register_evidence_binding(
-        second, capability_id="state-observation"
+    original = config[2][1]
+    config[2] = (
+        config[2][0],
+        StateSourceSelection(
+            binding=second,
+            registration=register_evidence_binding(
+                second, capability_id="state-observation"
+            ),
+            plan=original.plan,
+            role=original.role,
+        ),
     )
     result = run(config)
     assert result.status == "insufficient_independent_sources"
@@ -352,8 +361,6 @@ def test_canonical_registry_and_type_guards():
         ("property_iri", "MAPPING_MISMATCH"),
         ("mapping_id", "MAPPING_MISMATCH"),
         ("mapping_version", "MAPPING_MISMATCH"),
-        ("organization_id", "MAPPING_MISMATCH"),
-        ("subject_id", "MAPPING_MISMATCH"),
         ("state_value", "STATE_VALUE_UNSUPPORTED"),
     ],
 )
@@ -361,6 +368,15 @@ def test_tampered_mapping_contract_fails_closed(corrupt, code):
     config = case()
     config[2][0].binding.payload[corrupt] = "unrecognized"
     block(config, code)
+
+
+@pytest.mark.parametrize("key", ["organization_id", "subject_id"])
+def test_source_scope_tampering_rejected_by_m2(key):
+    config = case()
+    config[2][0].binding.payload[key] = "tenant-or-subject-other"
+    with pytest.raises(OperationalStateReadError) as exc:
+        run(config)
+    assert exc.value.code == "SOURCE_SCOPE_MISMATCH"
 
 
 def test_source_payload_extra_field_and_missing_value_fail_strictly():
