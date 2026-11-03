@@ -331,16 +331,14 @@ def test_historical_read_cannot_use_correction_recorded_after_evaluation():
     original = service.runtime.get_object("K-201")
     valid_time = datetime.now(timezone.utc) - timedelta(minutes=10)
     initial_properties = dict(original.properties)
-    initial_properties["validFrom"] = (
-        valid_time - timedelta(minutes=1)
-    ).isoformat()
+    initial_properties["validFrom"] = (valid_time - timedelta(minutes=1)).isoformat()
     first = service.runtime.upsert_object(
         original.model_copy(update={"properties": initial_properties}),
         expected_version=original.version,
     )
-    first_transaction = service.runtime.object_repository.object_history(
-        "K-201"
-    )[-1].transaction_time
+    first_transaction = service.runtime.object_repository.object_history("K-201")[
+        -1
+    ].transaction_time
     corrected_properties = dict(first.properties)
     corrected_properties["criticality"] = "low"
     service.runtime.upsert_object(
