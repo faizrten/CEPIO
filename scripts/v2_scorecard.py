@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """Validate the unscored CEPIO v2 candidate rubric and historical crosswalk.
 
 This deliberately does NOT calculate or publish a v2 maturity percentage.
 The canonical v1 evidence-based score is governed separately until migration.
 """
+
+from __future__ import annotations
 
 import argparse
 import json
@@ -54,7 +54,10 @@ def validate(
         raise RubricError("unexpected v2 schema version")
     if rubric.get("canonical") is not False:
         raise RubricError("candidate rubric must not claim canonical authority")
-    if rubric.get("status") != "proposed_unscored" or rubric.get("official_v2_score_available") is not False:
+    if (
+        rubric.get("status") != "proposed_unscored"
+        or rubric.get("official_v2_score_available") is not False
+    ):
         raise RubricError("v2 must remain explicitly unscored")
     if rubric.get("point_total") != 100:
         raise RubricError("v2 total point budget must be exactly 100")
@@ -64,28 +67,41 @@ def validate(
         raise RubricError("v2 rubric cannot change the target product release")
     historical = rubric.get("legacy_baseline")
     if not isinstance(historical, dict) or (
-        historical.get("earned_points"), historical.get("possible_points"),
-        historical.get("commit"), historical.get("date"), historical.get("path")
+        historical.get("earned_points"),
+        historical.get("possible_points"),
+        historical.get("commit"),
+        historical.get("date"),
+        historical.get("path"),
     ) != (69, 100, BASELINE_SHA, "2026-10-20", str(LEGACY)):
         raise RubricError("historical 69/100 baseline was modified")
-    if legacy.get("scoring", {}).get("baseline_commit") != BASELINE_SHA or legacy.get("scoring", {}).get("baseline_points") != 69:
+    if (
+        legacy.get("scoring", {}).get("baseline_commit") != BASELINE_SHA
+        or legacy.get("scoring", {}).get("baseline_points") != 69
+    ):
         raise RubricError("legacy canonical baseline is no longer 69/100")
     if sum(x.get("earned", 0) for x in legacy.get("stages", [])) != 69:
         raise RubricError("legacy stage earned points no longer total 69")
     policy = rubric.get("policy")
-    if not isinstance(policy, dict) or not all(policy.get(key) is True for key in (
-        "no_automatic_legacy_credit",
-        "independent_release_gates",
-        "independent_evidence_assessment_required",
-        "customer_material_publication_prohibited",
-        "no_score_for_unverified_live_or_field_claim",
-        "no_infrastructure_padding",
-    )):
+    if not isinstance(policy, dict) or not all(
+        policy.get(key) is True
+        for key in (
+            "no_automatic_legacy_credit",
+            "independent_release_gates",
+            "independent_evidence_assessment_required",
+            "customer_material_publication_prohibited",
+            "no_score_for_unverified_live_or_field_claim",
+            "no_infrastructure_padding",
+        )
+    ):
         raise RubricError("candidate score and release/IP protections are required")
     if policy.get("qualification_tiers") != list(EVIDENCE_TIERS):
         raise RubricError("invalid qualification tier ladder")
     blockers = policy.get("hard_release_blockers")
-    if not isinstance(blockers, list) or len(blockers) < 6 or any(not isinstance(x, str) or not x for x in blockers):
+    if (
+        not isinstance(blockers, list)
+        or len(blockers) < 6
+        or any(not isinstance(x, str) or not x for x in blockers)
+    ):
         raise RubricError("hard safety/security release blockers must be explicit")
     if "probabilistic" not in policy.get("domain_qualification", {}).get("reservoir", "").lower():
         raise RubricError("reservoir probabilistic uncertainty cannot be omitted")
@@ -145,13 +161,21 @@ def validate(
             old[gate["id"]] = gate
     if len(old) != 34:
         raise RubricError("expected 34 legacy evidence gates")
-    if crosswalk.get("schema_version") != "2.0" or crosswalk.get("legacy_path") != str(LEGACY) or crosswalk.get("candidate_rubric_path") != str(RUBRIC):
+    if (
+        crosswalk.get("schema_version") != "2.0"
+        or crosswalk.get("legacy_path") != str(LEGACY)
+        or crosswalk.get("candidate_rubric_path") != str(RUBRIC)
+    ):
         raise RubricError("crosswalk paths/schema invalid")
     if crosswalk.get("legacy_baseline_commit") != BASELINE_SHA or (
-        crosswalk.get("legacy_baseline_earned"), crosswalk.get("legacy_baseline_possible")
+        crosswalk.get("legacy_baseline_earned"),
+        crosswalk.get("legacy_baseline_possible"),
     ) != (69, 100):
         raise RubricError("crosswalk historical baseline modified")
-    if crosswalk.get("credit_transfer") != "forbidden" or crosswalk.get("comparison_delta_policy") != "not_comparable_without_normalization":
+    if (
+        crosswalk.get("credit_transfer") != "forbidden"
+        or crosswalk.get("comparison_delta_policy") != "not_comparable_without_normalization"
+    ):
         raise RubricError("forbid automatic credit and false score deltas")
     mapping = crosswalk.get("mapping")
     if not isinstance(mapping, list) or len(mapping) != len(old):
@@ -167,7 +191,9 @@ def validate(
         mapped_old.add(old_id)
         source = old[old_id]
         if (row.get("old_title"), row.get("old_points"), row.get("old_earned")) != (
-            source["title"], source["points"], source["earned"]
+            source["title"],
+            source["points"],
+            source["earned"],
         ):
             raise RubricError(f"legacy evidence changed in crosswalk {old_id}")
         if row.get("disposition") != "reassess_no_automatic_credit":
@@ -197,7 +223,9 @@ def validate(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the proposed unscored CEPIO v2 rubric/crosswalk")
+    parser = argparse.ArgumentParser(
+        description="Validate the proposed unscored CEPIO v2 rubric/crosswalk"
+    )
     parser.add_argument("--rubric", type=Path, default=RUBRIC)
     parser.add_argument("--crosswalk", type=Path, default=CROSSWALK)
     parser.add_argument("--legacy", type=Path, default=LEGACY)
@@ -211,7 +239,9 @@ def main() -> int:
         print(json.dumps(result, indent=2, sort_keys=True))
     else:
         print("CEPIO v2 candidate: unscored / non-canonical. Historical canonical v1: 69/100.")
-        print(f"{result['dimension_count']} dimensions / {result['candidate_gates']} gates; no automatic credit transfer.")
+        print(
+            f"{result['dimension_count']} dimensions / {result['candidate_gates']} gates; no automatic credit transfer."
+        )
     return 0
 
 
