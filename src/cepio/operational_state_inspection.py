@@ -144,9 +144,7 @@ def inspect_operational_state(
     if not callable(temporal_reader):
         raise OperationalStateReadError("HISTORY_UNAVAILABLE", "Temporal object reads unavailable")
     try:
-        historical = temporal_reader(
-            plan.subject.id, valid_at, as_of_transaction=evaluated_at
-        )
+        historical = temporal_reader(plan.subject.id, valid_at, as_of_transaction=evaluated_at)
     except KeyError as exc:
         raise OperationalStateReadError(
             "HISTORY_MISSING", "No object state valid at requested time"
