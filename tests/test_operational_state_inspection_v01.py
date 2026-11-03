@@ -152,9 +152,7 @@ def test_tenant_denial_precedes_object_and_source_access():
 
 def test_actor_denial_precedes_source_lookup():
     case = list(configured_case())
-    case[4] = case[4].model_copy(
-        update={"actor_roles": frozenset({"outsider"})}
-    )
+    case[4] = case[4].model_copy(update={"actor_roles": frozenset({"outsider"})})
     with pytest.raises(AuthorizationError):
         inspect_case(tuple(case))
     assert case[1].calls == 0
@@ -190,9 +188,7 @@ def test_historical_scope_denial_is_separate_from_current_read():
         ),
         expected_version=1,
     )
-    case[3] = case[3].model_copy(
-        update={"subject": ObjectRef(id="OLDER", type="Compressor")}
-    )
+    case[3] = case[3].model_copy(update={"subject": ObjectRef(id="OLDER", type="Compressor")})
     case[5] = before
     assert_blocked(tuple(case), "HISTORY_DENIED")
     assert case[1].calls == 0
@@ -282,8 +278,6 @@ def test_no_history_and_mismatched_subject_are_rejected_before_source():
     assert case[1].calls == 0
 
     case = list(configured_case())
-    case[3] = case[3].model_copy(
-        update={"subject": ObjectRef(id="K-201", type="Pump")}
-    )
+    case[3] = case[3].model_copy(update={"subject": ObjectRef(id="K-201", type="Pump")})
     assert_blocked(tuple(case), "SUBJECT_TYPE_MISMATCH")
     assert case[1].calls == 0
