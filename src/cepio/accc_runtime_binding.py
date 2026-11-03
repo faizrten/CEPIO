@@ -29,6 +29,7 @@ from .platform_bindings import (
     EvidenceBinding,
 )
 from .skill_preflight import SkillRegistry
+from .policy import RolePolicyEngine
 
 
 def contract_hash(value: BaseModel) -> str:
@@ -142,6 +143,11 @@ class AuthenticatedReadOnlyComposer:
         ):
             raise PermissionError("host scope mismatch")
         runtime = self.skills.runtime
+        if (
+            isinstance(runtime.policy_engine, RolePolicyEngine)
+            and not runtime.policy_engine.policies
+        ):
+            raise PermissionError("explicit host policy required")
         if not runtime.policy_engine.can_call_function(actor.roles, "cepio.compose_readonly"):
             raise PermissionError("composition permission revoked")
         target = runtime.get_object(profile.subject_id)

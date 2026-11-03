@@ -23,7 +23,7 @@ No new identity provider, generic agent runtime, evidence store or Skill registr
 No route, authentication setting, permission, deployment or Action execution changes.
 Hosts retain responsibility for qualified profiles, truthful source adapters,
 request-local credentials and policy-version governance. Offline signature tests
-do not attest a live Entra or industrial source integration. Full Harness agent-loop
-qualification remains outside the tested FunctionTool boundary.
+do not attest a live Entra or industrial source integration. A minimal SDK Harness factory disables generic tools and retains approval handling.
+Its loop is tested using a scripted offline client, not a live model.
 
 See [implementation and reproduction contract](../architecture/accc-harness-readonly-spike.md).

@@ -76,6 +76,13 @@ def test_revoked_policy_rechecked_without_cached_admission(demo):
     assert host.binding.calls == 1
 
 
+def test_unconfigured_reference_policy_cannot_admit(demo):
+    host, request = demo
+    host.skills.runtime.policy_engine.policies.clear()
+    assert host.compose(request).status == "BLOCKED"
+    assert host.binding.calls == 0
+
+
 def test_object_sharing_denial_precedes_source_access(demo):
     host, request = demo
     runtime = host.skills.runtime
@@ -269,3 +276,104 @@ def test_optional_adapter_contract_without_sdk(demo, monkeypatch):
     assert json.loads(invoke(**request.model_dump()))["status"] == "READY"
     with pytest.raises(ValueError):
         invoke(**request.model_dump(), tenant_id="forged")
+
+
+@pytest.mark.parametrize("approved,revoked", [(False, False), (True, False), (True, True)])
+def test_real_harness_requires_approval_before_composition(demo, approved, revoked):
+    sdk = pytest.importorskip("agent_framework")
+    from cepio.integrations.microsoft.accc import create_readonly_harness
+
+    host, request = demo
+
+    class OfflineClient(sdk.FunctionInvocationLayer, sdk.BaseChatClient):
+        async def _inner_get_response(self, *, messages, stream, options, **kwargs):
+            assert not stream
+            assert [item.name for item in options["tools"]] == [
+                "cepio_compose_context_and_competence"
+            ]
+            if any(
+                content.type == "function_result"
+                for message in messages
+                for content in message.contents
+            ):
+                return sdk.ChatResponse(messages=sdk.Message("assistant", ["Offline complete"]))
+            return sdk.ChatResponse(
+                messages=sdk.Message(
+                    role="assistant",
+                    contents=[
+                        sdk.Content.from_function_call(
+                            "offline-call",
+                            "cepio_compose_context_and_competence",
+                            arguments=request.model_dump(mode="json"),
+                        )
+                    ],
+                )
+            )
+
+    agent = create_readonly_harness(OfflineClient(), host)
+
+    async def run():
+        session = agent.create_session()
+        response = await agent.run("Compose K-201", session=session)
+        approvals = [
+            content
+            for message in response.messages
+            for content in message.contents
+            if content.type == "function_approval_request"
+        ]
+        assert len(approvals) == 1
+        assert host.binding.calls == 0
+        if revoked:
+            host.skills.runtime.policy_engine.policies["engineer"]["functions"] = []
+        approval = approvals[0]
+        await agent.run(
+            sdk.Message(
+                "user",
+                [
+                    sdk.Content.from_function_approval_response(
+                        approved,
+                        approval.id,
+                        approval.function_call,
+                    )
+                ],
+            ),
+            session=session,
+        )
+
+    asyncio.run(run())
+    assert host.binding.calls == (1 if approved and not revoked else 0)
+
+
+def test_harness_factory_disables_generic_tools(demo, monkeypatch):
+    import sys
+    from types import SimpleNamespace
+    from cepio.integrations.microsoft.accc import create_readonly_harness
+
+    host, _ = demo
+    config = {}
+
+    def build(client, **options):
+        config.update(options)
+        return options
+
+    monkeypatch.setitem(
+        sys.modules,
+        "agent_framework",
+        SimpleNamespace(
+            tool=lambda function, **options: function,
+            create_harness_agent=build,
+        ),
+    )
+    create_readonly_harness(object(), host)
+    assert all(
+        config[key]
+        for key in [
+            "disable_compaction",
+            "disable_todo",
+            "disable_mode",
+            "disable_file_memory",
+            "disable_web_search",
+        ]
+    )
+    assert config["auto_approval_rules"] == []
+    assert len(config["tools"]) == 1

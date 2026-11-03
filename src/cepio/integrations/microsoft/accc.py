@@ -31,3 +31,26 @@ def composition_tool(host: ReadOnlyCompositionHost):
         schema=CompositionRequest,
         approval_mode="always_require",
     )
+
+
+def create_readonly_harness(client, host: ReadOnlyCompositionHost):
+    """Use the SDK Harness with only ACCC; no provider configuration or inference.
+
+    The caller owns client/session lifetime and any inference authorization.
+    Defaults that expose web, files, modes, tasks or additional tools are disabled.
+    SDK approval handling remains enabled with no auto-approval rules.
+    """
+    from agent_framework import create_harness_agent
+
+    return create_harness_agent(
+        client,
+        name="cepio-accc-readonly",
+        tools=[composition_tool(host)],
+        harness_instructions="Compose read-only CEPIO plans. READY is not execution authority.",
+        disable_compaction=True,
+        disable_todo=True,
+        disable_mode=True,
+        disable_file_memory=True,
+        disable_web_search=True,
+        auto_approval_rules=[],
+    )

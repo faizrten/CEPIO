@@ -30,6 +30,7 @@ a Skill or method. Unknown combinations and changed contracts are blocked.
 
 The host uses existing function authorization for cepio.compose_readonly, object
 sharing/type policy for the target and read-type policy for each evidence type.
+An unconfigured reference RolePolicyEngine is rejected.
 No production permission is added by this PR. Nonempty capability policy
 requirements are unsupported and blocked. Action-bearing and Decision-producing
 Skills are rejected even if an actor could otherwise execute them.
@@ -59,8 +60,12 @@ Then call composition_tool(request_scoped_host) and supply only that tool to the
 embedding agent. Approval mode remains always_require; the adapter does not grant
 auto-approval. The embedding host must preserve its authorization and approval path.
 
-The test invokes the actual FunctionTool offline without an LLM. This is SDK tool
-compatibility, **not a full Harness agent-loop or production-host qualification**.
+The optional create_readonly_harness factory uses the actual SDK Harness with only
+the ACCC tool. Web search, file memory, todo, mode and compaction providers are disabled;
+no shell, file-access, Skill discovery or background agents are configured. Tests
+exercise the real Harness with a scripted offline client: no source read before approval,
+no source read after denial or policy revocation, and one read after approved admission.
+This qualifies offline SDK mechanics, **not live-model or production-host behavior**.
 Reference: [Microsoft function tools](https://learn.microsoft.com/en-us/agent-framework/agents/tools/function-tools).
 
 ## Reproduce
