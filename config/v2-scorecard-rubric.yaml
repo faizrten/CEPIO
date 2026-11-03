@@ -1,0 +1,181 @@
+# Candidate only: NOT the canonical maturity score; this file contains no earned points.
+schema_version: "2.0"
+rubric_version: "2.0.0-rc.1"
+product: CEPIO
+target_release: "v1.0"
+canonical: false
+status: "proposed_unscored"
+official_v2_score_available: false
+point_total: 100
+legacy_baseline:
+  path: "config/v1-scorecard.yaml"
+  earned_points: 69
+  possible_points: 100
+  date: "2026-10-20"
+  commit: "a179e9cfc0dbf5e866a6a6aa143eb4290e79918d"
+policy:
+  no_automatic_legacy_credit: true
+  independent_release_gates: true
+  independent_evidence_assessment_required: true
+  customer_material_publication_prohibited: true
+  no_score_for_unverified_live_or_field_claim: true
+  no_infrastructure_padding: true
+  qualification_tiers:
+    - "synthetic_conformance"
+    - "independent_offline"
+    - "live_source"
+    - "field_validated"
+  hard_release_blockers:
+    - "unauthorized_source_action_or_bypass_of_human_approval"
+    - "unauthorized_cross_tenant_or_customer_derived_knowledge_transfer"
+    - "wrong_shift_or_invented_crew_identity_in_critical_workflow"
+    - "wrong_task_permit_or_issued_record_treated_as_permission_to_work"
+    - "unavailable_or_unverified_evidence_presented_as_source_authoritative"
+    - "critical_security_vulnerability_or_failed_required_isolation_test"
+  domain_qualification:
+    reservoir: "Explicit probabilistic quantitative and qualitative uncertainty; no deterministic subsurface truth claim"
+  evidence_credit_rule: "Only qualified, independently auditable gate-level proof may earn scored points; release and safety blockers remain independent"
+dimensions:
+  - id: "CORE"
+    name: "Core operating contracts"
+    points: 10
+    gates:
+      - id: "C1"
+        title: "Industrial semantics, identity, operational state and time"
+        points: 3
+        minimum_evidence_tier: "synthetic_conformance"
+        acceptance: "Reproducible cross-system industrial identity, property typing, valid/transaction time and replay tests"
+      - id: "C2"
+        title: "Evidence provenance, permission and authority boundaries"
+        points: 3
+        minimum_evidence_tier: "synthetic_conformance"
+        acceptance: "Provenance, missing/conflicting source and authenticated actor/tenant denial tests; no caller-asserted authority"
+      - id: "C3"
+        title: "Versioned Skills, Decisions, Actions and verified Outcome contracts"
+        points: 4
+        minimum_evidence_tier: "synthetic_conformance"
+        acceptance: "Stable protocol/compatibility fixtures plus no-implicit-execution and authorized action/outcome lifecycle tests"
+  - id: "IQ"
+    name: "Industry IQ competence"
+    points: 25
+    gates:
+      - id: "IQ1"
+        title: "Versioned qualified domain capability and Skill composition"
+        points: 5
+        minimum_evidence_tier: "synthetic_conformance"
+        acceptance: "Standards crosswalk, domain-pack versioning, explicit skill admission and meaningful persona/decision contract"
+      - id: "IQ2"
+        title: "Expert-evaluated competence in representative persona decisions"
+        points: 8
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Frozen representative jobs, negative controls, expert judgments and evidence-aware recommendations across at least two Energy/Process domains"
+      - id: "IQ3"
+        title: "Cross-domain reasoning with decision and economic accountability"
+        points: 6
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Independent cross-disciplinary cases connecting technical evidence, safety/production constraints, accountable decision and value logic"
+      - id: "IQ4"
+        title: "Calibrated uncertainty, missingness and alternative hypotheses"
+        points: 6
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Quantitative and qualitative uncertainty, supported abstention, conflicting evidence and probabilistic reservoir decisions; never require false deterministic certainty"
+  - id: "ASSURANCE"
+    name: "Independent assurance and measured uplift"
+    points: 20
+    gates:
+      - id: "AS1"
+        title: "Matched CEPIO versus non-CEPIO competency uplift"
+        points: 7
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Pre-registered same model/data/tools task comparison with paired metrics, uncertainty intervals, reviewer blindness where feasible and negative results"
+      - id: "AS2"
+        title: "Held-out safety, error, abstention and adversarial qualification"
+        points: 6
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Sealed evaluators, critical-error taxonomy, mistaken identity and permits, unauthorized action, hallucination and abstention tests"
+      - id: "AS3"
+        title: "Multi-model and multi-platform assurance separation"
+        points: 4
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Model-by-provider matrix distinguishes model quality, context binding quality and Skill competence; ablations remain reproducible"
+      - id: "AS4"
+        title: "Capability Passport with exact qualification ceilings"
+        points: 3
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Versioned passport includes intended job, methods, evidence, scope, approvals, measured quality, limitations and invalidation policy"
+  - id: "INTEGRATION"
+    name: "Live integration and governed industrial outcomes"
+    points: 15
+    gates:
+      - id: "IN1"
+        title: "Authoritative three-domain industrial evidence and temporal lineage"
+        points: 5
+        minimum_evidence_tier: "live_source"
+        acceptance: "One real industrial asset uses three materially relevant authoritative system domains with host-side provenance and freshness verification"
+      - id: "IN2"
+        title: "Verified authorized source Action and reconciled Outcome"
+        points: 5
+        minimum_evidence_tier: "live_source"
+        acceptance: "Authenticated permission, idempotent external write, independent readback, reconciliation, audit and failure/recovery demonstration"
+      - id: "IN3"
+        title: "Equivalent Industry IQ proof across replaceable provider bindings"
+        points: 5
+        minimum_evidence_tier: "live_source"
+        acceptance: "Same Skill and Decision semantics over two real materially different data/provider configurations without graph duplication or Core fork"
+  - id: "COMPOUND"
+    name: "Sovereign intelligence compounding"
+    points: 10
+    gates:
+      - id: "CO1"
+        title: "Rights-cleared governed Industry IQ promotion"
+        points: 3
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Source/license provenance, independent holdout, human approval, immutable version and publishability boundary"
+      - id: "CO2"
+        title: "Measured cross-domain and cross-enterprise reuse efficiency"
+        points: 4
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Frozen reuse/regression test and marginal onboarding effort/Core-change comparison across meaningfully different operating models"
+      - id: "CO3"
+        title: "Negative-tested tenant and derivative knowledge sovereignty"
+        points: 3
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Cross-tenant denial, permitted-use rights, revocation and no unapproved customer-derived promotion across prompts, traces, embeddings, outputs and cache"
+  - id: "PRODUCTION"
+    name: "Enterprise production readiness"
+    points: 10
+    gates:
+      - id: "PR1"
+        title: "Enterprise identity, isolation and supply-chain security"
+        points: 4
+        minimum_evidence_tier: "live_source"
+        acceptance: "Deployed identity/authorization negative tests, runtime hardening, image provenance, vulnerability gating and no critical security blockers"
+      - id: "PR2"
+        title: "Qualified operational resilience and recovery"
+        points: 3
+        minimum_evidence_tier: "live_source"
+        acceptance: "Measured SLO, backup/restore rehearsal, high availability/failover, bounded retries, recovery runbooks and incident observability"
+      - id: "PR3"
+        title: "Compatibility, portable deployment and clean-room operation"
+        points: 3
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Independent supported install, migration/deprecation contracts, rollback and diagnostic operating instructions"
+  - id: "PROFESSIONAL"
+    name: "Professional experience and demonstrated value"
+    points: 10
+    gates:
+      - id: "UX1"
+        title: "Usable persona-adaptive headless and host experiences"
+        points: 4
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Equivalent authorized decision across API/MCP and at least one practitioner-facing surface; evidence opening, status hierarchy and no invented contacts"
+      - id: "UX2"
+        title: "Expert-tested workflow usefulness and decision burden"
+        points: 3
+        minimum_evidence_tier: "independent_offline"
+        acceptance: "Recorded task completion, time, review burden, expert utility and critical-error results with representative professional reviewers"
+      - id: "UX3"
+        title: "Verified operational or economic value and responsible adoption"
+        points: 3
+        minimum_evidence_tier: "field_validated"
+        acceptance: "Consent-based customer pilot or deployment with matched baseline, attributed decision/outcome value, repeat usage and limitations"

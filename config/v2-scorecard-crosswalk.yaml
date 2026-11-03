@@ -1,0 +1,225 @@
+# Historical comparison only. These links are traceability, not transferred credit.
+schema_version: "2.0"
+legacy_path: "config/v1-scorecard.yaml"
+candidate_rubric_path: "config/v2-scorecard-rubric.yaml"
+legacy_baseline_commit: "a179e9cfc0dbf5e866a6a6aa143eb4290e79918d"
+legacy_baseline_earned: 69
+legacy_baseline_possible: 100
+credit_transfer: "forbidden"
+comparison_delta_policy: "not_comparable_without_normalization"
+mapping:
+  - old_gate: "F1"
+    old_title: "Semantic scaffold and canonical operating concepts"
+    old_points: 5
+    old_earned: 5
+    candidate_gates: ["C1", "IQ1"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "F2"
+    old_title: "Operational kernel, policy, actions, persistence and SDK foundations"
+    old_points: 5
+    old_earned: 5
+    candidate_gates: ["C2", "C3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "F3"
+    old_title: "Temporal, provenance and replayable event-to-state kernel"
+    old_points: 5
+    old_earned: 5
+    candidate_gates: ["C1", "C2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "F4"
+    old_title: "Developer Preview API, identity, deployment and observability baseline"
+    old_points: 6
+    old_earned: 6
+    candidate_gates: ["C3", "PR3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "F5"
+    old_title: "Governance, compatibility, security and quality ratchets"
+    old_points: 5
+    old_earned: 5
+    candidate_gates: ["C2", "PR1", "PR3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "F6"
+    old_title: "Pulled-forward workflow, policy, Skill and governed-outcome foundations"
+    old_points: 4
+    old_earned: 4
+    candidate_gates: ["C3", "IQ1"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "P1"
+    old_title: "Provider-neutral evidence and action binding contract"
+    old_points: 3
+    old_earned: 3
+    candidate_gates: ["IN1", "IN3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "P2"
+    old_title: "Fabric-native observation/evidence plane with preserved provenance"
+    old_points: 3
+    old_earned: 2
+    candidate_gates: ["IN1", "IN3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "P3"
+    old_title: "Cognite-native evidence binding without graph duplication"
+    old_points: 3
+    old_earned: 0
+    candidate_gates: ["IN3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "P4"
+    old_title: "Cross-platform identity and same-Skill Fabric/Cognite parity"
+    old_points: 3
+    old_earned: 1
+    candidate_gates: ["IN3", "AS3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "P5"
+    old_title: "Source-authoritative governed action with write, verify and reconcile"
+    old_points: 3
+    old_earned: 2
+    candidate_gates: ["IN2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "I1"
+    old_title: "Versioned Industry IQ pack registry and deterministic composition"
+    old_points: 3
+    old_earned: 3
+    candidate_gates: ["IQ1"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "I2"
+    old_title: "Reliability / Maintenance Industry IQ capability depth"
+    old_points: 3
+    old_earned: 2
+    candidate_gates: ["IQ2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "I3"
+    old_title: "Drilling Industry IQ capability depth and portability pressure test"
+    old_points: 3
+    old_earned: 3
+    candidate_gates: ["IQ2", "IQ3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "I4"
+    old_title: "At least 10 high-value capabilities, including 5 end-to-end governed capabilities"
+    old_points: 3
+    old_earned: 2
+    candidate_gates: ["IQ2", "IQ3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "I5"
+    old_title: "Same Industry IQ capability definition runs across at least two provider configurations"
+    old_points: 3
+    old_earned: 3
+    candidate_gates: ["IN3", "IQ1"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "A1"
+    old_title: "Governed domain-onboarding and reusable-capability promotion discipline"
+    old_points: 3
+    old_earned: 3
+    candidate_gates: ["CO1", "CO2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "A2"
+    old_title: "Protected assurance corpus spans Reliability/Maintenance and Drilling"
+    old_points: 3
+    old_earned: 2
+    candidate_gates: ["AS2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "A3"
+    old_title: "Model x platform evaluation matrix separates model quality from binding quality"
+    old_points: 2
+    old_earned: 1
+    candidate_gates: ["AS3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "A4"
+    old_title: "Portability scoring and provider ablation are measured"
+    old_points: 2
+    old_earned: 1
+    candidate_gates: ["AS3", "IN3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "A5"
+    old_title: "At least one shared capability promoted using documented generalization evidence"
+    old_points: 2
+    old_earned: 1
+    candidate_gates: ["CO1", "CO2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "E1"
+    old_title: "Stable enterprise PROFILE packaging and customer-IP boundary"
+    old_points: 3
+    old_earned: 2
+    candidate_gates: ["CO3", "PR3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "E2"
+    old_title: "One real enterprise profile and native deployment"
+    old_points: 3
+    old_earned: 0
+    candidate_gates: ["PR1", "PR2", "UX3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "E3"
+    old_title: "Governed actions, security, telemetry and SLO evidence in the deployed enterprise"
+    old_points: 2
+    old_earned: 0
+    candidate_gates: ["IN2", "PR2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "E4"
+    old_title: "Enterprise specialization without forking shared Core/Industry IQ contracts"
+    old_points: 2
+    old_earned: 2
+    candidate_gates: ["IQ1", "CO2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "M1"
+    old_title: "Enterprise"
+    raw_legacy_title_in_source: "Enterprise #1 real production-context deployment"
+    title_parsing_note: "Unquoted # in legacy YAML comments out rest of title; preserve parsed v1 value without editing historical baseline"
+    old_points: 2
+    old_earned: 0
+    candidate_gates: ["IN1", "PR2", "UX3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "M2"
+    old_title: "Enterprise"
+    raw_legacy_title_in_source: "Enterprise #2 materially different real production-context deployment"
+    title_parsing_note: "Unquoted # in legacy YAML comments out rest of title; preserve parsed v1 value without editing historical baseline"
+    old_points: 2
+    old_earned: 0
+    candidate_gates: ["IN3", "UX3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "M3"
+    old_title: "Measured cross-enterprise reuse and portability evidence"
+    old_points: 2
+    old_earned: 1
+    candidate_gates: ["CO2", "IN3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "M4"
+    old_title: "Enterprise"
+    raw_legacy_title_in_source: "Enterprise #1 remains stable when enterprise #2 is introduced"
+    title_parsing_note: "Unquoted # in legacy YAML comments out rest of title; preserve parsed v1 value without editing historical baseline"
+    old_points: 2
+    old_earned: 0
+    candidate_gates: ["CO2", "PR2"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "V1"
+    old_title: "Stable semantic/API/Skill contracts with explicit compatibility and migration rules"
+    old_points: 2
+    old_earned: 2
+    candidate_gates: ["C3", "PR3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "V2"
+    old_title: "Production-qualified Fabric plus second platform binding and authoritative action binding"
+    old_points: 2
+    old_earned: 0
+    candidate_gates: ["IN1", "IN2", "IN3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "V3"
+    old_title: "Multi-model assurance against the same CEPIO capability corpus"
+    old_points: 2
+    old_earned: 1
+    candidate_gates: ["AS3"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "V4"
+    old_title: "Clean-room implementation from documented Core + Industry IQ + binding contracts"
+    old_points: 2
+    old_earned: 1
+    candidate_gates: ["PR3", "UX1"]
+    disposition: "reassess_no_automatic_credit"
+  - old_gate: "V5"
+    old_title: "Security, operations and release guarantees frozen and qualified for CEPIO-owned runtime components"
+    old_points: 2
+    old_earned: 1
+    candidate_gates: ["PR1", "PR2"]
+    disposition: "reassess_no_automatic_credit"
+net_new_candidate_gates:
+  - "IQ4"
+  - "AS1"
+  - "AS4"
+  - "UX2"

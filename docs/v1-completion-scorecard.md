@@ -1,5 +1,10 @@
 # CEPIO v1.0 completion scorecard
 
+## Proposed v2 rubric (unscored, not canonical)
+
+A separate proposed seven-dimension Industry IQ maturity rubric now exists at [v2 rubric](strategy/scorecard-v2-rubric.md), with machine-readable [candidate weights](../config/v2-scorecard-rubric.yaml) and a [complete historical crosswalk](../config/v2-scorecard-crosswalk.yaml). **It does not create a v2 numerical score, transfer the current 69 points or change release qualification.** The 69/100 v1 canonical score remains the sole numeric authority until a later separately reviewed evidence-reassessment and cutover PR. Compare v1 and v2 scores side by side as different methodologies, not as a numerical delta.
+
+
 **Strategy alignment:** The [canonical Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md) adds professional usefulness, the Industrial Competence Network, sovereignty and compounding to the **interpretation** of maturity. This documentation change earns **zero additional points** and does not change the fixed 100-point scoring weights, evidence baseline or release-gate requirements. Any future reweighting requires the separate v1 scorecard governance process.
 
 The canonical CEPIO v1.0 maturity score lives in [`config/v1-scorecard.yaml`](../config/v1-scorecard.yaml).
