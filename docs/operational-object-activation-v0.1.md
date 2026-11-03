@@ -101,3 +101,16 @@ Foundry/Palantir runtime, Azure provisioning or paid inference dependency exists
 Next implementation increment: source-attested state/evidence projection over
 the same authorized object, not a second semantic store or an unconstrained
 agent API.
+
+## Explicit remote-exposure blockers
+
+This reference composes raw repository relationship reads in-process. The scan
+cap is a **post-fetch** bound: it does not constrain how many relationships a
+backend may load before the scan aborts. The error/no-error behavior may also
+reveal that an asset has an unusually large number of links, even when the
+neighbor objects are hidden. Furthermore, the reference has no independent
+relationship-level classification, organization-specific link policy or
+stable pagination contract. These are intentionally **not** production-ready
+security/performance properties. A hosted object workbench must introduce
+policy-aware relationship query pushdown, bounded retrieval and per-link
+visibility tests before exposing this composition remotely.
