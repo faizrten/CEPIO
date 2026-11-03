@@ -164,3 +164,63 @@ def test_max_related_limits_serialized_link_references():
     )
     assert len(snapshot.links) == 1
     assert len(snapshot.context.related_objects) == 1
+
+
+def test_inspection_rejects_relationship_endpoint_type_mismatch(monkeypatch):
+    runtime, service = fixture_service()
+    bad = Relationship(
+        type="hasWorkOrder",
+        source=ObjectRef(id="K-201", type="Pump"),
+        target=ObjectRef(id="WO-1", type="WorkOrder"),
+    )
+    monkeypatch.setattr(
+        runtime.object_repository,
+        "get_relationships",
+        lambda object_id, direction: [bad] if direction == "out" else [],
+    )
+    with pytest.raises(ValueError, match="subject type"):
+        inspect_operational_object(
+            service,
+            "K-201",
+            ExecutionContext(actor_id="viewer", actor_roles=frozenset({"viewer"})),
+        )
+
+
+def test_inspection_rejects_related_reference_type_mismatch(monkeypatch):
+    runtime, service = fixture_service()
+    bad = Relationship(
+        type="hasWorkOrder",
+        source=ObjectRef(id="K-201", type="Compressor"),
+        target=ObjectRef(id="WO-1", type="Pump"),
+    )
+    monkeypatch.setattr(
+        runtime.object_repository,
+        "get_relationships",
+        lambda object_id, direction: [bad] if direction == "out" else [],
+    )
+    with pytest.raises(ValueError, match="related object type"):
+        inspect_operational_object(
+            service,
+            "K-201",
+            ExecutionContext(actor_id="viewer", actor_roles=frozenset({"viewer"})),
+        )
+
+
+def test_inspection_rejects_oversized_relationship_scan(monkeypatch):
+    runtime, service = fixture_service()
+    valid = Relationship(
+        type="hasWorkOrder",
+        source=ObjectRef(id="K-201", type="Compressor"),
+        target=ObjectRef(id="WO-1", type="WorkOrder"),
+    )
+    monkeypatch.setattr(
+        runtime.object_repository,
+        "get_relationships",
+        lambda object_id, direction: [valid] * 501 if direction == "out" else [],
+    )
+    with pytest.raises(ValueError, match="scan budget exceeded"):
+        inspect_operational_object(
+            service,
+            "K-201",
+            ExecutionContext(actor_id="viewer", actor_roles=frozenset({"viewer"})),
+        )
