@@ -1,6 +1,6 @@
 # ACCC v0.1 — read-only harness adapter execution contract (candidate)
 
-Status: **design and test specification only**. No runtime implementation, live qualification, inference, deployment or release change is claimed.
+Status: **offline experimental implementation and design specification only**. No authenticated production host binding, Microsoft Agent Harness integration, live qualification, inference, deployment or release change is claimed.
 
 ## Objective
 
@@ -70,6 +70,6 @@ Keep protected benchmarks and reviewer/customer information out of public Core. 
 
 The draft branch now contains `src/cepio/accc_readonly.py` and `tests/test_accc_readonly.py`. The implementation is a **deterministic offline baseline**, not the full contract described above. It reuses CapabilityRouter and CapabilityRegistry, performs host-asserted admission filtering, returns READY/BLOCKED/NEEDS_EVIDENCE, and hashes admitted capability/Skill IDs and registry version. The hash is **not** a complete execution receipt or cryptographic proof of authenticated evidence.
 
-`HostBoundComposer` deliberately receives only the untrusted task request from an agent-facing caller and obtains `TrustedAdmission` from a host-owned resolver. However, **the resolver is not yet implemented against real CEPIO identity, SkillRegistry.preflight, source freshness and policy checks**. Direct `ReadOnlyComposer.compose` must remain test-only; an untrusted caller can forge its admission object. No MCP or REST registration is allowed until host identity binding, actor/tenant enforcement, source validity and negative tests are implemented and reviewed.
+`HostBoundComposer` deliberately receives only the untrusted task request from an agent-facing caller and obtains `TrustedAdmission` from a host-owned resolver. `RuntimeAdmissionResolver` now delegates readiness checks to the existing `SkillRegistry.preflight` interface and denies missing host identity/evidence/eligibility in offline tests. However, **the actual authenticated host identity, authoritative source freshness, tenant-scoped evidence and policy services are not yet bound**. Test doubles do not constitute host authentication. Direct `ReadOnlyComposer.compose` must remain test-only; an untrusted caller can forge its admission object. No MCP or REST registration is allowed until host identity binding, actor/tenant enforcement, source validity and negative tests are implemented and reviewed.
 
 The current coordinator does not yet invoke `RetrievalContextPipeline`, resolve real pack deployment versions, validate physical units/assumptions, propagate reservoir uncertainty or create a complete provenance receipt. It must not be promoted to Core or described as independent assurance. CI and security checks must be evaluated on the latest head SHA before merge.
