@@ -259,3 +259,5 @@ At minimum consider:
 If a change genuinely has no documentation impact, the PR should explicitly state why.
 
 - [ADR-0053 — Offline relationship resource budgets](adr/ADR-0053-offline-relationship-resource-budgets.md)
+
+- [ADR-0054 — Fixed offline relationship tenant partitions](adr/ADR-0054-fixed-offline-relationship-tenant-partitions.md)
