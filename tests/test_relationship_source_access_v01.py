@@ -41,8 +41,8 @@ def sources(world):
         adapter,
         lambda: state["identity"],
         lambda _: state["grants"],
-        source_access=lambda _: state["access"],
     )
+    reader.configure_source_access(lambda _: state["access"])
     return repo, adapter, reader, state, obj, rel
 
 
@@ -176,6 +176,8 @@ def test_missing_binding_target_rejected(sources):
         adapter.bind_object_sources("missing", frozenset({"source"}))
     with pytest.raises(ValueError):
         adapter.bind_relationship_sources("missing", frozenset({"source"}))
+    with pytest.raises(ValueError):
+        sources[2].configure_source_access(None)
 
 
 def test_current_clock_is_rechecked_before_releasing_page(sources, monkeypatch):

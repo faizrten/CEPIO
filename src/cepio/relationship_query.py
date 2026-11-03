@@ -16,7 +16,8 @@ from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict
 from datetime import datetime, timezone
-from typing import Annotated, Literal
+from typing import Literal
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -378,15 +379,23 @@ class HostRelationshipReader:
         adapter: SQLiteRelationshipPageAdapter,
         identity: Callable[[], ExecutionContext],
         visibility: Callable[[ExecutionContext], RelationshipVisibility],
-        *,
-        source_access: Callable[[ExecutionContext], RelationshipSourceAccess] | None = None,
     ) -> None:
         if service.runtime.object_repository is not adapter.repository:
             raise RelationshipQueryUnavailable("Relationship paging is unavailable")
         self.service, self.adapter = service, adapter
         self._identity, self._visibility = identity, visibility
-        self._source_access = source_access
+        self._source_access: Callable[[ExecutionContext], RelationshipSourceAccess] | None = None
         self._cursors: OrderedDict[str, tuple[float, str, tuple[int, int], str]] = OrderedDict()
+
+    def configure_source_access(
+        self, resolver: Callable[[ExecutionContext], RelationshipSourceAccess]
+    ) -> None:
+        """Trusted host composition only; replace or revoke the resolver locally."""
+        if not callable(resolver):
+            raise ValueError("Current source authorization resolver is required")
+        with self.adapter.repository._lock:
+            self._source_access = resolver
+            self._cursors.clear()
 
     def read(self, query: RelationshipPageQuery) -> RelationshipPage:
         context = self._identity()
