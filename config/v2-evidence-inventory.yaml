@@ -1,0 +1,136 @@
+# Evidence inventory only. NOT a scored evaluation. No qualification claimed.
+schema_version: "2.0"
+inventory_version: "0.1.0"
+rubric_path: "config/v2-scorecard-rubric.yaml"
+legacy_scorecard_path: "config/v1-scorecard.yaml"
+governing_issue: 326
+inventory_status: "public_evidence_triage_only"
+canonical_v2_score: null
+earned_points_assessed: false
+public_snapshot:
+  date: "2026-11-03"
+  branch: "main"
+  commit: "19e5bd947b9eed507e8ecb795b485439f0d00d28"
+  source_scope: "Public CEPIO repository and merged PR metadata; no protected Labs holdout or live customer operations inspected"
+limitations:
+  - "Every ref is an evidence lead, not qualified scoring evidence"
+  - "No private benchmark corpus, inference, real source-system write or field-value measurement was verified"
+  - "Final evidence qualification must use an independently frozen and permissioned assessment"
+  - "Open PRs, third-party statements and unverified deployment status never earn credit"
+  - "v1 historical 69/100 cannot be transferred or subtracted from any v2 score"
+gates:
+  - gate_id: "C1"
+    candidate_public_refs: ["PR #69", "PR #330"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Executable core semantic and read-only temporal state work exists on main; source authenticity and live asset truth are not established"
+    next_qualification: "Review source-neutral semantic/state unit and negative tests against C1 acceptance"
+  - gate_id: "C2"
+    candidate_public_refs: ["PR #219", "PR #316"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Synthetic provider-parity and host-issued evidence handles are not source cryptographic attestation or production tenant assurance"
+    next_qualification: "Independently verify material provenance, denied contexts and policy/authority negative tests"
+  - gate_id: "C3"
+    candidate_public_refs: ["PR #203", "PR #205", "PR #316"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Skill/Action conformance and non-executing receipts exist; no external production outcome is claimed"
+    next_qualification: "Check exact protocols, lifecycle state, idempotency, authority and immutable outcome tests"
+  - gate_id: "IQ1"
+    candidate_public_refs: ["PR #188", "PR #204", "PR #225"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Versioned registry and domain onboarding implementations exist; substantive operational expert qualification is not implied"
+    next_qualification: "Qualify deterministic pack/Skill composition, standards semantic identity and admission tests"
+  - gate_id: "IQ2"
+    candidate_public_refs: ["PR #181", "PR #184", "PR #185", "PR #223"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Industry IQ package breadth in public mainline is not independent expert-evaluated competency against frozen persona decisions"
+    next_qualification: "Obtain domain expert rubrics, representative held-outs, acceptance thresholds and independent scores"
+  - gate_id: "IQ3"
+    candidate_public_refs: ["PR #234", "PR #309", "PR #319"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Cross-domain K-201 and Reservoir R3 tests and executive previews are synthetic; no independent economic decision uplift"
+    next_qualification: "Run independently adjudicated mixed technical/finance/safety cases with negative controls"
+  - gate_id: "IQ4"
+    candidate_public_refs: ["PR #319"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Reservoir R3 regression is synthetic; calibrated probability distributions and uncertainty/abstention performance have not been independently qualified"
+    next_qualification: "Evaluate quantitative probability and qualitative uncertainty, alternatives, missingness, calibration and proper abstention"
+  - gate_id: "AS1"
+    candidate_public_refs: ["PR #322"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Offline host-harness comparison tooling is not a matched with-CEPIO versus without-CEPIO industrial uplift trial"
+    next_qualification: "Freeze task corpus, model/data/tools, baseline, blinded expert outcomes and uncertainty intervals"
+  - gate_id: "AS2"
+    candidate_public_refs: ["PR #316", "PR #319"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Public negative tests are not sealed independent holdout qualification, and no rate of critical safety errors has been established"
+    next_qualification: "Run private held-out wrong-shift, permit, identity, missing evidence, denied Action and abstention cases"
+  - gate_id: "AS3"
+    candidate_public_refs: ["PR #219", "PR #322"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Synthetic/Fabric-shaped parity and optional harness evaluation do not constitute a multi-model by multi-provider matrix"
+    next_qualification: "Compare qualified model x platform matrix with fixed industry Skill cases and ablations"
+  - gate_id: "AS4"
+    candidate_public_refs: []
+    scoring_status: "not_assessed"
+    evidence_limitations: "Capability Passport appears in approved product strategy, not verified as an independently qualified deployable record"
+    next_qualification: "Design a frozen passport containing evidence, scope, authority ceiling, measured performance and revocation"
+  - gate_id: "IN1"
+    candidate_public_refs: ["PR #219", "PR #236", "PR #330"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Fabric-shaped transport and synthetic cross-source consistency do not prove real SAP, PI and third authoritative source for a single asset"
+    next_qualification: "Run authenticated and audited three-domain source read with timestamps, freshness and semantic lineage"
+  - gate_id: "IN2"
+    candidate_public_refs: ["PR #205"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Generic governed external write/verify/reconcile conformance does not establish one real SAP work order writeback/readback"
+    next_qualification: "Execute permitted source write with actor policy, idempotency, source readback and reconciled Outcome"
+  - gate_id: "IN3"
+    candidate_public_refs: ["PR #219", "PR #233"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Provider-neutral contracts and Synthetic/Fabric parity are not independently verified real Fabric/Cognite provider interchange"
+    next_qualification: "Prove identical Skill and Decision semantics across two live materially distinct providers without Core fork"
+  - gate_id: "CO1"
+    candidate_public_refs: ["PR #225", "PR #238"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Governed promotion machinery does not by itself certify rights-cleared knowledge provenance and independent final promotion"
+    next_qualification: "Inspect versioned rights statement, holdout, human approval and immutable promotion record"
+  - gate_id: "CO2"
+    candidate_public_refs: ["PR #219", "PR #319"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Synthetic cross-operating-model generalization does not quantify marginal onboarding effort or show real enterprise reuse"
+    next_qualification: "Measure supported capabilities, Core churn, regression survival, time and implementation cost across domains and tenants"
+  - gate_id: "CO3"
+    candidate_public_refs: ["PR #316"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Host-bound test permissions do not establish the full negative-tested derived knowledge lifecycle or customer provenance authorization"
+    next_qualification: "Test cross-tenant prompts/embeddings/traces/cache and revocation plus explicit rights-cleared contribution"
+  - gate_id: "PR1"
+    candidate_public_refs: ["PR #294", "PR #298", "PR #302"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Runtime hardening, provenance and management checks are not deployed production security qualification"
+    next_qualification: "Verify live identity/tenant boundaries, exact-image vulnerabilities and complete required hardening and penetration checks"
+  - gate_id: "PR2"
+    candidate_public_refs: ["PR #235"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Secretless Azure demo deployment is non-production, and backup existence is not tested restore/DR"
+    next_qualification: "Measure SLO, HA, fault/restart, restoration, recovery and runbook evidence in enterprise context"
+  - gate_id: "PR3"
+    candidate_public_refs: ["PR #186", "PR #295", "PR #235"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "Local preflight, API contract and demo deployment do not establish independent clean-room customer operation"
+    next_qualification: "Have independent adopter exercise installation, migrations, rollback and compatibility from versioned docs"
+  - gate_id: "UX1"
+    candidate_public_refs: ["PR #310", "PR #311"]
+    scoring_status: "not_assessed"
+    evidence_limitations: "MCP host and headless executive preview support composition but not independently assessed practitioner usability"
+    next_qualification: "Verify a persona task across API/MCP and one real UI with evidence opening and no false contact/permit/status claims"
+  - gate_id: "UX2"
+    candidate_public_refs: []
+    scoring_status: "not_assessed"
+    evidence_limitations: "The conversation contains expert-review preferences but no independently versioned public qualification evidence"
+    next_qualification: "Design representative rig/reliability/reservoir reviewer evaluation measuring accuracy, reading time and evidence burden"
+  - gate_id: "UX3"
+    candidate_public_refs: []
+    scoring_status: "not_assessed"
+    evidence_limitations: "No authorized attributable customer field-outcome baseline was verified in public repository evidence"
+    next_qualification: "Collect explicit customer consent and matched outcome/economic measures with counterfactual limitations"
