@@ -122,7 +122,8 @@ def test_related_limit_is_bounded(max_related):
     _, service = fixture_service()
     with pytest.raises(ValueError, match="max_related"):
         inspect_operational_object(
-            service, "K-201",
+            service,
+            "K-201",
             ExecutionContext(actor_id="viewer", actor_roles=frozenset({"viewer"})),
             max_related=max_related,
         )
