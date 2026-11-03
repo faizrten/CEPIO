@@ -101,3 +101,30 @@ def test_host_valid_admission_returns_plan_only():
     plan = host.compose(request())
     assert plan.status == CompositionStatus.READY
     assert plan.read_only and not plan.external_action_executed
+
+
+def test_missing_authenticated_principal_fails_closed():
+    class MissingPrincipal(Services):
+        def authenticated_principal(self):
+            return None
+
+    with pytest.raises(PermissionError):
+        RuntimeAdmissionResolver(registry(), Skills(), MissingPrincipal())(request())
+
+
+def test_unavailable_capability_eligibility_fails_closed():
+    class MissingEligibility(Services):
+        def eligible_capabilities(self, request, principal):
+            return None
+
+    with pytest.raises(PermissionError):
+        RuntimeAdmissionResolver(registry(), Skills(), MissingEligibility())(request())
+
+
+def test_skill_preflight_exception_does_not_grant_readiness():
+    class MissingSkill(Skills):
+        def preflight(self, skill_id, *, actor_id, actor_roles):
+            raise KeyError(skill_id)
+
+    result = RuntimeAdmissionResolver(registry(), MissingSkill(), Services())(request())
+    assert result.ready_skill_ids == set()
