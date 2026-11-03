@@ -72,6 +72,7 @@ See [Current State](current-state.md).
 - [Operational Object Activation v0.1](operational-object-activation-v0.1.md) — read-only K-201 reference inspection; explicitly not live-qualified.
 - [Bounded relationship queries v0.1](bounded-relationship-query-v0.1.md) — host-local tenant/policy-aware SQLite pages; remote qualification remains blocked under #329.
 - [Current source rights in relationship pages](adr/ADR-0051-current-source-rights-in-relationship-pages.md) — source-aware propagation and current permission expiry; no new hosted endpoint.
+- [Relationship remote qualification v0.1](relationship-remote-qualification-v0.1.md) — offline signed-token REST/MCP conformance and bounded admission; production exposure remains blocked.
 - [Operational State & Evidence Inspection v0.1](operational-state-inspection-v0.1.md) — host-scoped temporal and versioned observation consistency; not source-attested.
 - [Operational State Alignment v0.1](operational-state-alignment-v0.1.md) — synthetic cross-source state consistency and conflict blocking, non-authoritative.
 - [Protocol Convergence v0.3](protocol-convergence-v0.3.md)
