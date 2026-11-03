@@ -1,4 +1,5 @@
 """Regression-only governance routing must not weaken domain onboarding."""
+
 from pathlib import Path
 from runpy import run_path
 
