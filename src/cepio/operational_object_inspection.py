@@ -71,6 +71,8 @@ def inspect_operational_object(
             other = relationship.target if direction == "out" else relationship.source
             if local.id != object_id or local.type != subject.type:
                 raise ValueError("Inconsistent relationship identity or subject type")
+            if len(candidates) >= 500:
+                raise ValueError("Operational object reference scan budget exceeded")
             candidates.append((relationship.type, direction, other))
 
     related_by_id = {}
@@ -82,6 +84,8 @@ def inspect_operational_object(
         key = (relationship_type, direction, other_ref.id)
         if key in seen:
             continue
+        if len(visible_links) >= max_related:
+            break
         try:
             other = service.read_object(other_ref.id, context)
         except AuthorizationError:
