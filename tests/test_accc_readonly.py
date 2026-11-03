@@ -1,6 +1,6 @@
 """Offline ACCC admission tests; no model, network, source or Action execution."""
 from cepio.accc_readonly import (
-    CompositionRequest, CompositionStatus, ReadOnlyComposer, TrustedAdmission,
+    CompositionRequest, CompositionStatus, ReadOnlyComposer, TrustedAdmission, HostBoundComposer,
 )
 from cepio.capability_registry import (
     CapabilityLayer, CapabilityMaturity, CapabilityProvenance, CapabilityRecord, CapabilityRegistry,
@@ -85,3 +85,18 @@ def test_unknown_required_capability_blocks():
 def test_unapproved_capability_blocks():
     result = composer().compose(request(), admission(approved_capability_ids=set()))
     assert "CAPABILITY_NOT_HOST_APPROVED" in result.blockers
+
+
+def test_host_bound_composer_resolves_admission_without_client_supplied_authority():
+    host = HostBoundComposer(composer(), lambda req: admission())
+    result = host.compose(request())
+    assert result.status == CompositionStatus.READY
+    assert result.manifest_hash
+    assert result.manifest_hash == host.compose(request()).manifest_hash
+
+
+def test_host_bound_composer_fails_closed_when_resolver_unavailable():
+    host = HostBoundComposer(composer(), lambda req: None)
+    result = host.compose(request())
+    assert result.status == CompositionStatus.BLOCKED
+    assert result.blockers == ["HOST_ADMISSION_UNAVAILABLE"]
