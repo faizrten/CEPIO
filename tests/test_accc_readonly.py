@@ -1,6 +1,9 @@
 """Offline ACCC admission tests; no model, network, source or Action execution."""
 
+import pytest
+
 from cepio.accc_readonly import (
+    CompositionPlan,
     CompositionRequest,
     CompositionStatus,
     ReadOnlyComposer,
@@ -173,3 +176,29 @@ def test_profile_capability_cannot_be_admitted_by_offline_stub():
     result = candidate.compose(request(), admission())
     assert result.status == CompositionStatus.BLOCKED
     assert "PROFILE_CAPABILITY_NOT_SUPPORTED" in result.blockers
+
+
+def test_plan_denies_capabilities_and_skills_while_blocked():
+    with pytest.raises(ValueError, match="non-ready plan"):
+        CompositionPlan(
+            status=CompositionStatus.BLOCKED,
+            skill_ids=["inspect-vibration"],
+        )
+
+
+def test_plan_denies_ready_status_with_unresolved_evidence():
+    with pytest.raises(ValueError, match="ready plan"):
+        CompositionPlan(
+            status=CompositionStatus.READY,
+            missing_evidence=["vibration-observation"],
+        )
+
+
+def test_registry_removed_capability_is_not_admitted(monkeypatch):
+    candidate = composer()
+    monkeypatch.setattr(type(candidate.registry), "get", lambda self, _id: None)
+    result = candidate.compose(request(), admission())
+    assert result.status == CompositionStatus.BLOCKED
+    assert "CAPABILITY_NOT_REGISTERED" in result.blockers
+    assert "REQUIRED_CAPABILITY_NOT_SELECTED" in result.blockers
+    assert "NO_ELIGIBLE_CAPABILITY" in result.blockers
