@@ -6,7 +6,9 @@ Actions. Host-provided preflight/evidence results must come from trusted CEPIO s
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from typing import Callable, Literal
+
+from .capability_registry import stable_hash
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -49,6 +51,7 @@ class CompositionPlan(BaseModel):
     missing_evidence: list[str] = Field(default_factory=list)
     read_only: Literal[True] = True
     external_action_executed: Literal[False] = False
+    manifest_hash: str | None = None
 
     @model_validator(mode="after")
     def fail_closed(self) -> "CompositionPlan":
@@ -108,4 +111,25 @@ class ReadOnlyComposer:
             return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=sorted(blockers), missing_evidence=sorted(missing))
         if missing:
             return CompositionPlan(status=CompositionStatus.NEEDS_EVIDENCE, missing_evidence=sorted(missing))
-        return CompositionPlan(status=CompositionStatus.READY, capability_ids=selected, skill_ids=sorted(skills))
+        return CompositionPlan(status=CompositionStatus.READY, capability_ids=selected, skill_ids=sorted(skills), manifest_hash=stable_hash({"capabilities": selected, "skills": sorted(skills), "registry_version": self.registry.version, "domain": request.domain}))
+
+
+class HostBoundComposer:
+    """Trusted-host integration seam. Never register ReadOnlyComposer directly as an agent tool.
+
+    The host must obtain the actor/tenant from authenticated session state and
+    derive each admission fact from CEPIO runtime, preflight and source checks.
+    The resolver must never deserialize an agent-provided TrustedAdmission.
+    This wrapper is a boundary contract, NOT proof of an authenticated host.
+    """
+
+    def __init__(self, composer: ReadOnlyComposer,
+                 resolve_admission: Callable[[CompositionRequest], TrustedAdmission]) -> None:
+        self._composer = composer
+        self._resolve_admission = resolve_admission
+
+    def compose(self, request: CompositionRequest) -> CompositionPlan:
+        admission = self._resolve_admission(request)
+        if not isinstance(admission, TrustedAdmission):
+            return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=["HOST_ADMISSION_UNAVAILABLE"])
+        return self._composer.compose(request, admission)
