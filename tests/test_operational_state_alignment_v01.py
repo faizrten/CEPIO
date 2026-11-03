@@ -196,7 +196,7 @@ def test_single_source_is_not_independent_corroboration():
 
 
 def test_two_bindings_from_same_upstream_system_are_not_independent():
-    config = case()
+    config = list(case())
     second = config[2][1].binding
     second.manifest = second.manifest.model_copy(update={"source_system": "synthetic-1"})
     second.reference = second.reference.model_copy(update={"source_system": "synthetic-1"})
@@ -434,3 +434,21 @@ def test_rejects_inspection_snapshot_drift_between_sources(monkeypatch):
 
     monkeypatch.setattr(config[0].runtime, "get_object_valid_at", changed_snapshot)
     block(config, "SNAPSHOT_MISMATCH")
+
+
+def test_unrecorded_source_claim_is_rejected_after_m2_metadata_check(monkeypatch):
+    import cepio.operational_state_alignment as module
+
+    def skip_capture(self, external_id):
+        envelope = self.delegate.resolve_evidence(external_id)
+        return EvidenceEnvelope(
+            reference=envelope.reference,
+            evidence={
+                "organization_id": envelope.evidence["organization_id"],
+                "subject_id": envelope.evidence["subject_id"],
+                "observed_at": envelope.evidence["observed_at"],
+            },
+        )
+
+    monkeypatch.setattr(module._MetadataOnlyBinding, "resolve_evidence", skip_capture)
+    block(case(), "CLAIM_MISSING")
