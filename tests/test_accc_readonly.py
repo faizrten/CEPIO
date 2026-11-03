@@ -202,3 +202,14 @@ def test_registry_removed_capability_is_not_admitted(monkeypatch):
     assert "CAPABILITY_NOT_REGISTERED" in result.blockers
     assert "REQUIRED_CAPABILITY_NOT_SELECTED" in result.blockers
     assert "NO_ELIGIBLE_CAPABILITY" in result.blockers
+
+
+def test_host_unexpected_service_error_is_fail_closed():
+    def failing_resolver(_request):
+        raise RuntimeError("private backend detail must not leak")
+
+    host = HostBoundComposer(composer(), failing_resolver)
+    result = host.compose(request())
+    assert result.status == CompositionStatus.BLOCKED
+    assert result.blockers == ["HOST_ADMISSION_UNAVAILABLE"]
+    assert result.capability_ids == []
