@@ -157,9 +157,8 @@ def test_unapproved_capability_does_not_run_skill_preflight():
             return set()
 
     skills = Skills()
-    admission = RuntimeAdmissionResolver(
-        registry(), skills, DeniedServices()
-    )(request())
+    resolver = RuntimeAdmissionResolver(registry(), skills, DeniedServices())
+    admission = resolver(request())
     assert admission.approved_capability_ids == set()
     assert admission.ready_skill_ids == set()
     assert skills.calls == []
