@@ -29,15 +29,29 @@ def fixture_service():
     )
     objects = [
         OntologyObject(
-            id="K-201", type="Compressor", name="K-201",
-            properties={"criticality": "high", "operatingState": "degraded", "sharingScope": "public"},
+            id="K-201",
+            type="Compressor",
+            name="K-201",
+            properties={
+                "criticality": "high",
+                "operatingState": "degraded",
+                "sharingScope": "public",
+            },
         ),
         OntologyObject(
-            id="WO-1", type="WorkOrder", name="Inspection",
-            properties={"status": "planned", "internalComment": "private", "sharingScope": "public"},
+            id="WO-1",
+            type="WorkOrder",
+            name="Inspection",
+            properties={
+                "status": "planned",
+                "internalComment": "private",
+                "sharingScope": "public",
+            },
         ),
         OntologyObject(
-            id="WO-SECRET", type="WorkOrder", name="Restricted work",
+            id="WO-SECRET",
+            type="WorkOrder",
+            name="Restricted work",
             properties={"status": "hold", "sharingScope": "restricted"},
         ),
         OntologyObject(id="UNIT-1", type="Hydrocracker", name="Unit"),
@@ -91,12 +105,14 @@ def test_subject_access_is_mandatory_and_no_neighbor_path_bypasses_it():
     _, service = fixture_service()
     with pytest.raises(AuthorizationError):
         inspect_operational_object(
-            service, "K-201",
+            service,
+            "K-201",
             ExecutionContext(actor_id="unprivileged", actor_roles=frozenset({"outsider"})),
         )
     with pytest.raises(KeyError):
         inspect_operational_object(
-            service, "NOT-FOUND",
+            service,
+            "NOT-FOUND",
             ExecutionContext(actor_id="viewer", actor_roles=frozenset({"viewer"})),
         )
 
@@ -116,7 +132,8 @@ def test_restricted_subject_does_not_become_visible_through_inspection():
     _, service = fixture_service()
     with pytest.raises(AuthorizationError):
         inspect_operational_object(
-            service, "WO-SECRET",
+            service,
+            "WO-SECRET",
             ExecutionContext(actor_id="viewer", actor_roles=frozenset({"viewer"})),
         )
 
@@ -125,7 +142,9 @@ def test_max_related_limits_serialized_link_references():
     runtime, service = fixture_service()
     runtime.upsert_object(
         OntologyObject(
-            id="WO-2", type="WorkOrder", name="Second work order",
+            id="WO-2",
+            type="WorkOrder",
+            name="Second work order",
             properties={"status": "planned", "sharingScope": "public"},
         )
     )
