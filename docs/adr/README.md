@@ -12,3 +12,6 @@ Current foundational constraints include:
 - `ADR-009-opportunity-as-kinetic-primitive.md` — opportunity, option and authority-neutral `OptionRecommendation` are universal Kinetic semantics that bridge evidence/uncertainty to governed decisions without introducing an ambiguous second `Recommendation` type.
 - `ADR-0010-drilling-domain-qualification-benchmark.md` — the Drilling Contractor qualification benchmark remains an additive generalization and validation capability, not canonical ontology content.
 - `ADR-0011-agent-challenge-evaluator-isolation.md` — public synthetic fixtures and challenge questions are separated from the private qualification evaluator; a public answer key cannot be represented as a hidden live-agent benchmark.
+
+
+- [ADR-0055 — Request-scoped ACCC admission](ADR-0055-accc-readonly-host-binding.md) — proposed, pending architecture review.

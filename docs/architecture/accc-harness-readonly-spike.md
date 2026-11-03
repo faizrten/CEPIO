@@ -1,75 +1,86 @@
-# ACCC v0.1 — read-only harness adapter execution contract (candidate)
+# ACCC v0.1 — read-only composition candidate
 
-Status: **offline experimental implementation and design specification only**. No authenticated production host binding, Microsoft Agent Harness integration, live qualification, inference, deployment or release change is claimed.
+Status: **draft, offline engineering qualification only**. No production route,
+live-source attestation, paid inference, deployment or release qualification.
 
-## Objective
+## Implementation and reuse
 
-Prove a minimal provider-neutral Adaptive Context & Competence Composition (ACCC) plan against existing CEPIO contracts, then optionally expose it to Microsoft Agent Framework as a read-only host tool. Do not create a new agent loop, memory store, Skill registry, capability registry, pack resolver, policy authority or ontology.
+- ReadOnlyComposer reuses CapabilityRegistry and CapabilityRouter. It checks
+  qualified maturity, validated domain, required capabilities, Skill readiness,
+  evidence types and conflicts. It neither executes Skills nor authorizes Actions.
+- AuthenticatedReadOnlyComposer binds existing ActorContext, CEPIORuntime read
+  policy, SkillRegistry.preflight, EvidenceBinding and BindingRegistration. It
+  checks identity and runtime permissions on every invocation, before source reads.
+- The from_http_request factory calls existing get_actor_context for each invocation.
+  Hosts must construct it per request with host-owned configuration and credentials.
+  It adds no route and changes no authentication settings or permissions.
+- CompositionRequest forbids extra fields: no tenant, actor, roles, approval,
+  evidence facts, policy or Actions can be supplied through the tool schema.
+- composition_tool is a lazy optional Microsoft Agent Framework FunctionTool
+  adapter. The composition host remains provider-neutral. No model client, shell,
+  file, web, Skill execution or generic Harness tool is installed.
 
-## Verified reuse seams
+## Host configuration and fail-closed limits
 
-- `src/cepio/capability_routing.py`: `CapabilityRouter.route(RetrievalIntent)` ranks registry candidates using explicit hints and lexical matches; **relevance is not qualification**.
-- `src/cepio/retrieval_runtime.py`: `RetrievalPlanner`, `RetrievalEngine`, `RetrievalContextPipeline` assemble bounded context; no assumption of current source truth.
-- `src/cepio/memory.py`: `MemoryStore` and `ContextAssembler` implement scope, expiry and budget checks.
-- `src/cepio/capability_registry.py`: `CapabilityRegistry`, `CapabilityRecord` carry maturity, evidence, domains, authority and uncertainty descriptors; customer evidence cannot justify global capability promotion.
-- `docs/industry-iq-pack-registry.md`: deterministic pack SemVer, dependency, cycle and collision checks.
-- `src/cepio/skill_preflight.py`: runtime/actor Skill READY/BLOCKED admission; READY **does not** prove target-instance evidence sufficiency.
-- Existing Application Contract / REST / MCP: use host-owned identity; never trust an agent-supplied tenant or role.
+AdmissionProfile is trusted host configuration, never a request body. It pins
+one tenant/subject/domain, a policy version, exact capability/Skill contract hashes,
+an explicit compatible capability set and bounded external evidence records.
+Host qualification must justify these pins; a hash does not independently qualify
+a Skill or method. Unknown combinations and changed contracts are blocked.
 
-## Proposed contract (not yet implemented)
+The host uses existing function authorization for cepio.compose_readonly, object
+sharing/type policy for the target and read-type policy for each evidence type.
+No production permission is added by this PR. Nonempty capability policy
+requirements are unsupported and blocked. Action-bearing and Decision-producing
+Skills are rejected even if an actor could otherwise execute them.
 
-`compose_readonly(request, trusted_host_context) -> CompositionResult`
+Evidence must come from a ready, versioned, read-only registered binding. The adapter
+payload convention contains tenant, subject, evidence type, observed time, explicit
+conflict state and payload hash. Source identity/version/scope/time are checked.
+Missing or stale evidence cannot satisfy an evidence type; conflicts block.
+This is a host binding contract, **not cryptographic source attestation**. A trusted
+source adapter is responsible for truthful conflict state and payload hashes.
 
-Request: task text, asset/object reference, decision objective, optional capability hints, context budget, max plan steps. Host context: authenticated actor/tenant, approved provider bindings, allowed tools, policy/version, current time, request correlation ID. The model cannot author host context.
+Receipts bind actor/roles digest, tenant, policy version, binding, evaluation time,
+capability and Skill definitions, and source envelope hashes. The manifest additionally
+binds request text, subject, domain, selected capabilities and their versions.
+The same frozen inputs and clock reproduce the same receipt. These hashes are not
+signatures or authorization tokens. Re-evaluate admission before any later use.
+Blocked responses contain no admitted Skills or capabilities.
 
-Result: `READY | BLOCKED | NEEDS_EVIDENCE`; selected capability and Skill IDs with exact versions and qualification ceilings; source evidence IDs and freshness; required-but-missing evidence; compatibility/uncertainty blockers; bounded proposed **read-only** steps; rejection reasons; stable composition manifest hash and provenance references. No prose-only permission decisions.
+The existing Entra validator checks signatures, audience, issuer, tenant and expiry.
+This adapter does not add token introspection or immediate identity-provider session
+revocation. Runtime policy revocation is checked on each call.
 
-### Admission pipeline
+## Optional Microsoft integration
 
-1. Validate authenticated host context and tenant boundary.
-2. Route candidate capabilities using existing router; reject unresolved required IDs.
-3. Filter by independently supported maturity/validated scope and actor authority. Never treat lexical score as admission.
-4. Retrieve and assemble authorized context using existing pipeline; preserve stale/conflicting/missing state.
-5. Resolve pack compatibility and invoke Skill preflight through trusted runtime.
-6. Validate composition-level input/output types, units, physical assumptions, model lineage, uncertainty dependencies and declared operating envelope. Unknown compatibility -> BLOCKED/NEEDS_EVIDENCE, never optimistic READY.
-7. Return a version-pinned read-only plan and receipt; no external writes, approvals, permit issuance or runtime execution.
+Install agent-framework-core==1.24.0 separately for the tested SDK boundary.
+Then call composition_tool(request_scoped_host) and supply only that tool to the
+embedding agent. Approval mode remains always_require; the adapter does not grant
+auto-approval. The embedding host must preserve its authorization and approval path.
 
-A `READY` composition means the *plan* is admissible for further host review, not that a diagnosis, recommendation, production operation or source write is authorized.
+The test invokes the actual FunctionTool offline without an LLM. This is SDK tool
+compatibility, **not a full Harness agent-loop or production-host qualification**.
+Reference: [Microsoft function tools](https://learn.microsoft.com/en-us/agent-framework/agents/tools/function-tools).
 
-## Microsoft Agent Framework integration seam
+## Reproduce
 
-A thin optional host adapter may register a read-only `cepio_compose_context_and_competence` tool and a CEPIO-authorized context provider. The adapter passes trusted identity from the host, not the prompt; delegates admission to CEPIO; returns typed status and evidence references. Do not expose generic shell, web, arbitrary file access, auto-approved tools or write Actions. Preserve a provider-neutral ACCC interface so a different harness can replace Microsoft without changing Industry IQ contracts.
+```sh
+python -m pip install -e '.[dev]' -r requirements-quality.txt
+python -m pip install agent-framework-core==1.24.0
+python -m pytest -q tests/test_accc*
+PYTHONHASHSEED=1 python examples/accc_k201_offline.py > /tmp/accc-1.json
+PYTHONHASHSEED=7 python examples/accc_k201_offline.py > /tmp/accc-7.json
+cmp /tmp/accc-1.json /tmp/accc-7.json
+```
 
-## First negative and positive cases (offline, no paid inference)
+The K-201 fixture uses synthetic identifiers and no industrial measurements,
+proprietary thresholds or domain reasoning. It demonstrates READY and safe abstention
+only. It does not demonstrate independent Industry IQ uplift or v0.5 CONNECT.
 
-| Case | Expected |
-| --- | --- |
-| K-201 consistent authorized evidence + compatible read-only Skill | READY plan only, no action |
-| K-201 conflicting same-time measurements | NEEDS_EVIDENCE or BLOCKED; contradiction retained |
-| K-201 missing entire required observation | NEEDS_EVIDENCE; no fabricated measurement |
-| Reservoir R3 superseded model / incompatible assumptions | BLOCKED; model lineage retained |
-| Reservoir R3 probabilistic alternative with incomplete calibration | Explicit quantitative and qualitative uncertainty, no deterministic truth |
-| Rig wrong-shift crew, invented identity, wrong-task permit | BLOCKED |
-| Issued permit treated as permission to work | BLOCKED |
-| Wrong tenant, revoked source rights or expired memory | BLOCKED; no disclosure |
-| Unregistered Skill, pack-version mismatch, preflight BLOCKED | BLOCKED |
-| Prompt requests write, tool bypass or higher authority | BLOCKED; no execution |
-| Missing required context under budget | NEEDS_EVIDENCE/BLOCKED; no silent truncation |
-| Two incompatible methods / units | BLOCKED; no composition |
+## Review gates
 
-## Evidence and acceptance
-
-Stage A: deterministic tests for all cases, no external calls. Stage B: independent K-201/R3 review and fresh sealed holdouts, separate from authored development fixtures. Stage C: matched baseline vs ACCC vs harness-only with fixed model/data/tools, actual receipts, safety errors, latency, cost and expert review burden. No uplift, field value or v0.5 CONNECT credit from a passing synthetic test.
-
-## Governance and scope
-
-Keep protected benchmarks and reviewer/customer information out of public Core. No inference spend, Azure provisioning, auth/permission changes, production deployment or source write. Govern implementation via separate PR(s) and required CI/security review. v1 canonical score, proposed unscored v2 rubric and published v0.4 remain unchanged.
-
-
-## Implementation checkpoint — 2026-11-03
-
-The draft branch now contains `src/cepio/accc_readonly.py` and `tests/test_accc_readonly.py`. The implementation is a **deterministic offline baseline**, not the full contract described above. It reuses CapabilityRouter and CapabilityRegistry, performs host-asserted admission filtering, returns READY/BLOCKED/NEEDS_EVIDENCE, and hashes admitted capability/Skill IDs and registry version. The hash is **not** a complete execution receipt or cryptographic proof of authenticated evidence.
-
-`HostBoundComposer` deliberately receives only the untrusted task request from an agent-facing caller and obtains `TrustedAdmission` from a host-owned resolver. `RuntimeAdmissionResolver` now delegates readiness checks to the existing `SkillRegistry.preflight` interface and denies missing host identity/evidence/eligibility in offline tests. However, **the actual authenticated host identity, authoritative source freshness, tenant-scoped evidence and policy services are not yet bound**. Test doubles do not constitute host authentication. Direct `ReadOnlyComposer.compose` must remain test-only; an untrusted caller can forge its admission object. No MCP or REST registration is allowed until host identity binding, actor/tenant enforcement, source validity and negative tests are implemented and reviewed.
-
-The current coordinator does not yet invoke `RetrievalContextPipeline`, resolve real pack deployment versions, validate physical units/assumptions, propagate reservoir uncertainty or create a complete provenance receipt. It must not be promoted to Core or described as independent assurance. CI and security checks must be evaluated on the latest head SHA before merge.
+Review the host configuration/identity lifetime, evidence adapter convention and
+unsupported-policy fail-closed behavior. Require CI, Governance, CodeQL and Quality
+Gate on the final head before merge. Architecture decision: ADR-0055 (proposed).
+CEPIO-Labs IP, canonical scorecard and release gates remain unchanged.

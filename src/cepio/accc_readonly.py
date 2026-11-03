@@ -11,7 +11,7 @@ from typing import Callable, Literal
 
 from .capability_registry import stable_hash
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .capability_registry import CapabilityMaturity, CapabilityRegistry
 from .capability_routing import CapabilityRouter
@@ -25,8 +25,11 @@ class CompositionStatus(str, Enum):
 
 
 class CompositionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
     query_text: str = Field(min_length=1)
     domain: str = Field(min_length=1)
+    subject_id: str | None = None
     required_capability_ids: set[str] = Field(default_factory=set)
     max_capabilities: int = Field(default=5, ge=1, le=20)
 
@@ -42,6 +45,7 @@ class TrustedAdmission(BaseModel):
     incompatible_capability_ids: set[str] = Field(default_factory=set)
     source_conflicts: bool = False
     authorization_valid: bool = False
+    receipt_context: dict[str, str] = Field(default_factory=dict)
 
 
 class CompositionPlan(BaseModel):
@@ -53,6 +57,7 @@ class CompositionPlan(BaseModel):
     read_only: Literal[True] = True
     external_action_executed: Literal[False] = False
     manifest_hash: str | None = None
+    receipt: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def fail_closed(self) -> "CompositionPlan":
@@ -143,12 +148,21 @@ class ReadOnlyComposer:
             status=CompositionStatus.READY,
             capability_ids=selected,
             skill_ids=sorted(skills),
+            receipt=admission.receipt_context,
             manifest_hash=stable_hash(
                 {
                     "capabilities": selected,
                     "skills": sorted(skills),
                     "registry_version": self.registry.version,
                     "domain": request.domain,
+                    "subject_id": request.subject_id,
+                    "query_text": request.query_text,
+                    "capability_versions": {
+                        item.id: item.version
+                        for item in self.registry.capabilities
+                        if item.id in selected
+                    },
+                    "host_receipt": admission.receipt_context,
                 }
             ),
         )
