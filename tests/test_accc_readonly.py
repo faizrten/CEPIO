@@ -1,0 +1,87 @@
+"""Offline ACCC admission tests; no model, network, source or Action execution."""
+from cepio.accc_readonly import (
+    CompositionRequest, CompositionStatus, ReadOnlyComposer, TrustedAdmission,
+)
+from cepio.capability_registry import (
+    CapabilityLayer, CapabilityMaturity, CapabilityProvenance, CapabilityRecord, CapabilityRegistry,
+)
+
+
+def composer(maturity=CapabilityMaturity.QUALIFIED):
+    cap = CapabilityRecord(
+        id="k201", version="0.1", title="K201 vibration", description="reliability",
+        layer=CapabilityLayer.DOMAIN, maturity=maturity,
+        validated_domains={"reliability"}, skills={"inspect-vibration"},
+        evidence_requirements={"vibration-observation"},
+        provenance=CapabilityProvenance(mode="synthetic"),
+    )
+    return ReadOnlyComposer(CapabilityRegistry(id="test", version="1", capabilities=[cap]))
+
+
+def admission(**kwargs):
+    values = dict(actor_id="engineer", tenant_id="tenant-a", authorization_valid=True,
+                  approved_capability_ids={"k201"}, ready_skill_ids={"inspect-vibration"},
+                  verified_evidence_types={"vibration-observation"})
+    values.update(kwargs)
+    return TrustedAdmission(**values)
+
+
+def request():
+    return CompositionRequest(query_text="K201 vibration reliability", domain="reliability",
+                              required_capability_ids={"k201"})
+
+
+def test_admissible_plan_is_read_only():
+    result = composer().compose(request(), admission())
+    assert result.status == CompositionStatus.READY
+    assert result.capability_ids == ["k201"]
+    assert result.read_only and not result.external_action_executed
+
+
+def test_missing_evidence_requires_more_evidence():
+    result = composer().compose(request(), admission(verified_evidence_types=set()))
+    assert result.status == CompositionStatus.NEEDS_EVIDENCE
+    assert "vibration-observation" in result.missing_evidence
+    assert not result.capability_ids
+
+
+def test_unverified_host_identity_blocks():
+    result = composer().compose(request(), admission(authorization_valid=False))
+    assert result.status == CompositionStatus.BLOCKED
+
+
+def test_preflight_not_ready_blocks():
+    result = composer().compose(request(), admission(ready_skill_ids=set()))
+    assert "SKILL_PREFLIGHT_NOT_READY" in result.blockers
+
+
+def test_unqualified_capability_blocks():
+    result = composer(CapabilityMaturity.EXPERIMENTAL).compose(request(), admission())
+    assert "CAPABILITY_NOT_QUALIFIED" in result.blockers
+
+
+def test_invalid_domain_blocks():
+    req = request().model_copy(update={"domain": "reservoir"})
+    result = composer().compose(req, admission())
+    assert "DOMAIN_NOT_VALIDATED" in result.blockers
+
+
+def test_conflicting_sources_block():
+    result = composer().compose(request(), admission(source_conflicts=True))
+    assert "SOURCE_CONFLICT" in result.blockers
+
+
+def test_incompatible_method_blocks():
+    result = composer().compose(request(), admission(incompatible_capability_ids={"k201"}))
+    assert "METHOD_INCOMPATIBLE" in result.blockers
+
+
+def test_unknown_required_capability_blocks():
+    req = request().model_copy(update={"required_capability_ids": {"not-registered"}})
+    result = composer().compose(req, admission())
+    assert "REQUIRED_CAPABILITY_UNKNOWN" in result.blockers
+
+
+def test_unapproved_capability_blocks():
+    result = composer().compose(request(), admission(approved_capability_ids=set()))
+    assert "CAPABILITY_NOT_HOST_APPROVED" in result.blockers
