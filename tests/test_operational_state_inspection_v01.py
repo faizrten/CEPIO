@@ -281,3 +281,45 @@ def test_no_history_and_mismatched_subject_are_rejected_before_source():
     case[3] = case[3].model_copy(update={"subject": ObjectRef(id="K-201", type="Pump")})
     assert_blocked(tuple(case), "SUBJECT_TYPE_MISMATCH")
     assert case[1].calls == 0
+
+
+def test_history_reader_missing_fails_closed_before_source(monkeypatch):
+    case = configured_case()
+    monkeypatch.setattr(case[0].runtime, "get_object_valid_at", None)
+    assert_blocked(case, "HISTORY_UNAVAILABLE")
+    assert case[1].calls == 0
+
+
+def test_historical_identity_mismatch_fails_closed(monkeypatch):
+    case = configured_case()
+    monkeypatch.setattr(
+        case[0].runtime,
+        "get_object_valid_at",
+        lambda *args, **kwargs: OntologyObject(
+            id="OTHER", type="Compressor", name="Wrong identity"
+        ),
+    )
+    assert_blocked(case, "HISTORY_IDENTITY_MISMATCH")
+    assert case[1].calls == 0
+
+
+def test_binding_manifest_mismatch_fails_closed_without_source():
+    case = list(configured_case())
+    wrong_manifest = case[1].manifest.model_copy(update={"binding_id": "other-binding"})
+    case[2] = case[2].model_copy(update={"manifest": wrong_manifest})
+    assert_blocked(tuple(case), "BINDING_MISMATCH")
+    assert case[1].calls == 0
+
+
+def test_evidence_mode_cannot_expose_write_surface():
+    case = list(configured_case())
+    case[1].write_governed = lambda *args, **kwargs: None
+    assert_blocked(tuple(case), "READ_ONLY_VERSIONED_REQUIRED")
+    assert case[1].calls == 0
+
+
+def test_evaluation_time_requires_timezone():
+    case = list(configured_case())
+    case[6] = datetime.now()
+    assert_blocked(tuple(case), "TIMEZONE_REQUIRED")
+    assert case[1].calls == 0
