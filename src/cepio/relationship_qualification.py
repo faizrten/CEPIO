@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from threading import BoundedSemaphore, Lock
+import json
 import time
 from typing import Any
 
@@ -49,6 +50,7 @@ class RelationshipQualificationBoundary:
         if not callable(source_access):
             raise ValueError("Current source authorization is required")
         self._identity = identity
+        self._adapter = adapter
         self._slots = BoundedSemaphore(4)
         self._lock = Lock()
         self._window = time.monotonic()
@@ -97,7 +99,16 @@ class RelationshipQualificationBoundary:
             )
             token = self._context.set(context)
             try:
-                return self._reader.read(validated)
+                with self._adapter.qualification_budget():
+                    page = self._reader.read(validated)
+                    size = 0
+                    for chunk in json.JSONEncoder(ensure_ascii=False).iterencode(
+                        page.model_dump(mode="json")
+                    ):
+                        size += len(chunk.encode("utf-8"))
+                        if size > 262_144:
+                            raise RelationshipQualificationUnavailable()
+                    return page
             finally:
                 self._context.reset(token)
         except Exception:

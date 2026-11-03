@@ -257,3 +257,5 @@ At minimum consider:
 - relevant focused technical docs and ADRs.
 
 If a change genuinely has no documentation impact, the PR should explicitly state why.
+
+- [ADR-0053 — Offline relationship resource budgets](adr/ADR-0053-offline-relationship-resource-budgets.md)

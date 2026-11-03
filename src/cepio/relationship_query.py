@@ -13,6 +13,8 @@ import sqlite3
 import time
 from collections import OrderedDict
 from collections.abc import Callable
+from contextlib import contextmanager
+from collections.abc import Iterator
 from copy import deepcopy
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -190,6 +192,7 @@ class SQLiteRelationshipPageAdapter:
             raise RelationshipQueryUnavailable("Relationship paging is unavailable")
         self.repository = repository
         self.last_vm_steps = 0
+        self._qualification_deadline: float | None = None
         with repository._lock:
             repository._conn.executescript("""
             CREATE TABLE IF NOT EXISTS object_tenancy (
@@ -345,13 +348,48 @@ class SQLiteRelationshipPageAdapter:
             conn.execute("PRAGMA data_version").fetchone()[0],
         )
 
+    @contextmanager
+    def qualification_budget(self) -> Iterator[None]:
+        """Offline qualification only: bound lock wait, SQLite rows and busy wait.
+
+        Not a process memory limit or preemption of trusted Python callbacks.
+        The repository lock protects temporary connection settings from other users.
+        """
+        repo = self.repository
+        if not repo._lock.acquire(timeout=0.05):
+            raise RelationshipQueryUnavailable("Relationship paging is unavailable")
+        try:
+            conn = repo._conn
+            old_length = conn.getlimit(sqlite3.SQLITE_LIMIT_LENGTH)
+            old_busy = conn.execute("PRAGMA busy_timeout").fetchone()[0]
+            old_deadline = self._qualification_deadline
+            try:
+                conn.setlimit(sqlite3.SQLITE_LIMIT_LENGTH, min(old_length, 65_536))
+                conn.execute("PRAGMA busy_timeout=50")
+                self._qualification_deadline = time.monotonic() + 0.1
+                yield
+                if time.monotonic() >= self._qualification_deadline:
+                    raise RelationshipQueryUnavailable("Relationship paging is unavailable")
+            finally:
+                self._qualification_deadline = old_deadline
+                conn.setlimit(sqlite3.SQLITE_LIMIT_LENGTH, old_length)
+                conn.execute(f"PRAGMA busy_timeout={int(old_busy)}")
+        finally:
+            repo._lock.release()
+
     def page(self, parameters: dict, direction: str) -> list[sqlite3.Row]:
         """Bound materialization and SQLite VM work, including denied neighbors."""
         self.last_vm_steps = 0
 
         def progress() -> int:
             self.last_vm_steps += 100
-            return int(self.last_vm_steps >= 200_000)
+            return int(
+                self.last_vm_steps >= 200_000
+                or (
+                    self._qualification_deadline is not None
+                    and time.monotonic() >= self._qualification_deadline
+                )
+            )
 
         conn = self.repository._conn
         conn.set_progress_handler(progress, 100)

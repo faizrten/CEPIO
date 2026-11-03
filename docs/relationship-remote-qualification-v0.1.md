@@ -20,3 +20,9 @@ Four active calls and thirty attempts per actor/tenant per minute are allowed, s
 | Production repository | Unsupported backends fail closed | PostgreSQL/repository qualification #283 remains separate |
 
 The issue stays open. The existing synthetic K-201 Studio section remains independent and gains no backend integration. See [ADR-0052](adr/ADR-0052-offline-relationship-host-protocol-qualification.md). Exact-head local and CI results belong in the governed PRs.
+
+## Resource-budget increment
+
+The offline boundary additionally bounds repository lock wait (50ms), SQLite busy wait (50ms), SQLite row/string/blob size (65,536 bytes), page VM work (200,000 instructions or a 100ms monotonic deadline) and its UTF-8 JSON page representation (262,144 bytes). Late results are discarded and temporary connection settings are restored. Ordinary host-local reads retain their existing contract. See [ADR-0053](adr/ADR-0053-offline-relationship-resource-budgets.md) for exact scope and limitations.
+
+These are resource defenses, not constant-time behavior or native-memory/process isolation. Denied fanout can still distinguish success from budget exhaustion. Trusted callbacks and individual SQLite operations are not preemptible; wire framing and ingress body limits remain transport obligations. The synthetic denied-fanout sweep records residual timing/availability differences. Global revision churn, shared admission, distributed ingress and independent production qualification remain open.
