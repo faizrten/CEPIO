@@ -1,5 +1,7 @@
 # CEPIO Current State
 
+**Bounded implementation increment (3 November 2026):** [Host-local relationship paging v0.1](bounded-relationship-query-v0.1.md) adds explicit security bindings, SQL authorization pushdown and bounded SQLite reads. It does not qualify a remote Operational Object endpoint or complete #329; the dated baseline and release/scorecard claims below remain unchanged.
+
 **Strategy reference (26 October 2026):** [CEPIO Product North Star & Strategic Doctrine](strategy/industry-iq-product-north-star.md) establishes the professional companion mission, Industrial Competence Network and sovereignty doctrine. The dated implementation baseline and maturity scores **below retain their own dates**; strategic approval must not be confused with new live qualification or product-release advancement.
 
 **Snapshot date:** 2026-10-20  

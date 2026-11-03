@@ -15,6 +15,8 @@ The Wiki is the reader-oriented narrative/navigation layer over the executable c
 
 For the latest repository posture, start with [CEPIO Current State](../current-state.md).
 
+The [host-local bounded relationship query reference](../bounded-relationship-query-v0.1.md) documents tenant/policy-aware SQLite paging and the remaining #329 remote-exposure blockers.
+
 ## Technical North Star
 
 > **Thin infrastructure. Thick Industry IQ.**
