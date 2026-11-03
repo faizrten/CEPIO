@@ -3,6 +3,7 @@
 This adapter is not an authentication provider. Its inputs must originate in
 an authenticated CEPIO host; do not expose them as agent tool arguments.
 """
+
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
@@ -28,15 +29,23 @@ class EvidenceVerification:
 
 class HostAdmissionServices(Protocol):
     def authenticated_principal(self) -> HostPrincipal: ...
-    def verify_evidence(self, request: CompositionRequest, principal: HostPrincipal) -> EvidenceVerification: ...
-    def eligible_capabilities(self, request: CompositionRequest, principal: HostPrincipal) -> set[str]: ...
-    def incompatible_capabilities(self, request: CompositionRequest, principal: HostPrincipal) -> set[str]: ...
+    def verify_evidence(
+        self, request: CompositionRequest, principal: HostPrincipal
+    ) -> EvidenceVerification: ...
+    def eligible_capabilities(
+        self, request: CompositionRequest, principal: HostPrincipal
+    ) -> set[str]: ...
+    def incompatible_capabilities(
+        self, request: CompositionRequest, principal: HostPrincipal
+    ) -> set[str]: ...
 
 
 class RuntimeAdmissionResolver:
     """Resolve admission from host-owned identity, evidence and real preflight."""
 
-    def __init__(self, registry: CapabilityRegistry, skills: SkillRegistry, services: HostAdmissionServices):
+    def __init__(
+        self, registry: CapabilityRegistry, skills: SkillRegistry, services: HostAdmissionServices
+    ):
         self.registry = registry
         self.skills = skills
         self.services = services
@@ -61,7 +70,8 @@ class RuntimeAdmissionResolver:
             for skill_id in capability.skills:
                 try:
                     result = self.skills.preflight(
-                        skill_id, actor_id=principal.actor_id,
+                        skill_id,
+                        actor_id=principal.actor_id,
                         actor_roles=set(principal.roles),
                     )
                 except (KeyError, ValueError, PermissionError):
