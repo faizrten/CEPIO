@@ -1,0 +1,57 @@
+id: evidence-decision-reassessment-v0.1
+version: "0.1"
+classification: public-synthetic-reference
+pattern: evidence-change-requires-governed-reassessment
+purpose: >-
+  Challenge the same evidence-to-consequence-to-governance pattern in two different
+  Industry IQ domains without adding CEPIO Core abstractions or a second evaluation
+  engine. All named objects are existing deterministic reference fixtures.
+qualification:
+  scope: deterministic-runtime-fixture-regression
+  state: proposed
+  field_qualified: false
+  matched_model_industry_iq_uplift: not_measured
+  live_source_qualification: not_run
+  external_action_qualification: not_run
+rules:
+  use_existing_runtime_coverage: true
+  authority_is_not_inferred_from_recommendation: true
+  source_records_remain_authoritative: true
+  provider_neutral: true
+  no_simulator_execution: true
+  no_customer_data: true
+  no_global_learning_from_customer_outcomes: true
+  no_release_or_scorecard_credit_without_governed_evidence: true
+instances:
+  - id: refinery-k201-evidence-reassessment
+    domain: refinery-reliability
+    subject: K-201 compressor synthetic reference
+    runtime_suite: generalization/runtime/refinery-operating-abstraction-v0.1.yaml
+    evidence:
+      question_id: ROA-002
+      required_probes: [condition, consequence]
+      remove_relationship_for_negative_test: signal-equipment
+    consequence:
+      question_id: ROA-002
+      required_probes: [consequence, work]
+      remove_relationship_for_negative_test: signal-loss
+    governance_context:
+      question_id: ROA-001
+      required_probes: [authority, permit]
+    decision_posture: human-review-required
+  - id: subsurface-r3-model-reassessment
+    domain: subsurface-reservoir-engineering
+    subject: Reservoir R3 synthetic reference model RM-20 to RM-21
+    runtime_suite: generalization/runtime/subsurface-reservoir-engineering-runtime-v0.1.yaml
+    evidence:
+      question_id: RE-003
+      required_probes: [assurance-evidence, challenged-hypothesis]
+      remove_relationship_for_negative_test: hypothesis-challenge
+    consequence:
+      question_id: RE-002
+      required_probes: [prior-model, stale-source, exposed-decision]
+      remove_relationship_for_negative_test: dependency-target
+    governance_context:
+      question_id: RE-008
+      required_probes: [recommendation, authoritative-selection]
+    decision_posture: human-review-required
