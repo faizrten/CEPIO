@@ -64,3 +64,12 @@ Stage A: deterministic tests for all cases, no external calls. Stage B: independ
 ## Governance and scope
 
 Keep protected benchmarks and reviewer/customer information out of public Core. No inference spend, Azure provisioning, auth/permission changes, production deployment or source write. Govern implementation via separate PR(s) and required CI/security review. v1 canonical score, proposed unscored v2 rubric and published v0.4 remain unchanged.
+
+
+## Implementation checkpoint — 2026-11-03
+
+The draft branch now contains `src/cepio/accc_readonly.py` and `tests/test_accc_readonly.py`. The implementation is a **deterministic offline baseline**, not the full contract described above. It reuses CapabilityRouter and CapabilityRegistry, performs host-asserted admission filtering, returns READY/BLOCKED/NEEDS_EVIDENCE, and hashes admitted capability/Skill IDs and registry version. The hash is **not** a complete execution receipt or cryptographic proof of authenticated evidence.
+
+`HostBoundComposer` deliberately receives only the untrusted task request from an agent-facing caller and obtains `TrustedAdmission` from a host-owned resolver. However, **the resolver is not yet implemented against real CEPIO identity, SkillRegistry.preflight, source freshness and policy checks**. Direct `ReadOnlyComposer.compose` must remain test-only; an untrusted caller can forge its admission object. No MCP or REST registration is allowed until host identity binding, actor/tenant enforcement, source validity and negative tests are implemented and reviewed.
+
+The current coordinator does not yet invoke `RetrievalContextPipeline`, resolve real pack deployment versions, validate physical units/assumptions, propagate reservoir uncertainty or create a complete provenance receipt. It must not be promoted to Core or described as independent assurance. CI and security checks must be evaluated on the latest head SHA before merge.
