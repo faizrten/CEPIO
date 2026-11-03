@@ -69,6 +69,7 @@ See [Current State](current-state.md).
 - [Domain module normalization](domain-module-normalization.md)
 - [Query contract](query-contract.md)
 - [Application Contract v0.2](application-contract-v0.2.md)
+- [Operational Object Activation v0.1](operational-object-activation-v0.1.md) — read-only K-201 reference inspection; explicitly not live-qualified.
 - [Protocol Convergence v0.3](protocol-convergence-v0.3.md)
 
 ## Kinetic / governed execution
