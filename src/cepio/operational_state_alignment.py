@@ -145,34 +145,44 @@ def assess_operational_state_alignment(
     if not 1 <= len(sources) <= 4:
         raise StateAlignmentError("SOURCE_COUNT_INVALID", "One to four source bindings required")
     if sum(source.role == "primary" for source in sources) != 1:
-        raise StateAlignmentError("PRIMARY_REQUIRED", "Exactly one host-nominated primary is required")
+        raise StateAlignmentError(
+            "PRIMARY_REQUIRED", "Exactly one host-nominated primary is required"
+        )
     if any(source.role not in {"primary", "corroborating"} for source in sources):
         raise StateAlignmentError("SOURCE_ROLE_INVALID", "Unsupported source role")
     if not all(value.strip() for value in mapping.allowed_values):
-        raise StateAlignmentError("ALLOWED_VALUES_INVALID", "Host state vocabulary contains blank values")
+        raise StateAlignmentError(
+            "ALLOWED_VALUES_INVALID", "Host state vocabulary contains blank values"
+        )
 
     keys = [
-        (source.registration.manifest.binding_id, source.plan.external_id)
-        for source in sources
+        (source.registration.manifest.binding_id, source.plan.external_id) for source in sources
     ]
     if len(keys) != len(set(keys)):
-        raise StateAlignmentError("DUPLICATE_SOURCE", "Repeated source reference is not independent")
+        raise StateAlignmentError(
+            "DUPLICATE_SOURCE", "Repeated source reference is not independent"
+        )
     if any(
-        item.plan.organization_id != mapping.organization_id
-        or item.plan.subject != mapping.subject
+        item.plan.organization_id != mapping.organization_id or item.plan.subject != mapping.subject
         for item in sources
     ):
-        raise StateAlignmentError("PLAN_SCOPE_MISMATCH", "State source plan differs from host scope")
+        raise StateAlignmentError(
+            "PLAN_SCOPE_MISMATCH", "State source plan differs from host scope"
+        )
 
     registry = getattr(service.runtime, "property_registry", None)
     if registry is None:
-        raise StateAlignmentError("PROPERTY_REGISTRY_REQUIRED", "Canonical property registry required")
+        raise StateAlignmentError(
+            "PROPERTY_REGISTRY_REQUIRED", "Canonical property registry required"
+        )
     try:
         property_definition = registry.resolve(mapping.property_iri)
     except (UnknownPropertyError, ValueError) as exc:
         raise StateAlignmentError("PROPERTY_UNDECLARED", "State property is not canonical") from exc
     if property_definition.iri != mapping.property_iri or property_definition.datatype != "string":
-        raise StateAlignmentError("PROPERTY_UNSUPPORTED", "State mapping requires a canonical string IRI")
+        raise StateAlignmentError(
+            "PROPERTY_UNSUPPORTED", "State mapping requires a canonical string IRI"
+        )
 
     # Fail closed before any binding lookup if the caller lacks *current* property
     # visibility. M2 then separately authorizes the historical property's scope.
@@ -210,24 +220,38 @@ def assess_operational_state_alignment(
         ):
             raise StateAlignmentError("MAPPING_MISMATCH", "Source mapping contract differs")
         if claim.state_value not in mapping.allowed_values:
-            raise StateAlignmentError("STATE_VALUE_UNSUPPORTED", "State value is outside host vocabulary")
+            raise StateAlignmentError(
+                "STATE_VALUE_UNSUPPORTED", "State value is outside host vocabulary"
+            )
         if mapping.property_iri not in view.historical_subject.properties:
-            raise StateAlignmentError("HISTORICAL_PROPERTY_DENIED", "Historical property is not visible")
+            raise StateAlignmentError(
+                "HISTORICAL_PROPERTY_DENIED", "Historical property is not visible"
+            )
         if views and (
             view.historical_subject != views[0].historical_subject
             or view.valid_at != views[0].valid_at
             or view.evaluated_at != views[0].evaluated_at
         ):
-            raise StateAlignmentError("SNAPSHOT_MISMATCH", "Source inspections use different snapshots")
+            raise StateAlignmentError(
+                "SNAPSHOT_MISMATCH", "Source inspections use different snapshots"
+            )
         views.append(view)
         values.append(claim.state_value)
 
     historical = views[0].historical_subject
     historical_value = historical.properties[mapping.property_iri]
     if not isinstance(historical_value, str):
-        raise StateAlignmentError("HISTORICAL_VALUE_UNSUPPORTED", "Historical state is not a string")
+        raise StateAlignmentError(
+            "HISTORICAL_VALUE_UNSUPPORTED", "Historical state is not a string"
+        )
     distinct = set(values)
     independent = {view.receipt.source_system for view in views}
+    status: Literal[
+        "consistent_candidate",
+        "conflict_blocked",
+        "historical_mismatch",
+        "insufficient_independent_sources",
+    ]
     if len(distinct) > 1:
         status = "conflict_blocked"
         agreed = None
