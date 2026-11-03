@@ -3,6 +3,7 @@
 This is an application-layer composition over existing Core contracts. It is NOT a
 second ontology, source adapter, live-state assessor, permission grant, or Action API.
 """
+
 from __future__ import annotations
 
 from typing import Literal
@@ -15,7 +16,7 @@ from .application_contract import (
     ContractMetadata,
     ExecutionContext,
 )
-from .model import ObjectRef
+from .model import ObjectRef, OntologyObject
 from .runtime import AuthorizationError
 
 
@@ -63,9 +64,10 @@ def inspect_operational_object(
 
     subject = service.read_object(object_id, context)
     repository = service.runtime.object_repository
-    candidates: list[tuple[str, str, ObjectRef]] = []
+    candidates: list[tuple[str, Literal["out", "in"], ObjectRef]] = []
 
-    for direction in ("out", "in"):
+    directions: tuple[Literal["out", "in"], Literal["out", "in"]] = ("out", "in")
+    for direction in directions:
         for relationship in repository.get_relationships(object_id, direction=direction):
             local = relationship.source if direction == "out" else relationship.target
             other = relationship.target if direction == "out" else relationship.source
@@ -75,7 +77,7 @@ def inspect_operational_object(
                 raise ValueError("Operational object reference scan budget exceeded")
             candidates.append((relationship.type, direction, other))
 
-    related_by_id = {}
+    related_by_id: dict[str, OntologyObject] = {}
     visible_links: list[VisibleOperationalLink] = []
     seen: set[tuple[str, str, str]] = set()
     for relationship_type, direction, other_ref in sorted(
@@ -87,21 +89,21 @@ def inspect_operational_object(
         if len(visible_links) >= max_related:
             break
         try:
-            other = service.read_object(other_ref.id, context)
+            related_obj = service.read_object(other_ref.id, context)
         except AuthorizationError:
             # Do not reveal existence, identities or counts of inaccessible neighbors.
             continue
-        if other.type != other_ref.type:
+        if related_obj.type != other_ref.type:
             raise ValueError("Inconsistent related object type")
         seen.add(key)
         if other.id not in related_by_id and len(related_by_id) >= max_related:
             continue
-        related_by_id[other.id] = other
+        related_by_id[related_obj.id] = related_obj
         visible_links.append(
             VisibleOperationalLink(
                 relationship_type=relationship_type,
                 direction=direction,
-                related=ObjectRef(id=other.id, type=other.type),
+                related=ObjectRef(id=related_obj.id, type=related_obj.type),
             )
         )
 
