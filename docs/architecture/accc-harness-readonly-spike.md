@@ -53,18 +53,14 @@ The existing Entra validator checks signatures, audience, issuer, tenant and exp
 This adapter does not add token introspection or immediate identity-provider session
 revocation. Runtime policy revocation is checked on each call.
 
-## Default Microsoft agent runtime
+## Optional Microsoft integration
 
-Microsoft Agent Framework Harness is the approved default runtime for new CEPIO agent
-experiences. Install agent-framework-core==1.24.0 for the tested SDK boundary and use
-create_readonly_harness(client, request_scoped_host). The client is supplied by the host;
-this choice does not authorize inference spend. Existing applications are not switched
-by this documentation change. Core-only consumers need not install the Microsoft SDK.
-For an explicitly selected alternative host, use composition_tool(request_scoped_host)
-where compatible. Keep provider-specific code inside the adapter. Approval mode remains always_require; the adapter does not grant
+Install agent-framework-core==1.24.0 separately for the tested SDK boundary.
+Then call composition_tool(request_scoped_host) and supply only that tool to the
+embedding agent. Approval mode remains always_require; the adapter does not grant
 auto-approval. The embedding host must preserve its authorization and approval path.
 
-The default create_readonly_harness factory uses the actual SDK Harness with only
+The optional create_readonly_harness factory uses the actual SDK Harness with only
 the ACCC tool. Web search, file memory, todo, mode and compaction providers are disabled;
 no shell, file-access, Skill discovery or background agents are configured. Tests
 exercise the real Harness with a scripted offline client: no source read before approval,
@@ -91,5 +87,12 @@ only. It does not demonstrate independent Industry IQ uplift or v0.5 CONNECT.
 
 Review the host configuration/identity lifetime, evidence adapter convention and
 unsupported-policy fail-closed behavior. Require CI, Governance, CodeQL and Quality
-Gate on the final head before merge. Architecture direction: ADR-0055 approved by the founder; implementation/security review pending.
+Gate on the final head before merge. Architecture decision: ADR-0055 (proposed).
 CEPIO-Labs IP, canonical scorecard and release gates remain unchanged.
+# Review hardening
+
+Capability maturity, validated domain and exclusion of PROFILE capabilities are
+checked before source reads, using the existing composition qualification logic.
+A matching host-owned contract digest alone does not establish eligibility.
+Regression cases pin otherwise ineligible contracts and verify zero source reads.
+

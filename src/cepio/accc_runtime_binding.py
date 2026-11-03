@@ -208,6 +208,20 @@ class AuthenticatedReadOnlyComposer:
             return CompositionPlan(
                 status=CompositionStatus.BLOCKED, blockers=["CAPABILITY_OR_SKILL_NOT_ADMITTED"]
             )
+        # Reuse composition qualification before source access. A trusted digest
+        # pin does not make a draft, wrong-domain or PROFILE capability eligible.
+        eligibility = ReadOnlyComposer(self.registry).compose(
+            request,
+            TrustedAdmission(
+                actor_id=actor.actor_id,
+                tenant_id=actor.tenant_id,
+                authorization_valid=True,
+                approved_capability_ids=approved,
+                ready_skill_ids=ready,
+            ),
+        )
+        if eligibility.status == CompositionStatus.BLOCKED:
+            return eligibility
         now = self.clock()
         if now.tzinfo is None:
             raise ValueError("host time must be timezone aware")

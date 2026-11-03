@@ -139,6 +139,25 @@ def test_unknown_method_combination_blocks(demo):
     assert host.binding.calls == 0
 
 
+@pytest.mark.parametrize("change", ["maturity", "domain", "profile"])
+def test_pinned_ineligible_capability_never_reads_source(demo, change):
+    from cepio.capability_registry import CapabilityMaturity
+
+    host, request = demo
+    capability = host.registry.capabilities[0]
+    if change == "maturity":
+        capability.maturity = CapabilityMaturity.EXPERIMENTAL
+    elif change == "domain":
+        capability.validated_domains = set()
+    else:
+        capability.layer = type(capability.layer)("PROFILE")
+    host.profile = replace(
+        host.profile, capability_hashes={capability.id: contract_hash(capability)}
+    )
+    assert host.compose(request).status == "BLOCKED"
+    assert host.binding.calls == 0
+
+
 @pytest.mark.parametrize("change", ["unqualified", "modified", "action", "missing", "preflight"])
 def test_skill_failures_never_admit(demo, change):
     host, request = demo
