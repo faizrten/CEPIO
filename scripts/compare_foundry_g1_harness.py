@@ -25,6 +25,10 @@ def _protocol_assessment(artifact: Any, *, role: str) -> dict[str, Any]:
     if not isinstance(artifact, dict):
         return {
             "role": role,
+            "agent": None,
+            "subject_id": None,
+            "artifact_declared_harness": None,
+            "artifact_declared_model": None,
             "protocol_pass": False,
             "live_g1_qualified": False,
             "failures": ["Artifact must be a JSON object"],
