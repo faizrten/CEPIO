@@ -3,6 +3,7 @@
 This tests evidence graph answerability and negative controls, NOT field qualification,
 agent uplift, data freshness, or independently verified human authority.
 """
+
 from pathlib import Path
 
 import pytest
@@ -24,7 +25,9 @@ def _manifest():
 
 def _case(instance, gate):
     suite = load_runtime_coverage_suite(ROOT / instance["runtime_suite"])
-    matches = [question for question in suite.questions if question.question_id == gate["question_id"]]
+    matches = [
+        question for question in suite.questions if question.question_id == gate["question_id"]
+    ]
     assert len(matches) == 1, f"missing/ambiguous question: {instance['id']} {gate['question_id']}"
     return suite, matches[0]
 
