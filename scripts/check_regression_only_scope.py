@@ -9,9 +9,7 @@ import subprocess
 import sys
 from collections.abc import Sequence
 
-REGRESSION_MANIFEST = (
-    "generalization/regression/evidence-decision-reassessment-v0.1.yaml"
-)
+REGRESSION_MANIFEST = "generalization/regression/evidence-decision-reassessment-v0.1.yaml"
 REGRESSION_TEST = "tests/test_evidence_decision_reassessment_v01.py"
 
 # Deliberately exact paths: this version does not authorize arbitrary test,
