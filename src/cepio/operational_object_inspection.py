@@ -96,7 +96,7 @@ def inspect_operational_object(
         if related_obj.type != other_ref.type:
             raise ValueError("Inconsistent related object type")
         seen.add(key)
-        if other.id not in related_by_id and len(related_by_id) >= max_related:
+        if related_obj.id not in related_by_id and len(related_by_id) >= max_related:
             continue
         related_by_id[related_obj.id] = related_obj
         visible_links.append(
