@@ -1,16 +1,15 @@
 """Regression-only governance routing must not weaken domain onboarding."""
 from pathlib import Path
+from runpy import run_path
 
 import yaml
 
-from scripts.check_regression_only_scope import (
-    ALLOWED_PATHS,
-    REGRESSION_MANIFEST,
-    REGRESSION_TEST,
-    eligible_regression_only,
-)
-
 ROOT = Path(__file__).resolve().parents[1]
+POLICY = run_path(str(ROOT / "scripts/check_regression_only_scope.py"))
+ALLOWED_PATHS = POLICY["ALLOWED_PATHS"]
+REGRESSION_MANIFEST = POLICY["REGRESSION_MANIFEST"]
+REGRESSION_TEST = POLICY["REGRESSION_TEST"]
+eligible_regression_only = POLICY["eligible_regression_only"]
 
 
 def test_explicit_regression_with_designated_test_is_allowed():
