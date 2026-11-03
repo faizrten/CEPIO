@@ -231,6 +231,8 @@ def main() -> int:
             "gate": "G1",
             "status": "PASS" if not failures else "FAIL",
             "agent": {"name": agent.name, "version": agent.version},
+            "model": settings.model,
+            "harness": "standard_foundry",
             "response_id": getattr(response, "id", None),
             "subject_id": settings.subject_id,
             "allowed_tools": list(G1_ALLOWED_TOOLS),
