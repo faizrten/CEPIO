@@ -174,7 +174,8 @@ class HostBoundComposer:
     def compose(self, request: CompositionRequest) -> CompositionPlan:
         try:
             admission = self._resolve_admission(request)
-        except (PermissionError, ValueError, KeyError):
+        except Exception:
+            # A host outage must deny admission, not expose host internals.
             return CompositionPlan(
                 status=CompositionStatus.BLOCKED, blockers=["HOST_ADMISSION_UNAVAILABLE"]
             )
