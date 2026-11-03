@@ -3,6 +3,7 @@
 This module does not execute Skills, query sources, infer missing evidence or authorize
 Actions. Host-provided preflight/evidence results must come from trusted CEPIO services.
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -71,19 +72,26 @@ class ReadOnlyComposer:
 
     def compose(self, request: CompositionRequest, admission: TrustedAdmission) -> CompositionPlan:
         if not admission.authorization_valid:
-            return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=["HOST_AUTHORIZATION_NOT_VERIFIED"])
-        routed = self.router.route(RetrievalIntent(
-            query_text=request.query_text,
-            tenant_id=admission.tenant_id,
-            required_capability_ids=request.required_capability_ids,
-            max_capabilities=request.max_capabilities,
-        ))
+            return CompositionPlan(
+                status=CompositionStatus.BLOCKED, blockers=["HOST_AUTHORIZATION_NOT_VERIFIED"]
+            )
+        routed = self.router.route(
+            RetrievalIntent(
+                query_text=request.query_text,
+                tenant_id=admission.tenant_id,
+                required_capability_ids=request.required_capability_ids,
+                max_capabilities=request.max_capabilities,
+            )
+        )
         if routed.blocked:
-            return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=["REQUIRED_CAPABILITY_UNKNOWN"])
+            return CompositionPlan(
+                status=CompositionStatus.BLOCKED, blockers=["REQUIRED_CAPABILITY_UNKNOWN"]
+            )
         # An explicit required set is an allowlist for this bounded proof. Lexical
         # neighbors must never silently become admitted dependencies.
         candidate_routes = [
-            route for route in routed.routes
+            route
+            for route in routed.routes
             if not request.required_capability_ids
             or route.capability_id in request.required_capability_ids
         ]
@@ -100,7 +108,10 @@ class ReadOnlyComposer:
                 blockers.add("PROFILE_CAPABILITY_NOT_SUPPORTED")
             if capability.id not in admission.approved_capability_ids:
                 blockers.add("CAPABILITY_NOT_HOST_APPROVED")
-            if capability.maturity not in {CapabilityMaturity.QUALIFIED, CapabilityMaturity.PRODUCTION}:
+            if capability.maturity not in {
+                CapabilityMaturity.QUALIFIED,
+                CapabilityMaturity.PRODUCTION,
+            }:
                 blockers.add("CAPABILITY_NOT_QUALIFIED")
             if request.domain not in capability.validated_domains:
                 blockers.add("DOMAIN_NOT_VALIDATED")
@@ -119,10 +130,28 @@ class ReadOnlyComposer:
         if not selected:
             blockers.add("NO_ELIGIBLE_CAPABILITY")
         if blockers:
-            return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=sorted(blockers), missing_evidence=sorted(missing))
+            return CompositionPlan(
+                status=CompositionStatus.BLOCKED,
+                blockers=sorted(blockers),
+                missing_evidence=sorted(missing),
+            )
         if missing:
-            return CompositionPlan(status=CompositionStatus.NEEDS_EVIDENCE, missing_evidence=sorted(missing))
-        return CompositionPlan(status=CompositionStatus.READY, capability_ids=selected, skill_ids=sorted(skills), manifest_hash=stable_hash({"capabilities": selected, "skills": sorted(skills), "registry_version": self.registry.version, "domain": request.domain}))
+            return CompositionPlan(
+                status=CompositionStatus.NEEDS_EVIDENCE, missing_evidence=sorted(missing)
+            )
+        return CompositionPlan(
+            status=CompositionStatus.READY,
+            capability_ids=selected,
+            skill_ids=sorted(skills),
+            manifest_hash=stable_hash(
+                {
+                    "capabilities": selected,
+                    "skills": sorted(skills),
+                    "registry_version": self.registry.version,
+                    "domain": request.domain,
+                }
+            ),
+        )
 
 
 class HostBoundComposer:
@@ -134,8 +163,11 @@ class HostBoundComposer:
     This wrapper is a boundary contract, NOT proof of an authenticated host.
     """
 
-    def __init__(self, composer: ReadOnlyComposer,
-                 resolve_admission: Callable[[CompositionRequest], TrustedAdmission]) -> None:
+    def __init__(
+        self,
+        composer: ReadOnlyComposer,
+        resolve_admission: Callable[[CompositionRequest], TrustedAdmission],
+    ) -> None:
         self._composer = composer
         self._resolve_admission = resolve_admission
 
@@ -143,7 +175,11 @@ class HostBoundComposer:
         try:
             admission = self._resolve_admission(request)
         except (PermissionError, ValueError, KeyError):
-            return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=["HOST_ADMISSION_UNAVAILABLE"])
+            return CompositionPlan(
+                status=CompositionStatus.BLOCKED, blockers=["HOST_ADMISSION_UNAVAILABLE"]
+            )
         if not isinstance(admission, TrustedAdmission):
-            return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=["HOST_ADMISSION_UNAVAILABLE"])
+            return CompositionPlan(
+                status=CompositionStatus.BLOCKED, blockers=["HOST_ADMISSION_UNAVAILABLE"]
+            )
         return self._composer.compose(request, admission)
