@@ -100,3 +100,36 @@ def test_host_bound_composer_fails_closed_when_resolver_unavailable():
     result = host.compose(request())
     assert result.status == CompositionStatus.BLOCKED
     assert result.blockers == ["HOST_ADMISSION_UNAVAILABLE"]
+
+
+def test_required_capability_does_not_admit_lexical_neighbor():
+    from cepio.capability_registry import CapabilityRecord, CapabilityRegistry
+    neighbor = CapabilityRecord(
+        id="neighbor", version="0.1", title="K201 vibration neighbor",
+        description="reliability", layer=CapabilityLayer.DOMAIN,
+        maturity=CapabilityMaturity.QUALIFIED, validated_domains={"reliability"},
+        provenance=CapabilityProvenance(mode="synthetic"),
+    )
+    original = composer().registry.capabilities[0]
+    candidate = ReadOnlyComposer(CapabilityRegistry(
+        id="test", version="1", capabilities=[original, neighbor],
+    ))
+    result = candidate.compose(request(), admission())
+    assert result.status == CompositionStatus.READY
+    assert result.capability_ids == ["k201"]
+
+
+def test_profile_capability_cannot_be_admitted_by_offline_stub():
+    profile = CapabilityRecord(
+        id="k201", version="0.1", title="K201 vibration",
+        description="reliability", layer=CapabilityLayer.PROFILE,
+        maturity=CapabilityMaturity.QUALIFIED, validated_domains={"reliability"},
+        skills={"inspect-vibration"}, evidence_requirements={"vibration-observation"},
+        provenance=CapabilityProvenance(mode="synthetic"),
+    )
+    candidate = ReadOnlyComposer(CapabilityRegistry(
+        id="test", version="1", capabilities=[profile],
+    ))
+    result = candidate.compose(request(), admission())
+    assert result.status == CompositionStatus.BLOCKED
+    assert "PROFILE_CAPABILITY_NOT_SUPPORTED" in result.blockers
