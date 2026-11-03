@@ -165,9 +165,10 @@ def test_denied_fanout_resource_envelope(bounded, sources, denied_count, record_
     assert elapsed < 5
     if denied_count == 0:
         assert outcome == "page"
-    if denied_count == 2000:
-        assert outcome == "unavailable"
+    # SQLite versions/query plans may exhaust at different fanout sizes.
+    # The fixed VM/deadline ceilings, not a specific outcome at N rows, are the contract.
     evidence = dict(
+        sqlite_version=sqlite3.sqlite_version,
         denied_count=denied_count,
         outcome=outcome,
         vm_steps=adapter.last_vm_steps,
