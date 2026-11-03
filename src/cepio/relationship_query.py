@@ -15,7 +15,9 @@ from collections import OrderedDict
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict
+from datetime import datetime, timezone
 from typing import Literal
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -48,6 +50,43 @@ class RelationshipVisibility(BaseModel):
     classifications: frozenset[str]
     source_uses: frozenset[str]
     policy_version: str = Field(min_length=1)
+
+
+class RelationshipSourceAccess(BaseModel):
+    """Current rights resolved by the host authority, never by a query caller.
+
+    This is an adapter result, not a second sovereignty/consent registry. The
+    resolver must authorize every source and its derivative ancestry for the fixed
+    operational-inspection purpose using its current authorization clock.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+    actor_id: str = Field(min_length=1)
+    tenant_id: str = Field(min_length=1)
+    actor_roles: frozenset[str]
+    source_ids: frozenset[Annotated[str, Field(min_length=1, max_length=512)]] = Field(
+        max_length=256
+    )
+    rights_version: str = Field(min_length=1)
+    purpose: Literal["operational_inspection"] = "operational_inspection"
+    expires_at: datetime
+
+
+_SOURCE_SQL = """
+AND EXISTS (SELECT 1 FROM relationship_object_sources x
+  WHERE x.id=s.id AND x.version=s.version AND json_array_length(x.sources)>0
+  AND NOT EXISTS (SELECT 1 FROM json_each(x.sources) q
+    WHERE q.value NOT IN (SELECT value FROM json_each(:authorized_sources))))
+AND EXISTS (SELECT 1 FROM relationship_object_sources x
+  WHERE x.id=t.id AND x.version=t.version AND json_array_length(x.sources)>0
+  AND NOT EXISTS (SELECT 1 FROM json_each(x.sources) q
+    WHERE q.value NOT IN (SELECT value FROM json_each(:authorized_sources))))
+AND EXISTS (SELECT 1 FROM relationship_edge_sources x
+  WHERE x.id=r.id AND x.payload=r.payload AND json_array_length(x.sources)>0
+  AND NOT EXISTS (SELECT 1 FROM json_each(x.sources) q
+    WHERE q.value NOT IN (SELECT value FROM json_each(:authorized_sources))))
+"""
 
 
 class VisibleRelationship(BaseModel):
@@ -200,6 +239,73 @@ class SQLiteRelationshipPageAdapter:
             """)
             repository._conn.commit()
 
+            repository._conn.executescript("""
+            CREATE TABLE IF NOT EXISTS relationship_object_sources (
+              id TEXT PRIMARY KEY, version INTEGER NOT NULL, sources TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS relationship_edge_sources (
+              id TEXT PRIMARY KEY, payload TEXT NOT NULL, sources TEXT NOT NULL);
+            CREATE TRIGGER IF NOT EXISTS rq_sources_object_update AFTER UPDATE ON objects
+              BEGIN DELETE FROM relationship_object_sources WHERE id=OLD.id; END;
+            CREATE TRIGGER IF NOT EXISTS rq_sources_object_delete AFTER DELETE ON objects
+              BEGIN DELETE FROM relationship_object_sources WHERE id=OLD.id; END;
+            CREATE TRIGGER IF NOT EXISTS rq_sources_edge_update AFTER UPDATE ON relationships
+              BEGIN DELETE FROM relationship_edge_sources WHERE id=OLD.id; END;
+            CREATE TRIGGER IF NOT EXISTS rq_sources_edge_delete AFTER DELETE ON relationships
+              BEGIN DELETE FROM relationship_edge_sources WHERE id=OLD.id; END;
+            CREATE TRIGGER IF NOT EXISTS rq_object_sources_insert AFTER INSERT ON relationship_object_sources
+              BEGIN UPDATE relationship_query_revision SET revision=revision+1 WHERE singleton=1; END;
+            CREATE TRIGGER IF NOT EXISTS rq_object_sources_update AFTER UPDATE ON relationship_object_sources
+              BEGIN UPDATE relationship_query_revision SET revision=revision+1 WHERE singleton=1; END;
+            CREATE TRIGGER IF NOT EXISTS rq_object_sources_delete AFTER DELETE ON relationship_object_sources
+              BEGIN UPDATE relationship_query_revision SET revision=revision+1 WHERE singleton=1; END;
+            CREATE TRIGGER IF NOT EXISTS rq_edge_sources_insert AFTER INSERT ON relationship_edge_sources
+              BEGIN UPDATE relationship_query_revision SET revision=revision+1 WHERE singleton=1; END;
+            CREATE TRIGGER IF NOT EXISTS rq_edge_sources_update AFTER UPDATE ON relationship_edge_sources
+              BEGIN UPDATE relationship_query_revision SET revision=revision+1 WHERE singleton=1; END;
+            CREATE TRIGGER IF NOT EXISTS rq_edge_sources_delete AFTER DELETE ON relationship_edge_sources
+              BEGIN UPDATE relationship_query_revision SET revision=revision+1 WHERE singleton=1; END;
+            """)
+
+    @staticmethod
+    def _sources(source_ids: frozenset[str]) -> str:
+        if (
+            type(source_ids) is not frozenset
+            or not 1 <= len(source_ids) <= 32
+            or any(
+                type(value) is not str or not value.strip() or len(value) > 512
+                for value in source_ids
+            )
+        ):
+            raise ValueError("Explicit bounded source references are required")
+        return json.dumps(sorted(source_ids))
+
+    def bind_object_sources(self, object_id: str, source_ids: frozenset[str]) -> None:
+        """Trusted importer declares ALL contributing sources, not permissions."""
+        sources = self._sources(source_ids)
+        with self.repository._lock:
+            obj = self.repository.get_object(object_id)
+            if obj is None or obj.id != object_id:
+                raise ValueError("Cannot bind missing object")
+            self.repository._conn.execute(
+                "INSERT OR REPLACE INTO relationship_object_sources VALUES(?,?,?)",
+                (obj.id, obj.version, sources),
+            )
+            self.repository._conn.commit()
+
+    def bind_relationship_sources(self, relationship_id: str, source_ids: frozenset[str]) -> None:
+        sources = self._sources(source_ids)
+        with self.repository._lock:
+            row = self.repository._conn.execute(
+                "SELECT payload FROM relationships WHERE id=?", (relationship_id,)
+            ).fetchone()
+            if row is None:
+                raise ValueError("Cannot bind missing relationship")
+            self.repository._conn.execute(
+                "INSERT OR REPLACE INTO relationship_edge_sources VALUES(?,?,?)",
+                (relationship_id, row["payload"], sources),
+            )
+            self.repository._conn.commit()
+
     def bind_object(self, object_id: str, *, tenant_id: str) -> None:
         """Trusted importer only; not exposed through runtime or tool contracts."""
         if not tenant_id:
@@ -250,9 +356,10 @@ class SQLiteRelationshipPageAdapter:
         conn = self.repository._conn
         conn.set_progress_handler(progress, 100)
         try:
-            return conn.execute(
-                _PAGE_SQL if direction == "out" else _IN_PAGE_SQL, parameters
-            ).fetchall()
+            sql = _PAGE_SQL if direction == "out" else _IN_PAGE_SQL
+            if "authorized_sources" in parameters:
+                sql = sql.replace("ORDER BY r.id", _SOURCE_SQL + "\nORDER BY r.id")
+            return conn.execute(sql, parameters).fetchall()
         except sqlite3.OperationalError as exc:
             raise RelationshipQueryUnavailable("Relationship paging is unavailable") from exc
         finally:
@@ -277,13 +384,39 @@ class HostRelationshipReader:
             raise RelationshipQueryUnavailable("Relationship paging is unavailable")
         self.service, self.adapter = service, adapter
         self._identity, self._visibility = identity, visibility
+        self._source_access: Callable[[ExecutionContext], RelationshipSourceAccess] | None = None
         self._cursors: OrderedDict[str, tuple[float, str, tuple[int, int], str]] = OrderedDict()
+
+    def configure_source_access(
+        self, resolver: Callable[[ExecutionContext], RelationshipSourceAccess]
+    ) -> None:
+        """Trusted host composition only; replace or revoke the resolver locally."""
+        if not callable(resolver):
+            raise ValueError("Current source authorization resolver is required")
+        with self.adapter.repository._lock:
+            self._source_access = resolver
+            self._cursors.clear()
 
     def read(self, query: RelationshipPageQuery) -> RelationshipPage:
         context = self._identity()
         if type(context) is not ExecutionContext or not context.actor_id or not context.tenant_id:
             raise AuthorizationError("Authenticated actor and tenant are required")
         grants = self._visibility(context)
+        access = None
+        if self._source_access is not None:
+            # Revalidate even frozen/model_copy objects from the trusted adapter.
+            access = RelationshipSourceAccess.model_validate(
+                self._source_access(context).model_dump()
+            )
+            if (
+                access.actor_id != context.actor_id
+                or access.tenant_id != context.tenant_id
+                or access.actor_roles != context.actor_roles
+                or access.expires_at.tzinfo is None
+                or access.expires_at.utcoffset() is None
+                or datetime.now(timezone.utc) >= access.expires_at
+            ):
+                raise AuthorizationError("Source access is unavailable")
         policy = self.service.runtime.policy_engine
         # Arbitrary policy engines cannot safely be translated into SQL here.
         if type(policy) is not RolePolicyEngine:
@@ -315,6 +448,7 @@ class HostRelationshipReader:
                     "types": sorted(types),
                     "scopes": sorted(scopes),
                     "registry": asdict(registry) if registry else None,
+                    "source_access": access.model_dump(mode="json") if access else None,
                 },
                 sort_keys=True,
                 default=lambda v: sorted(v),
@@ -347,8 +481,23 @@ class HostRelationshipReader:
                     or not policy.can_read_object(roles, subject)
                 ):
                     raise AuthorizationError("Object is unavailable")
+                if access is not None:
+                    source_row = repo._conn.execute(
+                        "SELECT sources FROM relationship_object_sources WHERE id=? AND version=?",
+                        (query.asset_id, subject.version),
+                    ).fetchone()
+                    if (
+                        source_row is None
+                        or not json.loads(source_row["sources"])
+                        or not set(json.loads(source_row["sources"])).issubset(access.source_ids)
+                    ):
+                        raise AuthorizationError("Object is unavailable")
+                parameters = (
+                    {"authorized_sources": json.dumps(sorted(access.source_ids))} if access else {}
+                )
                 rows = self.adapter.page(
                     {
+                        **parameters,
                         "asset": query.asset_id,
                         "tenant": context.tenant_id,
                         "after": after,
@@ -377,6 +526,9 @@ class HostRelationshipReader:
                     )
                     neighbors.append(policy.filter_properties(roles, neighbor))
                 token = None
+                # Rights may expire during database work or property projection.
+                if access is not None and datetime.now(timezone.utc) >= access.expires_at:
+                    raise AuthorizationError("Source access is unavailable")
                 if len(rows) > query.limit:
                     token = secrets.token_urlsafe(32)
                     self._cursors[token] = (

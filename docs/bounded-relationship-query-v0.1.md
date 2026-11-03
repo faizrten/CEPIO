@@ -12,6 +12,14 @@ Both endpoints must match current identity/type, tenant and version. SQL applies
 
 ## Continuation and bounded work
 
+### Current source-rights propagation
+
+An optional host-owned `source_access` resolver enables source-aware mode. `RelationshipSourceAccess` carries current actor/roles/tenant, fixed `operational_inspection` purpose, authorized source IDs (at most 256), a rights revision and expiry. The host must verify source permissions, derivative ancestry and revocation before returning this result; this model is an adapter contract, not proof of consent or a second sovereignty registry. Pending #299 implementations remain independent.
+
+Trusted importers use `bind_object_sources` and `bind_relationship_sources` to declare **all** contributing sources (1–32 references, each bounded to 512 characters). These bindings are version/payload-specific and revoked on mutation. Source-aware reads require bindings and authorization for the subject, each relationship and both endpoints before SQL materialization. Missing/ungranted secondary sources suppress the link without counts. Rights are rechecked on every page, bound into continuations and checked against current UTC at admission and release. No source IDs or rights metadata are projected to callers. See [ADR-0051](adr/ADR-0051-current-source-rights-in-relationship-pages.md).
+
+Legacy readers without this resolver remain host-local only. No production endpoint is added by this increment. Actual source-binding completeness/authority and the availability/timing limits below still require qualification.
+
 Ordering is deterministic by persisted relationship ID within a direction. Continuations are random server-local tokens (maximum 1,024 states, ten-minute lifetime), bound to actor, roles, tenant, asset, direction, page size, current grants, policy contents, expanded type rules and database revision. Mutation triggers cover objects, relationships and security bindings; SQLite data-version checks also conservatively invalidate on another connection's commits. A changed/stale/unknown token is rejected. A host restart or eviction invalidates tokens. No caller-supplied offset, snapshot declaration or last-seen ID is trusted.
 
 The query is limited to 200,000 SQLite VM instructions (100-instruction progress intervals) and at most 51 materialized rows. This is a hard work ceiling, not an unqualified latency SLA. A pathological denied fanout can exhaust the budget and return a generic unavailable result. The response has no denied count, but availability and timing may still correlate with graph size. **Constant-time/noninterference, denial-of-service resilience, real authenticated host identity, source-use propagation and protocol qualification remain remote-exposure blockers under #329.** Do not expose this reference as a hosted workbench solely because its synthetic tests pass.
