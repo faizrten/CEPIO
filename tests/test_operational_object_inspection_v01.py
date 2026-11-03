@@ -119,3 +119,28 @@ def test_restricted_subject_does_not_become_visible_through_inspection():
             service, "WO-SECRET",
             ExecutionContext(actor_id="viewer", actor_roles=frozenset({"viewer"})),
         )
+
+
+def test_max_related_limits_serialized_link_references():
+    runtime, service = fixture_service()
+    runtime.upsert_object(
+        OntologyObject(
+            id="WO-2", type="WorkOrder", name="Second work order",
+            properties={"status": "planned", "sharingScope": "public"},
+        )
+    )
+    runtime.add_relationship(
+        Relationship(
+            type="hasWorkOrder",
+            source=ObjectRef(id="K-201", type="Compressor"),
+            target=ObjectRef(id="WO-2", type="WorkOrder"),
+        )
+    )
+    snapshot = inspect_operational_object(
+        service,
+        "K-201",
+        ExecutionContext(actor_id="viewer", actor_roles=frozenset({"viewer"})),
+        max_related=1,
+    )
+    assert len(snapshot.links) == 1
+    assert len(snapshot.context.related_objects) == 1
