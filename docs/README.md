@@ -70,7 +70,8 @@ See [Current State](current-state.md).
 - [Query contract](query-contract.md)
 - [Application Contract v0.2](application-contract-v0.2.md)
 - [Operational Object Activation v0.1](operational-object-activation-v0.1.md)
-- [Operational State & Evidence Inspection v0.1](operational-state-inspection-v0.1.md) — host-scoped temporal and versioned observation consistency; not source-attested. — read-only K-201 reference inspection; explicitly not live-qualified.
+- [Operational State & Evidence Inspection v0.1](operational-state-inspection-v0.1.md)
+- [Operational State Alignment v0.1](operational-state-alignment-v0.1.md) — synthetic cross-source state consistency and conflict blocking, non-authoritative. — host-scoped temporal and versioned observation consistency; not source-attested. — read-only K-201 reference inspection; explicitly not live-qualified.
 - [Protocol Convergence v0.3](protocol-convergence-v0.3.md)
 
 ## Kinetic / governed execution
