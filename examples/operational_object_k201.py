@@ -6,6 +6,7 @@ Run from the repository root:
 Demonstrates local application composition only. No live PI/SAP, cloud calls, source
 attestation, identity-token verification, decision persistence or Action execution.
 """
+
 from __future__ import annotations
 
 import json
