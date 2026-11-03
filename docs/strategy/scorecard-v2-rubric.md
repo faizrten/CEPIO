@@ -63,6 +63,10 @@ This is a **candidate evidence review queue**, not an award of points, not proof
 
 Four candidate gates have **no direct legacy gate match**: IQ4 (calibrated uncertainty), AS1 (matched uplift), AS4 (Capability Passport), UX2 (expert-reviewed workflow burden). They deliberately represent strategic maturity that was not scored directly before.
 
+## Historical YAML parsing note (M1/M2/M4)
+
+The original v1 manifest has three unquoted titles containing ` #1` or ` #2`: M1, M2 and M4. YAML treats the unquoted hash as the start of a comment; their effective parsed `title` is just `Enterprise`. The v2 crosswalk records **both** the original source text for reviewer comprehension and the parsed canonical title for machine-evidence identity. This PR does **not** silently fix or rewrite historical v1 data. Any later legacy-title correction should be an independent governed change.
+
 ## Score comparisons and accountability
 
 **69/100 v1 is historical, not an input for 69/100 v2.** The crosswalk covers all 34 old gates, preserves their individual points and achieved credit, and maps evidence *topics* rather than transferring points. Once independent v2 scoring is complete, report:
