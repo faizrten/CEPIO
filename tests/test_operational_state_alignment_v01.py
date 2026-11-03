@@ -108,11 +108,11 @@ def case(*, state: str = "tripped", sources_count: int = 2):
     )
     srcs = []
     for i in range(sources_count):
-        name = f"synthetic-{i+1}"
+        name = f"synthetic-{i + 1}"
         adapter = FakeStateSource(name, now)
         registration = register_evidence_binding(adapter, capability_id="state-observation")
         plan = HostOperationalStatePlan(
-            plan_id=f"plan-{i+1}",
+            plan_id=f"plan-{i + 1}",
             organization_id="tenant-A",
             capability_id="state-observation",
             subject=mapping.subject,
@@ -198,20 +198,14 @@ def test_single_source_is_not_independent_corroboration():
 def test_two_bindings_from_same_upstream_system_are_not_independent():
     config = case()
     second = config[2][1].binding
-    second.manifest = second.manifest.model_copy(
-        update={"source_system": "synthetic-1"}
-    )
-    second.reference = second.reference.model_copy(
-        update={"source_system": "synthetic-1"}
-    )
+    second.manifest = second.manifest.model_copy(update={"source_system": "synthetic-1"})
+    second.reference = second.reference.model_copy(update={"source_system": "synthetic-1"})
     original = config[2][1]
     config[2] = (
         config[2][0],
         StateSourceSelection(
             binding=second,
-            registration=register_evidence_binding(
-                second, capability_id="state-observation"
-            ),
+            registration=register_evidence_binding(second, capability_id="state-observation"),
             plan=original.plan,
             role=original.role,
         ),
@@ -339,9 +333,7 @@ def test_canonical_registry_and_type_guards():
     block(tuple(config), "PROPERTY_UNSUPPORTED")
 
     config = list(case())
-    config[1] = config[1].model_copy(
-        update={"subject": ObjectRef(id="K-201", type="Pump")}
-    )
+    config[1] = config[1].model_copy(update={"subject": ObjectRef(id="K-201", type="Pump")})
     altered = tuple(
         StateSourceSelection(
             binding=s.binding,
@@ -398,9 +390,7 @@ def test_no_host_source_write_surface_allowed():
 
 def test_stale_source_does_not_become_candidate():
     config = case()
-    config[2][1].binding.payload["observed_at"] = (
-        config[4] - timedelta(seconds=121)
-    )
+    config[2][1].binding.payload["observed_at"] = config[4] - timedelta(seconds=121)
     with pytest.raises(OperationalStateReadError) as exc:
         run(config)
     assert exc.value.code == "SOURCE_STALE"
