@@ -323,3 +323,36 @@ def test_evaluation_time_requires_timezone():
     case[6] = datetime.now()
     assert_blocked(tuple(case), "TIMEZONE_REQUIRED")
     assert case[1].calls == 0
+
+
+def test_historical_read_cannot_use_correction_recorded_after_evaluation():
+    case = list(configured_case())
+    service = case[0]
+    original = service.runtime.get_object("K-201")
+    valid_time = datetime.now(timezone.utc) - timedelta(minutes=10)
+    initial_properties = dict(original.properties)
+    initial_properties["validFrom"] = (
+        valid_time - timedelta(minutes=1)
+    ).isoformat()
+    first = service.runtime.upsert_object(
+        original.model_copy(update={"properties": initial_properties}),
+        expected_version=original.version,
+    )
+    first_transaction = service.runtime.object_repository.object_history(
+        "K-201"
+    )[-1].transaction_time
+    corrected_properties = dict(first.properties)
+    corrected_properties["criticality"] = "low"
+    service.runtime.upsert_object(
+        first.model_copy(update={"properties": corrected_properties}),
+        expected_version=first.version,
+    )
+    case[5] = valid_time
+    case[6] = first_transaction
+    case[1].payload["observed_at"] = valid_time - timedelta(seconds=10)
+
+    result = inspect_case(tuple(case))
+    assert result.historical_subject.properties == {"criticality": "high"}
+    assert result.object_inspection.context.subject.properties == {"criticality": "low"}
+    assert result.receipt.age_seconds == pytest.approx(10)
+    assert result.source_to_state_alignment == "not_proven"
