@@ -6,7 +6,7 @@ import pytest
 from cepio.accc_host_admission import (
     EvidenceVerification, HostPrincipal, RuntimeAdmissionResolver,
 )
-from cepio.accc_readonly import CompositionRequest
+from cepio.accc_readonly import CompositionRequest, CompositionStatus, HostBoundComposer, ReadOnlyComposer
 from cepio.capability_registry import (
     CapabilityLayer, CapabilityMaturity, CapabilityProvenance,
     CapabilityRecord, CapabilityRegistry,
@@ -76,3 +76,28 @@ def test_blocked_preflight_never_becomes_ready():
 def test_unverified_evidence_fails_closed():
     with pytest.raises(PermissionError):
         RuntimeAdmissionResolver(registry(), Skills(), Services(False))(request())
+
+
+def test_host_failure_returns_blocked_plan():
+    host = HostBoundComposer(ReadOnlyComposer(registry()),
+                             RuntimeAdmissionResolver(registry(), Skills(), Services(False)))
+    plan = host.compose(request())
+    assert plan.status == CompositionStatus.BLOCKED
+    assert plan.blockers == ["HOST_ADMISSION_UNAVAILABLE"]
+    assert plan.capability_ids == []
+
+
+def test_host_ready_skill_is_necessary_for_plan():
+    host = HostBoundComposer(ReadOnlyComposer(registry()),
+                             RuntimeAdmissionResolver(registry(), Skills("BLOCKED"), Services()))
+    plan = host.compose(request())
+    assert plan.status == CompositionStatus.BLOCKED
+    assert "SKILL_PREFLIGHT_NOT_READY" in plan.blockers
+
+
+def test_host_valid_admission_returns_plan_only():
+    host = HostBoundComposer(ReadOnlyComposer(registry()),
+                             RuntimeAdmissionResolver(registry(), Skills(), Services()))
+    plan = host.compose(request())
+    assert plan.status == CompositionStatus.READY
+    assert plan.read_only and not plan.external_action_executed
