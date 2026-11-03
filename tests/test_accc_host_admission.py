@@ -149,3 +149,17 @@ def test_skill_preflight_exception_does_not_grant_readiness():
 
     result = RuntimeAdmissionResolver(registry(), MissingSkill(), Services())(request())
     assert result.ready_skill_ids == set()
+
+
+def test_unapproved_capability_does_not_run_skill_preflight():
+    class DeniedServices(Services):
+        def eligible_capabilities(self, request, principal):
+            return set()
+
+    skills = Skills()
+    admission = RuntimeAdmissionResolver(
+        registry(), skills, DeniedServices()
+    )(request())
+    assert admission.approved_capability_ids == set()
+    assert admission.ready_skill_ids == set()
+    assert skills.calls == []
