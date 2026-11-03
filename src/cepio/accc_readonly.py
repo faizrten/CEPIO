@@ -140,7 +140,10 @@ class HostBoundComposer:
         self._resolve_admission = resolve_admission
 
     def compose(self, request: CompositionRequest) -> CompositionPlan:
-        admission = self._resolve_admission(request)
+        try:
+            admission = self._resolve_admission(request)
+        except (PermissionError, ValueError, KeyError):
+            return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=["HOST_ADMISSION_UNAVAILABLE"])
         if not isinstance(admission, TrustedAdmission):
             return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=["HOST_ADMISSION_UNAVAILABLE"])
         return self._composer.compose(request, admission)
