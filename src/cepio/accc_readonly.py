@@ -80,15 +80,24 @@ class ReadOnlyComposer:
         ))
         if routed.blocked:
             return CompositionPlan(status=CompositionStatus.BLOCKED, blockers=["REQUIRED_CAPABILITY_UNKNOWN"])
+        # An explicit required set is an allowlist for this bounded proof. Lexical
+        # neighbors must never silently become admitted dependencies.
+        candidate_routes = [
+            route for route in routed.routes
+            if not request.required_capability_ids
+            or route.capability_id in request.required_capability_ids
+        ]
         selected = []
         skills: set[str] = set()
         missing: set[str] = set()
         blockers: set[str] = set()
-        for route in routed.routes:
+        for route in candidate_routes:
             capability = self.registry.get(route.capability_id)
             if capability is None:
                 blockers.add("CAPABILITY_NOT_REGISTERED")
                 continue
+            if capability.layer.value == "PROFILE":
+                blockers.add("PROFILE_CAPABILITY_NOT_SUPPORTED")
             if capability.id not in admission.approved_capability_ids:
                 blockers.add("CAPABILITY_NOT_HOST_APPROVED")
             if capability.maturity not in {CapabilityMaturity.QUALIFIED, CapabilityMaturity.PRODUCTION}:
@@ -103,6 +112,8 @@ class ReadOnlyComposer:
                 blockers.add("SKILL_PREFLIGHT_NOT_READY")
             selected.append(capability.id)
             skills.update(capability.skills)
+        if request.required_capability_ids - set(selected):
+            blockers.add("REQUIRED_CAPABILITY_NOT_SELECTED")
         if admission.source_conflicts:
             blockers.add("SOURCE_CONFLICT")
         if not selected:
