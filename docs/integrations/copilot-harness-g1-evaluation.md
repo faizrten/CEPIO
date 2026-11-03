@@ -60,6 +60,23 @@ Hold model and version, scenario version, K-101 evidence snapshot, task prompt, 
 
 **Minimum per-run artifact:** agent kind/harness/version, model/version, scenario ID/hash, source snapshot and available-at time, prompt/hash, allowed tool list, verified Entra actor mapping (no tokens), correlation ID, actual MCP call/result trace, material evidence IDs, Decision ID, independent Decision verification record, forbidden-tool count, error/recovery sequence, wall time, model tokens, and measured service cost. Scrub sensitive metadata before public reporting.
 
+## Offline comparison implementation (repository-only)
+
+The public offline verifier is `scripts/compare_foundry_g1_harness.py`; it reuses `qualify_payload` from the existing G1 runner and requires the exact G1 MCP allow-list. It has **no Azure dependency and performs no inference**.
+
+```bash
+python scripts/compare_foundry_g1_harness.py \
+  --control /safe/evidence/standard-g1.json \
+  --candidate /safe/evidence/copilot-preview-g1.json \
+  --json-out /safe/evidence/protocol-comparison.json
+```
+
+The control artifact is the G1 runner's JSON output (now recording its `model` and `harness` as metadata). A candidate artifact must have the same G1 result envelope and explicitly declare `harness: microsoft_copilot_preview`, `model`, and the real structured `response`. Candidate collection must use a new, separate Foundry agent, an explicit conversation, verified persisted definition, and exactly the allow-listed MCP tools, as documented by Microsoft.
+
+The comparison returns `PROTOCOL_COMPARABLE` only when both artifacts' structured MCP calls pass the original G1 protocol validation, no unlisted tools appear, and model/subject/host metadata is coherent. It **always** reports `live_g1_qualified: false`, `decision_persistence_verified: false`, and `performance_uplift_established: false` because saved agent JSON is not independently trusted host-side proof. Model/version or subject mismatch fails closed rather than attributing an uplift to the harness.
+
+**Important:** In the current Copilot harness preview, every request needs a conversation; the original G1 baseline runner uses a non-conversational Responses call. The candidate integration therefore needs its own reviewed collection path. Do not fake parity, alter the baseline's authority, or call the comparison tool a substitute for independent G1 host-side Decision verification.
+
 ## Qualification and adoption gate
 
 All hard gates must pass before interpreting performance:
