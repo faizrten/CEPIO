@@ -159,13 +159,17 @@ mapping:
     candidate_gates: ["IQ1", "CO2"]
     disposition: "reassess_no_automatic_credit"
   - old_gate: "M1"
-    old_title: "Enterprise #1 real production-context deployment"
+    old_title: "Enterprise"
+    raw_legacy_title_in_source: "Enterprise #1 real production-context deployment"
+    title_parsing_note: "Unquoted # in legacy YAML comments out rest of title; preserve parsed v1 value without editing historical baseline"
     old_points: 2
     old_earned: 0
     candidate_gates: ["IN1", "PR2", "UX3"]
     disposition: "reassess_no_automatic_credit"
   - old_gate: "M2"
-    old_title: "Enterprise #2 materially different real production-context deployment"
+    old_title: "Enterprise"
+    raw_legacy_title_in_source: "Enterprise #2 materially different real production-context deployment"
+    title_parsing_note: "Unquoted # in legacy YAML comments out rest of title; preserve parsed v1 value without editing historical baseline"
     old_points: 2
     old_earned: 0
     candidate_gates: ["IN3", "UX3"]
@@ -177,7 +181,9 @@ mapping:
     candidate_gates: ["CO2", "IN3"]
     disposition: "reassess_no_automatic_credit"
   - old_gate: "M4"
-    old_title: "Enterprise #1 remains stable when enterprise #2 is introduced"
+    old_title: "Enterprise"
+    raw_legacy_title_in_source: "Enterprise #1 remains stable when enterprise #2 is introduced"
+    title_parsing_note: "Unquoted # in legacy YAML comments out rest of title; preserve parsed v1 value without editing historical baseline"
     old_points: 2
     old_earned: 0
     candidate_gates: ["CO2", "PR2"]
