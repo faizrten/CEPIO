@@ -56,7 +56,10 @@ def main():
     for identifier, kind in (("asset", "Asset"), ("order", "Order")):
         repo.upsert_object(
             OntologyObject(
-                id=identifier, type=kind, properties={"status": tenant, "secret": "never returned"}
+                id=identifier,
+                type=kind,
+                name=identifier,
+                properties={"status": tenant, "secret": "never returned"},
             )
         )
         adapter.bind_object(identifier, tenant_id=tenant)
@@ -109,6 +112,7 @@ def main():
             libc.malloc.argtypes = [ctypes.c_size_t]
             libc.malloc.restype = ctypes.c_void_p
             libc.free.argtypes = [ctypes.c_void_p]
+            libc.free.restype = None
             pointer = libc.malloc(AS_BYTES * 2)
             if pointer:
                 libc.free(pointer)
