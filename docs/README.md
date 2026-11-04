@@ -265,3 +265,5 @@ If a change genuinely has no documentation impact, the PR should explicitly stat
 
 - [ACCC read-only composition candidate](architecture/accc-harness-readonly-spike.md) — host binding, optional SDK tool and offline reproduction.
 - [ADR-0056 — Accounted relationship cursor retention](adr/ADR-0056-accounted-relationship-cursor-retention.md)
+
+- [ADR-0057 — Linux relationship process qualification](adr/ADR-0057-linux-relationship-process-qualification.md)
