@@ -71,7 +71,7 @@ def inspect_relationship_cgroup(
     ancestor/host limits, disk I/O, fairness, launcher startup, future revocation,
     repeated health, or artifact integrity. A candidate is not production authority.
     """
-    controllers = _read_small(cgroup_dir, "cgroup.controllers")
+    group_type = _read_small(cgroup_dir, "cgroup.type")
     memory_limit = _integer(_read_small(cgroup_dir, "memory.max"))
     pids_limit = _integer(_read_small(cgroup_dir, "pids.max"))
     memory_used = _integer(_read_small(cgroup_dir, "memory.current"), allow_zero=True)
@@ -82,8 +82,8 @@ def inspect_relationship_cgroup(
     cpu_cores = cpu_quota / cpu_period if cpu_quota is not None and cpu_period else None
 
     findings: list[str] = []
-    if controllers is None or not {"cpu", "memory", "pids"}.issubset(controllers.split()):
-        findings.append("cgroup_v2_controllers_unverified")
+    if group_type not in {"domain", "domain threaded", "threaded"}:
+        findings.append("cgroup_v2_membership_unverified")
     if memory_limit is None or memory_limit > policy.max_memory_bytes:
         findings.append("memory_ceiling_missing_or_excessive")
     if pids_limit is None or pids_limit > policy.max_pids:
