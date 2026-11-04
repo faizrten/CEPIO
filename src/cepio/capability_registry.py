@@ -7,9 +7,18 @@ import json
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from datetime import datetime, timezone
+from typing import Mapping
 
 import yaml
 from pydantic import BaseModel, Field, model_validator
+
+from .sovereignty import (
+    IntelligenceSovereigntyContract,
+    PermittedUse,
+    SovereigntyDenied,
+    authorize_source_use,
+)
 
 
 class CapabilityLayer(str, Enum):
@@ -40,6 +49,7 @@ class CapabilityEvidenceRef(BaseModel):
     question_ids: set[str] = Field(default_factory=set)
     scope: EvidenceScope = EvidenceScope.DOMAIN
     customer_specific: bool = False
+    sovereignty_source_id: str | None = None
 
 
 class CapabilityProvenance(BaseModel):
@@ -75,6 +85,16 @@ class CapabilityRecord(BaseModel):
 
     @model_validator(mode="after")
     def protect_global_knowledge_boundary(self) -> "CapabilityRecord":
+        # Compiled IQ hashes provenance.source_ids in the protected compiler.
+        # Force every tagged source into that digest so changing a rights tag
+        # cannot silently reuse a bundle compiled for a different source.
+        tagged = {
+            item.sovereignty_source_id
+            for item in self.evidence
+            if item.sovereignty_source_id is not None
+        }
+        if not tagged.issubset(set(self.provenance.source_ids)):
+            raise ValueError("tagged evidence must appear in capability provenance source_ids")
         if self.layer != CapabilityLayer.PROFILE:
             violating = [
                 item.id
@@ -223,6 +243,59 @@ def evaluate_promotion(
     regression_survival_rate: float,
     policy: CapabilityPromotionPolicy,
 ) -> PromotionEvaluation:
+    """Legacy-compatible entry: tagged source evidence is never implicitly approved."""
+
+    return _evaluate_promotion(
+        candidate,
+        decision=decision,
+        regression_survival_rate=regression_survival_rate,
+        policy=policy,
+        sovereignty_records=None,
+    )
+
+
+def evaluate_promotion_with_rights(
+    candidate: PromotionCandidate,
+    *,
+    decision: HumanDecision | None,
+    regression_survival_rate: float,
+    policy: CapabilityPromotionPolicy,
+    sovereignty_records: Mapping[str, IntelligenceSovereigntyContract],
+) -> PromotionEvaluation:
+    """Opt-in governed path; all evidence must carry explicit source identity."""
+
+    if not candidate.proposed.evidence or any(
+        not item.sovereignty_source_id for item in candidate.proposed.evidence
+    ):
+        return PromotionEvaluation(
+            candidate_id=candidate.id,
+            status="BLOCKED",
+            blockers=["governed promotion requires source-tagged evidence"],
+        )
+    if not candidate.proposed.provenance.source_ids:
+        return PromotionEvaluation(
+            candidate_id=candidate.id,
+            status="BLOCKED",
+            blockers=["governed promotion requires complete source provenance"],
+        )
+
+    return _evaluate_promotion(
+        candidate,
+        decision=decision,
+        regression_survival_rate=regression_survival_rate,
+        policy=policy,
+        sovereignty_records=sovereignty_records,
+    )
+
+
+def _evaluate_promotion(
+    candidate: PromotionCandidate,
+    *,
+    decision: HumanDecision | None,
+    regression_survival_rate: float,
+    policy: CapabilityPromotionPolicy,
+    sovereignty_records: Mapping[str, IntelligenceSovereigntyContract] | None,
+) -> PromotionEvaluation:
     blockers: list[str] = []
     proposed = candidate.proposed
     if proposed.layer not in policy.allowed_target_layers:
@@ -238,6 +311,27 @@ def evaluate_promotion(
         item.customer_specific or item.scope == EvidenceScope.PROFILE for item in proposed.evidence
     ):
         blockers.append("customer-specific evidence cannot justify global capability promotion")
+    # Rights are independent of the candidate. Authorize the complete source
+    # set, not just those whose evidence item happens to carry a tag.
+    tagged_sources = {
+        evidence.sovereignty_source_id
+        for evidence in proposed.evidence
+        if evidence.sovereignty_source_id is not None
+    }
+    if tagged_sources:
+        all_sources = set(proposed.provenance.source_ids) | tagged_sources
+        for source_id in sorted(all_sources):
+            try:
+                authorize_source_use(
+                    source_id,
+                    records=sovereignty_records or {},
+                    use=PermittedUse.GLOBAL_LEARNING,
+                    tenant_id=None,
+                    at=datetime.now(timezone.utc),
+                )
+            except SovereigntyDenied:
+                blockers.append("capability provenance lacks verified global learning permission")
+                break
     if regression_survival_rate < policy.minimum_regression_survival_rate:
         blockers.append(
             "regression survival rate "
