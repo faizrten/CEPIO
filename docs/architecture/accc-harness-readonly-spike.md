@@ -100,3 +100,45 @@ Capability maturity, validated domain and exclusion of PROFILE capabilities are
 checked before source reads, using the existing composition qualification logic.
 A matching host-owned contract digest alone does not establish eligibility.
 Regression cases pin otherwise ineligible contracts and verify zero source reads.
+
+Additional review regression tests cover an unsupported policy on an otherwise
+pinned capability, altered source references, source exception redaction and token
+expiry between calls on the same request-scoped HTTP binding. The token test uses
+a locally generated RS256 key, offline JWKS substitution and a controlled validator
+clock; it performs no network request or wall-clock wait. These tests also run with
+existing Python tooling:
+
+```sh
+PYTHONPATH=src python -m unittest discover -s tests -p test_accc_review_boundaries.py -v
+```
+
+## Bounded v0.2 experiment brief — proposed, not implemented
+
+Desired outcome: select the minimum sufficient compatible competence and context
+for a professional request, then submit that proposal to the existing authenticated
+admission boundary. A proposed selection must never carry its own authority.
+
+Reuse `CapabilityRouter`, `ContextAssembler` and `RetrievalContextPipeline` before
+adding selection logic. Keep candidate ranking and domain reasoning in Industry IQ
+or protected Labs; retain the existing provider-neutral request and host admission
+contracts. Do not relax the explicit compatible sets, contract pins, required
+capability allowlist or source checks to make an experiment succeed. Any additional
+host interface needs its own bounded review.
+
+Compare three frozen arms in Labs: fixed composition; fixed competence with
+retrieved cross-session context; and bounded adaptive context/competence selection.
+Use the same synthetic evidence, model/tool availability and resource ceilings.
+Limit each candidate plan to three Skills, with no paid inference or external
+Actions. K-201 and Reservoir R3 are proposed evaluation domains; this PR supplies
+only the synthetic K-201 mechanics fixture, not R3 reasoning or an evaluation corpus.
+R3 results must remain probabilistic, with quantitative uncertainty and qualitative
+assumptions; a deterministic test run must not imply a deterministic reservoir.
+
+Acceptance requires correct context refresh across roles/sessions; rejection of
+stale, conflicting, revoked and wrong-tenant context; rejection of incompatible or
+unqualified competence; and reproducible selection/admission records. Independent
+assessment must separate selection quality, evidence fidelity, uncertainty,
+critical errors, abstention, review effort and resource usage. Matching the baseline
+without measured improvement does not establish uplift. Protected case labels,
+expert assessments and industrial reasoning remain in Labs. No Core promotion,
+scorecard credit, production activation or qualification is implied by this brief.
