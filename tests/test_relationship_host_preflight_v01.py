@@ -1,7 +1,5 @@
 """Offline fail-closed cgroup resource inspection; no host configuration changes."""
 
-from pathlib import Path
-
 import pytest
 from pydantic import ValidationError
 
@@ -74,7 +72,14 @@ def test_misconfigured_or_exhausted_limit_fails_closed(limits, name, value, prob
 
 def test_missing_files_are_not_mistaken_for_unbounded_access(limits):
     directory, policy = limits
-    for name in ("cgroup.type", "memory.max", "pids.max", "cpu.max", "memory.current", "pids.current"):
+    for name in (
+        "cgroup.type",
+        "memory.max",
+        "pids.max",
+        "cpu.max",
+        "memory.current",
+        "pids.current",
+    ):
         (directory / name).unlink()
     result = inspect_relationship_cgroup(directory, policy)
     assert not result.bounded_candidate
