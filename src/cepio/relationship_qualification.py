@@ -62,6 +62,7 @@ class RelationshipQualificationBoundary:
         self._context: ContextVar[ExecutionContext] = ContextVar("relationship_qualification_actor")
         self._reader = HostRelationshipReader(service, adapter, self._context.get, visibility)
         self._reader.configure_source_access(source_access)
+        self._reader.configure_retention_budget()
 
     def _admit(self, context: ExecutionContext) -> None:
         if (
