@@ -370,6 +370,42 @@ class ContextAssembler:
             updated_capabilities,
         )
 
+    def assemble_for_task(
+        self,
+        candidates: list[ContextCandidate],
+        *,
+        required_ids: frozenset[str],
+        tenant_id: str,
+        budget: ContextBudget,
+        at: datetime | None = None,
+    ) -> ContextAssemblyResult:
+        """Compose host-authorized candidates against a server-owned task requirement.
+
+        The caller resolves source permissions before passing candidates. Return
+        a generic blocker when a required binding is absent or ambiguous.
+        """
+        blocked = ContextAssemblyResult(
+            status=ContextStatus.BLOCKED, selected=[], dropped_ids=[],
+            blockers=["Required task context unavailable"], usage=ContextUsage(),
+        )
+        if not tenant_id or not required_ids:
+            return blocked
+        effective_at = at or utcnow()
+        eligible = [
+            candidate for candidate in candidates
+            if candidate.record.visible_to(tenant_id)
+            and not candidate.record.expired_at(effective_at)
+        ]
+        ids = [candidate.record.id for candidate in eligible]
+        if len(ids) != len(set(ids)) or not required_ids.issubset(ids):
+            return blocked
+        prepared = [
+            candidate.model_copy(update={"required": True})
+            if candidate.record.id in required_ids else candidate
+            for candidate in eligible
+        ]
+        return self.assemble(prepared, tenant_id=tenant_id, budget=budget, at=effective_at)
+
     def assemble(
         self,
         candidates: list[ContextCandidate],
