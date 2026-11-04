@@ -10,6 +10,7 @@ import hashlib
 import json
 import secrets
 import sqlite3
+import sys
 import time
 from collections import OrderedDict
 from collections.abc import Callable
@@ -424,6 +425,7 @@ class HostRelationshipReader:
         self._identity, self._visibility = identity, visibility
         self._source_access: Callable[[ExecutionContext], RelationshipSourceAccess] | None = None
         self._cursors: OrderedDict[str, tuple[float, str, tuple[int, int], str]] = OrderedDict()
+        self._bounded_retention = False
 
     def configure_source_access(
         self, resolver: Callable[[ExecutionContext], RelationshipSourceAccess]
@@ -434,6 +436,34 @@ class HostRelationshipReader:
         with self.adapter.repository._lock:
             self._source_access = resolver
             self._cursors.clear()
+
+    def configure_retention_budget(self) -> None:
+        """Host-only opt-in: cap accounted cursor storage at 256 KiB.
+
+        Shallow sizes cover every primitive retained in these fixed-shape records;
+        shared references are conservatively counted again. This is not RSS.
+        """
+        with self.adapter.repository._lock:
+            self._cursors.clear()
+            self._bounded_retention = True
+
+    def retained_cursor_bytes(self) -> int:
+        """Host diagnostic only; never included in a query response."""
+        with self.adapter.repository._lock:
+            return sys.getsizeof(self._cursors) + sum(
+                sys.getsizeof(token)
+                + sys.getsizeof(state)
+                + sum(sys.getsizeof(value) for value in state)
+                + sum(sys.getsizeof(value) for value in state[2])
+                for token, state in self._cursors.items()
+            )
+
+    def _prune_expired_cursors(self) -> None:
+        if self._bounded_retention:
+            now = time.monotonic()
+            for token, state in list(self._cursors.items()):
+                if now - state[0] > 600:
+                    del self._cursors[token]
 
     def read(self, query: RelationshipPageQuery) -> RelationshipPage:
         context = self._identity()
@@ -496,6 +526,7 @@ class HostRelationshipReader:
         with repo._lock:
             repo._conn.execute("BEGIN")
             try:
+                self._prune_expired_cursors()
                 revision = self.adapter.revision()
                 after = ""
                 if query.cursor is not None:
@@ -575,8 +606,12 @@ class HostRelationshipReader:
                         revision,
                         rows[query.limit - 1]["id"],
                     )
-                    while len(self._cursors) > 1024:
+                    while len(self._cursors) > 1024 or (
+                        self._bounded_retention and self.retained_cursor_bytes() > 262_144
+                    ):
                         self._cursors.popitem(last=False)
+                    if token not in self._cursors:
+                        raise RelationshipQueryUnavailable("Relationship paging is unavailable")
                 return RelationshipPage(
                     subject=policy.filter_properties(roles, subject),
                     links=links,
