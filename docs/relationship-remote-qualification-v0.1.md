@@ -42,3 +42,15 @@ The offline boundary also opts into a 256 KiB accounted Python cursor budget, al
 A test-only Linux supervisor/worker fixture runs the existing source-aware boundary under hard 1 GiB address-space, five-second cumulative CPU, 64-descriptor and zero-core-dump limits installed before CEPIO construction. It tests Python/libc/SQLite allocation failure, OS CPU termination, blocked callbacks, crashes, bounded IPC, disabled failed workers and continued service in a separate tenant process. [ADR-0057](adr/ADR-0057-linux-relationship-process-qualification.md) defines the evidence and limits; Windows skips are not Linux qualification.
 
 This establishes only the tested Linux process envelope. It adds no runtime worker service or production routing. Limits before interpreter startup, process-tree/cgroup controls, parent/queue memory, distributed admission, production restart budgets, CPU fairness and disk/I/O isolation still need deployment-specific qualification. Address space is not RSS, and process separation does not prove timing confidentiality.
+
+
+## Host resource ceiling preflight — offline reference only
+
+The additional [read-only cgroup preflight](relationship-cgroup-readonly-preflight-v0.1.md)
+and [ADR-0058](adr/ADR-0058-readonly-cgroup-host-envelope-preflight.md)
+inspect finite memory, PID and CPU ceilings from a trusted operator-selected
+cgroup-v2 directory. Missing, unbounded, excessive and exhausted limits
+fail closed. Even a positive candidate explicitly remains
+`production_qualified=false`: this is not proof of actual worker membership,
+process-tree isolation, capacity, source authority, deployed Entra identity or
+production admission. The inspector is not mounted in REST/MCP or the runtime.
