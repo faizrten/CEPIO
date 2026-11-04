@@ -180,7 +180,16 @@ def test_adapter_posts_once_and_never_discloses_webhook_secret():
 
     assert len(calls) == 1
     assert calls[0][0] == secret_url
-    assert calls[0][1]["cepio"]["destination"] == "operations-channel"
+    posted = calls[0][1]
+    assert set(posted) == {"type", "attachments"}
+    assert posted["type"] == "message"
+    assert len(posted["attachments"]) == 1
+    attachment = posted["attachments"][0]
+    assert attachment["contentType"] == "application/vnd.microsoft.card.adaptive"
+    assert attachment["contentUrl"] is None
+    assert attachment["content"]["type"] == "AdaptiveCard"
+    assert attachment["content"]["body"][1]["text"] == "Compressor C-201 needs attention"
+    assert "operations-channel" not in str(posted)
     assert calls[0][2]["X-CEPIO-Idempotency-Key"] == "teams:action-1"
     assert first == second
     assert first.source_request_id == "FLOW-123"
