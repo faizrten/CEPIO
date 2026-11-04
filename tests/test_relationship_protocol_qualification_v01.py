@@ -413,6 +413,12 @@ def unit(sources, world):
 def test_per_actor_and_global_admission_limits_bound_memory_and_reset(unit, monkeypatch):
     boundary, state, _ = unit
     query = {"asset_id": "asset"}
+    # The admission-window regression must not depend on CI/coverage runtime speed.
+    # Other tests independently exercise real SQLite and VM/elapsed-time limits.
+    import cepio.relationship_qualification as module
+
+    clock = [boundary._window]
+    monkeypatch.setattr(module.time, "monotonic", lambda: clock[0])
     for _ in range(30):
         boundary.read(query)
     with pytest.raises(RelationshipQualificationUnavailable):
@@ -426,9 +432,7 @@ def test_per_actor_and_global_admission_limits_bound_memory_and_reset(unit, monk
     with pytest.raises(RelationshipQualificationUnavailable):
         boundary.read(query)
     assert len(boundary._counts) == 4
-    import cepio.relationship_qualification as module
-
-    monkeypatch.setattr(module.time, "monotonic", lambda: boundary._window + 61)
+    clock[0] = boundary._window + 61
     assert boundary.read(query).links
     assert boundary._total == 1 and len(boundary._counts) == 1
 
