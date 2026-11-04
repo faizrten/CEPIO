@@ -126,7 +126,7 @@ def workers(tmp_path):
 
 
 def test_limits_cover_runtime_construction_and_source_aware_pagination(
-    workers, monkeypatch, record_property
+    workers, monkeypatch, record_property, capsys
 ):
     monkeypatch.setenv("CEPIO_TEST_CREDENTIAL_SENTINEL", "synthetic-not-a-credential")
     worker = workers("tenant-a")
@@ -142,24 +142,34 @@ def test_limits_cover_runtime_construction_and_source_aware_pagination(
     assert len(second["links"]) == 1 and second["next_cursor"] is None
     record_property("linux_process_limits", json.dumps(worker.ready))
     record_property("linux_process_peak_rss_kib", worker.last_report["maxrss_kib"])
-    print(json.dumps({"limits": worker.ready, "peak_rss_kib": worker.last_report["maxrss_kib"]}))
+    with capsys.disabled():
+        print(
+            json.dumps({"limits": worker.ready, "peak_rss_kib": worker.last_report["maxrss_kib"]})
+        )
 
 
 @pytest.mark.parametrize("mode", ["python_memory", "native_memory", "sqlite_memory"])
-def test_memory_failure_is_contained_and_peer_remains_available(workers, mode, record_property):
+def test_memory_failure_is_contained_and_peer_remains_available(
+    workers, mode, record_property, capsys
+):
     failing = workers("tenant-a", mode)
     healthy = workers("tenant-b")
     with pytest.raises(WorkerUnavailable, match="^Relationship query unavailable$"):
         failing.read({"asset_id": "asset"})
     assert failing.last_report["allocation_denied"] is True
     assert failing.ready["pid"] != healthy.ready["pid"]
+    if mode == "sqlite_memory":
+        assert 0 < failing.last_report["sqlite_probe_as_bytes"] <= 1_073_741_824
     assert failing.dead and failing.process.poll() is not None
     assert healthy.read({"asset_id": "asset"})["subject"]["properties"] == {"status": "tenant-b"}
     pid = failing.process.pid
     with pytest.raises(WorkerUnavailable):
         failing.read({"asset_id": "asset"})
     assert failing.process.pid == pid  # no restart or hidden capacity reset
-    record_property("contained_memory_fault", json.dumps({"mode": mode, **failing.last_report}))
+    evidence = {"mode": mode, **failing.last_report}
+    record_property("contained_memory_fault", json.dumps(evidence))
+    with capsys.disabled():
+        print(json.dumps(evidence))
 
 
 def test_runaway_cpu_is_killed_by_os_while_peer_reads(workers):

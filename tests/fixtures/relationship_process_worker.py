@@ -120,10 +120,16 @@ def main():
             diagnostics["allocation_denied"] = True
             raise MemoryError
         if mode == "sqlite_memory":
+            # Stay below SQLite's own compiled row-size ceiling so this probe
+            # actually exercises native allocation and the OS address-space cap.
+            with open("/proc/self/statm", encoding="ascii") as status:
+                current_vm = int(status.read().split()[0]) * os.sysconf("SC_PAGE_SIZE")
+            probe_limit = min(AS_BYTES, current_vm + 64 * 1024 * 1024)
+            resource.setrlimit(resource.RLIMIT_AS, (probe_limit, probe_limit))
+            diagnostics["sqlite_probe_as_bytes"] = probe_limit
             with sqlite3.connect(":memory:") as fault:
-                fault.setlimit(sqlite3.SQLITE_LIMIT_LENGTH, AS_BYTES + 1024)
                 try:
-                    fault.execute("SELECT randomblob(?)", (AS_BYTES,)).fetchone()
+                    fault.execute("SELECT randomblob(?)", (128 * 1024 * 1024,)).fetchone()
                 except MemoryError:
                     diagnostics["allocation_denied"] = True
                     raise
