@@ -84,7 +84,7 @@ def test_missing_files_are_not_mistaken_for_unbounded_access(limits):
     assert result.cpu_limit_cores is None
 
 
-def test_cgroup_read_is_bounded_and_does_not_trust_non_ascii_or_symlink(limits):
+def test_cgroup_read_is_bounded_and_rejects_non_ascii(limits):
     directory, _ = limits
     (directory / "memory.max").write_bytes(b"7" * 257)
     assert _read_small(directory, "memory.max") is None
