@@ -36,3 +36,9 @@ This closes those application-state interference cases only in the dedicated-rep
 ## Accounted cursor retention
 
 The offline boundary also opts into a 256 KiB accounted Python cursor budget, alongside the existing 1,024-entry and ten-minute limits. Expired entries are reclaimed on the next read; oldest continuations are evicted under pressure. A continuation too large to retain fails closed. Host-only size diagnostics never enter query responses. [ADR-0056](adr/ADR-0056-accounted-relationship-cursor-retention.md) distinguishes live-structure accounting from allocator, policy/registry, SQLite and native/process memory; those still require process-level qualification.
+
+## Linux process envelope qualification
+
+A test-only Linux supervisor/worker fixture runs the existing source-aware boundary under hard 1 GiB address-space, five-second cumulative CPU, 64-descriptor and zero-core-dump limits installed before CEPIO construction. It tests Python/libc/SQLite allocation failure, OS CPU termination, blocked callbacks, crashes, bounded IPC, disabled failed workers and continued service in a separate tenant process. [ADR-0057](adr/ADR-0057-linux-relationship-process-qualification.md) defines the evidence and limits; Windows skips are not Linux qualification.
+
+This establishes only the tested Linux process envelope. It adds no runtime worker service or production routing. Limits before interpreter startup, process-tree/cgroup controls, parent/queue memory, distributed admission, production restart budgets, CPU fairness and disk/I/O isolation still need deployment-specific qualification. Address space is not RSS, and process separation does not prove timing confidentiality.
