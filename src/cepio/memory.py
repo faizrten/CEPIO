@@ -77,9 +77,7 @@ class MemoryRecord(BaseModel):
     def validate_boundary(self) -> "MemoryRecord":
         if self.scope == MemoryScope.GLOBAL:
             if self.tenant_id is not None or self.provenance.customer_specific:
-                raise ValueError(
-                    "global memory cannot contain tenant/customer-specific knowledge"
-                )
+                raise ValueError("global memory cannot contain tenant/customer-specific knowledge")
         elif not self.tenant_id:
             raise ValueError("tenant/profile memory requires tenant_id")
         if (self.kind == MemoryKind.PROFILE) != (self.scope == MemoryScope.PROFILE):
@@ -108,9 +106,7 @@ class MemoryQuery(BaseModel):
 class MemoryStore(Protocol):
     def put(self, record: MemoryRecord) -> MemoryRecord: ...
 
-    def get(
-        self, memory_id: str, tenant_id: str | None = None
-    ) -> MemoryRecord | None: ...
+    def get(self, memory_id: str, tenant_id: str | None = None) -> MemoryRecord | None: ...
 
     def query(self, query: MemoryQuery) -> list[MemoryRecord]: ...
 
@@ -119,9 +115,7 @@ class MemoryStore(Protocol):
 
 def _validate_update_boundary(prior: MemoryRecord | None, record: MemoryRecord) -> None:
     if prior and (prior.scope, prior.tenant_id) != (record.scope, record.tenant_id):
-        raise MemoryBoundaryError(
-            "memory ownership boundary cannot change during update"
-        )
+        raise MemoryBoundaryError("memory ownership boundary cannot change during update")
 
 
 def _visible_record(record: MemoryRecord, tenant_id: str | None) -> MemoryRecord | None:
@@ -149,9 +143,7 @@ def _matches_query(record: MemoryRecord, query: MemoryQuery) -> bool:
     return True
 
 
-def _query_records(
-    records: list[MemoryRecord], query: MemoryQuery
-) -> list[MemoryRecord]:
+def _query_records(records: list[MemoryRecord], query: MemoryQuery) -> list[MemoryRecord]:
     result = [record for record in records if _matches_query(record, query)]
     result.sort(key=lambda item: (-item.created_at.timestamp(), item.id))
     return [item.model_copy(deep=True) for item in result[: query.limit]]
@@ -193,9 +185,7 @@ class InMemoryMemoryStore(MemoryStore):
             if record is None:
                 return False
             if not _can_forget(record, tenant_id):
-                raise MemoryAccessError(
-                    "memory deletion is outside the requested tenant boundary"
-                )
+                raise MemoryAccessError("memory deletion is outside the requested tenant boundary")
             del self._records[memory_id]
             return True
 
@@ -284,9 +274,7 @@ class SQLiteMemoryStore(MemoryStore):
             if record is None:
                 return False
             if not _can_forget(record, tenant_id):
-                raise MemoryAccessError(
-                    "memory deletion is outside the requested tenant boundary"
-                )
+                raise MemoryAccessError("memory deletion is outside the requested tenant boundary")
             self._conn.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
             self._conn.commit()
             return True
@@ -377,8 +365,7 @@ class ContextAssembler:
                 capabilities=len(updated_capabilities),
                 semantic_nodes=usage.semantic_nodes + candidate.semantic_nodes,
                 evidence_items=usage.evidence_items + candidate.evidence_items,
-                episodes=usage.episodes
-                + int(candidate.record.kind == MemoryKind.EPISODIC),
+                episodes=usage.episodes + int(candidate.record.kind == MemoryKind.EPISODIC),
             ),
             updated_capabilities,
         )
@@ -422,9 +409,7 @@ class ContextAssembler:
             else candidate
             for candidate in eligible
         ]
-        return self.assemble(
-            prepared, tenant_id=tenant_id, budget=budget, at=effective_at
-        )
+        return self.assemble(prepared, tenant_id=tenant_id, budget=budget, at=effective_at)
 
     def assemble(
         self,
@@ -445,9 +430,9 @@ class ContextAssembler:
                 dropped.append(memory_id)
                 continue
             seen.add(memory_id)
-            if not candidate.record.visible_to(
-                tenant_id
-            ) or candidate.record.expired_at(effective_at):
+            if not candidate.record.visible_to(tenant_id) or candidate.record.expired_at(
+                effective_at
+            ):
                 dropped.append(memory_id)
                 continue
             eligible.append(candidate)
@@ -462,9 +447,7 @@ class ContextAssembler:
                 candidate, budget=budget, usage=usage, capability_ids=capability_ids
             )
             if reason:
-                blockers = [
-                    f"required memory {candidate.record.id} exceeds {reason} budget"
-                ]
+                blockers = [f"required memory {candidate.record.id} exceeds {reason} budget"]
                 dropped.extend(item.record.id for item in eligible)
                 return ContextAssemblyResult(
                     status=ContextStatus.BLOCKED,
