@@ -72,6 +72,13 @@ class WorkSnapshot(Contract):
         return self
 
 
+class EvidenceGap(Contract):
+    evidence_id: str
+    source_version: str | None = None
+    reason: str
+    next_check: str
+
+
 class QuestionReadiness(Contract):
     question_id: str
     stage: Stage
@@ -80,6 +87,9 @@ class QuestionReadiness(Contract):
     evidence_completeness: Literal["complete", "incomplete"]
     assistance_state: Literal["ready_for_assessment", "unresolved"]
     blockers: tuple[str, ...]
+    evidence_gaps: tuple[EvidenceGap, ...] = ()
+    evidence_refs: tuple[EvidenceReceipt, ...] = ()
+    guidance: str = "Assessment not performed."
 
 
 class WorkContextView(Contract):
@@ -129,19 +139,57 @@ def read_work_context(
     questions = []
     for question in snapshot.questions:
         blockers = []
+        gaps = []
+
+        def gap(evidence_id: str, version: str | None, reason: str, next_check: str) -> None:
+            blockers.append(reason)
+            gaps.append(
+                EvidenceGap(
+                    evidence_id=evidence_id,
+                    source_version=version,
+                    reason=reason,
+                    next_check=next_check,
+                )
+            )
+
         for evidence_id in sorted(question.required_evidence_ids):
             item = evidence.get(evidence_id)
             if item is None:
-                blockers.append("MISSING_EVIDENCE")
+                gap(
+                    evidence_id,
+                    None,
+                    "MISSING_EVIDENCE",
+                    "Obtain this required evidence through an authorized source.",
+                )
                 continue
             if not item.observed_at <= at < item.valid_until:
-                blockers.append("EVIDENCE_NOT_CURRENT")
+                gap(
+                    evidence_id,
+                    item.version,
+                    "EVIDENCE_NOT_CURRENT",
+                    "Obtain a current observation and verify its timestamp and validity window.",
+                )
             if not item.applicable:
-                blockers.append("EVIDENCE_NOT_APPLICABLE")
+                gap(
+                    evidence_id,
+                    item.version,
+                    "EVIDENCE_NOT_APPLICABLE",
+                    "Verify that this source applies to the task, asset and operating conditions.",
+                )
             if item.conflict:
-                blockers.append("EVIDENCE_CONFLICT")
+                gap(
+                    evidence_id,
+                    item.version,
+                    "EVIDENCE_CONFLICT",
+                    "Reconcile conflicting sources with the responsible technical authority.",
+                )
             if evidence_id not in snapshot.selected_evidence_ids:
-                blockers.append("REQUIRED_EVIDENCE_NOT_SELECTED")
+                gap(
+                    evidence_id,
+                    item.version,
+                    "REQUIRED_EVIDENCE_NOT_SELECTED",
+                    "Restore required evidence to the authorized working context before assessment.",
+                )
         complete = not blockers
         if question.capability_admission != "ready":
             blockers.append("CAPABILITY_NOT_READY")
@@ -154,6 +202,20 @@ def read_work_context(
                 evidence_completeness="complete" if complete else "incomplete",
                 assistance_state="unresolved" if blockers else "ready_for_assessment",
                 blockers=tuple(sorted(set(blockers))),
+                evidence_gaps=tuple(gaps),
+                evidence_refs=tuple(
+                    evidence[key]
+                    for key in sorted(question.required_evidence_ids)
+                    if key in evidence
+                ),
+                guidance=(
+                    "Resolve the listed evidence gaps before assessing this question."
+                    if not complete
+                    else "Evidence checks passed, but an admitted capability is still needed."
+                    if question.capability_admission != "ready"
+                    else "Declared evidence checks passed. Use the admitted capability to assess "
+                    "the question; no technical conclusion or work permission is established."
+                ),
             )
         )
     return WorkContextView(
