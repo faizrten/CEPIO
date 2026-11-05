@@ -219,9 +219,9 @@ def test_sqlite_store_persists_and_preserves_memory_boundaries(tmp_path):
         second.get("tenant", "tenant-b")
     with pytest.raises(MemoryBoundaryError, match="ownership boundary"):
         second.put(memory("tenant"))
-    assert [
-        item.id for item in second.query(MemoryQuery(tags={"reliability"}, at=NOW))
-    ] == ["global"]
+    assert [item.id for item in second.query(MemoryQuery(tags={"reliability"}, at=NOW))] == [
+        "global"
+    ]
     assert not second.forget("missing")
     with pytest.raises(MemoryAccessError, match="deletion"):
         second.forget("tenant", "tenant-b")
@@ -332,15 +332,12 @@ def test_context_size_is_bounded_when_memory_store_grows():
     store = InMemoryMemoryStore()
     store.put(memory("relevant", capability_ids={"cap-target"}, tags={"target"}))
     for index in range(500):
-        store.put(
-            memory(f"noise-{index:03d}", capability_ids={"other"}, tags={"noise"})
-        )
+        store.put(memory(f"noise-{index:03d}", capability_ids={"other"}, tags={"noise"}))
     retrieved = store.query(
         MemoryQuery(capability_ids={"cap-target"}, tags={"target"}, at=NOW, limit=50)
     )
     candidates = [
-        ContextCandidate(record=item, estimated_tokens=20, relevance=1.0)
-        for item in retrieved
+        ContextCandidate(record=item, estimated_tokens=20, relevance=1.0) for item in retrieved
     ]
     result = ContextAssembler().assemble(
         candidates, tenant_id=None, budget=ContextBudget(max_tokens=100), at=NOW
@@ -390,9 +387,7 @@ def test_task_requires_visible_current_unambiguous_evidence(rows, budget, expect
     )
 
 
-@pytest.mark.parametrize(
-    "tenant,required", [("", frozenset(["e"])), ("sample", frozenset())]
-)
+@pytest.mark.parametrize("tenant,required", [("", frozenset(["e"])), ("sample", frozenset())])
 def test_task_rejects_missing_host_scope(tenant, required):
     result = ContextAssembler().assemble_for_task(
         [record()], required_ids=required, tenant_id=tenant, budget=ContextBudget()
