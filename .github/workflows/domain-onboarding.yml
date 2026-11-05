@@ -122,7 +122,7 @@ jobs:
                   src/cepio/capability_registry.py|src/cepio/sovereignty.py|\
                   src/cepio/memory.py|src/cepio/retrieval_runtime.py|\
                   tests/test_capability_registry.py|tests/test_intelligence_sovereignty.py|\
-                  tests/test_retrieval_runtime.py|docs/*)
+                  tests/test_memory_context.py|tests/test_retrieval_runtime.py|docs/*)
                     ;;
                   *)
                     echo "::error::A domain manifest is mandatory for changes outside the approved Core-contract surface: $changed_path"

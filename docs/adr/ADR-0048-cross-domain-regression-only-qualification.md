@@ -49,3 +49,13 @@ Tests must reject: no manifest, no designated test, an arbitrary second regressi
 The PR must pass the existing checks and prove that mutation of a required evidence/consequence link fails the deterministic runtime test. The new routing path is only *CI scope admission*. It is not a claim of Industry IQ uplift, independently reviewed expert competence, successful actual CEPIO agent execution, verified source-system writeback, or v0.5/v1.0 advancement.
 
 Accepted implementation remains subject to the usual PR review and release governance.
+
+## Memory contract routing correction
+
+The existing memory contract test file is already executed in Core qualification
+but was omitted from the Core-only changed-path allowlist. Admit the exact
+`tests/test_memory_context.py` path alongside `src/cepio/memory.py`.
+This correction retains the mandatory frozen cross-domain suite and all Core
+contract tests. It introduces no additional regression family or path glob.
+Validation includes task-context negative cases, the complete memory suite,
+and successful Domain Onboarding qualification on PR #341.
