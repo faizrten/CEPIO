@@ -47,3 +47,10 @@ Vector search is optional. PostgreSQL full-text and optional future pgvector are
 A backend is not trusted to enforce the final security boundary. CEPIO checks tenant visibility and expiry again before fusion. Required evidence that cannot be retrieved or cannot fit in working context blocks the request rather than silently disappearing.
 
 See `docs/retrieval-indexing-architecture.md` and `docs/adr/ADR-0030-retrieval-indexing-v0.1.md`.
+
+### Conflicting duplicate evidence
+
+Retrieval blocks the complete result when backends return different memory
+records under the same ID. Record equality includes provenance, content and
+expiry. Identical records may still combine retrieval ranks. The engine does
+not choose an authoritative version from backend order or retrieval score.

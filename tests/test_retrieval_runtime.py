@@ -169,6 +169,35 @@ def test_hybrid_engine_fuses_deduplicates_and_caps_candidates():
     assert result.metrics.selected_hits == 1
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"summary": "conflicting condition"},
+        {"expires_at": NOW + timedelta(hours=1)},
+        {"provenance": MemoryProvenance(source_kind="synthetic-test", source_ids=["other"])},
+    ],
+)
+def test_duplicate_identity_with_conflicting_record_blocks_all_results(change, reverse):
+    original = memory("same", "condition work", capabilities={TARGET})
+    conflicting = original.model_copy(update=change)
+    pair = [original, conflicting]
+    if reverse:
+        pair.reverse()
+    backends = [
+        StaticBackend(strategy, [hit(record, strategy, 1)])
+        for strategy, record in zip(
+            [RetrievalStrategy.STRUCTURED, RetrievalStrategy.LEXICAL], pair, strict=True
+        )
+    ]
+    result = RetrievalEngine(CapabilityRouter(registry()), RetrievalPlanner(), backends).retrieve(
+        RetrievalIntent(query_text="condition work", capability_hints={TARGET}, at=NOW)
+    )
+    assert result.status == RetrievalStatus.BLOCKED
+    assert result.candidates == []
+    assert result.blockers == ["conflicting versions of retrieved evidence"]
+
+
 def test_optional_backend_failure_degrades_and_required_failure_blocks():
     record = memory("a", "condition work", capabilities={TARGET})
     good = StaticBackend(
