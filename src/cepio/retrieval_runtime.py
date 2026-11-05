@@ -189,6 +189,15 @@ class RetrievalEngine:
                 if not record.visible_to(intent.tenant_id) or record.expired_at(intent.at):
                     metrics.dropped_boundary_hits += 1
                     continue
+                existing = fused.get(record.id)
+                if existing is not None and existing.record != record:
+                    return RetrievalResult(
+                        status=RetrievalStatus.BLOCKED,
+                        routing=routing,
+                        plan=plan,
+                        blockers=["conflicting versions of retrieved evidence"],
+                        metrics=metrics,
+                    )
                 entry = fused.setdefault(
                     record.id,
                     _FusedHit(record=record.model_copy(deep=True)),
