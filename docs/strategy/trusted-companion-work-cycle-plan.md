@@ -128,3 +128,7 @@ Open technical questions for WC-01: durable context repository fit, exact identi
 Open pilot questions for WC-09: customer, authorized sources, bounded professional task, acceptance rubric and operational owner.
 
 Validation for this document: all 14 card questions mapped; four stages represented on both surfaces; backlog dependencies and acceptance gates stated; public sources only; no new implementation or qualification claims.
+
+## WC-01 execution update — 2026-11-05
+
+[Contract reuse spike](work-cycle-contract-reuse-spike.md) records inspected interfaces, a local memory probe and concrete integration boundaries. Bounded interface assessment completed; full pytest execution was unavailable, and persistence adapter qualification remains open. Next deliverable: WC-02 read-only work-context projection and synthetic contract checks. No runtime or release status is changed.
