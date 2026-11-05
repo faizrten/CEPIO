@@ -81,3 +81,22 @@ to source changes, then expose the projection in an isolated four-stage Studio
 preview. Persisted continuity and concurrent writes remain separate WC-02 work;
 question routing, substantive assistance and change propagation remain WC-03/05.
 Preserve the existing production and source-verification gates.
+
+## Evidence-linked guidance increment
+
+QuestionReadiness now includes per-source evidence_gaps (source ID, observed
+version when present, reason and next check), referenced evidence receipts and
+bounded guidance. This answers only the evidence-readiness question. It does
+not diagnose the technical problem, establish source authenticity or replace
+capability execution. An unknown capability remains unresolved even when all
+declared evidence is complete.
+
+Run `PYTHONPATH=src python examples/work_context_walkthrough.py` to reproduce a
+synthetic quality-investigation walkthrough: missing procedure, current evidence
+with unknown capability, then a conflicting procedure revision. No Rig 07 IDs,
+external systems, credentials or model calls are involved. Studio's development
+preview uses a static copy of this output, not a live API connection.
+
+Regression tests confirm changed evidence yields revised guidance, prior output
+remains unchanged, and evidence expiry invalidates readiness even when the source
+revision has not changed. Persistence and live source authorization remain open.
