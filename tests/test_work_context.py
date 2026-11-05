@@ -174,3 +174,62 @@ def test_projection_does_not_mutate_snapshot():
     before = host.snapshot.model_dump_json()
     read(host)
     assert host.snapshot.model_dump_json() == before
+
+
+def test_assistance_names_missing_source_without_inventing_version():
+    result = read(Host(evidence=())).questions[0]
+    assert result.evidence_refs == ()
+    assert result.evidence_gaps[0].evidence_id == "source"
+    assert result.evidence_gaps[0].source_version is None
+    assert "authorized source" in result.evidence_gaps[0].next_check
+    assert "Resolve" in result.guidance
+
+
+def test_changed_evidence_reassesses_and_retains_original_result():
+    host = Host()
+    original = read(host)
+    changed = host.snapshot.evidence[0].model_copy(update={"version": "v3", "conflict": True})
+    host.snapshot = host.snapshot.model_copy(update={"revision": 3, "evidence": (changed,)})
+    with pytest.raises(ValueError, match="revision changed"):
+        read(host)
+    revised = read(host, revision=3)
+    assert original.questions[0].assistance_state == "ready_for_assessment"
+    assert original.questions[0].evidence_refs[0].version == "v2"
+    assert revised.questions[0].assistance_state == "unresolved"
+    assert revised.questions[0].evidence_gaps[0].source_version == "v3"
+    assert "technical authority" in revised.questions[0].evidence_gaps[0].next_check
+
+
+def test_expiry_reassesses_without_needing_source_revision_change():
+    host = Host()
+    before = read(host)
+    after = read(host, at=NOW + timedelta(hours=1))
+    assert before.revision == after.revision
+    assert before.questions[0].assistance_state == "ready_for_assessment"
+    assert after.questions[0].assistance_state == "unresolved"
+    assert after.questions[0].evidence_gaps[0].reason == "EVIDENCE_NOT_CURRENT"
+
+
+def test_ready_guidance_does_not_claim_to_answer_domain_question():
+    ready = read(Host()).questions[0]
+    assert "no technical conclusion or work permission" in ready.guidance
+    host = Host()
+    question = host.snapshot.questions[0].model_copy(update={"capability_admission": "unknown"})
+    host.snapshot = host.snapshot.model_copy(update={"questions": (question,)})
+    assert "admitted capability is still needed" in read(host).questions[0].guidance
+
+
+def test_walkthrough_is_generated_by_current_core_contract():
+    import runpy
+    from pathlib import Path
+
+    demo = runpy.run_path(str(Path(__file__).parents[1] / "examples/work_context_walkthrough.py"))
+    views = demo["walkthrough"]()
+    missing = views["missing"]["questions"][0]
+    current = views["current"]["questions"][0]
+    changed = views["changed"]["questions"][0]
+    assert missing["evidence_gaps"][0]["evidence_id"] == "approved-procedure"
+    assert current["evidence_completeness"] == "complete"
+    assert current["assistance_state"] == "unresolved"
+    assert changed["evidence_gaps"][0]["reason"] == "EVIDENCE_CONFLICT"
+    assert changed["evidence_gaps"][0]["source_version"] == "2"
