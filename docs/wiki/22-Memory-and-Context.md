@@ -34,3 +34,13 @@ Large industrial evidence should normally remain authoritative in source systems
 Operational memory does not automatically become global knowledge. Reusable knowledge must pass the existing Compounding Intelligence path: generalization, independent cross-domain evidence, regression qualification and human architecture approval before Capability Registry promotion.
 
 See `docs/memory-context-architecture.md` and `docs/adr/ADR-0029-memory-context-architecture-v0.1.md` for the full design.
+
+
+### Required task evidence
+
+Hosts can call `ContextAssembler.assemble_for_task` with server-owned required
+memory IDs, a tenant and a context budget. The caller must authorize source
+access before supplying candidates. Missing or expired required evidence,
+ambiguous eligible IDs and absent host scope return BLOCKED with no selection.
+Required evidence must fit the budget. Candidate objects are preserved.
+This helper supplies bounded context admission for application integration.
