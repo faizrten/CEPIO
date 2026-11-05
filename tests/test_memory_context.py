@@ -219,9 +219,9 @@ def test_sqlite_store_persists_and_preserves_memory_boundaries(tmp_path):
         second.get("tenant", "tenant-b")
     with pytest.raises(MemoryBoundaryError, match="ownership boundary"):
         second.put(memory("tenant"))
-    assert [item.id for item in second.query(MemoryQuery(tags={"reliability"}, at=NOW))] == [
-        "global"
-    ]
+    assert [
+        item.id for item in second.query(MemoryQuery(tags={"reliability"}, at=NOW))
+    ] == ["global"]
     assert not second.forget("missing")
     with pytest.raises(MemoryAccessError, match="deletion"):
         second.forget("tenant", "tenant-b")
@@ -332,15 +332,89 @@ def test_context_size_is_bounded_when_memory_store_grows():
     store = InMemoryMemoryStore()
     store.put(memory("relevant", capability_ids={"cap-target"}, tags={"target"}))
     for index in range(500):
-        store.put(memory(f"noise-{index:03d}", capability_ids={"other"}, tags={"noise"}))
+        store.put(
+            memory(f"noise-{index:03d}", capability_ids={"other"}, tags={"noise"})
+        )
     retrieved = store.query(
         MemoryQuery(capability_ids={"cap-target"}, tags={"target"}, at=NOW, limit=50)
     )
     candidates = [
-        ContextCandidate(record=item, estimated_tokens=20, relevance=1.0) for item in retrieved
+        ContextCandidate(record=item, estimated_tokens=20, relevance=1.0)
+        for item in retrieved
     ]
     result = ContextAssembler().assemble(
         candidates, tenant_id=None, budget=ContextBudget(max_tokens=100), at=NOW
     )
     assert [item.record.id for item in result.selected] == ["relevant"]
     assert result.usage.tokens == 20
+
+
+def record(tenant="sample", expired=False):
+    return ContextCandidate(
+        record=MemoryRecord(
+            id="e",
+            kind="SEMANTIC",
+            scope="TENANT",
+            summary="sample",
+            provenance=MemoryProvenance(source_kind="synthetic"),
+            tenant_id=tenant,
+            created_at=datetime(2019, 1, 1, tzinfo=timezone.utc),
+            expires_at=datetime(2020, 1, 1, tzinfo=timezone.utc) if expired else None,
+        ),
+        estimated_tokens=2,
+    )
+
+
+@pytest.mark.parametrize(
+    "rows,budget,expected",
+    [
+        ([], 8, "BLOCKED"),
+        ([record("other")], 8, "BLOCKED"),
+        ([record(expired=True)], 8, "BLOCKED"),
+        ([record(), record()], 8, "BLOCKED"),
+        ([record()], 1, "BLOCKED"),
+        ([record()], 8, "READY"),
+    ],
+)
+def test_task_requires_visible_current_unambiguous_evidence(rows, budget, expected):
+    result = ContextAssembler().assemble_for_task(
+        rows,
+        required_ids=frozenset(["e"]),
+        tenant_id="sample",
+        budget=ContextBudget(max_tokens=budget),
+        at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    )
+    assert result.status == expected
+    assert [candidate.record.id for candidate in result.selected] == (
+        ["e"] if expected == "READY" else []
+    )
+
+
+@pytest.mark.parametrize(
+    "tenant,required", [("", frozenset(["e"])), ("sample", frozenset())]
+)
+def test_task_rejects_missing_host_scope(tenant, required):
+    result = ContextAssembler().assemble_for_task(
+        [record()], required_ids=required, tenant_id=tenant, budget=ContextBudget()
+    )
+    assert result.status == ContextStatus.BLOCKED
+    assert result.selected == []
+    assert result.dropped_ids == []
+
+
+def test_task_keeps_optional_context_and_does_not_mutate_candidates():
+    required = record()
+    optional = record().model_copy(
+        update={"record": record().record.model_copy(update={"id": "optional"})}
+    )
+    result = ContextAssembler().assemble_for_task(
+        [required, optional],
+        required_ids=frozenset(["e"]),
+        tenant_id="sample",
+        budget=ContextBudget(),
+        at=NOW,
+    )
+    assert result.status == ContextStatus.READY
+    assert [item.record.id for item in result.selected] == ["e", "optional"]
+    assert required.required is False
+    assert optional.required is False
