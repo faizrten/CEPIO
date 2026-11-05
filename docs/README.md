@@ -13,6 +13,8 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
+- [Professional work context v0.1](work-context-readonly-v0.1.md) — host-local read-only work-cycle projection; no live adapter or operational authority.
+
 - **[Current State](current-state.md)** â€” dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
 - **[Rig 07 Performance Activation](drilling-performance-activation-v0.1.md)** — deterministic synthetic drilling performance acceptance and policy-safe recommendation.
 - **[CEPIO Wiki](wiki/Home.md)**
