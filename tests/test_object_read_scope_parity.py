@@ -45,8 +45,10 @@ def test_service_and_skill_host_preserve_scope_denial(runtime):
     context = ExecutionContext(actor_id='reader-1', actor_roles=frozenset({'reader'}))
     host = SkillExecutionHost(service, context)
     runtime.policy_engine.policies['reader']['read_scopes'] = []
-    with pytest.raises(AuthorizationError): service.read_object('E-1', context)
-    with pytest.raises(AuthorizationError): host.read_object('E-1')
+    with pytest.raises(AuthorizationError):
+        service.read_object('E-1', context)
+    with pytest.raises(AuthorizationError):
+        host.read_object('E-1')
 
 
 def test_missing_scope_keeps_policy_semantics(runtime):
@@ -59,9 +61,11 @@ def test_snake_case_and_multiple_scopes(runtime):
                                         properties={'sharing_scope': ['private', 'internal']}))
     runtime.read_object_for_actor('E-2', {'reader'})
     runtime.policy_engine.policies['reader']['read_scopes'] = ['public']
-    with pytest.raises(AuthorizationError): runtime.read_object_for_actor('E-2', {'reader'})
+    with pytest.raises(AuthorizationError):
+        runtime.read_object_for_actor('E-2', {'reader'})
 
 
 def test_custom_object_policy_is_authoritative(runtime):
     runtime.policy_engine.can_read_object = lambda roles, obj: False
-    with pytest.raises(AuthorizationError): runtime.read_object_for_actor('E-1', {'reader'})
+    with pytest.raises(AuthorizationError):
+        runtime.read_object_for_actor('E-1', {'reader'})
