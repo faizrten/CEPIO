@@ -310,5 +310,9 @@ jobs:
           python - <<'PY'
           import json, os
           results = json.loads(os.environ["RESULTS"])
+          required = {"unit", "contracts", "drilling", "refinery", "package", "container"}
+          print(f"CI lanes received: {len(results)}; required: {len(required)}")
+          if set(results) != required:
+              raise SystemExit(f"Unexpected CI lane set: {sorted(results)}")
           assert all(job["result"] == "success" for job in results.values()), results
           PY

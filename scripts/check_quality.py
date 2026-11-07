@@ -58,6 +58,8 @@ def changed_python(base: str) -> list[str]:
     if diff.returncode:
         raise RuntimeError(diff.stderr)
     untracked = run("git", "ls-files", "--others", "--exclude-standard", "--", "*.py")
+    if untracked.returncode:
+        raise RuntimeError(untracked.stderr)
     return sorted(set(diff.stdout.splitlines() + untracked.stdout.splitlines()))
 
 
@@ -81,6 +83,7 @@ def main() -> int:
     for finding, count in new.items():
         print(f"NEW ({count}): {finding}")
     paths = changed_python(args.base)
+    print(f"Formatting input files: {len(paths)} (base: {args.base})")
     formatted = run(sys.executable, "-m", "ruff", "format", "--check", *paths) if paths else None
     if formatted:
         print(formatted.stdout + formatted.stderr)
