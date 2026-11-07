@@ -56,18 +56,23 @@ def test_committed_python_change_survives_main_advance(tmp_path, monkeypatch):
     monkeypatch.setattr(checker, "ROOT", tmp_path)
     assert checker.changed_python("origin/main") == []  # Original push blind spot.
     assert checker.changed_python(before) == ["example.py"]
+    (tmp_path / "new.py").write_text("value = 3\n")
+    assert checker.changed_python(before) == ["example.py", "new.py"]
+    with pytest.raises(RuntimeError):
+        checker.changed_python("nonexistent-base")
+
+
+def test_real_formatter_rejects_unformatted_file(tmp_path):
+    pytest.importorskip("ruff", reason="Ruff is installed in the quality lanes")
+    (tmp_path / "example.py").write_text("value=2\n")
     result = subprocess.run(
-        [sys.executable, "-m", "ruff", "format", "--check", *checker.changed_python(before)],
+        [sys.executable, "-m", "ruff", "format", "--check", "example.py"],
         cwd=tmp_path,
         capture_output=True,
         text=True,
     )
     assert result.returncode == 1, result.stdout + result.stderr
     assert "example.py" in result.stdout
-    (tmp_path / "new.py").write_text("value = 3\n")
-    assert checker.changed_python(before) == ["example.py", "new.py"]
-    with pytest.raises(RuntimeError):
-        checker.changed_python("nonexistent-base")
 
 
 def test_failed_untracked_query_is_not_an_empty_success(monkeypatch):
