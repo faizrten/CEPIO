@@ -122,6 +122,22 @@ def test_secret_not_in_settings_repr():
     assert "never-display-me" not in repr(settings)
 
 
+def test_configured_credential_is_sent_only_in_authorization_header():
+    def handler(request):
+        assert request.headers["Authorization"] == "Bearer test-only-credential"
+        assert request.url == "https://model.example/v1/chat/completions"
+        assert b"test-only-credential" not in request.content
+        return httpx.Response(
+            200,
+            json=envelope(
+                {"kind": "tool", "name": "cepio_get_object", "arguments": {"object_id": "A"}}
+            ),
+        )
+
+    result = run_step(planner(handler, api_key="test-only-credential"))
+    assert result.name == "cepio_get_object"
+
+
 def test_native_tool_calls_cannot_bypass_validation():
     response = envelope(
         {"kind": "tool", "name": "cepio_get_object", "arguments": {"object_id": "A"}}
