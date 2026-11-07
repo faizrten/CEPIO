@@ -13,6 +13,8 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
+- [Trusted Companion Across the Work Cycle — Development Plan](strategy/trusted-companion-work-cycle-plan.md) — proposed question-to-capability map, targeted repository gap assessment and paired Companion/Studio backlog; no release or qualification claim.
+
 - **[Current State](current-state.md)** â€” dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
 - **[Rig 07 Performance Activation](drilling-performance-activation-v0.1.md)** — deterministic synthetic drilling performance acceptance and policy-safe recommendation.
 - **[CEPIO Wiki](wiki/Home.md)**
