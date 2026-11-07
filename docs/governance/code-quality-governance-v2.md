@@ -71,6 +71,22 @@ baseline; see ADR-0008. No global security rule or dependency CVE is suppressed.
 
 ## Compatibility evidence
 
+### Comparison scope and control verification
+
+The static and compatibility jobs compare with the immutable PR base on pull
+requests and the push event's `before` SHA on main pushes. Calls without either
+context use `HEAD^`; an unavailable base fails rather than silently comparing
+head to itself. The formatting check reports its input-file count, including
+legitimate zero-Python-change runs. A failed file enumeration is an error.
+
+`tests/test_quality_control_verification.py`, included in the full pytest lanes,
+executes the actual aggregate quality-gate command against successful, failed,
+cancelled, skipped and missing lane results. It also verifies committed-change
+discovery in a temporary Git repository and rejection by the real formatter.
+These bounded controls do not establish production qualification. See ADR-0059.
+The separate `test` aggregator requires all six declared CEPIO CI lanes and
+reports their count; empty or incomplete result mappings cannot satisfy it.
+
 Existing API/client/ontology gates continue unchanged. The additional report
 compares immutable PR base SHA against head: existing OpenAPI values, Python
 exports/SDK call signatures, SQLite CREATE TABLE definitions, and ontology
