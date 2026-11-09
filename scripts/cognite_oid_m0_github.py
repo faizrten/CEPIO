@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-import sys
 
 from cepio.integrations.cognite.oid_m0 import CogniteOIDSDKReader, run_oid_m0_inventory
 
