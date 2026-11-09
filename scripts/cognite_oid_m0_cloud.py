@@ -74,11 +74,15 @@ def read_cloud_config(env: Mapping[str, str]) -> CloudM0Config:
     if project not in OID_PROJECTS:
         raise CloudM0ConfigurationError("Only Cognite Open Industrial Data projects are permitted")
     if env.get("COGNITE_OID_AUTH_MODE", "client-credentials") != "client-credentials":
-        raise CloudM0ConfigurationError("Cloud M0 requires approved client-credentials authentication")
+        raise CloudM0ConfigurationError(
+            "Cloud M0 requires approved client-credentials authentication"
+        )
     tenant = _guid(_required(env, "COGNITE_M2M_TENANT_ID"), "COGNITE_M2M_TENANT_ID")
     client = _guid(_required(env, "COGNITE_M2M_CLIENT_ID"), "COGNITE_M2M_CLIENT_ID")
     if client in PUBLIC_OID_CLIENT_IDS:
-        raise CloudM0ConfigurationError("Public OID app is interactive, not an approved M2M identity")
+        raise CloudM0ConfigurationError(
+            "Public OID app is interactive, not an approved M2M identity"
+        )
     identity = _guid(_required(env, "AZURE_IDENTITY_CLIENT_ID"), "AZURE_IDENTITY_CLIENT_ID")
     url = _required(env, "AZURE_BLOB_ACCOUNT_URL").rstrip("/")
     parsed = urlsplit(url)
