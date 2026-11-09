@@ -1,0 +1,46 @@
+name: CEPIO Cognite OID M0 Evidence Inventory
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/cognite_oid_m0_github.py'
+      - '.github/workflows/cognite-oid-m0-inventory.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cepio-cognite-oid-m0-inventory
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Install provider SDK and CEPIO contracts
+        run: python -m pip install . 'cognite-sdk>=8,<9>'
+      - name: Read bounded OID evidence with authenticated client credentials
+        shell: bash
+        env:
+          OID_API: ${{ secrets.OID_API }}
+        run: |
+          set -euo pipefail
+          python -I scripts/cognite_oid_m0_github.py
+      - name: Archive metadata-only OID snapshot for M0 review
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cepio-cognite-oid-m0-publicdata
+          path: ${{ runner.temp }}/cepio-oid-m0-publicdata.json
+          if-no-files-found: error
+          retention-days: 7
