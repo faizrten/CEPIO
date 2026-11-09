@@ -126,14 +126,17 @@ class FakeContainer:
         return self.blob
 
 
-def test_cloud_config_requires_separate_approved_machine_identity():
+def test_cloud_config_requires_real_secret_and_does_not_reject_documented_oid_app():
     data = approved_env()
     c = read_cloud_config(data)
     assert c.project == "publicdata"
     assert c.azure_identity_client_id == data["AZURE_IDENTITY_CLIENT_ID"]
     assert "IN-MEMORY-TEST-ONLY" not in repr(c)
+    # Cognite documents an OID client-secret generation option for this app ID.
     data["COGNITE_M2M_CLIENT_ID"] = "1b90ede3-271e-401b-81a0-a4d52bea3273"
-    with pytest.raises(CloudM0ConfigurationError, match="interactive"):
+    assert read_cloud_config(data).m2m_client_id == data["COGNITE_M2M_CLIENT_ID"]
+    data["COGNITE_M2M_CLIENT_SECRET"] = ""
+    with pytest.raises(CloudM0ConfigurationError, match="COGNITE_M2M_CLIENT_SECRET"):
         read_cloud_config(data)
 
 
