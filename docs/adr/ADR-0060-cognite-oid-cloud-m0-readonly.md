@@ -83,3 +83,8 @@ This incremental decision splits the next work into three **independent** tasks,
 The Azure secret handoff workflow may be **blocked**, because `cognite-m0` GitHub Environment OIDC, permissions and the private Blob destination have not yet been live-qualified. An access-blocked or not-run handoff is a legitimate result; do not substitute unapproved personal credentials or broaden tenant permissions to force success.
 
 **Rollback:** Leave handoff approval false/clear it to prevent further operations. For a completed transfer, revoke its job identity's permission or disable the dedicated Key Vault secret through the Azure operator; do not remove or rotate other CEPIO Labs secrets. The seven-day GitHub artifact expires automatically and contains only filtered public-OID metadata, no credentials or raw historian readings.
+
+
+## M0 package-install safety correction (2026-11-09)
+
+The first trusted-main OID inventory workflow failed before Cognite authentication because its pip package constraint had an invalid trailing greater-than sign (`cognite-sdk>=8,<9>`). This repair changes only the requirements string to the valid `cognite-sdk>=8,<9` form and adds a regression guard. The dedicated Azure Container Apps Job Dockerfile already uses the valid constraint and does not require a change. This protected workflow update remains high-risk for review purposes, but grants no new permissions, accesses no new credentials and does not change the bounded Cognite API operations. Existing gates remain enforced; the next reviewed merge can run the inventory through GitHub Actions without any bypass or manual secret handling.
