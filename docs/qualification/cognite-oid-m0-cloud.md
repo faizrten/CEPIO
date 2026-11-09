@@ -74,3 +74,19 @@ M1 will freeze bounded historian history with source hashes, signal units and ti
 - Azure Blob and managed identity: https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python
 - CEPIO Binding Contract: `docs/developer/platform-bindings.md`
 - CEPIO Reliability Lighthouse: `docs/reliability-agent-lighthouse.md`
+
+
+## Step 0 — GitHub-hosted OID_API access preflight
+
+Before provisioning Azure, use the existing **Actions repository secret** named `OID_API`. The `CEPIO Cognite OID_API Read-Only Probe` workflow runs automatically only when its own reviewed source is merged into `main`, and can be rerun manually from **GitHub → Actions → CEPIO Cognite OID_API Read-Only Probe → Run workflow** on `main`.
+
+This step has no Azure provisioning or local Python requirement. It tries Cognite's documented OAuth client-credentials grant for OID (`publicdata`, cluster `api`) and then, **only if the grant is rejected**, one legacy `api-key` GET to the same project. The asset response is bounded to **one item** and never printed. GitHub logs report only the authentication method and an allowlisted status or denial code. Never put a token, key or secret into a workflow input or the chat.
+
+**Interpretation:**
+
+- `passed / oidc-client-credentials`: the GitHub secret is usable as an OID client secret with read permission. Next, configure it in an approved Azure Key Vault through a secure operator action. It is **not** yet available to Azure Container Apps simply because it exists in GitHub.
+- `passed / legacy-api-key`: a legacy key still works for this bounded read, but is deprecated; migrate to Cognite-issued OIDC client secret before starting the existing Azure job, which requires OAuth.
+- `blocked / OID_API-secret-not-visible-to-job`: it is not available as an Actions repository secret to this workflow (it may be an Environment-scoped secret or Actions variable). Check scope/name in repository Settings. No value is read from this chat.
+- `blocked / oidc-and-legacy-auth-rejected-or-malformed`: retrieve HTTP codes in the log. Common causes include an expired client secret, incorrect application/grant, lack of project authorization or Cognite's rejection of deprecated keys. Do **not** turn off TLS checks or silently switch projects.
+
+This verifies only one source read. The *separate* M0 inventory and decision replay qualification gates remain open until the appropriate Azure identity/storage pipeline is reviewed, deployed and operated successfully.
