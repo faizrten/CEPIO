@@ -10,9 +10,14 @@ Cognite OID publicdata → read-only manual Azure Container Apps Job → existin
 
 ## Authentication restriction (critical)
 
-The Cognite public OID application (Python/Postman client ID `1b90ede3-271e-401b-81a0-a4d52bea3273`) uses an interactive OAuth flow. Its published tenant/client identifiers do not authorize unattended server access. The cloud runner rejects this client ID and the public JavaScript OID client ID as M2M.
+The Cognite public OID Python/Postman app (client ID `1b90ede3-271e-401b-81a0-a4d52bea3273`) supports interactive OAuth with just the published identifiers. **Cognite has also documented a client-secret generator for OID client-credentials flows**; an appropriately generated *secret* may permit unattended cloud access using that same published app/client ID. The published identifiers **alone are not credentials**.
 
-**Before deployment**, obtain a Cognite-approved machine-to-machine client with read-only access to `publicdata`. The exact permission grant is governed by Cognite/the OID administrator. If this is unavailable, leave cloud execution blocked. Do not persist delegated refresh tokens or bypass the IdP. The M2M secret must be held in an existing Azure Key Vault and supplied via a *versioned Key Vault secret URI*; never store secret values in GitHub.
+1. Sign in to [Cognite Hub → Open Industrial Data](https://learn.cognite.com/open-industrial-data) and look for the OID *Generate/Create client secret* option. Cognite's historical guidance says to choose **Other** for Python/Postman (not JavaScript); see [Cognite's instructions](https://hub.cognite.com/open-industrial-data-211/how-to-generate-a-client-secret-for-open-industrial-data-1226).
+2. Confirm the generated secret is still supported and grants read-only `publicdata` access. This documentation is dated, and some users have reported that the widget was temporarily unavailable. If missing, contact Cognite OID support; **do not fabricate a client secret**.
+3. Store the secret **directly** in an existing Azure Key Vault, retrieve its *versioned Key Vault secret URI*, and give the Container Apps job identity secret-read permission. Do not paste the secret into chat or GitHub, or leave it in plaintext shell history.
+4. Only then use the Cognite-approved tenant and client ID in the cloud job. The runner still refuses any unattended access without a valid M2M secret. Credentials/permissions will be verified by Cognite at execution time.
+
+Do not persist delegated refresh tokens or bypass the IdP. The secret must be supplied by Key Vault reference—not in GitHub Actions environment variables, Bicep parameters or repository files.
 
 An Azure **user-assigned managed identity** (distinct from the Cognite M2M application) authenticates to Blob Storage and can read the approved Key Vault secret. Prefer a job-specific identity over expanding the CEPIO API host's privileges.
 
@@ -39,7 +44,7 @@ Environment **variables**:
 | `M0_BLOB_ACCOUNT_URL` | `https://<account>.blob.core.windows.net` |
 | `M0_BLOB_CONTAINER` | Existing private Blob container |
 | `M0_COGNITE_M2M_TENANT_ID` | Cognite-approved M2M authority tenant |
-| `M0_COGNITE_M2M_CLIENT_ID` | Cognite-approved M2M client (NOT the published public OID app) |
+| `M0_COGNITE_M2M_CLIENT_ID` | Cognite-approved client ID; the published Python OID client may be used **only with Cognite-issued client secret and verified rights** |
 | `M0_COGNITE_SECRET_KEYVAULT_URI` | Versioned Key Vault secret URL (not secret value) |
 | `M0_AUTH_APPROVED` | Literal `true` required before deploy/run; leave unset while unqualified |
 
