@@ -114,20 +114,23 @@ class CogniteOIDSDKReader:
 class CogniteOIDEvidenceBinding:
     """Source-neutral, versioned, observation-only evidence from Cognite OID."""
 
-    manifest = PlatformBindingManifest(
-        binding_id="cepio.binding.cognite.oid-m0",
-        provider_id="cognite",
-        source_system="cognite-oid",
-        mode=BindingMode.evidence,
-        capabilities=frozenset(
-            {BindingCapability.resolve_evidence, BindingCapability.versioned_identity}
-        ),
-    )
+    manifest: PlatformBindingManifest
 
     def __init__(self, reader: CogniteOIDReader) -> None:
         if reader.project not in OID_PROJECTS:
             raise CogniteOIDM0Error("Unsupported project; OID only")
         self.reader = reader
+        # CDF numeric IDs are scoped to the project. Scope the manifest as well,
+        # so stable CEPIO evidence reference keys cannot collide across projects.
+        self.manifest = PlatformBindingManifest(
+            binding_id=f"cepio.binding.cognite.oid-m0.{reader.project}",
+            provider_id="cognite",
+            source_system=f"cognite-oid/{reader.project}",
+            mode=BindingMode.evidence,
+            capabilities=frozenset(
+                {BindingCapability.resolve_evidence, BindingCapability.versioned_identity}
+            ),
+        )
 
     def resolve_evidence(self, external_id: str) -> EvidenceEnvelope:
         # Canonical identity: '<resource-kind>/<immutable CDF numeric ID>'.
