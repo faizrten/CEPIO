@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install provider SDK and CEPIO contracts
-        run: python -m pip install . 'cognite-sdk>=8,<9>'
+        run: python -m pip install . 'cognite-sdk>=8,<9'
       - name: Read bounded OID evidence with authenticated client credentials
         shell: bash
         env:
