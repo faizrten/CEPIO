@@ -214,3 +214,31 @@ def test_project_namespaces_source_keys_and_binding_registrations():
         cdm.resolve_evidence("assets/101").reference.stable_key
     )
     assert cdm.resolve_evidence("assets/101").reference.dataset_id == "publicdatacdm"
+
+
+def test_sdk_reader_rejects_expansive_filters_and_blank_search():
+    reader = _reader()
+    with pytest.raises(CogniteOIDM0Error, match="Assets inventory"):
+        reader.list_items("assets", limit=2, asset_ids=[101])
+    with pytest.raises(CogniteOIDM0Error, match="bounded asset filter"):
+        reader.list_items("time_series", limit=2, asset_ids=list(range(11)))
+    with pytest.raises(CogniteOIDM0Error, match="Asset search"):
+        reader.search_assets(" ", limit=2)
+
+
+def test_sdk_reader_invalid_identity_and_missing_source_fail_closed():
+    reader = _reader()
+    with pytest.raises(CogniteOIDM0Error, match="positive integer"):
+        reader.retrieve_item("assets", cdf_id=-1)
+    with pytest.raises(CogniteOIDM0Error, match="CDF evidence is missing"):
+        CogniteOIDEvidenceBinding(reader).resolve_evidence("assets/999")
+
+
+def test_reject_unrecognized_project_even_with_a_shape_matching_reader():
+    from types import SimpleNamespace
+
+    bad_reader = SimpleNamespace(project="customer-private")
+    with pytest.raises(CogniteOIDM0Error, match="Unsupported project"):
+        CogniteOIDEvidenceBinding(bad_reader)
+    with pytest.raises(CogniteOIDM0Error, match="restricted to the Cognite OID"):
+        run_oid_m0_inventory(bad_reader)
