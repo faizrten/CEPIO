@@ -1,0 +1,38 @@
+name: CEPIO Cognite OID M0 IaC Validation
+
+on:
+  pull_request:
+    paths:
+      - 'deploy/cognite-oid-m0/**'
+      - '.github/workflows/cognite-oid-m0-cloud.yml'
+      - '.github/workflows/cognite-oid-m0-validate.yml'
+  push:
+    paths:
+      - 'deploy/cognite-oid-m0/**'
+      - '.github/workflows/cognite-oid-m0-cloud.yml'
+      - '.github/workflows/cognite-oid-m0-validate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bicep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Compile manual-job ARM template (no deployment or Azure login)
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v az >/dev/null || { echo "::error::Azure CLI unavailable"; exit 1; }
+          az bicep build --file deploy/cognite-oid-m0/job.bicep --stdout > /dev/null
+      - name: Reject implicit scheduling and secret literals
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "param authorized bool = false" deploy/cognite-oid-m0/job.bicep
+          grep -q "triggerType: 'Manual'" deploy/cognite-oid-m0/job.bicep
+          grep -q "replicaRetryLimit: 0" deploy/cognite-oid-m0/job.bicep
+          grep -q "keyVaultUrl: cogniteM2MKeyVaultSecretUrl" deploy/cognite-oid-m0/job.bicep
