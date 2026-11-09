@@ -90,3 +90,41 @@ This step has no Azure provisioning or local Python requirement. It tries Cognit
 - `blocked / oidc-and-legacy-auth-rejected-or-malformed`: retrieve HTTP codes in the log. Common causes include an expired client secret, incorrect application/grant, lack of project authorization or Cognite's rejection of deprecated keys. Do **not** turn off TLS checks or silently switch projects.
 
 This verifies only one source read. The *separate* M0 inventory and decision replay qualification gates remain open until the appropriate Azure identity/storage pipeline is reviewed, deployed and operated successfully.
+
+
+## Updated zero-local-install first-run sequence
+
+GitHub Actions `OID_API` passed the bounded one-asset OAuth client-credentials probe. The remaining source-data and Azure work can start without local Python.
+
+### Step A — Source M0 snapshot (automatic once merged)
+
+The `CEPIO Cognite OID M0 Evidence Inventory` workflow runs on reviewed `main` with the existing repository secret `OID_API`. It installs the opt-in Cognite SDK and samples at most 100 items each from OID assets, time series, events and file metadata, searches 20 compressor assets, and inspects bounded linked evidence for at most 10 IDs. The run prints only sample counts, compressor candidate/related counts, missing-unit count, source conformance verdict, and a deterministic inventory SHA-256. The full allowlisted **public-OID metadata** manifest is retained in an Actions artifact for seven days. It contains no credentials, raw historian datapoints or file contents.
+
+**Review:** GitHub → CEPIO → Actions → **CEPIO Cognite OID M0 Evidence Inventory** → latest run → summary/logs → artifact `cepio-cognite-oid-m0-publicdata`. Inspect candidates and relationships; do not treat non-zero counts or one valid asset binding as engineering judgment uplift. Report gaps in Valhall/compressor scope honestly.
+
+### Step B — Existing Azure resource visibility (automatic once merged)
+
+`CEPIO Cognite M0 Azure Resource Readiness` uses existing CEPIO `azure-demo` environment's Azure OIDC identity to perform GET-only checks on previously documented Labs resource names:
+
+- `cepio-labs-rg`
+- `cepio-labs-internal` Container Apps environment
+- `cepiolabsb5ufvcwpcdw` Container Registry
+- `cepiolabs-b5ufvcwpcpcdw` Key Vault
+
+A successful GET proves visibility only, **not** ACLs for job runtime, Key Vault data plane, or Storage Blob access. An unsuccessful GET may reflect subscription/permission scope; do not assume the resource does not exist. The script does not list or read secrets and does not modify any resources. The workflow may require an existing `azure-demo` environment reviewer to approve access.
+
+### Step C — Approved Key Vault handoff (deliberately manual)
+
+Only after Step B confirms resource scope and an operator has separately approved identity/RBAC:
+
+1. In GitHub CEPIO → **Settings → Environments**, configure/protect `cognite-m0`, use its approved GitHub-to-Azure federated identity and ensure `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` are available to that environment. The environment OIDC subject must match the repo's custom GitHub OIDC policy.
+2. Set environment variables `M0_RESOURCE_GROUP=cepio-labs-rg` and `M0_KEYVAULT_NAME=cepiolabs-b5ufvcwpcpcdw`. This workflow cannot target arbitrary resource groups or vaults.
+3. After reviewing the permissions, set `M0_AUTH_APPROVED=true` and `M0_HANDOFF_APPROVED=true` in that protected environment. Do not set these values until the operator explicitly approves transfer of the already-existing `OID_API` repository secret.
+4. From GitHub → Actions → **CEPIO Cognite OID Secret Handoff to Azure** → Run workflow on `main` → select `handoff`. The secret is never shown in command arguments, logs, artifacts or in this chat. It uses an ephemeral mode-0600 temporary file and writes a new Key Vault secret named `cepio-cognite-oid-m0-client-secret`. The workflow refuses to rotate an existing secret automatically.
+5. The GitHub job summary returns a **versioned Key Vault secret URI, not its value**. Set the URI as protected environment variable `M0_COGNITE_SECRET_KEYVAULT_URI` used by the existing manual `CEPIO Cognite OID M0 Cloud` workflow.
+
+The workflow's `inspect` operation checks Key Vault metadata using that same protected Azure identity without reading secret contents or writing anything.
+
+**Never ask a user to paste OID_API into chat, GitHub issue/PR comments, Azure CLI command-line flags or plain text files.** If required Azure federation/permissions are unavailable, retain the successfully qualified GH-based source snapshot and report Azure integration as blocked. The separate Azure job still requires an existing **private Blob container**, scoped job managed identity permissions and explicit plan/deploy/run gates.
+
+**Operational status:** GitHub OID client-secret authentication has been verified with one source asset; full source inventory, Azure Key Vault transfer, Azure Container Apps execution, source-target reconciliation and Studio UI remain separate gates until each has actual executed receipts.
