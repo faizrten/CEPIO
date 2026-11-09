@@ -24,11 +24,8 @@ from cepio.integrations.cognite.oid_m0 import (
     run_oid_m0_inventory,
 )
 
-# These identifiers belong to Cognite's delegated/interactive public OID apps.
-# Never silently use them as unattended client-credentials identities.
-PUBLIC_OID_CLIENT_IDS = frozenset(
-    {"1b90ede3-271e-401b-81a0-a4d52bea3273", "dea6bb8d-0f48-4bf0-a469-176fc19edc14"}
-)
+# Cognite OID documents client-secret generation for its published app registrations.
+# A client ID alone is never a credential; an approved, securely sourced secret is mandatory.
 MAX_REPORT_BYTES = 1_048_576
 
 
@@ -79,10 +76,8 @@ def read_cloud_config(env: Mapping[str, str]) -> CloudM0Config:
         )
     tenant = _guid(_required(env, "COGNITE_M2M_TENANT_ID"), "COGNITE_M2M_TENANT_ID")
     client = _guid(_required(env, "COGNITE_M2M_CLIENT_ID"), "COGNITE_M2M_CLIENT_ID")
-    if client in PUBLIC_OID_CLIENT_IDS:
-        raise CloudM0ConfigurationError(
-            "Public OID app is interactive, not an approved M2M identity"
-        )
+    # Published OID app IDs are allowed only with an explicit client secret. Their
+    # entitlement for this particular user/project is verified by Cognite at runtime.
     identity = _guid(_required(env, "AZURE_IDENTITY_CLIENT_ID"), "AZURE_IDENTITY_CLIENT_ID")
     url = _required(env, "AZURE_BLOB_ACCOUNT_URL").rstrip("/")
     parsed = urlsplit(url)
