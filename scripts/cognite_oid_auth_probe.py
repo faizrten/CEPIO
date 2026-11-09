@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import os
 import ssl
-import sys
 from typing import Any, Mapping, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
