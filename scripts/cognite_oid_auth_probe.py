@@ -22,8 +22,7 @@ from urllib.request import (
 )
 
 TOKEN_URL = (
-    "https://login.microsoftonline.com/"
-    "48d5043c-cf70-4c49-881c-c638f5796997/oauth2/v2.0/token"
+    "https://login.microsoftonline.com/48d5043c-cf70-4c49-881c-c638f5796997/oauth2/v2.0/token"
 )
 CDF_URL = "https://api.cognitedata.com/api/v1/projects/publicdata/assets?limit=1"
 CLIENT_ID = "1b90ede3-271e-401b-81a0-a4d52bea3273"
@@ -33,7 +32,11 @@ MAX_REPLY_BYTES = 65536
 
 class ProbeTransport(Protocol):
     def request_json(
-        self, method: str, url: str, *, headers: Mapping[str, str],
+        self,
+        method: str,
+        url: str,
+        *,
+        headers: Mapping[str, str],
         form: Mapping[str, str] | None = None,
     ) -> tuple[int, dict[str, Any] | None]: ...
 
@@ -61,12 +64,13 @@ class HTTPSProbeTransport:
         headers: Mapping[str, str],
         form: Mapping[str, str] | None = None,
     ) -> tuple[int, dict[str, Any] | None]:
-        allowed = (
-            (method == "POST" and url == TOKEN_URL and form is not None)
-            or (method == "GET" and url == CDF_URL and form is None)
+        allowed = (method == "POST" and url == TOKEN_URL and form is not None) or (
+            method == "GET" and url == CDF_URL and form is None
         )
         if not allowed:
-            raise ValueError("Probe only permits the configured OID OAuth and read-only assets endpoints")
+            raise ValueError(
+                "Probe only permits the configured OID OAuth and read-only assets endpoints"
+            )
         data = urlencode(form).encode("ascii") if form is not None else None
         req = Request(url, data=data, headers=dict(headers), method=method)
         try:
@@ -88,9 +92,7 @@ class HTTPSProbeTransport:
         return status, parsed if isinstance(parsed, dict) else None
 
 
-def _asset_read(
-    transport: ProbeTransport, *, headers: Mapping[str, str]
-) -> tuple[int, bool, int]:
+def _asset_read(transport: ProbeTransport, *, headers: Mapping[str, str]) -> tuple[int, bool, int]:
     status, body = transport.request_json(
         "GET", CDF_URL, headers={"Accept": "application/json", **headers}
     )
@@ -131,9 +133,7 @@ def probe_oid_credential(secret: str, transport: ProbeTransport) -> dict[str, ob
         token = payload.get("access_token") if isinstance(payload, dict) else None
         if not isinstance(token, str) or not token:
             return {**common, "status": "blocked", "reason": "invalid-oauth-response"}
-        code, valid, count = _asset_read(
-            transport, headers={"Authorization": f"Bearer {token}"}
-        )
+        code, valid, count = _asset_read(transport, headers={"Authorization": f"Bearer {token}"})
         if valid:
             return {
                 **common,
@@ -183,7 +183,11 @@ def main() -> int:
         report = probe_oid_credential(secret, HTTPSProbeTransport())
     except (URLError, TimeoutError, OSError, ValueError) as exc:
         # Exception bodies can contain sensitive upstream details; print only class.
-        report = {"status": "blocked", "reason": "transport-or-config", "error_type": type(exc).__name__}
+        report = {
+            "status": "blocked",
+            "reason": "transport-or-config",
+            "error_type": type(exc).__name__,
+        }
     print(json.dumps(report, sort_keys=True))
     return 0 if report.get("status") == "passed" else 2
 
