@@ -43,7 +43,7 @@ resource job 'Microsoft.App/jobs@2024-03-01' = if (authorized) {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      ''${executionIdentityResourceId}'': {}
+      '${executionIdentityResourceId}': {}
     }
   }
   properties: {
