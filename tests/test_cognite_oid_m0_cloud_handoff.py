@@ -75,9 +75,11 @@ def test_inventory_snapshot_denies_nonexisting_parent_and_excessive_size(tmp_pat
 
 def test_azure_readiness_never_claims_identity_or_blob_rights():
     commands = []
+
     def approve(cmd):
         commands.append(cmd)
         return True
+
     result = collect_readiness(approve)
     assert result["status"] == "existing-resources-visible"
     assert len(commands) == 4
@@ -107,7 +109,7 @@ def test_secret_handoff_requires_trusted_main_and_protected_environment():
     assert "secrets.OID_API" in handoff
     assert "--file " in handoff
     assert "--value" not in handoff
-    assert 'mktemp /dev/shm/' in handoff
+    assert "mktemp /dev/shm/" in handoff
     assert "az keyvault secret set" in handoff
     assert "az deployment group create" not in handoff
     assert "az containerapp job start" not in handoff
