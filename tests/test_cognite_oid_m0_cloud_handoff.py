@@ -129,3 +129,12 @@ def test_source_inventory_and_azure_probe_are_main_only_and_minimal():
     assert "pull_request_target" not in a
     assert "pull_request_target" not in b
     assert "retention-days: 7" in a
+
+
+def test_github_inventory_sdk_requirement_parses_without_pip_failure():
+    from packaging.requirements import Requirement
+
+    path = Path(__file__).resolve().parents[1] / ".github/workflows/cognite-oid-m0-inventory.yml"
+    workflow = path.read_text(encoding="utf-8")
+    assert "python -m pip install . 'cognite-sdk>=8,<9'" in workflow
+    Requirement("cognite-sdk>=8,<9")
