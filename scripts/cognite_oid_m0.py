@@ -71,12 +71,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Read-only Cognite OID M0 inventory")
     parser.add_argument("--project", choices=sorted(OID_PROJECTS), default="publicdata")
     parser.add_argument("--auth", choices=("interactive", "env"), default="interactive")
-    parser.add_argument("--limit", type=int, default=100, help="Maximum resources per sample (max 200)")
-    parser.add_argument("--focus", default="compressor", help="Asset-name search (read-only)")
-    parser.add_argument("--focus-limit", type=int, default=20, help="Maximum asset search hits (max 100)")
     parser.add_argument(
-        "--output", type=Path, default=Path.home() / "cepio-oid-m0-inventory.json"
+        "--limit", type=int, default=100, help="Maximum resources per sample (max 200)"
     )
+    parser.add_argument("--focus", default="compressor", help="Asset-name search (read-only)")
+    parser.add_argument(
+        "--focus-limit", type=int, default=20, help="Maximum asset search hits (max 100)"
+    )
+    parser.add_argument("--output", type=Path, default=Path.home() / "cepio-oid-m0-inventory.json")
     args = parser.parse_args(argv)
 
     try:
@@ -90,7 +92,10 @@ def main(argv: list[str] | None = None) -> int:
         write_private_json(args.output, report)
     except Exception as exc:
         # Do not print Cognite SDK exception bodies: may include upstream response details.
-        print(f"M0 blocked: {type(exc).__name__}. Check local credentials, permissions and limits.", file=sys.stderr)
+        print(
+            f"M0 blocked: {type(exc).__name__}. Check local credentials, permissions and limits.",
+            file=sys.stderr,
+        )
         return 2
 
     check = report["binding_qualification"]["live_source_conformance"]["status"]
