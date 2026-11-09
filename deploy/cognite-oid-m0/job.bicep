@@ -25,10 +25,10 @@ param storageAccountUrl string
 @description('Existing private container for evidence manifests')
 param storageContainer string
 
-@description('Approved Cognite M2M authority tenant, distinct from the public interactive app identity')
+@description('Cognite OID approved client-credentials tenant; use only with authorized Key Vault secret')
 param cogniteM2MTenantId string
 
-@description('Approved Cognite M2M client ID, not the public OID interactive client ID')
+@description('Cognite-approved client ID; documented public OID app may work with a user-generated secret')
 param cogniteM2MClientId string
 
 @description('Versioned Key Vault secret URI for Cognite M2M client secret; never a plaintext secret')
