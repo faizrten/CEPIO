@@ -1,0 +1,39 @@
+name: CEPIO Cognite OID_API Read-Only Probe
+
+on:
+  # Execute exactly once when this reviewed workflow is merged on main.
+  # Later manual reruns are possible without checking credentials into source.
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/cognite_oid_auth_probe.py'
+      - '.github/workflows/cognite-oid-auth-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cepio-oid-api-readonly-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Validate Cognite OID authentication with bounded read only
+        # Repo/Actions secret, never a workflow input, artifact or echoed value.
+        env:
+          OID_API: ${{ secrets.OID_API }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -I scripts/cognite_oid_auth_probe.py
