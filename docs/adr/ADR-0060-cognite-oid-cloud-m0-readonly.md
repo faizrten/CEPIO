@@ -53,3 +53,16 @@ This is a sanitized public interoperability example: only metadata binding, dete
 This ADR authorizes source-only work, **not** customer-tenant deployment, resource provisioning or operational control. The user-controlled Azure operator must configure the existing resources and approve a manual deployment. Removing the manual job disables new executions; secret access and Blob retention remain under the existing platform owner's governance.
 
 **Existing gates remain enforced.** There is no lowering of coverage thresholds, risk checks, public IP boundaries, Azure authorization or runtime data controls.
+
+
+## 2026-11-09 addendum — GitHub Actions OID_API credential probe
+
+The founder confirmed the secret name `OID_API` is already stored in CEPIO GitHub and approved a read-only cloud-side verification. To avoid unnecessary Azure grants or local workstation steps, add `scripts/cognite_oid_auth_probe.py` and a **main-only** GitHub Actions workflow for a single-asset connectivity proof.
+
+- The workflow runs once on merge to protected `main` when its own source changes, or on explicit manual dispatch. **Never on PR head code or pull_request_target.** Only the probe step can read `secrets.OID_API`.
+- The probe transmits the secret solely to the documented Cognite OID OAuth token endpoint for an explicitly bounded client-credentials attempt. Only if the OAuth token grant is denied (HTTP 400/401/403) does it attempt one Cognite API legacy `api-key` request. A successful OAuth token that lacks CDF access is a **failure**, not permission to retry an alternate credential type.
+- A single `GET /api/v1/projects/publicdata/assets?limit=1` is the only CDF operation; do not print names, source records, tokens, secret values, response bodies or source identity. Disable redirects and ambient HTTP proxies; rely on standard TLS verification.
+- The result states only passed/blocked, authentication mode, HTTP status codes and at most one sampled asset. No artifact upload, Azure cloud deployment, persistent token or inference. A legacy-key success signals **migration needed** before enabling the M2M Azure job; neither key nor OAuth client secret is copied into Azure by this workflow.
+- A missing or scope-inaccessible GitHub secret fails safely without implying the secret is absent from the account. The operator must confirm `OID_API` is an Actions **repository** secret (not a similarly named Variable or unlinked Environment secret).
+
+The GitHub workflow is a protected **HIGH-risk** path because it consumes a repository secret. Use the existing high-risk governance-protection gates, explicit IP publication attestations and regression tests; no relaxation of existing gates is authorized. The result is an authentication preflight only, not a live industrial-data M0 inventory or proof of judgment uplift.
