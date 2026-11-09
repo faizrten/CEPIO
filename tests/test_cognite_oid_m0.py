@@ -27,26 +27,50 @@ class FakeResource:
 
 ASSETS = [
     FakeResource(
-        id=101, externalId="COMP-101", name="First Stage Gas Compressor",
-        lastUpdatedTime=1762000000000, dataSetId=2,
+        id=101,
+        externalId="COMP-101",
+        name="First Stage Gas Compressor",
+        lastUpdatedTime=1762000000000,
+        dataSetId=2,
     ),
     FakeResource(id=102, externalId="AS-102", name="Plant Area", lastUpdatedTime=1762000000100),
 ]
 TIME_SERIES = [
     FakeResource(
-        id=501, externalId="PT-501", name="Suction pressure", unit="bar",
-        isString=False, assetId=101, lastUpdatedTime=1762000000500,
+        id=501,
+        externalId="PT-501",
+        name="Suction pressure",
+        unit="bar",
+        isString=False,
+        assetId=101,
+        lastUpdatedTime=1762000000500,
     ),
     FakeResource(
-        id=502, externalId="VI-502", name="Vibration", isString=False,
-        assetId=101, lastUpdatedTime=1762000000600,
+        id=502,
+        externalId="VI-502",
+        name="Vibration",
+        isString=False,
+        assetId=101,
+        lastUpdatedTime=1762000000600,
     ),
 ]
 EVENTS = [
-    FakeResource(id=601, externalId="MAINT-1", name="Inspection", assetIds=[101], lastUpdatedTime=1762000000600)
+    FakeResource(
+        id=601,
+        externalId="MAINT-1",
+        name="Inspection",
+        assetIds=[101],
+        lastUpdatedTime=1762000000600,
+    )
 ]
 FILES = [
-    FakeResource(id=701, externalId="PID-1", name="Process P&ID", assetIds=[101], lastUpdatedTime=1762000000700)
+    FakeResource(
+        id=701,
+        externalId="PID-1",
+        name="Process P&ID",
+        assetIds=[101],
+        lastUpdatedTime=1762000000700,
+    )
 ]
 
 
@@ -61,13 +85,20 @@ class FakeEndpoint:
         items = self.items
         if kwargs.get("asset_ids"):
             ids = set(kwargs["asset_ids"])
-            items = [x for x in items if x.payload.get("assetId") in ids or ids.intersection(x.payload.get("assetIds", []))]
+            items = [
+                x
+                for x in items
+                if x.payload.get("assetId") in ids
+                or ids.intersection(x.payload.get("assetIds", []))
+            ]
         return items[: kwargs["limit"]]
 
     def search(self, **kwargs):
         assert self.allows_search
         self.calls.append(("search", kwargs))
-        return [x for x in self.items if kwargs["name"].lower() in x.payload.get("name", "").lower()][:kwargs["limit"]]
+        return [
+            x for x in self.items if kwargs["name"].lower() in x.payload.get("name", "").lower()
+        ][: kwargs["limit"]]
 
     def retrieve(self, *, id):
         self.calls.append(("retrieve", {"id": id}))
@@ -91,7 +122,12 @@ def test_inventory_is_bounded_traceable_and_not_host_registered():
     reader = _reader()
     result = run_oid_m0_inventory(reader, limit=2, focus_phrase="compressor")
     assert result["schema_version"] == "cepio.cognite-oid-m0/0.1"
-    assert result["observations"]["sampled"] == {"assets": 2, "time_series": 2, "events": 1, "files": 1}
+    assert result["observations"]["sampled"] == {
+        "assets": 2,
+        "time_series": 2,
+        "events": 1,
+        "files": 1,
+    }
     assert result["observations"]["missing_numeric_units"] == 1
     assert result["observations"]["history_window"].startswith("not yet established")
     assert result["binding_qualification"]["live_source_conformance"]["status"] == "passed"
@@ -99,9 +135,16 @@ def test_inventory_is_bounded_traceable_and_not_host_registered():
     assert result["binding_qualification"]["production_ready"] is False
     assert len(result["snapshot_sha256"]) == 64
     assert result == run_oid_m0_inventory(reader, limit=2, focus_phrase="compressor")
-    assert all(method in ("list", "search", "retrieve") for api in (
-        reader.client.assets, reader.client.time_series, reader.client.events, reader.client.files
-    ) for method, _ in api.calls)
+    assert all(
+        method in ("list", "search", "retrieve")
+        for api in (
+            reader.client.assets,
+            reader.client.time_series,
+            reader.client.events,
+            reader.client.files,
+        )
+        for method, _ in api.calls
+    )
 
 
 def test_binding_preserves_identity_and_source_timestamp_version():
@@ -120,7 +163,10 @@ def test_binding_preserves_identity_and_source_timestamp_version():
     assert "metadata" not in envelope.evidence
 
 
-@pytest.mark.parametrize("bad_id", ["", "assets", "unknown/101", "assets/-1", "assets/0", "assets/001", "assets/101/extra"])
+@pytest.mark.parametrize(
+    "bad_id",
+    ["", "assets", "unknown/101", "assets/-1", "assets/0", "assets/001", "assets/101/extra"],
+)
 def test_binding_rejects_noncanonical_resource_identity(bad_id):
     with pytest.raises(CogniteOIDM0Error):
         CogniteOIDEvidenceBinding(_reader()).resolve_evidence(bad_id)
