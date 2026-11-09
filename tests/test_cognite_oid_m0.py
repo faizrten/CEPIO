@@ -156,7 +156,7 @@ def test_binding_preserves_identity_and_source_timestamp_version():
     assert descriptor.provider == "cognite"
     result = qualify_evidence_binding(binding, external_id="assets/101")
     assert result.versioned is True
-    assert "cognite-oid:asset:assets/101:1762000000000" == result.reference_key
+    assert "cognite-oid/publicdata:asset:assets/101:1762000000000" == result.reference_key
     envelope = binding.resolve_evidence("assets/101")
     assert envelope.reference.dataset_id == "publicdata"
     assert envelope.evidence["name"] == "First Stage Gas Compressor"
@@ -204,3 +204,13 @@ def test_no_compressor_search_hit_does_not_invent_a_target():
     assert result["related_to_focus_assets"] == {}
     assert result["binding_qualification"]["live_source_conformance"]["status"] == "passed"
     # Binding qualification passes for a generic existing asset; compressor scope remains unqualified.
+
+
+def test_project_namespaces_source_keys_and_binding_registrations():
+    original = CogniteOIDEvidenceBinding(_reader())
+    cdm = CogniteOIDEvidenceBinding(CogniteOIDSDKReader(FakeSDKClient(project="publicdatacdm")))
+    assert original.manifest.binding_id != cdm.manifest.binding_id
+    assert original.resolve_evidence("assets/101").reference.stable_key != (
+        cdm.resolve_evidence("assets/101").reference.stable_key
+    )
+    assert cdm.resolve_evidence("assets/101").reference.dataset_id == "publicdatacdm"
