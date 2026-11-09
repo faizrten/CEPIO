@@ -24,10 +24,28 @@ from ...platform_bindings import (
 OID_PROJECTS = frozenset({"publicdata", "publicdatacdm"})
 OID_BASE_URL = "https://api.cognitedata.com"
 KINDS = ("assets", "time_series", "events", "files")
-RESOURCE_TYPES = {"assets": "asset", "time_series": "time-series", "events": "event", "files": "file-metadata"}
+RESOURCE_TYPES = {
+    "assets": "asset",
+    "time_series": "time-series",
+    "events": "event",
+    "files": "file-metadata",
+}
 VISIBLE_FIELDS = (
-    "id", "externalId", "name", "unit", "assetId", "assetIds", "isString", "isStep",
-    "startTime", "endTime", "type", "subtype", "mimeType", "dataSetId", "lastUpdatedTime",
+    "id",
+    "externalId",
+    "name",
+    "unit",
+    "assetId",
+    "assetIds",
+    "isString",
+    "isStep",
+    "startTime",
+    "endTime",
+    "type",
+    "subtype",
+    "mimeType",
+    "dataSetId",
+    "lastUpdatedTime",
 )
 
 
@@ -167,20 +185,15 @@ def run_oid_m0_inventory(
     resources = {kind: _sort_items(reader.list_items(kind, limit=limit)) for kind in KINDS}
     focused = _sort_items(reader.search_assets(focus_phrase, limit=focus_limit))
     related_ids = [
-        item["id"] for item in focused
-        if isinstance(item.get("id"), int) and item["id"] > 0
+        item["id"] for item in focused if isinstance(item.get("id"), int) and item["id"] > 0
     ][:10]
     related: dict[str, list[dict[str, Any]]] = {}
     if related_ids:
         for kind in ("time_series", "events", "files"):
-            related[kind] = _sort_items(
-                reader.list_items(kind, limit=limit, asset_ids=related_ids)
-            )
+            related[kind] = _sort_items(reader.list_items(kind, limit=limit, asset_ids=related_ids))
 
     binding = CogniteOIDEvidenceBinding(reader)
-    registration = register_evidence_binding(
-        binding, capability_id="industrial-evidence-inventory"
-    )
+    registration = register_evidence_binding(binding, capability_id="industrial-evidence-inventory")
     candidate = next(
         (r for r in focused + resources["assets"] if isinstance(r.get("id"), int)),
         None,
@@ -205,7 +218,8 @@ def run_oid_m0_inventory(
         "focus_asset_count": len(focused),
         "focus_related_count": {kind: len(items) for kind, items in related.items()},
         "missing_numeric_units": sum(
-            1 for item in resources["time_series"]
+            1
+            for item in resources["time_series"]
             if item.get("isString") is False and not item.get("unit")
         ),
         "unlinked_time_series": sum(
@@ -236,6 +250,8 @@ def run_oid_m0_inventory(
         },
     }
     digest = hashlib.sha256(
-        json.dumps(source_snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        json.dumps(
+            source_snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode()
     ).hexdigest()
     return {**source_snapshot, "snapshot_sha256": digest}
