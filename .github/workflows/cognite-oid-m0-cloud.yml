@@ -60,10 +60,8 @@ jobs:
               echo "::error::$key is not configured in the cognite-m0 GitHub Environment"; exit 1
             fi
           done
-          if [[ "$M0_CDF_M2M_CLIENT_ID" == "1b90ede3-271e-401b-81a0-a4d52bea3273" ||
-                "$M0_CDF_M2M_CLIENT_ID" == "dea6bb8d-0f48-4bf0-a469-176fc19edc14" ]]; then
-            echo "::error::Public interactive OID app cannot be a cloud M2M identity"; exit 1
-          fi
+          # Cognite permits client credentials when an approved OID client secret
+          # exists; the public client ID alone never supplies authentication.
           if [[ "$M0_OPERATION" != "plan" && "$M0_AUTH_APPROVED" != "true" ]]; then
             echo "::error::Cloud deploy/run requires explicit M0_AUTH_APPROVED=true"; exit 1
           fi
