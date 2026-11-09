@@ -319,67 +319,9 @@ class ConstrainedOperatorAgent:
         self.max_tool_steps = max_tool_steps
 
     def run(self, *, question_id: str, question: str) -> OperatorResult:
-        tools = self.gateway.list_tools()
-        allowed_tools = {str(tool.get("name")) for tool in tools if tool.get("name")}
-        trace: list[OperatorTraceEntry] = []
-        evidence: list[ToolEvidence] = []
+        from .integrations.microsoft.operator import run_operator
 
-        for step_number in range(1, self.max_tool_steps + 2):
-            step = self.planner.next_step(
-                question_id=question_id,
-                question=question,
-                tools=tools,
-                trace=list(trace),
-            )
-
-            if isinstance(step, FinalResponse):
-                return self._finalize(question_id, step, trace, evidence)
-
-            if step_number > self.max_tool_steps:
-                return OperatorResult(
-                    question_id=question_id,
-                    status="INSUFFICIENT_CEPIO_EVIDENCE",
-                    answer=None,
-                    evidence=[*evidence],
-                    tool_trace=trace,
-                )
-
-            if step.name not in allowed_tools:
-                trace.append(
-                    OperatorTraceEntry(
-                        step=step_number,
-                        request=step,
-                        error=f"Tool is not exposed by CEPIO gateway: {step.name}",
-                    )
-                )
-                continue
-
-            try:
-                payload = self.gateway.call_tool(step.name, step.arguments)
-                item = ToolEvidence(
-                    id=_stable_evidence_id(step.name, step.arguments, payload),
-                    tool_name=step.name,
-                    arguments=step.arguments,
-                    payload=payload,
-                )
-                evidence.append(item)
-                trace.append(OperatorTraceEntry(step=step_number, request=step, evidence=item))
-            except Exception as exc:
-                trace.append(
-                    OperatorTraceEntry(
-                        step=step_number,
-                        request=step,
-                        error=f"{type(exc).__name__}: {exc}",
-                    )
-                )
-
-        return OperatorResult(
-            question_id=question_id,
-            status="INSUFFICIENT_CEPIO_EVIDENCE",
-            answer=None,
-            evidence=evidence,
-            tool_trace=trace,
-        )
+        return run_operator(self, question_id=question_id, question=question)
 
     @staticmethod
     def _finalize(

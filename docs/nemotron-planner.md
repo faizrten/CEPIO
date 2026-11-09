@@ -1,5 +1,10 @@
 # Nemotron read-only planner binding
 
+The Operator now uses Microsoft Agent Framework Harness by default. Install
+`pip install "cepio[agent-harness]"` before running the example. See the
+[migration contract](operator-harness-migration.md). This changes orchestration,
+not model selection or endpoint authorization.
+
 Status: opt-in implementation; live model quality, deployment and economics are
 unqualified. No change to product release or scorecard. No new agent framework.
 

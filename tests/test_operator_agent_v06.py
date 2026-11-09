@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import pytest
 
 from cepio.mcp import MCPFacade
 from cepio.model import OntologyObject
@@ -8,7 +9,6 @@ from cepio.operator_agent import (
     ConstrainedOperatorAgent,
     FinalResponse,
     MCPToolGateway,
-    OperatorTraceEntry,
     RESTToolGateway,
     RestGatewaySettings,
     ToolRequest,
@@ -172,3 +172,65 @@ def test_operator_tool_evidence_ids_are_stable_for_same_cepio_result():
     ).run(question_id="OP-005", question="Status?")
 
     assert first.evidence[0].id == second.evidence[0].id
+
+
+@pytest.mark.parametrize("denied", [False, True])
+def test_harness_bounds_gateway_attempts_and_preserves_denial(denied):
+    class Gateway:
+        calls = 0
+
+        def list_tools(self):
+            return [{"name": "cepio_get_object"}]
+
+        def call_tool(self, name, arguments):
+            self.calls += 1
+            if denied:
+                raise PermissionError("Policy revoked")
+            return {"value": self.calls}
+
+    class Planner:
+        calls = 0
+
+        def next_step(self, **kwargs):
+            self.calls += 1
+            return ToolRequest(name="cepio_get_object", arguments={"object_id": "unit"})
+
+    gateway, planner = Gateway(), Planner()
+    result = ConstrainedOperatorAgent(
+        gateway=gateway,
+        planner=planner,
+        max_tool_steps=2,
+    ).run(question_id="bounded", question="Status?")
+    assert gateway.calls == 2
+    assert planner.calls <= 3
+    assert result.status == "INSUFFICIENT_CEPIO_EVIDENCE"
+    assert len(result.tool_trace) == 2
+    assert len(result.evidence) == (0 if denied else 2)
+    if denied:
+        assert all("PermissionError" in entry.error for entry in result.tool_trace)
+
+
+def test_harness_final_answer_at_last_permitted_turn():
+    runtime = _runtime_with_object()
+    result = ConstrainedOperatorAgent(
+        gateway=MCPToolGateway(MCPFacade(runtime, actor_id="operator", actor_roles={"operator"})),
+        planner=ReadThenAnswerPlanner("UNIT-001"),
+        max_tool_steps=1,
+    ).run(question_id="last", question="Status?")
+    assert result.status == "ANSWERED"
+
+
+def test_harness_missing_sdk_fails_before_gateway_access(monkeypatch):
+    from cepio.integrations.microsoft import operator as adapter
+
+    monkeypatch.setattr(adapter, "version", lambda _: "unqualified")
+
+    class Gateway:
+        def list_tools(self):
+            raise AssertionError("Must fail before discovery")
+
+    with pytest.raises(RuntimeError, match=r"cepio\[agent-harness\]"):
+        ConstrainedOperatorAgent(gateway=Gateway(), planner=ForbiddenSourcePlanner()).run(
+            question_id="missing",
+            question="Status?",
+        )

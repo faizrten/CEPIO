@@ -1,5 +1,7 @@
 # CEPIO Current State
 
+**Runtime migration candidate (9 November 2026):** The existing [Operator runtime](operator-harness-migration.md), including Nemotron planners, delegates orchestration to Microsoft Agent Framework Harness. Install `cepio[agent-harness]`; Core-only imports remain SDK-independent. Offline tests do not establish live deployment or judgment uplift.
+
 **Bounded implementation increment (7 November 2026):** [Nemotron read-only planner](nemotron-planner.md) binds an opt-in model endpoint to the existing Operator protocol. Offline transport/contract validation is separate from live model qualification. No default-model, deployment, release or scorecard change.
 
 **Bounded implementation increment (3 November 2026):** [Host-local relationship paging v0.1](bounded-relationship-query-v0.1.md) adds explicit security bindings, SQL authorization pushdown and bounded SQLite reads. It does not qualify a remote Operational Object endpoint or complete #329; the dated baseline and release/scorecard claims below remain unchanged.
