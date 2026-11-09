@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from pathlib import Path
 from types import SimpleNamespace
+import sys
 
 import pytest
 
-from scripts.cognite_oid_m0_cloud import (
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+from cognite_oid_m0_cloud import (
     CloudM0ConfigurationError,
     CloudM0IntegrityError,
     inventory_verdict,
@@ -74,7 +77,15 @@ class FakeCdfClient:
             search=True,
         )
         self.time_series = FakeEndpoint(
-            [FakeResource(id=89, name="Suction pressure", assetId=12, unit="bar", lastUpdatedTime=1762000010000)]
+            [
+                FakeResource(
+                    id=89,
+                    name="Suction pressure",
+                    assetId=12,
+                    unit="bar",
+                    lastUpdatedTime=1762000010000,
+                )
+            ]
         )
         self.events = FakeEndpoint([])
         self.files = FakeEndpoint([])
@@ -170,9 +181,11 @@ def test_cloud_execution_uploads_create_only_verified_receipt():
     assert container.blob.upload_args["metadata"]["cepio_sha256"] == output["sha256"]
     assert len(output["sha256"]) == 64
     assert cdf.assets.calls[0][0] == "list"
-    assert all(action in ("list", "search", "retrieve") for endpoint in (
-        cdf.assets, cdf.time_series, cdf.events, cdf.files
-    ) for action, *_ in endpoint.calls)
+    assert all(
+        action in ("list", "search", "retrieve")
+        for endpoint in (cdf.assets, cdf.time_series, cdf.events, cdf.files)
+        for action, *_ in endpoint.calls
+    )
 
 
 def test_cloud_explicitly_distinguishes_source_from_scope_qualification():
