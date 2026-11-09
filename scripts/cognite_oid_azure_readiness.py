@@ -37,7 +37,15 @@ def collect_readiness(verify: Callable[[list[str]], bool] = run_check) -> dict[s
     checks = {
         "labs_rg": verify(["group", "show", "--name", RESOURCE_GROUP]),
         "container_apps_environment": verify(
-            ["containerapp", "env", "show", "--resource-group", RESOURCE_GROUP, "--name", CONTAINER_ENV]
+            [
+                "containerapp",
+                "env",
+                "show",
+                "--resource-group",
+                RESOURCE_GROUP,
+                "--name",
+                CONTAINER_ENV,
+            ]
         ),
         "container_registry": verify(
             ["acr", "show", "--resource-group", RESOURCE_GROUP, "--name", REGISTRY]
@@ -46,9 +54,7 @@ def collect_readiness(verify: Callable[[list[str]], bool] = run_check) -> dict[s
     }
     return {
         "status": "existing-resources-visible" if all(checks.values()) else "review-azure-access",
-        "checks": {
-            key: "visible" if value else "not-verified" for key, value in checks.items()
-        },
+        "checks": {key: "visible" if value else "not-verified" for key, value in checks.items()},
         "identity_scope_qualified": False,
         "blob_container_qualified": False,
         "source_secret_transferred": False,
