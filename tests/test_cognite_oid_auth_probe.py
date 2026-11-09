@@ -30,9 +30,7 @@ class ProbeFake:
         cdf_json: dict | None = None,
     ):
         self.oauth_status = oauth_status
-        self.oauth_json = (
-            {"access_token": "fake-token"} if oauth_json is None else oauth_json
-        )
+        self.oauth_json = {"access_token": "fake-token"} if oauth_json is None else oauth_json
         self.cdf_status = cdf_status
         self.cdf_json = {"items": [{"id": 123}]} if cdf_json is None else cdf_json
         self.calls = []
@@ -151,8 +149,7 @@ def test_transport_permits_only_two_fixed_endpoints_and_no_redirect():
 
 def test_workflow_uses_only_repository_secret_on_trusted_main():
     wf = (
-        Path(__file__).resolve().parents[1]
-        / ".github/workflows/cognite-oid-auth-probe.yml"
+        Path(__file__).resolve().parents[1] / ".github/workflows/cognite-oid-auth-probe.yml"
     ).read_text()
     assert "secrets.OID_API" in wf
     assert "branches: [main]" in wf
