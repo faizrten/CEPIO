@@ -1,0 +1,156 @@
+name: CEPIO Cognite OID M0 Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Plan, deploy manual job, or run existing job'
+        required: true
+        type: choice
+        options: [plan, deploy, run]
+        default: plan
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: cognite-oid-m0-cloud
+  cancel-in-progress: false
+
+jobs:
+  cloud:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: cognite-m0
+    env:
+      OPERATION: ${{ inputs.operation }}
+      M0_AUTH_APPROVED: ${{ vars.M0_AUTH_APPROVED }}
+      M0_RG: ${{ vars.M0_RESOURCE_GROUP }}
+      M0_ACA_ENV_ID: ${{ vars.M0_CONTAINER_APPS_ENVIRONMENT_ID }}
+      M0_IDENTITY_RESOURCE_ID: ${{ vars.M0_IDENTITY_RESOURCE_ID }}
+      M0_IDENTITY_CLIENT_ID: ${{ vars.M0_IDENTITY_CLIENT_ID }}
+      M0_ACR_NAME: ${{ vars.M0_ACR_NAME }}
+      M0_ACR_SERVER: ${{ vars.M0_ACR_SERVER }}
+      M0_BLOB_URL: ${{ vars.M0_BLOB_ACCOUNT_URL }}
+      M0_BLOB_CONTAINER: ${{ vars.M0_BLOB_CONTAINER }}
+      M0_CDF_M2M_TENANT_ID: ${{ vars.M0_COGNITE_M2M_TENANT_ID }}
+      M0_CDF_M2M_CLIENT_ID: ${{ vars.M0_COGNITE_M2M_CLIENT_ID }}
+      M0_KEYVAULT_SECRET_URI: ${{ vars.M0_COGNITE_SECRET_KEYVAULT_URI }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fail-closed cloud configuration preflight
+        shell: bash
+        env:
+          M0_OPERATION: ${{ inputs.operation }}
+        run: |
+          set -euo pipefail
+          head="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ "$head" != "$GITHUB_SHA" ]]; then
+            echo "::error::M0 cloud operation requires validated current main"; exit 1
+          fi
+          for key in M0_RG M0_ACA_ENV_ID M0_IDENTITY_RESOURCE_ID M0_IDENTITY_CLIENT_ID \
+                     M0_ACR_NAME M0_ACR_SERVER M0_BLOB_URL M0_BLOB_CONTAINER \
+                     M0_CDF_M2M_TENANT_ID M0_CDF_M2M_CLIENT_ID M0_KEYVAULT_SECRET_URI; do
+            if [[ -z "${!key:-}" ]]; then
+              echo "::error::$key is not configured in the cognite-m0 GitHub Environment"; exit 1
+            fi
+          done
+          # Cognite permits client credentials when an approved OID client secret
+          # exists; the public client ID alone never supplies authentication.
+          if [[ "$M0_OPERATION" != "plan" && "$M0_AUTH_APPROVED" != "true" ]]; then
+            echo "::error::Cloud deploy/run requires explicit M0_AUTH_APPROVED=true"; exit 1
+          fi
+
+      - name: Azure login with GitHub OIDC (no Azure client secret)
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Validate planned job without provisioning
+        if: inputs.operation == 'plan' || inputs.operation == 'deploy'
+        shell: bash
+        run: |
+          set -euo pipefail
+          IMAGE="$M0_ACR_SERVER/cepio-cognite-oid-m0:$GITHUB_SHA"
+          az bicep build --file deploy/cognite-oid-m0/job.bicep --stdout > /dev/null
+          az deployment group what-if \
+            --resource-group "$M0_RG" \
+            --template-file deploy/cognite-oid-m0/job.bicep \
+            --parameters \
+              authorized=true \
+              containerAppsEnvironmentId="$M0_ACA_ENV_ID" \
+              executionIdentityResourceId="$M0_IDENTITY_RESOURCE_ID" \
+              executionIdentityClientId="$M0_IDENTITY_CLIENT_ID" \
+              registryServer="$M0_ACR_SERVER" \
+              containerImage="$IMAGE" \
+              storageAccountUrl="$M0_BLOB_URL" \
+              storageContainer="$M0_BLOB_CONTAINER" \
+              cogniteM2MTenantId="$M0_CDF_M2M_TENANT_ID" \
+              cogniteM2MClientId="$M0_CDF_M2M_CLIENT_ID" \
+              cogniteM2MKeyVaultSecretUrl="$M0_KEYVAULT_SECRET_URI"
+
+      - name: Build tagged M0 image in existing ACR
+        if: inputs.operation == 'deploy'
+        shell: bash
+        run: |
+          set -euo pipefail
+          az acr build \
+            --registry "$M0_ACR_NAME" \
+            --image "cepio-cognite-oid-m0:$GITHUB_SHA" \
+            --file deploy/cognite-oid-m0/Dockerfile .
+
+      - name: Provision only the explicitly authorized manual job
+        if: inputs.operation == 'deploy'
+        shell: bash
+        run: |
+          set -euo pipefail
+          IMAGE="$M0_ACR_SERVER/cepio-cognite-oid-m0:$GITHUB_SHA"
+          az deployment group create \
+            --resource-group "$M0_RG" \
+            --name "cepio-oid-m0-$GITHUB_RUN_ID" \
+            --template-file deploy/cognite-oid-m0/job.bicep \
+            --parameters \
+              authorized=true \
+              containerAppsEnvironmentId="$M0_ACA_ENV_ID" \
+              executionIdentityResourceId="$M0_IDENTITY_RESOURCE_ID" \
+              executionIdentityClientId="$M0_IDENTITY_CLIENT_ID" \
+              registryServer="$M0_ACR_SERVER" \
+              containerImage="$IMAGE" \
+              storageAccountUrl="$M0_BLOB_URL" \
+              storageContainer="$M0_BLOB_CONTAINER" \
+              cogniteM2MTenantId="$M0_CDF_M2M_TENANT_ID" \
+              cogniteM2MClientId="$M0_CDF_M2M_CLIENT_ID" \
+              cogniteM2MKeyVaultSecretUrl="$M0_KEYVAULT_SECRET_URI"
+          echo "M0 job defined. No job execution started."
+
+      - name: Execute existing read-only M0 job on demand
+        if: inputs.operation == 'run'
+        shell: bash
+        run: |
+          set -euo pipefail
+          az containerapp job start \
+            --name cepio-cognite-oid-m0 \
+            --resource-group "$M0_RG" \
+            --query name --output tsv
+          echo "M0 execution requested. Check Container Apps logs and Blob receipt."
+
+      - name: Operator summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo "## Cognite OID M0 Cloud"
+            echo "- Operation: $OPERATION"
+            echo "- Ref: $GITHUB_SHA"
+            echo "- Project: publicdata"
+            echo "- Job: cepio-cognite-oid-m0"
+            echo "- No production CEPIO runtime registration or model inference"
+            echo "- Live qualification requires a completed job + verified Blob receipt"
+          } >> "$GITHUB_STEP_SUMMARY"
