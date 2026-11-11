@@ -1,0 +1,67 @@
+{
+  "case_id": "K-201-SYNTHETIC-20261111",
+  "tenant_id": "offline-synthetic",
+  "source_system": "offline-synthetic-fixture",
+  "record_version": "1",
+  "qualification": "SYNTHETIC_DEVELOPMENT_ONLY",
+  "signals": [
+    {
+      "signal_id": "k201.vibration.rms",
+      "title": "Synthetic K-201 vibration RMS",
+      "unit": "mm/s",
+      "semantic_type": "Quantity",
+      "values": [
+        2.3,
+        2.4,
+        2.6,
+        2.7,
+        3,
+        3.3,
+        3.6,
+        4
+      ]
+    },
+    {
+      "signal_id": "k201.bearing.temperature",
+      "title": "Synthetic K-201 bearing temperature",
+      "unit": "degC",
+      "semantic_type": "Temperature",
+      "values": [
+        72,
+        73,
+        74,
+        74,
+        76,
+        78,
+        81,
+        84
+      ]
+    },
+    {
+      "signal_id": "k201.operating.load",
+      "title": "Synthetic K-201 operating load",
+      "unit": "%",
+      "semantic_type": "Number",
+      "values": [
+        79,
+        80,
+        81,
+        80,
+        79,
+        80,
+        81,
+        80
+      ]
+    }
+  ],
+  "timestamps": [
+    "2026-11-01T00:00:00+00:00",
+    "2026-11-02T00:00:00+00:00",
+    "2026-11-03T00:00:00+00:00",
+    "2026-11-04T00:00:00+00:00",
+    "2026-11-05T00:00:00+00:00",
+    "2026-11-06T00:00:00+00:00",
+    "2026-11-07T00:00:00+00:00",
+    "2026-11-08T00:00:00+00:00"
+  ]
+}
