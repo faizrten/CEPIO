@@ -112,8 +112,7 @@ def test_new_qualified_and_exactly_pinned_dependency_passes(repo: Path) -> None:
     assert result.returncode == 0, result.stderr
     inventory = json.loads((repo / "inventory.json").read_text(encoding="utf-8"))
     assert any(
-        p["name"] == "synthetic-demo-package"
-        and p["classification"] == "qualified_new_dependency"
+        p["name"] == "synthetic-demo-package" and p["classification"] == "qualified_new_dependency"
         for p in inventory["packages"]
     )
 
@@ -153,9 +152,7 @@ def test_untracked_extra_group_fails(repo: Path) -> None:
 def test_approved_strategic_capability_requires_exit_plan(repo: Path) -> None:
     path = repo / REGISTER
     registry = json.loads(path.read_text(encoding="utf-8"))
-    cap = next(
-        c for c in registry["strategic_capabilities"] if c["id"] == "nvidia-nx-cugraph"
-    )
+    cap = next(c for c in registry["strategic_capabilities"] if c["id"] == "nvidia-nx-cugraph")
     cap["status"] = "approved"
     path.write_text(json.dumps(registry), encoding="utf-8")
     result = run(repo)
