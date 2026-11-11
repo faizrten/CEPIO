@@ -13,6 +13,8 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
+- [Open-source dependency resilience & admission](governance/open-source-dependency-resilience.md) — approved architecture, register, replaceable integrations and automated CI direct-dependency checks (implementation proposed in PR).
+
 - [Auto-Ontology reinforcement increment](integrations/auto-ontology-reinforcement.md) — development binding, ontology lifecycle and two-arm qualification gates; live proof pending.
 
 - [Nemotron read-only planner](nemotron-planner.md) — opt-in Operator binding; live qualification pending.
