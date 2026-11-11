@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from pydantic import ValidationError
@@ -174,3 +174,19 @@ def test_missing_host_scope_is_denied_before_identity_or_evidence(case_id, tenan
             authorize=authorize,
         )
     assert accessed == []
+
+
+def test_oversized_chart_rejected_before_identity_or_evidence_lookup():
+    series = make_series()
+    origin = series.observations[0]
+    observations = [
+        origin.model_copy(update={"measured_at": origin.measured_at + timedelta(hours=hour)})
+        for hour in range(501)
+    ]
+    with pytest.raises(ValidationError, match="List should have at most 500 items"):
+        ChartSeries(
+            signal_id=series.signal_id,
+            title=series.title,
+            unit=series.unit,
+            observations=observations,
+        )
