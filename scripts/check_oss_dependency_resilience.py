@@ -223,7 +223,6 @@ def check(root: Path) -> tuple[dict, list[str]]:
     return output, errors
 
 
-
 def validate_frozen_baseline(root: Path, base_sha: str) -> None:
     """Compare the historical baseline to the immutable PR/push base commit."""
     if not base_sha or base_sha == "0" * 40:
