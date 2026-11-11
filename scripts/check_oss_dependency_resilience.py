@@ -141,8 +141,7 @@ def check(root: Path) -> tuple[dict, list[str]]:
             not isinstance(declared_baseline, list)
             or declared_baseline != sorted(set(declared_baseline))
             or any(
-                not isinstance(name, str) or canonical(name) != name
-                for name in declared_baseline
+                not isinstance(name, str) or canonical(name) != name for name in declared_baseline
             )
         ):
             raise ValueError(f"Invalid/unsorted baseline list for {source}")
@@ -167,7 +166,12 @@ def check(root: Path) -> tuple[dict, list[str]]:
                     classification = "qualified_new_dependency"
                     newly_admitted.add(key)
             entries.append(
-                {"source": source, "name": name, "requirement": raw, "classification": classification}
+                {
+                    "source": source,
+                    "name": name,
+                    "requirement": raw,
+                    "classification": classification,
+                }
             )
     for key in approvals:
         if key not in newly_admitted:
@@ -234,8 +238,10 @@ def main() -> int:
             for error in errors:
                 print("OSS dependency gate: " + error, file=sys.stderr)
             return 1
-        print(f"OSS dependency gate PASS: {len(inventory['packages'])} direct declarations; "
-              f"{len(inventory['strategic_capabilities'])} strategic capability entries")
+        print(
+            f"OSS dependency gate PASS: {len(inventory['packages'])} direct declarations; "
+            f"{len(inventory['strategic_capabilities'])} strategic capability entries"
+        )
         return 0
     except (OSError, KeyError, ValueError, TypeError, json.JSONDecodeError) as exc:
         print(f"OSS dependency gate ERROR: {exc}", file=sys.stderr)
