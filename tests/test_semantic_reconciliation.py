@@ -122,3 +122,17 @@ def test_blank_nodes_require_explicit_named_projection():
     g.add((BNode(), RDF.type, OWL.Class))
     with pytest.raises(ValueError, match="named-node"):
         reconcile(g=g)
+
+
+def test_iri_identity_is_case_sensitive_even_when_labels_are_not():
+    g = graph()
+    g.add((URIRef("urn:cepio#equipment"), RDF.type, OWL.Class))
+    assert reconcile(evidence("urn:cepio#Equipment"), g).candidates == ("urn:cepio#Equipment",)
+    assert not reconcile(evidence("URN:cepio#Equipment"), g).candidates
+    assert reconcile(evidence("Equipment"), g).disposition == "ambiguous"
+
+
+@pytest.mark.parametrize("synonyms", [False, 0, "", {}])
+def test_falsey_invalid_synonyms_are_not_silently_accepted(synonyms):
+    with pytest.raises(ValueError):
+        reconcile(evidence(synonyms=synonyms))

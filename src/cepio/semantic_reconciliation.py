@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 
 from rdflib import Graph, Literal, URIRef
@@ -53,7 +54,9 @@ def propose_reconciliation(
     if not isinstance(term, dict) or term.get("id") != envelope.reference.record_id:
         raise ValueError("Semantic term identity mismatch")
     name = term.get("name")
-    synonyms = term.get("synonyms") or []
+    synonyms = term.get("synonyms")
+    if synonyms is None:
+        synonyms = []
     if (
         not isinstance(name, str)
         or not name.strip()
@@ -73,7 +76,7 @@ def propose_reconciliation(
     snapshot = []
     for subject in sorted(subjects, key=str):
         iri = str(subject)
-        labels = {iri, iri.rsplit("#", 1)[-1].rsplit("/", 1)[-1]}
+        labels = {iri.rsplit("#", 1)[-1].rsplit("/", 1)[-1]}
         for predicate in (RDFS.label, SKOS.prefLabel, SKOS.altLabel):
             labels.update(
                 str(value)
@@ -90,8 +93,13 @@ def propose_reconciliation(
             raise ValueError("Use a named-node ontology projection for reconciliation")
         snapshot.append(tuple(node.n3() for node in triple))
     matches = set()
+    iris = {str(subject) for subject in subjects}
     for value in [name, *synonyms]:
-        matches.update(index.get(_normalized(value), set()))
+        if re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", value):
+            if value in iris:
+                matches.add(value)
+        else:
+            matches.update(index.get(_normalized(value), set()))
     candidates = tuple(sorted(matches))
     disposition = (
         "existing-candidate"

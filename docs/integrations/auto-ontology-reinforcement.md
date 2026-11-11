@@ -142,3 +142,17 @@ protocols and scope-specific inactive model authorization. They must not be reus
 as this work's two-arm protocol or as permission to invoke models. A separate
 experiment manifest is required; held-out cases and live budget verification
 remain open.
+
+### Identity correction and transfer probe
+
+Canonical IRI comparison is now exact and case-sensitive; only human-readable
+labels use case-insensitive comparison. Invalid falsey synonym values are rejected
+rather than treated as an absent list. Regression tests cover both cases.
+
+A protected offline Labs probe exercises mocked catalog retrieval, proposal
+reconciliation and the unchanged `calculateNPTDuration` method across two
+independently authored synthetic schemas with equivalent timezone-aware values.
+It is a development plumbing test with preauthored synonyms, not live automatic
+mapping, human-approved enrichment, held-out evidence or a two-arm model result.
+M3/M4 remain open until governed review, actual source integration and independent
+transfer qualification are complete.
