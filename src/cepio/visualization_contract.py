@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .auth import ActorContext
 
-CONTRACT_VERSION = "cepio.visualization/0.1"
+CONTRACT_VERSION: Literal["cepio.visualization/0.1"] = "cepio.visualization/0.1"
 MAX_POINTS = 500
 
 
@@ -57,7 +57,9 @@ class ChartSeries(BaseModel):
 
     @field_validator("observations")
     @classmethod
-    def unique_ordered_timestamp(cls, values: list[NumericalObservation]) -> list[NumericalObservation]:
+    def unique_ordered_timestamp(
+        cls, values: list[NumericalObservation]
+    ) -> list[NumericalObservation]:
         stamps = [row.measured_at for row in values]
         if stamps != sorted(set(stamps)):
             raise ValueError("observation timestamps must be unique and ascending")
@@ -122,9 +124,7 @@ def build_readonly_visualization(
         }
         for row in series.observations
     ]
-    distinct = {
-        ref.model_dump_json(): ref for ref in (row.evidence for row in series.observations)
-    }
+    distinct = {ref.model_dump_json(): ref for ref in (row.evidence for row in series.observations)}
     evidence = sorted(
         distinct.values(), key=lambda ref: (ref.source_system, ref.record_id, ref.record_version)
     )
