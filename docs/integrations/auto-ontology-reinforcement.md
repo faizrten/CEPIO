@@ -116,3 +116,29 @@ scope and human approval. Add method dependency regression and rollback before a
 promotion. Wire the request-scoped binding through existing host admission only
 after credential/tenant correspondence is verified. Live work requires a configured
 source and bounded inference setup; none is assumed by this increment.
+
+## Reconciliation increment (11 November 2026)
+
+`propose_reconciliation` now consumes an authorized semantic envelope and a
+host-approved named-node RDF projection. It returns deterministic candidates for
+exact IRIs, local names and English/untyped labels or synonyms. Unique lexical
+matches remain proposals; multiple candidates are blocked as ambiguous and absent
+matches do not mint new IRIs. Unit, context, rights and engineering applicability
+remain review requirements. This deliberately narrow public interoperability
+primitive contains no protected matching heuristics or industrial reasoning.
+
+Proposals carry tenant identity, source key, term digest and ontology digest.
+Definitions and relationships contribute to the ontology digest; changed meaning
+therefore invalidates snapshot identity. Blank-node graphs require an explicit
+named-node projection; language fallback and fuzzy matching are not implemented.
+The graph and registry are never mutated. This is partial M3 groundwork, not an
+approved enrichment, promotion workflow or completed ontology reinforcement proof.
+
+GitHub's initial quality gate found two uncovered constructor rejection paths;
+additional identity/allowlist tests now cover them. The two new modules have 100%
+statement coverage in targeted offline tests. Full CI remains the merge gate.
+Inspection of existing Labs evaluation metadata also found historical multi-arm
+protocols and scope-specific inactive model authorization. They must not be reused
+as this work's two-arm protocol or as permission to invoke models. A separate
+experiment manifest is required; held-out cases and live budget verification
+remain open.

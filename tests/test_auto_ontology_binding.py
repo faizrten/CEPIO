@@ -138,3 +138,25 @@ def test_transport_errors_are_sanitized(failure):
     with pytest.raises(AutoOntologyReadError) as error:
         binding.resolve_evidence("term-1")
     assert "secret" not in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "tenant,actor,terms",
+    [
+        ("", "actor", frozenset({"term-1"})),
+        ("tenant", "", frozenset({"term-1"})),
+        ("tenant", "actor", frozenset()),
+        ("tenant", "actor", frozenset({"../escape"})),
+    ],
+)
+def test_missing_identity_and_unsafe_allowlist_rejected(tenant, actor, terms):
+    with pytest.raises(ValueError):
+        AutoOntologyTermBinding(
+            origin="https://catalog.example",
+            tenant_id=tenant,
+            actor_id=actor,
+            term_ids=terms,
+            client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(500))),
+            principal=lambda: ActorContext(actor, set(), tenant),
+            authorize=lambda actor, term: True,
+        )
