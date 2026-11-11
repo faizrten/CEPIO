@@ -1,5 +1,7 @@
 # CEPIO Current State
 
+**Development increment (11 November 2026):** [Auto-Ontology reinforcement](integrations/auto-ontology-reinforcement.md) adds a host-only semantic-term evidence binding and a two-arm qualification contract. Offline transport checks do not establish live integration, ontology reinforcement or judgement uplift. No release, default runtime, deployment or scorecard change.
+
 **Bounded implementation increment (7 November 2026):** [Nemotron read-only planner](nemotron-planner.md) binds an opt-in model endpoint to the existing Operator protocol. Offline transport/contract validation is separate from live model qualification. No default-model, deployment, release or scorecard change.
 
 **Bounded implementation increment (3 November 2026):** [Host-local relationship paging v0.1](bounded-relationship-query-v0.1.md) adds explicit security bindings, SQL authorization pushdown and bounded SQLite reads. It does not qualify a remote Operational Object endpoint or complete #329; the dated baseline and release/scorecard claims below remain unchanged.
