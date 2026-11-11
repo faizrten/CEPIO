@@ -158,3 +158,39 @@ def test_approved_strategic_capability_requires_exit_plan(repo: Path) -> None:
     result = run(repo)
     assert result.returncode != 0
     assert "approved capability missing" in result.stderr
+
+
+def test_historical_baseline_cannot_be_silently_reclassified(repo: Path) -> None:
+    subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True, capture_output=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo),
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@example.test",
+            "commit",
+            "-qm",
+            "baseline",
+        ],
+        check=True,
+        capture_output=True,
+    )
+    base = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+    ).strip()
+    path = repo / REGISTER
+    registry = json.loads(path.read_text(encoding="utf-8"))
+    registry["baseline_direct_packages"]["pyproject.toml:project.dependencies"].append("zz-new")
+    path.write_text(json.dumps(registry), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--repo-root", str(repo), "--base-sha", base],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "Historical direct-package baseline changed" in result.stderr
