@@ -179,3 +179,25 @@ Full provenance participates in snapshot identity, so a changed dataset cannot
 reuse an approval merely because its record ID and readable term stayed the same.
 No shared ontology mutation, public endpoint, generic approval framework or change
 to existing promotion rules is introduced.
+
+## Persistent reference review lifecycle
+
+`EventMappingReviewStore` reuses CEPIO's EventRepository/ObjectRepository contracts
+and the existing SQLite reference backend. It creates host-private journal subjects
+and appends review events; no canonical ontology class is added. The dedicated
+repository must not be exposed to ordinary agent event writers. Reads and writes
+check current tenant/actor policy. Recording requires an independently verified
+host attestation for the exact decision, not a role label supplied by an agent.
+
+Revision checks prevent stale writes. Revocation is a new inactive record;
+restoration requires a new decision and attestation and cannot silently revive an
+expired grant. History survives restart and remains intact. A single store instance
+serializes writes; multi-host production requires transaction coordination. A fork
+or gap in journal revisions fails closed. This is a qualified local reference
+lifecycle, not production PostgreSQL or Entra integration.
+
+M3 closure is still conditional: the protected bundle AO-M3-SYNTHETIC-REVIEW-001
+contains three proposed synthetic field mappings and is PENDING_HUMAN_REVIEW.
+No real approval is inferred from unit-test records or a request to complete the
+milestone. Actual approval/attestation and live-source qualification remain absent;
+the local lifecycle proof does not close M2 or qualify the full embedded product.
