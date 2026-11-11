@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 import tomllib
 from pathlib import Path
@@ -222,13 +223,49 @@ def check(root: Path) -> tuple[dict, list[str]]:
     return output, errors
 
 
+
+def validate_frozen_baseline(root: Path, base_sha: str) -> None:
+    """Compare the historical baseline to the immutable PR/push base commit."""
+    if not base_sha or base_sha == "0" * 40:
+        return
+    if not re.fullmatch(r"[a-f0-9]{40}", base_sha):
+        raise ValueError("Invalid immutable Git base SHA")
+    commit = subprocess.run(
+        ["git", "cat-file", "-e", f"{base_sha}^{{commit}}"],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    if commit.returncode:
+        raise ValueError("Immutable Git base commit is not available")
+    previous = subprocess.run(
+        ["git", "show", f"{base_sha}:{REGISTER.as_posix()}"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if previous.returncode:
+        print("OSS baseline: first introduction; future PRs must preserve this baseline")
+        return
+    previous_register = json.loads(previous.stdout)
+    current_register = json.loads((root / REGISTER).read_text(encoding="utf-8"))
+    if previous_register.get("baseline_direct_packages") != current_register.get(
+        "baseline_direct_packages"
+    ):
+        raise ValueError("Historical direct-package baseline changed: use a new approved admission")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--inventory-out", type=Path)
+    parser.add_argument("--base-sha", default="")
     args = parser.parse_args()
     try:
-        inventory, errors = check(args.repo_root.resolve())
+        root = args.repo_root.resolve()
+        inventory, errors = check(root)
+        validate_frozen_baseline(root, args.base_sha)
         if args.inventory_out:
             args.inventory_out.parent.mkdir(parents=True, exist_ok=True)
             args.inventory_out.write_text(
