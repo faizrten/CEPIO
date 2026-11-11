@@ -179,9 +179,7 @@ def test_historical_baseline_cannot_be_silently_reclassified(repo: Path) -> None
         check=True,
         capture_output=True,
     )
-    base = subprocess.check_output(
-        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
-    ).strip()
+    base = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
     path = repo / REGISTER
     registry = json.loads(path.read_text(encoding="utf-8"))
     registry["baseline_direct_packages"]["pyproject.toml:project.dependencies"].append("zz-new")
