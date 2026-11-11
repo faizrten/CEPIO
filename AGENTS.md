@@ -266,6 +266,10 @@ Customer operational data and profile knowledge must not silently train or mutat
 - PROFILE capabilities cannot justify global CORE/COMMON promotion by themselves;
 - protected Industry IQ/evaluation assets remain outside the public repository where publication would expose differentiated IP.
 
+## External open-source dependency discipline
+
+Apply the [OSS Dependency Resilience Gate](docs/governance/open-source-dependency-resilience.md) whenever adding third-party runtime packages, external analytics/physics/agent/visualization capabilities, or new upstream revisions. Keep CEPIO's evidence, Industry IQ, policy, Decisions and Outcomes authoritative; use replaceable host-bound adapters, versioned evidence, security/license review and tested fallback. Do not treat the historical dependency baseline or candidate-register status as production approval. The standard CI contracts lane checks newly declared direct packages; source integrations without new packages still require manual qualification.
+
 ## Security invariants
 
 1. Policy evaluation precedes external side effects and authorized replay.
