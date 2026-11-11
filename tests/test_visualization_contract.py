@@ -148,3 +148,29 @@ def test_fixture_produces_three_independent_unit_safe_charts():
     assert all(len(chart["evidence"]) == 8 for chart in charts)
     assert all(chart["qualification"] == "SYNTHETIC_DEVELOPMENT_ONLY" for chart in charts)
     assert len({chart["data_sha256"] for chart in charts}) == 3
+
+
+@pytest.mark.parametrize(
+    ("case_id", "tenant_id"),
+    [("", "synthetic"), ("K-201", "")],
+)
+def test_missing_host_scope_is_denied_before_identity_or_evidence(case_id, tenant_id):
+    accessed = []
+
+    def principal():
+        accessed.append("principal")
+        return ActorContext("engineer", {"engineer"}, "synthetic")
+
+    def authorize(*_):
+        accessed.append("evidence")
+        return True
+
+    with pytest.raises(ValueError, match="host must bind a case and tenant"):
+        build_readonly_visualization(
+            case_id=case_id,
+            tenant_id=tenant_id,
+            series=make_series(),
+            principal=principal,
+            authorize=authorize,
+        )
+    assert accessed == []
