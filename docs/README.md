@@ -13,6 +13,8 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
+- [Auto-Ontology reinforcement increment](integrations/auto-ontology-reinforcement.md) — development binding, ontology lifecycle and two-arm qualification gates; live proof pending.
+
 - [Nemotron read-only planner](nemotron-planner.md) — opt-in Operator binding; live qualification pending.
 
 - **[Current State](current-state.md)** â€” dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
