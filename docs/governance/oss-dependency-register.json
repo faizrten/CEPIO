@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "baseline_direct_packages": {
+    "pyproject.toml:project.dependencies": [
+      "fastapi",
+      "httpx",
+      "networkx",
+      "numpy",
+      "pydantic",
+      "pyjwt",
+      "pyyaml",
+      "rdflib",
+      "scipy",
+      "uvicorn"
+    ],
+    "pyproject.toml:project.optional-dependencies.dev": [
+      "build",
+      "mcp",
+      "pyshacl",
+      "pytest"
+    ],
+    "pyproject.toml:project.optional-dependencies.fabric-sql": [
+      "azure-identity",
+      "mssql-python"
+    ],
+    "pyproject.toml:project.optional-dependencies.mcp": [
+      "mcp"
+    ],
+    "pyproject.toml:project.optional-dependencies.otel": [
+      "opentelemetry-api"
+    ],
+    "requirements-quality.txt": [
+      "bandit",
+      "mypy",
+      "pip",
+      "pip-audit",
+      "pytest-cov",
+      "ruff",
+      "setuptools",
+      "types-pyyaml",
+      "wheel"
+    ],
+    "deploy/nvidia/requirements-cu12.txt": [
+      "nx-cugraph-cu12"
+    ],
+    "deploy/nvidia/requirements-cu13.txt": [
+      "nx-cugraph-cu13"
+    ]
+  },
+  "new_package_admissions": [],
+  "strategic_capabilities": [
+    {
+      "id": "nvidia-nx-cugraph",
+      "upstream": "https://github.com/rapidsai/nx-cugraph",
+      "status": "existing_optional",
+      "adapter_path": "src/cepio/graph_analytics.py",
+      "fallback": "NetworkX CPU backend",
+      "qualification": "Existing optional integration; no additional production qualification claimed"
+    },
+    {
+      "id": "nvidia-auto-ontology",
+      "upstream": "https://github.com/NVIDIA/auto-ontology",
+      "status": "evaluation",
+      "adapter_path": "src/cepio/auto_ontology_binding.py",
+      "pinned_revision": "fc43a82600e18b19d159c52023f54f5572f537ac",
+      "fallback": "CEPIO existing ontology; no automatic enrichment",
+      "qualification": "Development-only adapter; live source and judgment uplift not qualified"
+    },
+    {
+      "id": "nvidia-physicsnemo",
+      "upstream": "https://github.com/NVIDIA/physicsnemo",
+      "status": "candidate",
+      "qualification": "Scouting only; no CEPIO dependency or deployment"
+    },
+    {
+      "id": "microsoft-data-formulator",
+      "upstream": "https://github.com/microsoft/data-formulator",
+      "status": "candidate",
+      "qualification": "Scouting only; no CEPIO dependency or deployment"
+    }
+  ]
+}
