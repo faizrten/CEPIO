@@ -13,7 +13,8 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
-- [Open-source dependency resilience & admission](governance/open-source-dependency-resilience.md) — approved architecture, register, replaceable integrations and automated CI direct-dependency checks (implementation proposed in PR).
+- [Open-source dependency resilience & admission](governance/open-source-dependency-resilience.md)
+- [Microsoft Flint: synthetic visualization M0–M2](integrations/microsoft-flint-v01.md) — offline evaluation, host-owned provenance, replaceable rendering. — approved architecture, register, replaceable integrations and automated CI direct-dependency checks (implementation proposed in PR).
 
 - [Auto-Ontology reinforcement increment](integrations/auto-ontology-reinforcement.md) — development binding, ontology lifecycle and two-arm qualification gates; live proof pending.
 
