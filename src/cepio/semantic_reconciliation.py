@@ -20,6 +20,7 @@ from .platform_bindings import EvidenceEnvelope
 @dataclass(frozen=True)
 class ReconciliationProposal:
     source_key: str
+    source_digest: str
     tenant_id: str
     ontology_digest: str
     term_digest: str
@@ -113,6 +114,9 @@ def propose_reconciliation(
         blockers.append("no-existing-concept-match")
     return ReconciliationProposal(
         source_key=envelope.reference.stable_key,
+        source_digest=hashlib.sha256(
+            json.dumps(envelope.reference.model_dump(mode="json"), sort_keys=True).encode()
+        ).hexdigest(),
         tenant_id=tenant_id,
         ontology_digest=hashlib.sha256(json.dumps(sorted(snapshot)).encode()).hexdigest(),
         term_digest=hashlib.sha256(json.dumps(term, sort_keys=True).encode()).hexdigest(),

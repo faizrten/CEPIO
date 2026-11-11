@@ -156,3 +156,26 @@ It is a development plumbing test with preauthored synonyms, not live automatic
 mapping, human-approved enrichment, held-out evidence or a two-arm model result.
 M3/M4 remain open until governed review, actual source integration and independent
 transfer qualification are complete.
+
+## Governed mapping-use gate
+
+`SemanticMappingGate` is a host-only consumer of existing governed review records.
+It recomputes the proposal from current evidence and the trusted ontology, requires
+one candidate, and binds the review key to full source provenance, tenant, term
+and ontology digests, method identity/version and use context. It checks current
+host policy before looking up a review and rejects missing, expired, revoked,
+rejected, cross-tenant or mismatched decisions. Units, context, source rights and
+method applicability must each be recorded as qualified in the trusted store.
+
+The existing `HumanDecision` contract is reused. Its role field is not identity
+proof: the host store must independently establish reviewer identity and authority.
+There is no approval writer or agent-supplied decision parameter. Every use must
+call the gate immediately before applying the mapping; returned mappings are not
+reusable authorization tokens. Test stores are isolated fixtures, never evidence
+of real human review. Store persistence, production host wiring, review UI and
+atomic enforcement with live method dispatch remain open M3/M4 requirements.
+
+Full provenance participates in snapshot identity, so a changed dataset cannot
+reuse an approval merely because its record ID and readable term stayed the same.
+No shared ontology mutation, public endpoint, generic approval framework or change
+to existing promotion rules is introduced.
