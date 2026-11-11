@@ -192,3 +192,11 @@ def test_historical_baseline_cannot_be_silently_reclassified(repo: Path) -> None
     )
     assert result.returncode != 0
     assert "Historical direct-package baseline changed" in result.stderr
+
+
+def test_marker_cannot_disguise_loose_package_version(repo: Path) -> None:
+    add_requirement(repo, "synthetic-demo-package>=1.0 ; extra==1.2.3")
+    register_admission(repo)
+    result = run(repo)
+    assert result.returncode != 0
+    assert "must declare an exact ==" in result.stderr
