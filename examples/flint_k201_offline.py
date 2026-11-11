@@ -62,9 +62,11 @@ def make_examples() -> list[dict]:
                 observations=observations,
             ),
             principal=lambda: ActorContext("offline-demo-actor", {"engineer"}, tenant),
-            authorize=lambda actor, case, ref: actor.tenant_id == tenant
-            and case == fixture["case_id"]
-            and ref.source_system == fixture["source_system"],
+            authorize=lambda actor, case, ref: (
+                actor.tenant_id == tenant
+                and case == fixture["case_id"]
+                and ref.source_system == fixture["source_system"]
+            ),
         )
         results.append(envelope.model_dump(mode="json"))
     return results
