@@ -51,7 +51,12 @@ jobs:
       - name: Validate ontology compatibility
         run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
       - name: Validate third-party dependency resilience and produce inventory
-        run: python scripts/check_oss_dependency_resilience.py --inventory-out oss-direct-dependency-inventory.json
+        env:
+          CEPIO_DEPENDENCY_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: >-
+          python scripts/check_oss_dependency_resilience.py
+          --inventory-out oss-direct-dependency-inventory.json
+          --base-sha "$CEPIO_DEPENDENCY_BASE_SHA"
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
       - uses: actions/upload-artifact@v4
