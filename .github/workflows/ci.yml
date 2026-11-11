@@ -50,13 +50,17 @@ jobs:
         run: PYTHONPATH=src python scripts/check_client_contract.py
       - name: Validate ontology compatibility
         run: PYTHONPATH=src python scripts/check_ontology_compat.py --json-report compatibility-report.json
+      - name: Validate third-party dependency resilience and produce inventory
+        run: python scripts/check_oss_dependency_resilience.py --inventory-out oss-direct-dependency-inventory.json
       - run: make validate
       - run: PYTHONPATH=src python examples/demo.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cepio-contract-evidence-${{ github.run_id }}
-          path: compatibility-report.json
+          path: |
+            compatibility-report.json
+            oss-direct-dependency-inventory.json
           if-no-files-found: warn
 
   drilling:
