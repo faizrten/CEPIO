@@ -62,6 +62,19 @@ def requirement_package(requirement: str) -> str:
     return canonical(match.group(1))
 
 
+def exactly_pinned(requirement: str, name: str, version: str) -> bool:
+    """Require an actual equality version constraint, not one in an environment marker."""
+    if not version:
+        return False
+    pattern = (
+        r"([A-Za-z0-9][A-Za-z0-9._-]*)(?:\[[^\]]+\])?\s*==\s*"
+        + re.escape(version)
+        + r"(?:\s*;[^\n]*)?\s*"
+    )
+    match = re.fullmatch(pattern, requirement.strip())
+    return match is not None and canonical(match.group(1)) == name
+
+
 def read_sources(root: Path) -> dict[str, list[dict[str, str]]]:
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     extras = project.get("optional-dependencies", {})
@@ -156,11 +169,7 @@ def check(root: Path) -> tuple[dict, list[str]]:
                 if admission is None:
                     errors.append(f"UNREGISTERED new direct package {name!r} in {source}")
                     classification = "unregistered"
-                elif not re.search(
-                    rf"(?<![!<>=~])==(?!=)\s*"
-                    rf"{re.escape(admission.get('pinned_version', ''))}(?:\s|;|$)",
-                    raw,
-                ):
+                elif not exactly_pinned(raw, name, admission.get("pinned_version", "")):
                     errors.append(f"New package {name} must declare an exact == pinned_version")
                     classification = "invalid_pin"
                 else:
