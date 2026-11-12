@@ -1,0 +1,16 @@
+{
+  "name": "cepio-flint-synthetic-pilot",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated Flint compiler qualification: never installed into CEPIO Core",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "flint-chart": "1.0.1"
+  },
+  "scripts": {
+    "smoke": "node compile.mjs"
+  }
+}

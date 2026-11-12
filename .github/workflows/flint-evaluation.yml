@@ -1,0 +1,49 @@
+name: Flint synthetic evaluation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/flint-evaluation.yml"
+      - "experiments/flint/**"
+      - "examples/flint_k201*"
+      - "src/cepio/visualization_contract.py"
+      - "tests/test_visualization_contract.py"
+      - "docs/integrations/microsoft-flint*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-flint-evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install CEPIO for offline synthetic chart generation
+        run: python -m pip install -e .
+      - name: Verify host-only CEPIO visualization contract
+        run: |
+          python -m pip install pytest
+          python -m pytest -q tests/test_visualization_contract.py
+      - name: Generate synthetic K-201 chart envelopes
+        run: PYTHONPATH=src python examples/flint_k201_offline.py --out-dir /tmp/cepio-flint-envelopes
+      - name: Install Flint only in isolated experimental directory
+        working-directory: experiments/flint
+        run: |
+          npm install --ignore-scripts --no-fund
+          npm audit --omit=dev --audit-level=high
+      - name: Compile three synthetic charts using real Flint
+        working-directory: experiments/flint
+        run: node compile.mjs /tmp/cepio-flint-envelopes /tmp/cepio-flint-compiled
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-flint-chart-specs
+          path: /tmp/cepio-flint-compiled/*.json
+          retention-days: 7

@@ -50,12 +50,23 @@
   "new_package_admissions": [],
   "strategic_capabilities": [
     {
-      "id": "nvidia-nx-cugraph",
-      "upstream": "https://github.com/rapidsai/nx-cugraph",
-      "status": "existing_optional",
-      "adapter_path": "src/cepio/graph_analytics.py",
-      "fallback": "NetworkX CPU backend",
-      "qualification": "Existing optional integration; no additional production qualification claimed"
+      "id": "microsoft-data-formulator",
+      "upstream": "https://github.com/microsoft/data-formulator",
+      "status": "candidate",
+      "qualification": "Scouting only; no CEPIO dependency or deployment"
+    },
+    {
+      "id": "microsoft-flint-chart",
+      "upstream": "https://github.com/microsoft/flint-chart",
+      "status": "evaluation",
+      "adapter_path": "src/cepio/visualization_contract.py",
+      "owner": "CEPIO visualization capability workstream",
+      "license": "MIT (upstream LICENSE; full distribution/compliance review pending)",
+      "pinned_revision": "npm:flint-chart@1.0.1 (evaluation pin, not transitive lock)",
+      "fallback": "Host-owned portable Vega-Lite chart specification; no Flint execution required",
+      "security_review": "Pending npm transitive SBOM, vulnerability review, renderer isolation, and file/URL denial evidence",
+      "qualification": "Synthetic K-201 read-only prototype; not deployed, tenant-connected, field-qualified or independently reviewed",
+      "exit_plan": "Disable Flint compiler, serve CEPIO portable spec, retain CEPIO-owned evidence/units/provenance"
     },
     {
       "id": "nvidia-auto-ontology",
@@ -67,14 +78,16 @@
       "qualification": "Development-only adapter; live source and judgment uplift not qualified"
     },
     {
-      "id": "nvidia-physicsnemo",
-      "upstream": "https://github.com/NVIDIA/physicsnemo",
-      "status": "candidate",
-      "qualification": "Scouting only; no CEPIO dependency or deployment"
+      "id": "nvidia-nx-cugraph",
+      "upstream": "https://github.com/rapidsai/nx-cugraph",
+      "status": "existing_optional",
+      "adapter_path": "src/cepio/graph_analytics.py",
+      "fallback": "NetworkX CPU backend",
+      "qualification": "Existing optional integration; no additional production qualification claimed"
     },
     {
-      "id": "microsoft-data-formulator",
-      "upstream": "https://github.com/microsoft/data-formulator",
+      "id": "nvidia-physicsnemo",
+      "upstream": "https://github.com/NVIDIA/physicsnemo",
       "status": "candidate",
       "qualification": "Scouting only; no CEPIO dependency or deployment"
     }
