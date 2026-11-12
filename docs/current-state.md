@@ -312,3 +312,10 @@ Use these layers together:
 6. `RELEASE.md` is authoritative for the published v0.4 release boundary.
 
 Historical benchmark documents remain historical evidence and should not be rewritten merely to match the current product vocabulary.
+
+### OSDU read foundation (development only)
+
+An optional exact-version OSDU Storage reader now provides a tested transport
+prerequisite for Wellbore/RAFS evidence. It is not registered with the hosted
+runtime. DDMS bulk-data hydration, actor-aware host composition and authorized
+live qualification remain open. See [scope and acceptance](osdu-read-foundation.md).

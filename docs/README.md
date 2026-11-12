@@ -285,3 +285,5 @@ If a change genuinely has no documentation impact, the PR should explicitly stat
 - [ADR-0056 — Accounted relationship cursor retention](adr/ADR-0056-accounted-relationship-cursor-retention.md)
 
 - [ADR-0057 — Linux relationship process qualification](adr/ADR-0057-linux-relationship-process-qualification.md)
+
+- [OSDU versioned-read foundation](osdu-read-foundation.md): development-only Storage reads and Wellbore/RAFS qualification stages.
