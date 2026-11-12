@@ -1,9 +1,20 @@
 # CEPIO Documentation
 
+## Choose your starting path
+
+| Reader | Start here | Successful first outcome |
+| --- | --- | --- |
+| Industrial professional / sponsor | [Product purpose](strategy/industry-iq-product-north-star.md), then [current capability and limits](current-state.md) | Distinguish the professional promise from qualified capability; use an administrator-approved experience for protected evidence |
+| Developer / agent builder | [Developer Preview](developer-preview.md), then [API client guide](api-client-guide.md) and [Foundry/MCP](foundry-mcp.md) | Run the local reference health check and understand the authenticated contract boundary |
+| Operator / integrator | [Deployment profiles](deployment-profiles.md), [REST security](rest-security.md), [observability](observability.md) | Identify the exact target, identity, persistence and acceptance requirements before rollout |
+| Capability author / reviewer | [Domain onboarding](domain-onboarding-workflow.md), [trusted catalogue](industry-iq-trusted-catalogue.md), [assurance](wiki/20-Competency-Assurance.md) | Find the evidence, authority and promotion requirements for one bounded capability |
+
+The detailed index below is the technical reference. Product releases, component versions, repository commits and deployed revisions are separate identifiers. This public guide contains no protected Labs corpus or customer configuration.
+
 ## Strategic North Star and documentation authority
 
 **Mission:** Democratize industrial expertise and elevate human professional excellence.  
-**Product:** The indispensable expert companion for every industrial professional.  
+**Product:** The most trusted AI companion for every industry professional.  
 **Technology:** Thin infrastructure. Thick Industry IQ.  
 **Moat and trust:** Industrial Competence Network; collective industrial progress, sovereign enterprise intelligence.
 
@@ -13,26 +24,26 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 
 ## Start here
 
-- [Open-source dependency resilience & admission](governance/open-source-dependency-resilience.md) — approved architecture, register, replaceable integrations and automated CI direct-dependency checks (implementation proposed in PR).
+- [Open-source dependency resilience & admission](governance/open-source-dependency-resilience.md) — architecture policy, register, replaceable integrations and CI direct-dependency checks present on main; not approval of every registered provider.
 
 - [Auto-Ontology reinforcement increment](integrations/auto-ontology-reinforcement.md) — development binding, ontology lifecycle and two-arm qualification gates; live proof pending.
 
 - [Nemotron read-only planner](nemotron-planner.md) — opt-in Operator binding; live qualification pending.
 
-- **[Current State](current-state.md)** â€” dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
+- **[Current State](current-state.md)** — dated mainline capability snapshot; distinguishes published release, merged capability and scorecard maturity.
 - **[Rig 07 Performance Activation](drilling-performance-activation-v0.1.md)** — deterministic synthetic drilling performance acceptance and policy-safe recommendation.
 - **[CEPIO Wiki](wiki/Home.md)**
 - **[Evidence and Decision Assurance v0.2](performance-evidence-decision-assurance-v0.2.md)**
 - **[Executive Performance Preview v0.1](performance-executive-preview-v0.1.md)** — opt-in read-only headless decision package.
-- **[Host-bound Performance Evidence v0.1](performance-host-bound-evidence-v0.1.md)** — tenant-scoped versioned read-only source materialization. â€” reader-oriented product, architecture, runtime, Industry IQ and roadmap navigation.
-- **[Architecture](architecture.md)** â€” current portable Industrial Operating Intelligence architecture.
-- **[Execution Roadmap](roadmap.md)** â€” authoritative product release gates from FOUNDATION through GUARANTEE.
-- **[Version Naming and Delivery Status](version-naming.md)** â€” product labels, component/Lab/pack/API version scopes and roadmap-vs-scorecard distinction.
-- **[Canonical v1.0 Completion Scorecard](v1-completion-scorecard.md)** â€” governed evidence-backed 100-point maturity model.
-- **[v1.0 Scorecard Governance](governance/v1-scorecard-governance.md)** â€” scoring authority, evidence and change-control contract.
-- **[CEPIO v0.4 FOUNDATION Developer Preview](developer-preview.md)** â€” qualified published-release installation/support boundary.
+- **[Host-bound Performance Evidence v0.1](performance-host-bound-evidence-v0.1.md)** — tenant-scoped versioned read-only source materialization. 
+- **[Architecture](architecture.md)** — current portable Industrial Operating Intelligence architecture.
+- **[Execution Roadmap](roadmap.md)** — authoritative product release gates from FOUNDATION through GUARANTEE.
+- **[Version Naming and Delivery Status](version-naming.md)** — product labels, component/Lab/pack/API version scopes and roadmap-vs-scorecard distinction.
+- **[Canonical v1.0 Completion Scorecard](v1-completion-scorecard.md)** — governed evidence-backed 100-point maturity model.
+- **[v1.0 Scorecard Governance](governance/v1-scorecard-governance.md)** — scoring authority, evidence and change-control contract.
+- **[CEPIO v0.4 FOUNDATION Developer Preview](developer-preview.md)** — qualified published-release installation/support boundary.
 - **[Agent Delivery Protocol v0.1](developer/agent-delivery-protocol.md)** — evidence-led agent engineering, bounded PRs, and advisory industrial-judgment evaluation.
-- **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** â€” quality, security, compatibility and release evidence controls.
+- **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality, security, compatibility and release evidence controls.
 
 - [Deployed image read-only evidence](adr/ADR-0042-deployed-image-readonly-evidence.md) — exact digest scans, SBOM and provenance verification boundaries.
 
@@ -56,7 +67,7 @@ The documentation should preserve this distinction throughout:
 
 - **v0.4 FOUNDATION:** qualified published Developer Preview.
 - **v0.5 CONNECT:** current / partial product release gate.
-- **v0.6 EXECUTEâ€“v1.0 GUARANTEE:** future release gates with some foundations already implemented on `main`.
+- **v0.6 EXECUTE–v1.0 GUARANTEE:** future release gates with some foundations already implemented on `main`.
 - **canonical v1 score:** 69/100 at the governed snapshot; later merges do not automatically modify the score.
 
 See [Current State](current-state.md).
@@ -155,7 +166,7 @@ Search indexes and caches are rebuildable projections, not semantic authority or
 - Performance Contract / specialization documentation is linked from the Enterprise Performance Graph page and associated ADRs.
 - [Industry Performance Packs v0.1](industry-performance-packs.md)
 - [Industry Performance Packs Wiki](wiki/25-Industry-Performance-Packs.md)
-- [ADR-0034 â€” Industry Performance Reference Packs](adr/ADR-0034-industry-performance-reference-packs-v0.1.md)
+- [ADR-0034 — Industry Performance Reference Packs](adr/ADR-0034-industry-performance-reference-packs-v0.1.md)
 
 Performance reference packs are organization-neutral starting points. Customer formulas, targets, thresholds, scopes, source bindings and operating structures remain customer specialization.
 
@@ -166,7 +177,7 @@ Performance reference packs are organization-neutral starting points. Customer f
 - [Management Control Plane Wiki](wiki/21-Management-Control-Plane.md)
 - [Remote Management Read Projection](remote-management-read-projection.md)
 - [Foundry + MCP](foundry-mcp.md)
-- [ADR-0035 â€” Hosted MCP Gateway](adr/ADR-0035-hosted-mcp-gateway-v0.1.md)
+- [ADR-0035 — Hosted MCP Gateway](adr/ADR-0035-hosted-mcp-gateway-v0.1.md)
 
 Hosted target composition:
 
@@ -238,12 +249,12 @@ Current newer pages include:
 
 Use these layers together:
 
-1. **implementation contracts, code, ontologies, mappings, tests and accepted ADRs** â€” authoritative behavior/implementation evidence;
-2. **`current-state.md`** â€” current narrative mainline snapshot;
-3. **`roadmap.md`** â€” product release-gate authority;
-4. **`config/v1-scorecard.yaml`** â€” numeric v1 maturity authority;
-5. **`RELEASE.md`** â€” published v0.4 support boundary;
-6. **`docs/wiki/`** â€” explanatory/navigation layer.
+1. **implementation contracts, code, ontologies, mappings, tests and accepted ADRs** — authoritative behavior/implementation evidence;
+2. **`current-state.md`** — current narrative mainline snapshot;
+3. **`roadmap.md`** — product release-gate authority;
+4. **`config/v1-scorecard.yaml`** — numeric v1 maturity authority;
+5. **`RELEASE.md`** — published v0.4 support boundary;
+6. **`docs/wiki/`** — explanatory/navigation layer.
 
 Historical benchmark documents remain historical evidence and should not be rewritten simply to adopt newer product terminology.
 
