@@ -1,5 +1,40 @@
 # CEPIO Current State
 
+## Documentation snapshot — 12 November 2026
+
+Reviewed Core main: `e12a5ee5f6b332b3601642f4e6906ebe146b131d`. This is a repository/documentation review, not a fresh production qualification or scorecard assessment.
+
+| Question | Evidence-backed answer | Authority |
+| --- | --- | --- |
+| What is the published product? | v0.4 FOUNDATION Developer Preview; its support boundary is unchanged | [Release manifest](../RELEASE.md) |
+| What is the next release gate? | v0.5 CONNECT remains open: real three-source context and verified, reconciled writeback | [CONNECT #51](https://github.com/faizrten/CEPIO/issues/51) |
+| What is the maturity score? | 69/100 at the governed 20 October baseline; no recalculation in this review | [Scorecard](../config/v1-scorecard.yaml) |
+| What has advanced on main? | Bounded inspection/alignment, relationship paging, ACCC host admission, optional Nemotron planning, semantic reconciliation/review lifecycle and OSS dependency admission | Focused references below |
+| What is live today? | Not reverified by this documentation change. A merged implementation or passing CI does not identify a deployed image or enabled feature | Exact environment, image/commit, configuration and authenticated acceptance evidence are required |
+
+### Recent capability map
+
+| Capability | Repository evidence | Qualification boundary |
+| --- | --- | --- |
+| Operational object inspection and alignment | [Inspection](operational-state-inspection-v0.1.md), [alignment](operational-state-alignment-v0.1.md) | Reference/synthetic evidence; no CONNECT closure |
+| Bounded relationship access | [Remote qualification](relationship-remote-qualification-v0.1.md) | Offline conformance does not establish production exposure |
+| Microsoft-default agent host / ACCC | [Host composition](architecture/accc-harness-readonly-spike.md) | Offline SDK mechanics and admission; no blanket live-model or deployment claim |
+| Optional model planner | [Nemotron planner](nemotron-planner.md) | Opt-in binding; live model qualification separate |
+| Ontology reinforcement | [Auto-Ontology](integrations/auto-ontology-reinforcement.md) | Retrieval, reconciliation and review-use primitives; live reinforcement and two-arm judgment uplift remain unqualified |
+| External dependency resilience | [OSS admission policy](governance/open-source-dependency-resilience.md) | Policy/register/checker are present on this main revision; candidate registration is not production approval |
+
+Public Core remains the source-neutral contract layer. Protected implementations and deployment receipts must be assessed within their own authorized repositories; this page does not publish or infer their readiness.
+
+### How to use this snapshot
+
+Start with the [documentation guide](README.md). Developers can follow the [Developer Preview](developer-preview.md); operators should use [deployment profiles](deployment-profiles.md) and [REST security](rest-security.md). The Wiki explains concepts; focused contracts and accepted ADRs define bounded behavior.
+
+**Open documentation/adoption proof:** independently complete the developer extension journey tracked in [#60](https://github.com/faizrten/CEPIO/issues/60) and the clean-room deployment exercise in [#63](https://github.com/faizrten/CEPIO/issues/63). Navigation reconciliation does not close those gates.
+
+## Historical capability baseline — 20 October 2026
+
+The remainder preserves the earlier baseline and its subsequent dated addenda. Statements about persistence, hosted surfaces and future adapters below describe that historical scope; they must not be used as a fresh deployment inventory. Use the dated snapshot above and the focused evidence for later changes.
+
 **Development increment (11 November 2026):** [Auto-Ontology reinforcement](integrations/auto-ontology-reinforcement.md) adds a host-only semantic-term evidence binding and a two-arm qualification contract. Offline transport checks do not establish live integration, ontology reinforcement or judgement uplift. No release, default runtime, deployment or scorecard change.
 
 **Bounded implementation increment (7 November 2026):** [Nemotron read-only planner](nemotron-planner.md) binds an opt-in model endpoint to the existing Operator protocol. Offline transport/contract validation is separate from live model qualification. No default-model, deployment, release or scorecard change.

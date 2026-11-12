@@ -1,7 +1,7 @@
 # CEPIO Wiki
 
 **Mission:** Democratize industrial expertise and elevate human professional excellence.  
-**Product North Star:** The indispensable expert companion for every industrial professional.  
+**Product North Star:** The most trusted AI companion for every industry professional.  
 **Technology:** Thin infrastructure. Thick Industry IQ.  
 **Moat:** Industrial Competence Network, independently qualified and continuously compounding without using customer intelligence by default.
 
@@ -13,7 +13,7 @@ Read the [canonical Product North Star & Strategic Doctrine](../strategy/industr
 
 The Wiki is the reader-oriented narrative/navigation layer over the executable contracts, ADRs, tests, ontologies, mappings and focused technical documentation in the repository.
 
-For the latest repository posture, start with [CEPIO Current State](../current-state.md).
+For role-specific onboarding, start with the [documentation guide](../README.md). For the dated repository posture, start with [CEPIO Current State](../current-state.md).
 
 The [host-local bounded relationship query reference](../bounded-relationship-query-v0.1.md) documents tenant/policy-aware SQLite paging and the remaining #329 remote-exposure blockers.
 

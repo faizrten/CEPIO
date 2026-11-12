@@ -1,5 +1,7 @@
 # CEPIO
 
+**Start here:** [Documentation by role](docs/README.md) · [Dated current state](docs/current-state.md) · [Developer Preview](docs/developer-preview.md).
+
 **Mission:** Democratize industrial expertise and elevate human professional excellence.  
 **Product North Star:** **The most trusted AI companion for every industry professional — learning, growing and advancing industrial expertise alongside people.**  
 **Moat:** The **Industrial Competence Network**, with independent qualification and enterprise sovereignty.  
