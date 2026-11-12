@@ -25,6 +25,7 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 ## Start here
 
 - [Open-source dependency resilience & admission](governance/open-source-dependency-resilience.md) — architecture policy, register, replaceable integrations and CI direct-dependency checks present on main; not approval of every registered provider.
+- [Microsoft Flint: synthetic visualization M0–M2](integrations/microsoft-flint-v01.md) — offline evaluation, host-owned provenance and replaceable rendering; no production activation.
 
 - [Auto-Ontology reinforcement increment](integrations/auto-ontology-reinforcement.md) — development binding, ontology lifecycle and two-arm qualification gates; live proof pending.
 
@@ -35,7 +36,7 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 - **[CEPIO Wiki](wiki/Home.md)**
 - **[Evidence and Decision Assurance v0.2](performance-evidence-decision-assurance-v0.2.md)**
 - **[Executive Performance Preview v0.1](performance-executive-preview-v0.1.md)** — opt-in read-only headless decision package.
-- **[Host-bound Performance Evidence v0.1](performance-host-bound-evidence-v0.1.md)** — tenant-scoped versioned read-only source materialization. 
+- **[Host-bound Performance Evidence v0.1](performance-host-bound-evidence-v0.1.md)** — tenant-scoped versioned read-only source materialization.
 - **[Architecture](architecture.md)** — current portable Industrial Operating Intelligence architecture.
 - **[Execution Roadmap](roadmap.md)** — authoritative product release gates from FOUNDATION through GUARANTEE.
 - **[Version Naming and Delivery Status](version-naming.md)** — product labels, component/Lab/pack/API version scopes and roadmap-vs-scorecard distinction.
