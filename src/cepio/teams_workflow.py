@@ -256,14 +256,18 @@ class TeamsWorkflowWebhookAdapter:
             return prior.model_copy(deep=True)
 
         envelope = TeamsWorkflowEnvelope.model_validate(request.payload)
-        outbound = envelope.model_dump(mode="json")
-        outbound["cepio"] = {
-            "execution_id": request.execution_id,
-            "action_id": request.action_id,
-            "decision_id": request.decision_id,
-            "canonical_object_id": request.canonical_object_id,
-            "destination": request.external_id,
-            "idempotency_key": request.idempotency_key,
+        # The Teams Workflow webhook requires a native message/attachments body.
+        # The typed CEPIO envelope remains the governed request payload; only the
+        # Adaptive Card is projected across this provider-specific transport.
+        outbound = {
+            "type": "message",
+            "attachments": [
+                {
+                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentUrl": None,
+                    "content": envelope.adaptive_card,
+                }
+            ],
         }
         headers = {
             "Content-Type": "application/json",
