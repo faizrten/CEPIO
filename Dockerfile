@@ -1,4 +1,15 @@
-FROM python:3.11-slim AS builder
+# Keep the current Python minor and Debian release explicit in both stages.
+FROM python:3.11.17-slim-trixie@sha256:b7a9e5f6a93d6d4a31f129bbd4bdee69efccb6ded0fb230d78aafaf37af98377 AS os-base
+
+# Apply only upgrades available from the base's existing stable repositories.
+# Fail on index errors; upgrade cannot add/remove packages or change releases.
+# Run before user setup and runtime minimization, while maintenance tools exist.
+RUN apt-get update -o APT::Update::Error-Mode=any \
+    && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-remove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM os-base AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -19,7 +30,7 @@ COPY ontology-modules.yaml /build/ontology-modules.yaml
 
 RUN python -m build --wheel
 
-FROM python:3.11-slim
+FROM os-base
 
 # The hosted CEPIO process always serves /mcp, so MCP is part of the default host
 # runtime. Deployments can install additional supported extras explicitly.
