@@ -74,6 +74,29 @@ Design references reviewed on 14 November 2026: [Claude for Manufacturing README
 
 All rows are acceptance targets or review guidance, not implementation claims. D1 documentation can close only through its existing checks and merge evidence; D2–D5 remain separate proof.
 
+## Cross-company handoff acceptance — bounded D2–D5 extension
+
+Use one operator-to-service-provider handoff within the selected investigation to examine whether existing Decision, Action, Binding, provenance and Outcome contracts can represent the exchange. This is acceptance guidance, not a new intercompany ERP, commercial-commitment schema or permission to contact a counterparty.
+
+Keep engineering justification, the operator's internal authorization, and the provider's acceptance distinct. Submission or transport acknowledgement does not prove acceptance of the request or its terms. A verified local Outcome does not establish counterparty acceptance, receipt of service or verified repair effectiveness.
+
+| Package / existing owner | Bounded acceptance target | Failure or counterexample |
+| --- | --- | --- |
+| D2 — Protected assurance | Evaluate recommendation, internal approval, submission, counterparty acceptance, service completion and effectiveness as distinct evidence-backed claims; use the matched baseline and independent reference cases already required. | A successful API response, an agent's assertion, silence or a local approval is promoted to counterparty commitment or completed work. |
+| D3 — Application / Studio journey | Show the pending party, requested next step, accepted request version and conditions where evidenced, conflicting confirmations, and source/freshness. Preserve save/resume and authorized visibility. | A waiting, rejected, expired or disputed exchange appears complete; another party's restricted evidence is exposed to explain a status. |
+| D4 — Existing runtime and binding owners | Trace one exchange from authorized proposal through authenticated counterparty response, changed terms, rejection and reconciliation. Reference each party's own authority, request/version correlation and permitted evidence; identify gaps before proposing contract changes. | A response from the wrong party or for an older request is accepted; one organization's credentials or approval confer authority in another. |
+| D5 — Adoption evidence | Report handoff completion criteria, time waiting for each party, manual reconciliation effort and unresolved/rejected/disputed handoffs, with sample size and limitations. | A sent message or accepted transport request is counted as completed coordination; synthetic timing is claimed as field value. |
+
+For the D4 proof, record positive and negative observations through the actual supported interface:
+- A response from the authorized provider confirms the identified request version and conditions; subsequent work and effectiveness still require their own evidence.
+- Missing, rejected or conflicting acceptance remains explicit; timeout is not consent.
+- Changed scope, timing or terms invalidate any inferred applicability of prior acceptance. Preserve the original history and obtain the applicable new authorization/acceptance before execution.
+- Duplicate delivery and retry do not create duplicate commitments or side effects; out-of-order or stale responses cannot silently overwrite newer state.
+- Revoked access and cross-tenant reads fail under each organization's policy. Exchange only authorized evidence; shared visibility does not imply shared authority.
+- External failures, cancellation requests and disputed completion remain distinguishable from confirmed cancellation or reconciled completion. Do not claim a distributed rollback when only a local step was reversed.
+
+Use existing identifiers and records where they suffice. If acceptance semantics are missing, record the smallest concrete gap and route any implementation through the existing contract/version review. These distinctions do not introduce canonical enums or assert commercial/legal enforceability. Start with synthetic or offline proof; live exchanges, commercial commitments and customer data require their applicable existing authorization. Keep v0.5 CONNECT live-source/writeback requirements intact.
+
 ## Boundaries and rollback
 
 - Keep the existing v0.5 CONNECT live-source and verified-writeback critical path. This adoption does not replace it with a documentation milestone.
