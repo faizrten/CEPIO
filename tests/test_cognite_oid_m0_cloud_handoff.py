@@ -102,7 +102,10 @@ def test_secret_handoff_requires_trusted_main_and_protected_environment():
     handoff = (root / ".github/workflows/cognite-oid-secret-handoff.yml").read_text()
     assert "workflow_dispatch" in handoff
     assert "push:" not in handoff
-    assert "environment: cognite-m0" in handoff
+    assert "environment: azure-demo" in handoff
+    for name in ("AZURE_CLIENT_ID", "AZURE_TENANT_ID", "AZURE_SUBSCRIPTION_ID"):
+        assert "vars." + name in handoff
+        assert "secrets." + name not in handoff
     assert "github.ref == 'refs/heads/main'" in handoff
     assert 'M0_HANDOFF_APPROVED" == "true"' in handoff
     assert 'M0_AUTH_APPROVED" == "true"' in handoff
