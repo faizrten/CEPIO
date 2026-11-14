@@ -34,6 +34,9 @@ Stop conditions / claims that remain unqualified:
 
 ## During implementation
 
+- Deliver a narrow **end-to-end slice** through the layers the task actually needs. State its blockers and an independently observable result. A headless operation need not acquire a UI; a UI task is not complete at a backend unit test. Sequence broad migrations as expand, migrate, contract where individual slices otherwise cannot remain compatible.
+- For a reported defect, establish a repeatable check of the exact symptom before changing behavior. Minimize the reproduction, test falsifiable hypotheses, then rerun the original scenario after the fix. If reproduction is unavailable, record what is missing and keep the fix unverified.
+- Test at the public interface used by the caller. Expected results come from an independent worked example, specification or reference, rather than recomputing the implementation. For consequential behavior, observe the test fail before the fix and pass afterward. Do not add tests that merely count documentation headings or mirror a trivial implementation.
 - Make a **surgical diff**. Preserve interfaces and semantics unless the change is deliberately versioned and migration evidence exists.
 - Keep source-specific and customer-specific data in authorized bindings/profiles; keep reusable semantics thin in Core and proprietary Industry IQ/evaluation assets protected.
 - Treat a model recommendation, proposed workflow, simulated write or local test as **non-authoritative** unless the appropriate CEPIO runtime and external system have independently qualified it.
@@ -48,6 +51,32 @@ Stop conditions / claims that remain unqualified:
 3. Record the exact commit/PR, test commands, results, failures, skipped checks and remaining gaps. A test that was not executed is `NOT VERIFIED`, not PASS.
 4. If validation fails, revise the smallest relevant change and repeat. Do not fix unrelated components as incidental scope.
 5. Keep the canonical maturity score in `config/v1-scorecard.yaml`; a merged PR or passing synthetic acceptance does not independently qualify a product release.
+
+### Separate review verdicts
+
+For material capability changes, record the applicable verdicts in the existing PR or qualification report. This is an extension of evidence reporting, not a new mandatory reviewer, approval workflow or runtime gate.
+
+| Axis | Question | Suitable evidence |
+| --- | --- | --- |
+| Engineering | Is the implementation correct and consistent with applicable architecture, security and compatibility rules? | Exact diff, executed positive/negative tests and required CI |
+| Product | Can the intended actor complete the stated task through the intended interface? | API/MCP/SDK or authenticated browser acceptance against the identified build |
+| Industrial validity | Are the method, evidence, assumptions and conclusion justified within the claimed scope? | Independently controlled cases, calculations, domain review and explicit limitations |
+
+Use `PASS`, `FAIL`, `BLOCKED`, `NOT VERIFIED`, or `NOT APPLICABLE` with a reason and scope. A missing reviewer or inaccessible environment is not `NOT APPLICABLE`. Documentation-only changes can mark runtime/industrial assessment not applicable without implying a product verdict. Keep findings separate: code quality cannot compensate for an unsupported diagnosis. Distinct AI review contexts can reduce anchoring but do not establish expert independence or replace authoritative reference evidence.
+
+### Completion evidence
+
+Report only applicable dimensions; a task does not need deployment when its purpose is documentation or an offline library change. For each claim identify the commit/artifact, environment, timestamp, check/result and evidence location. Report skipped checks and invalidating changes. Use authorized private evidence locations and sanitized public summaries.
+
+| Dimension | Evidence needed before claiming completion |
+| --- | --- |
+| Implementation | Reviewed change exists at an identified commit; distinguish branch from merged main |
+| Automated qualification | Applicable checks actually passed for that commit and stated scope |
+| Deployment | Intended environment runs the identified artifact/revision and relevant configuration |
+| User journey | Intended actor completes the task; relevant denial, persistence and recovery paths are checked |
+| Industrial qualification | Versioned method has independent evidence for the stated domain and operating conditions |
+
+These dimensions are independent, not an automatic promotion sequence. Source-of-truth release and scorecard gates remain unchanged. Historical evidence remains historical after a material change until the relevant checks are repeated.
 
 ### Industrial judgment analogue — evaluation guidance only
 
@@ -64,6 +93,12 @@ This is **not** a new four-stage agent runtime, a replacement for the CEPIO Skil
 
 ### Measuring whether adoption helps
 
+For capability evaluations, use a strong generic baseline with a competent procedure and the same authorized facts and generic tools as the CEPIO arm. Pin model/version, decoding, prompts, evidence cutoff, capability/policy versions and tool access; record actual treatment invocation. A comparison that grants extra tools or facts only to CEPIO measures a different effect and must be labelled accordingly. A deterministic CEPIO-only arm is useful where the task is executable without a model; record unsupported tasks rather than inventing model-free coverage.
+
+Keep development cases separate from independent sealed qualification cases. Predeclare primary measures, failure gates, repetitions and treatment order before observing results. Report pair-level failures, appropriate abstention and unnecessary abstention separately, uncertainty where supported by sample size, and limitations. Score judgment separately from traceability, authority enforcement and workflow completion. Record tokens, latency, cost and expert/founder effort; token savings alone are not competence uplift. Qualification designs, prompts and reference labels stay in their authorized protected repositories.
+
+Test context selection against omission and semantic confusion: missing required evidence, similar asset identities, superseded records, negation, conflicting observations and customer-scoped rules. Keep mandatory evidence/authority controls explicit even when optional material is loaded selectively. Extend existing ContextAssembler, retrieval, Skill and evaluation contracts rather than creating another context or evaluation framework.
+
 For a bounded sample of comparable future work, compare the previous approach with this guidance using: unintended files per PR; first-pass focused-test success; adversarial failures caught before merge; rework rounds; elapsed review/merge effort; and real evidence of supported vs unsupported claims. Keep the evaluation protocol, expert labels and answer keys in CEPIO Labs where protected. Do **not** claim an improvement or increase the v1 score without independent evidence.
 
 For industrial reasoning, measure evidence-grounding, appropriate abstention, conditional hypothesis quality, intervention/authority compliance and verified-outcome integrity **separately** from writing style. An LLM given better instructions is a useful evaluation arm, but does not replace CEPIO's enforceable semantic and governance contracts.
@@ -73,3 +108,9 @@ For industrial reasoning, measure evidence-grounding, appropriate abstention, co
 - Begin with advisory instruction in `AGENTS.md`, documentation and existing CI; no new PR-required workflow, second human approval, model provider or billing mechanism.
 - Review after comparable tasks produce measurable evidence. If the guidance creates noise or encourages unnecessary process, simplify or remove the instruction and its documentation through a normal PR.
 - All existing branch protections, security/CodeQL gates, scorecard governance and public/protected/customer boundaries remain unchanged.
+
+## Adoption and provenance
+
+The [capability delivery adoption map](capability-delivery-adoption.md) maps these practices to existing CEPIO owners and remaining proof. Use it when planning a material capability change; it is not another capability registry or release roadmap.
+
+The 14 November 2026 extension independently adapts engineering practices reviewed in [mattpocock/skills at 5863806](https://github.com/mattpocock/skills/tree/5863806dd4e15c63174bee4e7515a4256792ecfa): `to-tickets`, `tdd`, `diagnosing-bugs`, `code-review`, `domain-modeling`, `codebase-design` and `writing-for-agents`. No upstream skill, script, dependency or automatic update mechanism is installed. CEPIO keeps its own vocabulary and risk-proportionate execution: routine decisions use available evidence and existing authorization; consequential missing requirements are surfaced. Upstream interview or approval conventions do not create extra CEPIO approval gates.

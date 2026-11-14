@@ -44,6 +44,7 @@ This directory contains CEPIO's technical documentation and curated Wiki.
 - **[v1.0 Scorecard Governance](governance/v1-scorecard-governance.md)** — scoring authority, evidence and change-control contract.
 - **[CEPIO v0.4 FOUNDATION Developer Preview](developer-preview.md)** — qualified published-release installation/support boundary.
 - **[Agent Delivery Protocol v0.1](developer/agent-delivery-protocol.md)** — evidence-led agent engineering, bounded PRs, and advisory industrial-judgment evaluation.
+- **[Capability delivery adoption map](developer/capability-delivery-adoption.md)** — existing contract ownership, complete user outcomes, separate review evidence and sequenced adoption work.
 - **[Code Quality & Governance v2](governance/code-quality-governance-v2.md)** — quality, security, compatibility and release evidence controls.
 
 - [Deployed image read-only evidence](adr/ADR-0042-deployed-image-readonly-evidence.md) — exact digest scans, SBOM and provenance verification boundaries.

@@ -200,6 +200,7 @@ See [v1.0 completion scorecard](../v1-completion-scorecard.md).
 - [Security and Governance](13-Security-Governance.md)
 - [Deployment and Operations](14-Deployment-Operations.md)
 - [Developer Guide](15-Developer-Guide.md)
+- [Capability delivery adoption](../developer/capability-delivery-adoption.md) — advisory delivery and qualification crosswalk; no release-readiness claim.
 - [Reference Scenarios](16-Reference-Scenarios.md)
 - [Roadmap to v1.0](17-Roadmap.md)
 - [Glossary](18-Glossary.md)
