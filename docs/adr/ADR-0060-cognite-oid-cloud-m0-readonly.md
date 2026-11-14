@@ -88,3 +88,28 @@ The Azure secret handoff workflow may be **blocked**, because `cognite-m0` GitHu
 ## M0 package-install safety correction (2026-11-09)
 
 The first trusted-main OID inventory workflow failed before Cognite authentication because its pip package constraint had an invalid trailing greater-than sign (`cognite-sdk>=8,<9>`). This repair changes only the requirements string to the valid `cognite-sdk>=8,<9` form and adds a regression guard. The dedicated Azure Container Apps Job Dockerfile already uses the valid constraint and does not require a change. This protected workflow update remains high-risk for review purposes, but grants no new permissions, accesses no new credentials and does not change the bounded Cognite API operations. Existing gates remain enforced; the next reviewed merge can run the inventory through GitHub Actions without any bypass or manual secret handling.
+
+
+## 2026-11-14 addendum — reuse the existing protected handoff environment
+
+Live configuration inspection found no `cognite-m0` environment. The existing
+`azure-demo` environment already has a required founder reviewer, main-only
+branch protection and Azure OIDC identifiers stored as variables. The founder
+explicitly approved use of the existing Cognite credential for the integration.
+The secret-handoff workflow now reuses that protected environment and reads
+`vars.AZURE_CLIENT_ID`, `vars.AZURE_TENANT_ID` and
+`vars.AZURE_SUBSCRIPTION_ID`, matching the existing readiness workflow.
+
+This supersedes only the handoff environment in the earlier addendum. It does
+not change the separate M0 job's environment or authorize its deployment. Both
+explicit handoff approval flags, current-main validation, exact vault/RG checks,
+create-only protection and tmpfs secret transfer remain required. No new OIDC
+federation or permanent vault-wide writer grant is introduced by this source
+change. Any transfer permission must be verified and narrowly scoped; temporary
+writer access must be revoked after the handoff. Runtime secret-read access is
+verified independently. The credential value must never enter logs or artifacts.
+
+Validation: offline handoff guards cover the existing environment and variable
+sources alongside the retained main/approval/no-rotation constraints. Existing
+HIGH-risk governance and CI checks remain mandatory. Source repair is not an
+executed transfer, live Studio qualification or engineering decision evidence.
