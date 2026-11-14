@@ -1,0 +1,28 @@
+name: CEPIO Alternative Base Image Evaluation
+on:
+  push:
+    branches: [security/base-image-evaluation]
+    paths: ['experiments/base-images/**', '.github/workflows/base-image-evaluation.yml']
+permissions:
+  contents: read
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate: [trixie, bookworm, alpine324, ubuntu2404]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build and inspect isolated candidate without cloud access
+        run: python3 experiments/base-images/evaluate.py ${{ matrix.candidate }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: base-image-${{ matrix.candidate }}-${{ github.run_id }}
+          path: evidence/base-images/${{ matrix.candidate }}/
+          if-no-files-found: error
+          retention-days: 30

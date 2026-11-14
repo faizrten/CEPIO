@@ -233,7 +233,8 @@ def test_default_connector_delegates_to_optional_driver(monkeypatch):
     connection = FakeConnection(cursor)
     seen: list[str] = []
 
-    def connect(connection_string: str) -> FakeConnection:
+    def connect(connection_string: str, *, timeout: int) -> FakeConnection:
+        assert timeout == 30
         seen.append(connection_string)
         return connection
 
@@ -243,3 +244,21 @@ def test_default_connector_delegates_to_optional_driver(monkeypatch):
 
     assert result is connection
     assert seen == [_settings().connection_string]
+
+
+@pytest.mark.parametrize("timeout", [1, 47, 300])
+def test_reader_passes_configured_timeout_without_unsupported_keyword(monkeypatch, timeout):
+    connection = FakeConnection(FakeCursor())
+    seen = []
+
+    def connect(connection_string, **kwargs):
+        seen.append((connection_string, kwargs))
+        return connection
+
+    monkeypatch.setitem(sys.modules, "mssql_python", SimpleNamespace(connect=connect))
+    settings = _settings().model_copy(update={"connection_timeout_seconds": timeout})
+    reader = FabricSqlTableReader(settings, allowed_tables={"cepio_drilling_npt_context"})
+    reader.read_rows("cepio_drilling_npt_context", context_id="fixture")
+    assert seen == [(settings.connection_string, {"timeout": timeout})]
+    assert "Connection Timeout" not in settings.connection_string
+    assert "Encrypt=yes;TrustServerCertificate=no;" in settings.connection_string

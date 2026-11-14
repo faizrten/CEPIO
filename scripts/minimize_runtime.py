@@ -77,6 +77,11 @@ def minimize(root):
 
 def verify(root):
     root = root.resolve()
+    # Select from actual package inventory; never fall back after verification fails.
+    if (root / "lib/apk/db/installed").exists():
+        if (root / "var/lib/dpkg/status").exists():
+            raise ValueError("AMBIGUOUS_OS_INVENTORY")
+        return verify_alpine(root)
     manifest = json.loads((root / MANIFEST).read_text())
     remaining = [path for path in candidates(root) if path.exists() or path.is_symlink()]
     if remaining or not manifest.get("removed_paths"):
@@ -93,6 +98,75 @@ def verify(root):
         "unused_entrypoints_absent": True,
         "removed_path_count": len(manifest["removed_paths"]),
         "os_inventory_unchanged": True,
+        "vulnerability_waiver": False,
+    }
+
+
+def verify_alpine(root):
+    """Verify the build's Alpine removal evidence without mutating package records."""
+    manifest = json.loads(
+        (root / "usr/local/share/cepio/base-evaluation-minimization.json").read_text()
+    )
+    if (
+        manifest.get("inventory") != "/lib/apk/db/installed"
+        or manifest.get("vulnerability_waiver") is not False
+        or not isinstance(manifest.get("removed_paths"), list)
+        or not manifest["removed_paths"]
+        or not re.fullmatch(r"[a-f0-9]{64}", manifest.get("busybox_sha256", ""))
+    ):
+        raise ValueError("INVALID_MINIMIZATION_MANIFEST")
+    inventory = root / "lib/apk/db/installed"
+    if manifest.get("inventory_sha256") != hashlib.sha256(inventory.read_bytes()).hexdigest():
+        raise ValueError("OS_INVENTORY_CHANGED")
+    for name in manifest["removed_paths"]:
+        if (
+            not isinstance(name, str)
+            or (
+                not re.fullmatch(r"/[A-Za-z0-9_./+-]+", name)
+                and name not in {"/usr/bin/[", "/usr/bin/[["}
+            )
+            or ".." in Path(name).parts
+        ):
+            raise ValueError("INVALID_MINIMIZATION_MANIFEST")
+        path = root / name.lstrip("/")
+        if not path.parent.resolve().is_relative_to(root):
+            raise ValueError("RUNTIME_PATH_ESCAPES_ROOT")
+        if path.exists() or path.is_symlink():
+            raise ValueError("UNMINIMIZED_RUNTIME")
+    busybox_commands = [
+        root / directory / "busybox"
+        for directory in ("bin", "sbin", "usr/bin", "usr/sbin", "usr/local/bin")
+    ]
+    if any(p.exists() or p.is_symlink() for p in [*candidates(root), *busybox_commands]):
+        raise ValueError("UNMINIMIZED_RUNTIME")
+    shell = manifest.get("replaced_shell", {})
+    if shell.get("path") != "/bin/sh" or shell.get("target") not in {"/bin/dash", "/usr/bin/dash"}:
+        raise ValueError("INVALID_RUNTIME_SHELL")
+    target = root / shell["target"].lstrip("/")
+    if not target.is_file() or (root / "bin/sh").resolve() != target.resolve():
+        raise ValueError("INVALID_RUNTIME_SHELL")
+    # Inspect all regular files on the image filesystem, not only known CLI names.
+    device = root.stat().st_dev
+
+    def fail(error):
+        raise error
+
+    for directory, dirs, files in os.walk(root, followlinks=False, onerror=fail):
+        dirs[:] = [d for d in dirs if (Path(directory) / d).lstat().st_dev == device]
+        for name in files:
+            path = Path(directory) / name
+            if path.is_file() and not path.is_symlink() and path.stat().st_dev == device:
+                with path.open("rb") as stream:
+                    if (
+                        hashlib.file_digest(stream, "sha256").hexdigest()
+                        == manifest["busybox_sha256"]
+                    ):
+                        raise ValueError("BUSYBOX_RUNTIME_COPY_PRESENT")
+    return {
+        "unused_entrypoints_absent": True,
+        "removed_path_count": len(manifest["removed_paths"]),
+        "os_inventory_unchanged": True,
+        "busybox_absent": True,
         "vulnerability_waiver": False,
     }
 

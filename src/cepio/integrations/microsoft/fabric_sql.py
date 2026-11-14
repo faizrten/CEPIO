@@ -7,6 +7,7 @@ in CEPIO Industry IQ and provider-neutral binding modules.
 from __future__ import annotations
 
 import os
+from functools import partial
 from collections.abc import Callable, Iterable, Sequence
 from typing import Any, Literal, Protocol, cast
 
@@ -101,7 +102,6 @@ class FabricSqlSettings(BaseModel):
             f"Authentication={self.authentication};"
             "Encrypt=yes;"
             "TrustServerCertificate=no;"
-            f"Connection Timeout={self.connection_timeout_seconds};"
         )
 
 
@@ -124,7 +124,7 @@ class _Connection(Protocol):
 ConnectFactory = Callable[[str], _Connection]
 
 
-def _mssql_connect(connection_string: str) -> _Connection:
+def _mssql_connect(connection_string: str, *, timeout: int = 30) -> _Connection:
     try:
         import mssql_python
     except ImportError as exc:
@@ -132,7 +132,7 @@ def _mssql_connect(connection_string: str) -> _Connection:
             "Live Fabric SQL transport requires the optional 'fabric-sql' dependency: "
             "python -m pip install -e '.[fabric-sql]'"
         ) from exc
-    return cast(_Connection, mssql_python.connect(connection_string))
+    return cast(_Connection, mssql_python.connect(connection_string, timeout=timeout))
 
 
 class FabricSqlTableReader:
@@ -158,7 +158,9 @@ class FabricSqlTableReader:
             raise ValueError(f"Fabric SQL table is not a supported proof table: {unsupported}")
         self.settings = settings
         self.allowed_tables = allowed
-        self._connect = connect or _mssql_connect
+        self._connect = connect or partial(
+            _mssql_connect, timeout=settings.connection_timeout_seconds
+        )
 
     def read_rows(self, table_name: str, *, context_id: str) -> list[dict[str, Any]]:
         if table_name not in self.allowed_tables:

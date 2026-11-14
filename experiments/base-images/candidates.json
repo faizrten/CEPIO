@@ -1,0 +1,65 @@
+{
+  "alpine324": {
+    "amd64": "sha256:aa6a96bb556a9088ad5d8d600b07b64a1255f9c8b0ebe769231d312b63596e51",
+    "image": "python:3.11.17-alpine3.24@sha256:5fb4bc53dd0180955e31e5245b648bbb24a4ac4ab03a1de81513642325220bcd",
+    "annotations": {
+      "com.docker.official-images.bashbrew.arch": "amd64",
+      "org.opencontainers.image.base.digest": "sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d",
+      "org.opencontainers.image.base.name": "alpine:3.24",
+      "org.opencontainers.image.created": "2026-10-21T22:59:31Z",
+      "org.opencontainers.image.revision": "cede844ace77284e32c03b61ebc35cdfc945e862",
+      "org.opencontainers.image.source": "https://github.com/docker-library/python.git#cede844ace77284e32c03b61ebc35cdfc945e862:3.11/alpine3.24",
+      "org.opencontainers.image.url": "https://hub.docker.com/_/python",
+      "org.opencontainers.image.version": "3.11.17-alpine3.24"
+    },
+    "os_family": "alpine",
+    "python_minor": "3.11"
+  },
+  "bookworm": {
+    "amd64": "sha256:8fb0b110b022c70cbe09d3ff1fb313654f31f9c814abb0d48180af56d906a199",
+    "image": "python:3.11.17-slim-bookworm@sha256:f06d01d4ba3f8ad5af45a3ec87df19c1d317d8e8961edc0fabda61811af6f7cf",
+    "annotations": {
+      "com.docker.official-images.bashbrew.arch": "amd64",
+      "org.opencontainers.image.base.digest": "sha256:ec31d744f83f4a73447ba045aaab9409997efe5cc706eca4890c1be36cc1606a",
+      "org.opencontainers.image.base.name": "debian:bookworm-slim",
+      "org.opencontainers.image.created": "2026-10-21T01:04:45Z",
+      "org.opencontainers.image.revision": "cede844ace77284e32c03b61ebc35cdfc945e862",
+      "org.opencontainers.image.source": "https://github.com/docker-library/python.git#cede844ace77284e32c03b61ebc35cdfc945e862:3.11/slim-bookworm",
+      "org.opencontainers.image.url": "https://hub.docker.com/_/python",
+      "org.opencontainers.image.version": "3.11.17-slim-bookworm"
+    },
+    "os_family": "debian",
+    "python_minor": "3.11"
+  },
+  "trixie": {
+    "amd64": "sha256:b95327ce1439e687237841b0210677aeadd62d55a060a5f6bcb9c15bf6251dd3",
+    "image": "python:3.11.17-slim-trixie@sha256:b7a9e5f6a93d6d4a31f129bbd4bdee69efccb6ded0fb230d78aafaf37af98377",
+    "annotations": {
+      "com.docker.official-images.bashbrew.arch": "amd64",
+      "org.opencontainers.image.base.digest": "sha256:4876fdea29cac1a33a3195f1eb1952feb1fca7dd6dd00be3e2f1879cf20d34d2",
+      "org.opencontainers.image.base.name": "debian:trixie-slim",
+      "org.opencontainers.image.created": "2026-10-21T01:01:28Z",
+      "org.opencontainers.image.revision": "cede844ace77284e32c03b61ebc35cdfc945e862",
+      "org.opencontainers.image.source": "https://github.com/docker-library/python.git#cede844ace77284e32c03b61ebc35cdfc945e862:3.11/slim-trixie",
+      "org.opencontainers.image.url": "https://hub.docker.com/_/python",
+      "org.opencontainers.image.version": "3.11.17-slim-trixie"
+    },
+    "os_family": "debian",
+    "python_minor": "3.11"
+  },
+  "ubuntu2404": {
+    "amd64": "sha256:a2d43bffc46670d7108bb3c0468c67c5557c4c92e83e1e34cbff1322ad1b94dc",
+    "image": "ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "annotations": {
+      "com.docker.official-images.bashbrew.arch": "amd64",
+      "org.opencontainers.image.base.name": "scratch",
+      "org.opencontainers.image.created": "2026-09-30T00:00:00Z",
+      "org.opencontainers.image.revision": "a0eaf38ec9d9bfffb5546f9f75d86383ce9c115c",
+      "org.opencontainers.image.source": "https://git.launchpad.net/cloud-images/+oci/ubuntu-base",
+      "org.opencontainers.image.url": "https://hub.docker.com/_/ubuntu",
+      "org.opencontainers.image.version": "24.04"
+    },
+    "os_family": "ubuntu",
+    "python_minor": "3.12"
+  }
+}
