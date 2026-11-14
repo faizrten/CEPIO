@@ -49,6 +49,31 @@ These are work packages under existing release gates, not new product milestones
 
 D2 and D3 can be developed independently once the shared reporting convention is available. A docs merge does not complete D2–D5. No deadline, effectiveness improvement or production qualification is inferred from this sequence.
 
+## Manufacturing workflow alignment — issue #361 / PR #362
+
+The manufacturing review refines D1–D5 below; it creates no parallel roadmap, runtime, registry or release gate. The bounded candidate is a recurring-equipment investigation with a reviewable next evidence request and retained decision history. Rig 07 and K-201 remain evaluation fixtures, not product features. Scope implementation through the existing owners and record absent behavior as a gap.
+
+| Lesson / user outcome | Existing owner and package | Acceptance evidence to collect |
+| --- | --- | --- |
+| Reach useful work from available exports | Bindings, onboarding and application experience; D3/D4 | A rights-scoped file intake preserves source identity, time, units and freshness. Show task-level available/limited/blocked status without conflating it with Skill READY. Exports provide an entry path; they do not satisfy CONNECT live-source or writeback gates. |
+| Make safe partial progress | Skill evidence/applicability checks and Decision contracts; D2–D4 | Missing evidence blocks only the conclusions/actions that require it. A limited result identifies justified observations, unresolved questions and a feasible next check; mandatory evidence and authority checks remain fail-closed. |
+| Maintain dependable operational context | Existing identity, temporal, provenance and context owners; D2/D4 | Test ambiguous assets, source conflicts, clock misalignment and changed configurations. Auto-ontology proposals remain unverified until the applicable confirmation process establishes their status; a graph relationship is not proof. |
+| Explain what changed | Decision/evidence history and host experience; D3/D4 | Change an evidence version, identify dependent conclusions and required rechecks, preserve the historical result, and visibly qualify any stale recommendation. Re-evaluate affected authorization/approval under existing contracts; never silently reuse approval for a materially changed action. |
+| Preserve qualified experience | Existing memory, Outcome and promotion contracts; D2/D4 | Distinguish proposed explanation, investigation evidence, completed action, verified effectiveness and superseded conclusion using existing records. These are review distinctions, not a new canonical state enum. Tenant experience does not automatically become global Industry IQ. |
+| Propose the next useful evidence | Industry IQ methods and existing information-gain semantics; D2/D4 | Evaluate whether the suggested check distinguishes hypotheses and is feasible, proportionate in cost/time and safe within the actor's authority. Keep hypothetical estimates labelled; seeking evidence is not permission to intervene. |
+| Make review easier | Application Contract and Studio/Companion owners; D3 | The intended actor can inspect changes, source/calculation basis, contradictions, missing evidence and the specific decision needing attention; then save/resume. Assess visualization by review usefulness. Do not require every field on every host or create a second login/runtime. |
+| Qualify reusable capabilities | Existing Skill/Capability/Pack and qualification owners; D4 | Identify accountable owner, method/version, supported scope, prerequisites, failure cases, evaluation references and retirement/replacement path. Distinguish written instructions from enforcement actually exercised through the caller interface. |
+| Prove value against a realistic alternative | Existing protected Labs comparison; D2 | Compare a competent frontier-model procedure with matched generic tools/evidence against the same setup plus actual CEPIO treatment. Include a deterministic arm only where executable. Test evidence-change handling and next-check quality as well as judgment, unsafe/over-abstention, review burden, latency and cost. |
+| Demonstrate recurring usefulness | Existing adoption work; D5 | Record time to first useful result, founder assistance, voluntary second-case use or return to an investigation, and reuse of verified findings, with consent, sample size and limitations. A guided demonstration is not retention or industrial qualification. |
+
+Before widening implementation, classify relevant backlog items as reuse/adapt, build for a demonstrated gap, or defer/stop. Prioritize first value, decision quality and dependable follow-through while preserving v0.5 CONNECT. Additional skill catalogs, frameworks or visualization breadth need a concrete contribution to those outcomes.
+
+### Source and adoption boundary
+
+Design references reviewed on 14 November 2026: [Claude for Manufacturing README](https://github.com/anthropics/claude-plugins-official/blob/main/plugins/claude-for-manufacturing/README.md), [launch article](https://claude.com/resources/articles/claude-for-manufacturing), and [root-cause skill](https://github.com/anthropics/claude-plugins-official/blob/main/plugins/claude-for-manufacturing/skills/root-cause-capa/SKILL.md). These are mutable references, not a pinned implementation audit or executed benchmark. The README describes an unmaintained reference implementation; the article's product direction does not establish support for that checkout. This alignment independently describes design lessons and imports no source, connector or dependency. Any later reuse must pin the exact revision and satisfy the existing OSS Dependency Resilience Gate, including applicable licensing, security, maintainability and fallback review.
+
+All rows are acceptance targets or review guidance, not implementation claims. D1 documentation can close only through its existing checks and merge evidence; D2–D5 remain separate proof.
+
 ## Boundaries and rollback
 
 - Keep the existing v0.5 CONNECT live-source and verified-writeback critical path. This adoption does not replace it with a documentation milestone.
