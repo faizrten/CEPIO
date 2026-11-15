@@ -54,6 +54,8 @@ Executable Skill code receives a restricted host rather than direct CEPIO runtim
 - actor-scoped object reads;
 - policy-authorized registered CEPIO Function calls.
 
+Actor-scoped reads apply the policy engine's object-level visibility check before property filtering in both the base and contract-aware runtimes. Type permission alone does not grant access to an object whose sharing scope is denied. Existing behavior for objects without a sharing-scope declaration remains controlled by the policy engine.
+
 The host does not expose direct Action execution, policy mutation, repository mutation, identity mutation, or source-system writeback.
 
 ### `SkillExecutionOutput`

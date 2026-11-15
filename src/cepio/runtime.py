@@ -469,8 +469,8 @@ class CEPIORuntime:
 
     def read_object_for_actor(self, object_id: str, roles: set[str]) -> OntologyObject:
         obj = self.get_object(object_id)
-        if not self.policy_engine.can_read_type(roles, obj.type):
+        if not self.policy_engine.can_read_object(roles, obj):
             raise AuthorizationError(
-                f"Actor roles are not authorized to read object type {obj.type}"
+                f"Actor roles are not authorized to read object {object_id} of type {obj.type}"
             )
         return self.policy_engine.filter_properties(roles, obj)
