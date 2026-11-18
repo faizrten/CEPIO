@@ -1,12 +1,11 @@
-FROM python:3.11-slim AS builder
+# Reviewed non-Fabric runtime migration; deployment is a separate authorized action.
+FROM python:3.11.17-alpine3.24@sha256:5fb4bc53dd0180955e31e5245b648bbb24a4ac4ab03a1de81513642325220bcd AS os-base
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PORT=8000
+RUN apk upgrade --no-cache && apk add --no-cache dash
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
+FROM os-base AS builder
 WORKDIR /build
-
-RUN python -m pip install --no-cache-dir --upgrade pip build
-
+RUN python -m pip install --no-cache-dir --upgrade pip build "setuptools==84.2.1"
 COPY pyproject.toml setup.py /build/
 COPY src /build/src
 COPY ontologies /build/ontologies
@@ -19,47 +18,29 @@ COPY ontology-modules.yaml /build/ontology-modules.yaml
 
 RUN python -m build --wheel
 
-FROM python:3.11-slim
-
-# The hosted CEPIO process always serves /mcp, so MCP is part of the default host
-# runtime. Deployments can install additional supported extras explicitly.
+FROM os-base AS runtime
+# MCP is required by the hosted composition. Fabric is not installed by default.
 ARG CEPIO_RUNTIME_EXTRAS="mcp"
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PORT=8000
-
 WORKDIR /app
-
-RUN addgroup --system cepio && adduser --system --ingroup cepio cepio
-
+RUN addgroup -S cepio && adduser -S -G cepio cepio && mkdir -p /data && chown -R cepio:cepio /app /data
 COPY --from=builder /build/dist/cepio-*.whl /tmp/
-RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" \
+COPY requirements/runtime-constraints.txt /tmp/constraints.txt
+# Optional extras remain opt-in and require their own environment qualification.
+RUN case ",${CEPIO_RUNTIME_EXTRAS}," in *,fabric-sql,*) apk add --no-cache libltdl krb5-libs libstdc++ ;; esac
+RUN python -m pip install --no-cache-dir --upgrade pip "setuptools==84.2.1" \
     && wheel="$(ls /tmp/cepio-*.whl)" \
     && if [ -n "$CEPIO_RUNTIME_EXTRAS" ]; then \
-         python -m pip install --no-cache-dir "${wheel}[${CEPIO_RUNTIME_EXTRAS}]"; \
+         python -m pip install --no-cache-dir --only-binary=:all: -c /tmp/constraints.txt "${wheel}[${CEPIO_RUNTIME_EXTRAS}]"; \
        else \
-         python -m pip install --no-cache-dir "$wheel"; \
+         python -m pip install --no-cache-dir --only-binary=:all: -c /tmp/constraints.txt "$wheel"; \
        fi \
     && python -m pip check \
     && python -m pip uninstall --yes pip \
-    && rm -rf /usr/local/lib/python3.11/ensurepip \
-    && python -c "import importlib.util; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None" \
-    && rm -f /tmp/cepio-*.whl
-
-# The service never needs setuid/setgid helpers. Preserve OS packages and their
-# scanner inventory, but remove file-based privilege transitions from the runtime.
-RUN find / -xdev -type f -perm /6000 -exec chmod a-s {} + \
-    && test -z "$(find / -xdev -type f -perm /6000 -print -quit)"
-
-RUN mkdir -p /app /data && chown -R cepio:cepio /app /data
-
-# Installation/user setup is complete. The HTTP host needs no mount/namespace,
-# terminal administration or Perl CLI. Keep shared libraries and dpkg inventory.
-COPY scripts/minimize_runtime.py /tmp/minimize_runtime.py
-RUN CEPIO_IMAGE_BUILD=1 python /tmp/minimize_runtime.py --apply && rm /tmp/minimize_runtime.py
+    && python -c "import pathlib,shutil,sysconfig; shutil.rmtree(pathlib.Path(sysconfig.get_path('stdlib'))/'ensurepip')" \
+    && rm -f /tmp/cepio-*.whl /tmp/constraints.txt
+COPY scripts/minimize_runtime.py scripts/harden_alpine.py /tmp/
+RUN CEPIO_IMAGE_BUILD=1 python /tmp/harden_alpine.py \
+    && python -c "from pathlib import Path; Path('/tmp/harden_alpine.py').unlink(); Path('/tmp/minimize_runtime.py').unlink()"
 USER cepio
-
 EXPOSE 8000
-
 CMD ["sh", "-c", "uvicorn cepio.host_api:app --host 0.0.0.0 --port ${PORT:-8000}"]
