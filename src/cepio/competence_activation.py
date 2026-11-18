@@ -112,7 +112,8 @@ def _candidate_registry(registry: CapabilityRegistry, scope: ActivationScope) ->
         id=registry.id,
         version=registry.version,
         capabilities=[
-            item for item in registry.capabilities
+            item
+            for item in registry.capabilities
             if item.id in scope.permitted_capability_ids
             and item.maturity in {CapabilityMaturity.QUALIFIED, CapabilityMaturity.PRODUCTION}
         ],
@@ -136,7 +137,8 @@ def _evidence_gates(
         problems.add("CAPABILITY_ASSURANCE_NOT_RECORDED")
 
     scoped = [
-        item for item in evidence
+        item
+        for item in evidence
         if item.tenant_id == scope.tenant_id
         and item.asset_id == task.asset_id
         and item.reference in scope.permitted_evidence_refs
@@ -161,15 +163,14 @@ def _evidence_gates(
         if any(item.state == EvidenceState.UNVERIFIED for item in entries):
             problems.add("UNVERIFIED_EVIDENCE")
         valid = [
-            item for item in entries
+            item
+            for item in entries
             if item.state == EvidenceState.HOST_ADMITTED
             and item.observed_at <= task.at < item.valid_until
         ]
         if not valid:
             problems.add("STALE_OR_FUTURE_EVIDENCE")
-        elif not any(
-            item.state != EvidenceState.HOST_ADMITTED for item in entries
-        ):
+        elif not any(item.state != EvidenceState.HOST_ADMITTED for item in entries):
             admitted.update(item.reference for item in valid)
 
     return sorted(problems), sorted(missing), sorted(admitted)
@@ -190,11 +191,15 @@ def activate_competence(
     """
     rules = policy or ActivationPolicy()
     if task.asset_id not in scope.permitted_asset_ids or not scope.actor_id:
-        return ActivationResult(status=ActivationStatus.BLOCKED, reason_codes=["ASSET_NOT_AUTHORIZED"])
+        return ActivationResult(
+            status=ActivationStatus.BLOCKED, reason_codes=["ASSET_NOT_AUTHORIZED"]
+        )
 
     permitted = _candidate_registry(registry, scope)
     if not permitted.capabilities:
-        return ActivationResult(status=ActivationStatus.NO_MATCH, reason_codes=["NO_ADMITTED_CAPABILITY"])
+        return ActivationResult(
+            status=ActivationStatus.NO_MATCH, reason_codes=["NO_ADMITTED_CAPABILITY"]
+        )
 
     intent = RetrievalIntent(
         query_text=task.query_text,
@@ -204,7 +209,9 @@ def activate_competence(
     )
     routes = CapabilityRouter(permitted).route(intent).routes
     if not routes or routes[0].score < rules.minimum_route_score:
-        return ActivationResult(status=ActivationStatus.NO_MATCH, reason_codes=["NO_SUITABLE_ROUTE"])
+        return ActivationResult(
+            status=ActivationStatus.NO_MATCH, reason_codes=["NO_SUITABLE_ROUTE"]
+        )
     if len(routes) > 1 and routes[0].score - routes[1].score <= rules.ambiguity_margin:
         return ActivationResult(
             status=ActivationStatus.AMBIGUOUS,
