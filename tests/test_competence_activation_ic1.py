@@ -247,6 +247,7 @@ def test_unrelated_job_does_not_select_something_merely_because_it_is_qualified(
     [
         {"query_text": ""},
         {"query_text": " "},
+        {"query_text": "   "},
         {"at": datetime(2026, 11, 19, 9, 0)},
     ],
 )
