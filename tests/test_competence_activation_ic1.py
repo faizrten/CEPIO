@@ -35,12 +35,14 @@ def capability(**changes) -> CapabilityRecord:
         "layer": "DOMAIN",
         "maturity": "QUALIFIED",
         "evidence_requirements": REQUIREMENTS,
-        "evidence": [{
-            "id": "fixture:qualification-reference",
-            "domain": "refinery",
-            "kind": "synthetic-contract",
-            "artifact": "tests/test_competence_activation_ic1.py",
-        }],
+        "evidence": [
+            {
+                "id": "fixture:qualification-reference",
+                "domain": "refinery",
+                "kind": "synthetic-contract",
+                "artifact": "tests/test_competence_activation_ic1.py",
+            }
+        ],
         "provenance": {"mode": "synthetic-contract", "source_ids": ["local-fixture"]},
     }
     record.update(changes)
@@ -126,10 +128,13 @@ def test_missing_maintenance_history_fails_closed():
     assert result.admitted_evidence_refs == []
 
 
-@pytest.mark.parametrize("state,reason", [
-    ("CONFLICT", "CONFLICTING_EVIDENCE"),
-    ("UNVERIFIED", "UNVERIFIED_EVIDENCE"),
-])
+@pytest.mark.parametrize(
+    "state,reason",
+    [
+        ("CONFLICT", "CONFLICTING_EVIDENCE"),
+        ("UNVERIFIED", "UNVERIFIED_EVIDENCE"),
+    ],
+)
 def test_conflict_or_unverified_source_blocks_even_when_a_clean_receipt_exists(state, reason):
     source = receipt("maintenance history", state=state, reference="fixture:maintenance")
     result = activate(evidence=evidence() + [source])
@@ -145,10 +150,13 @@ def test_duplicate_source_identity_with_changed_validity_is_not_silently_accepte
     assert "CONFLICTING_EVIDENCE" in result.reason_codes
 
 
-@pytest.mark.parametrize("change", [
-    {"valid_until": AT - timedelta(minutes=1), "observed_at": AT - timedelta(hours=1)},
-    {"observed_at": AT + timedelta(minutes=1), "valid_until": AT + timedelta(hours=1)},
-])
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"valid_until": AT - timedelta(minutes=1), "observed_at": AT - timedelta(hours=1)},
+        {"observed_at": AT + timedelta(minutes=1), "valid_until": AT + timedelta(hours=1)},
+    ],
+)
 def test_stale_and_future_dated_evidence_do_not_qualify(change):
     items = [receipt("maintenance history", **change)]
     items += [receipt("condition signal"), receipt("operating context")]
@@ -157,11 +165,14 @@ def test_stale_and_future_dated_evidence_do_not_qualify(change):
     assert "STALE_OR_FUTURE_EVIDENCE" in result.reason_codes
 
 
-@pytest.mark.parametrize("change", [
-    {"tenant_id": "other-tenant"},
-    {"asset_id": "fixture:refinery/K-202"},
-    {"reference": "fixture:unpermitted-evidence"},
-])
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"tenant_id": "other-tenant"},
+        {"asset_id": "fixture:refinery/K-202"},
+        {"reference": "fixture:unpermitted-evidence"},
+    ],
+)
 def test_foreign_or_unpermitted_receipts_do_not_satisfy_required_evidence(change):
     items = [receipt("maintenance history", **change)]
     items += [receipt("condition signal"), receipt("operating context")]
@@ -205,7 +216,9 @@ def test_registry_qualification_reference_is_required_but_not_independent_proof(
 def test_required_evidence_contract_cannot_be_empty():
     result = activate_competence(
         registry(capability(evidence_requirements=set())),
-        task=task(), scope=scope(), evidence=evidence()
+        task=task(),
+        scope=scope(),
+        evidence=evidence(),
     )
     assert result.status is ActivationStatus.BLOCKED
     assert "NO_EVIDENCE_REQUIREMENTS" in result.reason_codes
@@ -229,14 +242,17 @@ def test_unrelated_job_does_not_select_something_merely_because_it_is_qualified(
     assert result.status is ActivationStatus.NO_MATCH
 
 
-@pytest.mark.parametrize("request", [
-    {"query_text": ""},
-    {"query_text": " "},
-    {"at": datetime(2026, 11, 19, 9, 0)},
-])
-def test_blank_task_or_naive_time_rejected(request):
+@pytest.mark.parametrize(
+    "task_changes",
+    [
+        {"query_text": ""},
+        {"query_text": " "},
+        {"at": datetime(2026, 11, 19, 9, 0)},
+    ],
+)
+def test_blank_task_or_naive_time_rejected(task_changes):
     with pytest.raises(ValidationError):
-        task(**request)
+        task(**task_changes)
 
 
 def test_source_validity_requires_aware_ordered_window():
@@ -248,15 +264,19 @@ def test_source_validity_requires_aware_ordered_window():
 
 def test_host_models_reject_unknown_authority_claims():
     with pytest.raises(ValidationError):
-        ActivationScope.model_validate({
-            **scope().model_dump(),
-            "roles": ["administrator"],
-        })
+        ActivationScope.model_validate(
+            {
+                **scope().model_dump(),
+                "roles": ["administrator"],
+            }
+        )
     with pytest.raises(ValidationError):
-        ActivationTask.model_validate({
-            **task().model_dump(),
-            "approval": True,
-        })
+        ActivationTask.model_validate(
+            {
+                **task().model_dump(),
+                "approval": True,
+            }
+        )
 
 
 def test_lexical_threshold_is_not_exposed_as_confidence_or_a_decision():
