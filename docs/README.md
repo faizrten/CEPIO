@@ -150,7 +150,8 @@ These contracts keep reusable industrial intelligence separately deployable and 
 - [Memory & Context Architecture](memory-context-architecture.md)
 - [Memory & Context Wiki](wiki/22-Memory-and-Context.md)
 - [Retrieval & Indexing Architecture](retrieval-indexing-architecture.md)
-- [Implicit competence activation IC-1](competence-activation-ic1.md) — host-only, read-only candidate routing over the existing registry and evidence gates; no industrial judgment or deployment claim.
+- [Implicit competence activation IC-1](competence-activation-ic1.md)
+- [Host-scoped implicit competence activation IC-2](competence-activation-ic2.md) — optional authenticated host-asset/workflow context and conservative task overlap; evidence qualification remains separate. — host-only, read-only candidate routing over the existing registry and evidence gates; no industrial judgment or deployment claim.
 - [Retrieval & Indexing Wiki](wiki/23-Retrieval-and-Indexing.md)
 - [Compiled Industry IQ](compiled-industry-iq.md)
 - [Compiled Industry IQ Wiki](wiki/24-Compiled-Industry-IQ.md)
