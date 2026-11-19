@@ -57,12 +57,14 @@ def registry():
                 semantic_terms={"urn:cepio:equipment-type:Compressor"},
                 competencies={"condition-review"},
                 evidence_requirements={"condition", "maintenance"},
-                evidence=[{
-                    "id": "fixture:software-assurance",
-                    "kind": "synthetic-contract",
-                    "domain": "test-only",
-                    "artifact": "tests/test_task_intent_admission_ic2.py",
-                }],
+                evidence=[
+                    {
+                        "id": "fixture:software-assurance",
+                        "kind": "synthetic-contract",
+                        "domain": "test-only",
+                        "artifact": "tests/test_task_intent_admission_ic2.py",
+                    }
+                ],
                 provenance={"mode": "fictional-test"},
             )
         ],
@@ -107,15 +109,17 @@ def evidence(*, missing=False, conflict=False):
     for kind, ref in [("condition", CONDITION), ("maintenance", MAINTENANCE)]:
         if missing and kind == "maintenance":
             continue
-        entries.append(EvidenceAdmission(
-            requirement=kind,
-            reference=ref,
-            tenant_id=TENANT,
-            asset_id=ASSET,
-            observed_at=AT - timedelta(minutes=5),
-            valid_until=AT + timedelta(minutes=5),
-            state="CONFLICT" if conflict and kind == "condition" else "HOST_ADMITTED",
-        ))
+        entries.append(
+            EvidenceAdmission(
+                requirement=kind,
+                reference=ref,
+                tenant_id=TENANT,
+                asset_id=ASSET,
+                observed_at=AT - timedelta(minutes=5),
+                valid_until=AT + timedelta(minutes=5),
+                state="CONFLICT" if conflict and kind == "condition" else "HOST_ADMITTED",
+            )
+        )
     return entries
 
 
@@ -148,7 +152,11 @@ class HostOnlyResolver:
     def resolve_authorized(self, event_ref, *, actor_id, tenant_id, session_ref, request_id):
         self.calls.append((event_ref, actor_id, tenant_id, session_ref, request_id))
         if (event_ref, actor_id, tenant_id, session_ref, request_id) != (
-            EVENT_REF, ACTOR, TENANT, SESSION, REQUEST
+            EVENT_REF,
+            ACTOR,
+            TENANT,
+            SESSION,
+            REQUEST,
         ):
             return None
         return self.record
@@ -159,10 +167,20 @@ class FailingResolver:
         raise RuntimeError("denied by host session store")
 
 
-def activate(*, text=QUESTION, task_event=None, resolver=None, source=None,
-             actor_scope=None, recorded_context=None, **kwargs):
-    real_resolver = resolver if resolver is not None else HostOnlyResolver(
-        event(text=text) if task_event is None else task_event
+def activate(
+    *,
+    text=QUESTION,
+    task_event=None,
+    resolver=None,
+    source=None,
+    actor_scope=None,
+    recorded_context=None,
+    **kwargs,
+):
+    real_resolver = (
+        resolver
+        if resolver is not None
+        else HostOnlyResolver(event(text=text) if task_event is None else task_event)
     )
     return activate_competence_with_task_admission(
         registry(),
@@ -227,11 +245,14 @@ def test_model_guessed_investigation_cannot_be_treated_as_user_action():
     assert result.reason_codes == ["TASK_INTENT_NOT_VERIFIED"]
 
 
-@pytest.mark.parametrize("target_ids", [
-    {"fixture:K-202"},
-    {ASSET, "fixture:K-202"},
-    {"fixture:R4"},
-])
+@pytest.mark.parametrize(
+    "target_ids",
+    [
+        {"fixture:K-202"},
+        {ASSET, "fixture:K-202"},
+        {"fixture:R4"},
+    ],
+)
 def test_explicit_target_conflict_fails_closed_without_method_disclosure(target_ids):
     result = activate(task_event=event(intended_asset_ids=target_ids))
     assert result.status == ActivationStatus.BLOCKED
@@ -245,16 +266,19 @@ def test_unresolved_request_does_not_assume_user_consent():
     assert result.capability_id is None
 
 
-@pytest.mark.parametrize("event_changes", [
-    {"actor_id": "fixture:other-actor"},
-    {"tenant_id": "fixture:other-tenant"},
-    {"session_ref": "fixture:another-session"},
-    {"request_id": "fixture:another-request"},
-    {"event_ref": "fixture:another-event"},
-    {"source_context_ref": "fixture:other-source"},
-    {"issued_at": AT + timedelta(seconds=1), "expires_at": AT + timedelta(minutes=2)},
-    {"issued_at": AT - timedelta(minutes=2), "expires_at": AT},
-])
+@pytest.mark.parametrize(
+    "event_changes",
+    [
+        {"actor_id": "fixture:other-actor"},
+        {"tenant_id": "fixture:other-tenant"},
+        {"session_ref": "fixture:another-session"},
+        {"request_id": "fixture:another-request"},
+        {"event_ref": "fixture:another-event"},
+        {"source_context_ref": "fixture:other-source"},
+        {"issued_at": AT + timedelta(seconds=1), "expires_at": AT + timedelta(minutes=2)},
+        {"issued_at": AT - timedelta(minutes=2), "expires_at": AT},
+    ],
+)
 def test_replayed_or_wrong_actor_session_request_source_and_time_event_is_denied(event_changes):
     result = activate(task_event=event(**event_changes))
     assert result.status == ActivationStatus.BLOCKED
@@ -269,10 +293,13 @@ def test_edited_turn_or_prompt_injected_user_claim_breaks_request_digest():
     assert result.reason_codes == ["TASK_INTENT_NOT_VERIFIED"]
 
 
-@pytest.mark.parametrize("record", [
-    None,
-    {"intent": "INVESTIGATION", "verified": True, "permission": True},
-])
+@pytest.mark.parametrize(
+    "record",
+    [
+        None,
+        {"intent": "INVESTIGATION", "verified": True, "permission": True},
+    ],
+)
 def test_caller_dict_or_missing_host_event_cannot_confer_authority(record):
     result = activate(resolver=HostOnlyResolver(record))
     assert result.status == ActivationStatus.BLOCKED
