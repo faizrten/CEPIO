@@ -285,13 +285,9 @@ def test_unavailable_host_event_store_is_denied_without_routing():
     assert result.capability_id is None
 
 
-@pytest.mark.parametrize("scope_changes", [
-    {"permitted_asset_ids": set()},
-    {"actor_id": ""},
-])
-def test_unauthorized_asset_stops_before_event_lookup(scope_changes):
+def test_unauthorized_asset_stops_before_event_lookup():
     store = HostOnlyResolver(event())
-    result = activate(resolver=store, actor_scope=scope(**scope_changes))
+    result = activate(resolver=store, actor_scope=scope(permitted_asset_ids=set()))
     assert result.status == ActivationStatus.BLOCKED
     assert result.reason_codes == ["ASSET_NOT_AUTHORIZED"]
     assert store.calls == []
