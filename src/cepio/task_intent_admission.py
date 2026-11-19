@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Protocol
 
@@ -69,6 +69,8 @@ class HostTaskEvent(BaseModel):
                 raise ValueError("host task event times must be timezone-aware")
         if self.expires_at <= self.issued_at:
             raise ValueError("task event must have a positive validity interval")
+        if self.expires_at - self.issued_at > timedelta(minutes=10):
+            raise ValueError("task event validity cannot exceed ten minutes")
         if not all(
             value.strip()
             for value in (
