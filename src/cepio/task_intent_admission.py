@@ -179,10 +179,9 @@ def activate_competence_with_task_admission(
         return _reject("TASK_NOT_AN_INVESTIGATION", no_match=True)
     if event.intent != TaskIntentKind.INVESTIGATION:
         return _reject("TASK_INTENT_NOT_VERIFIED")
-    if (
-        event.origin != TaskIntentOrigin.EXPLICIT_USER_INVESTIGATION
-        or event.intended_asset_ids != {task.asset_id}
-    ):
+    if event.origin != TaskIntentOrigin.EXPLICIT_USER_INVESTIGATION or event.intended_asset_ids != {
+        task.asset_id
+    }:
         return _reject("TASK_INTENT_NOT_VERIFIED")
 
     return activate_competence_with_host_context(
