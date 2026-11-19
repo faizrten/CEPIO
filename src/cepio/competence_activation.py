@@ -218,12 +218,42 @@ def _evidence_gates(
 # The host-scoped fallback requires task-specific evidence of relevance; a
 # trusted asset/domain/workflow match is necessary but never sufficient.
 # These generic discourse words cannot establish an industrial job on their own.
-_CONTEXT_GENERIC_WORDS = frozenset({
-    "a", "an", "and", "are", "as", "at", "be", "by", "can", "case",
-    "data", "do", "evidence", "for", "from", "in", "is", "it",
-    "of", "on", "or", "please", "record", "records", "review",
-    "source", "sources", "synthetic", "the", "this", "to", "with",
-})
+_CONTEXT_GENERIC_WORDS = frozenset(
+    {
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "by",
+        "can",
+        "case",
+        "data",
+        "do",
+        "evidence",
+        "for",
+        "from",
+        "in",
+        "is",
+        "it",
+        "of",
+        "on",
+        "or",
+        "please",
+        "record",
+        "records",
+        "review",
+        "source",
+        "sources",
+        "synthetic",
+        "the",
+        "this",
+        "to",
+        "with",
+    }
+)
 
 
 def _admitted_host_context(
@@ -273,11 +303,7 @@ def _contextual_fallback(
     verbose user prose; it is an uncalibrated candidate screen, not confidence.
     Equal best candidates abstain rather than select by name or insertion order.
     """
-    query_terms = (
-        tokens(task.query_text)
-        - tokens(task.asset_id)
-        - _CONTEXT_GENERIC_WORDS
-    )
+    query_terms = tokens(task.query_text) - tokens(task.asset_id) - _CONTEXT_GENERIC_WORDS
     scores = []
     for capability in registry.capabilities:
         declared = (
