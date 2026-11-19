@@ -14,6 +14,7 @@ from cepio.competence_activation import (
     ActivationTask,
     EvidenceAdmission,
     activate_competence,
+    activate_competence_with_host_context,
 )
 
 AT = datetime(2026, 11, 19, 7, 0, tzinfo=timezone.utc)
@@ -134,12 +135,17 @@ def full_evidence():
 
 def run(*, query=LONG_MISSING, host=True, evidence=None, rules=None,
         ctx=None, actor_scope=None, records=None):
-    return activate_competence(
-        records if records is not None else registry(),
-        task=task(query), scope=actor_scope if actor_scope is not None else scope(),
-        evidence=full_evidence() if evidence is None else evidence,
-        policy=rules,
-        host_context=(ctx if ctx is not None else context()) if host else None,
+    arguments = {
+        "task": task(query),
+        "scope": actor_scope if actor_scope is not None else scope(),
+        "evidence": full_evidence() if evidence is None else evidence,
+        "policy": rules,
+    }
+    selected_registry = records if records is not None else registry()
+    if not host:
+        return activate_competence(selected_registry, **arguments)
+    return activate_competence_with_host_context(
+        selected_registry, host_context=ctx if ctx is not None else context(), **arguments
     )
 
 
