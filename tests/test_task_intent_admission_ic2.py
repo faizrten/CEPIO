@@ -365,6 +365,48 @@ def test_future_freeze_of_task_event_time_is_required():
         event(issued_at=AT - timedelta(hours=1), expires_at=AT + timedelta(minutes=1))
 
 
+def test_event_identifiers_cannot_be_whitespace_only():
+    with pytest.raises(ValidationError, match="whitespace"):
+        event(event_ref="   ")
+
+
+def test_invalid_host_context_object_denied_before_store_lookup():
+    store = HostOnlyResolver(event())
+    result = activate_competence_with_task_admission(
+        registry(),
+        task=task(),
+        scope=scope(),
+        evidence=evidence(),
+        host_context=None,  # type: ignore[arg-type]
+        event_ref=EVENT_REF,
+        session_ref=SESSION,
+        request_id=REQUEST,
+        resolver=store,
+    )
+    assert result.status == ActivationStatus.BLOCKED
+    assert result.reason_codes == ["HOST_CONTEXT_NOT_ADMITTED"]
+    assert store.calls == []
+
+
+@pytest.mark.parametrize("event_reference", ["", "   "])
+def test_unbound_event_reference_denied_before_store_lookup(event_reference):
+    store = HostOnlyResolver(event())
+    result = activate_competence_with_task_admission(
+        registry(),
+        task=task(),
+        scope=scope(),
+        evidence=evidence(),
+        host_context=context(),
+        event_ref=event_reference,
+        session_ref=SESSION,
+        request_id=REQUEST,
+        resolver=store,
+    )
+    assert result.status == ActivationStatus.BLOCKED
+    assert result.reason_codes == ["TASK_INTENT_NOT_VERIFIED"]
+    assert store.calls == []
+
+
 def test_schema_does_not_accept_caller_self_attestation_flags():
     with pytest.raises(ValidationError):
         HostTaskEvent.model_validate(
