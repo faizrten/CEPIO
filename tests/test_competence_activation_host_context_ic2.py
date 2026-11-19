@@ -326,4 +326,39 @@ def test_unscoped_factual_route_remains_possible_without_context():
     )
     assert result.status == ActivationStatus.CANDIDATE
     assert result.capability_id == CAP
+    # No change to the old IC-1 response semantics.
+    assert result.routing_basis is None
+
+
+def test_host_context_uses_original_lexical_route_when_it_is_strong():
+    result = run(query="Compressor vibration condition assessment")
+    assert result.status == ActivationStatus.CANDIDATE
+    assert result.capability_id == CAP
     assert result.routing_basis == "LEXICAL"
+    assert result.route_score is not None
+
+
+def test_host_context_preserves_original_lexical_tie_abstention():
+    twin = record(id="synthetic.reliability.twin")
+    allowed = scope(permitted_capability_ids={CAP, twin.id})
+    result = run(
+        query="Compressor vibration condition assessment",
+        records=registry(record(), twin),
+        actor_scope=allowed,
+    )
+    assert result.status == ActivationStatus.AMBIGUOUS
+    assert result.reason_codes == ["MULTIPLE_PLAUSIBLE_CAPABILITIES"]
+    assert result.capability_id is None
+
+
+def test_no_host_context_object_cannot_enter_contextual_path():
+    result = activate_competence_with_host_context(
+        registry(),
+        task=task(),
+        scope=scope(),
+        evidence=full_evidence(),
+        host_context=None,  # type: ignore[arg-type]
+    )
+    assert result.status == ActivationStatus.BLOCKED
+    assert result.reason_codes == ["HOST_CONTEXT_NOT_ADMITTED"]
+    assert result.capability_id is None
