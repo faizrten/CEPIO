@@ -18,7 +18,8 @@ from .capability_registry import (
     CapabilityRecord,
     CapabilityRegistry,
 )
-from .capability_routing import CapabilityRouter, term_tail, tokens
+from .capability_routing import CapabilityRouter
+from .capability_routing import term_tail, tokens
 from .retrieval_contracts import RetrievalIntent
 
 
@@ -302,7 +303,6 @@ def activate_competence(
     scope: ActivationScope,
     evidence: list[EvidenceAdmission],
     policy: ActivationPolicy | None = None,
-    host_context: ActivationHostContext | None = None,
 ) -> ActivationResult:
     """Route one industrial task into a governed review candidate, with no side effects.
 
@@ -320,18 +320,77 @@ def activate_competence(
         return ActivationResult(
             status=ActivationStatus.NO_MATCH, reason_codes=["NO_ADMITTED_CAPABILITY"]
         )
-    if host_context is not None:
-        if not _admitted_host_context(host_context, scope, task):
-            return ActivationResult(
-                status=ActivationStatus.BLOCKED,
-                reason_codes=["HOST_CONTEXT_NOT_ADMITTED"],
-            )
-        permitted = _contextual_registry(permitted, host_context)
-        if not permitted.capabilities:
-            return ActivationResult(
-                status=ActivationStatus.NO_MATCH,
-                reason_codes=["NO_CONTEXT_MATCHED_CAPABILITY"],
-            )
+
+    intent = RetrievalIntent(
+        query_text=task.query_text,
+        tenant_id=scope.tenant_id,
+        max_capabilities=rules.max_routed_capabilities,
+        at=task.at,
+    )
+    routes = CapabilityRouter(permitted).route(intent).routes
+    if not routes or routes[0].score < rules.minimum_route_score:
+        return ActivationResult(
+            status=ActivationStatus.NO_MATCH, reason_codes=["NO_SUITABLE_ROUTE"]
+        )
+    if len(routes) > 1 and routes[0].score - routes[1].score <= rules.ambiguity_margin:
+        return ActivationResult(
+            status=ActivationStatus.AMBIGUOUS,
+            reason_codes=["MULTIPLE_PLAUSIBLE_CAPABILITIES"],
+        )
+
+    best = routes[0]
+    capability = permitted.get(best.capability_id)
+    assert capability is not None  # only exact IDs from the filtered Registry
+    blockers, missing, admitted = _evidence_gates(capability, scope, task, evidence)
+    return ActivationResult(
+        status=ActivationStatus.BLOCKED if blockers else ActivationStatus.CANDIDATE,
+        capability_id=capability.id,
+        capability_version=capability.version,
+        route_score=best.score,
+        reason_codes=blockers,
+        missing_requirements=missing,
+        admitted_evidence_refs=[] if blockers else admitted,
+    )
+
+
+def activate_competence_with_host_context(
+    registry: CapabilityRegistry,
+    *,
+    task: ActivationTask,
+    scope: ActivationScope,
+    evidence: list[EvidenceAdmission],
+    host_context: ActivationHostContext,
+    policy: ActivationPolicy | None = None,
+) -> ActivationResult:
+    """Route one industrial task into a governed review candidate, with no side effects.
+
+    The scope and evidence must come from trusted host policy and provider
+    verification; this method cannot authenticate or independently attest them.
+    """
+    rules = policy or ActivationPolicy()
+    if task.asset_id not in scope.permitted_asset_ids or not scope.actor_id:
+        return ActivationResult(
+            status=ActivationStatus.BLOCKED, reason_codes=["ASSET_NOT_AUTHORIZED"]
+        )
+
+    permitted = _candidate_registry(registry, scope)
+    if not permitted.capabilities:
+        return ActivationResult(
+            status=ActivationStatus.NO_MATCH, reason_codes=["NO_ADMITTED_CAPABILITY"]
+        )
+    if not isinstance(host_context, ActivationHostContext) or not _admitted_host_context(
+        host_context, scope, task
+    ):
+        return ActivationResult(
+            status=ActivationStatus.BLOCKED,
+            reason_codes=["HOST_CONTEXT_NOT_ADMITTED"],
+        )
+    permitted = _contextual_registry(permitted, host_context)
+    if not permitted.capabilities:
+        return ActivationResult(
+            status=ActivationStatus.NO_MATCH,
+            reason_codes=["NO_CONTEXT_MATCHED_CAPABILITY"],
+        )
 
     intent = RetrievalIntent(
         query_text=task.query_text,
@@ -350,7 +409,7 @@ def activate_competence(
         capability = permitted.get(routes[0].capability_id)
         score = routes[0].score
         basis: Literal["LEXICAL", "HOST_SCOPED_CONTEXT"] = "LEXICAL"
-    elif host_context is not None:
+    else:
         chosen_id, ambiguous = _contextual_fallback(permitted, task, rules)
         if ambiguous:
             return ActivationResult(
@@ -365,11 +424,6 @@ def activate_competence(
         capability = permitted.get(chosen_id)
         score = None
         basis = "HOST_SCOPED_CONTEXT"
-    else:
-        return ActivationResult(
-            status=ActivationStatus.NO_MATCH, reason_codes=["NO_SUITABLE_ROUTE"]
-        )
-
     assert capability is not None  # exact ID from filtered authorized Registry
     blockers, missing, admitted = _evidence_gates(capability, scope, task, evidence)
     return ActivationResult(
