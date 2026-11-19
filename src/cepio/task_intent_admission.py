@@ -127,6 +127,8 @@ def activate_competence_with_task_admission(
     """
     if task.asset_id not in scope.permitted_asset_ids or not scope.actor_id:
         return _reject("ASSET_NOT_AUTHORIZED")
+    if not isinstance(host_context, ActivationHostContext):
+        return _reject("HOST_CONTEXT_NOT_ADMITTED")
     if (
         not isinstance(event_ref, str)
         or not event_ref.strip()
