@@ -6,6 +6,8 @@
 
 The first protected, synthetic six-case DEVELOPMENT ablation showed that an otherwise safely refused task could return `NO_MATCH` before its missing/conflicting evidence was explained. The detailed cases and independent-evaluation methods remain in protected Labs. This extension tests a **host-scoped alternative** without relaxing the original lexical threshold or accepting untrusted capability hints.
 
+The additive internal entry point is `activate_competence_with_host_context`. The original `activate_competence` function and signature remain unchanged for existing callers. No new REST/MCP route is published.
+
 The behavior is deliberately narrow: when an approved application supplies *authenticated, authorized and source-resolved* **asset/domain/type/workflow** context, the existing Capability Router still attempts normal lexical routing. If no lexical route passes the original threshold, CEPIO may screen eligible methods using **at least two non-generic task terms** that overlap with the method's declared title and description. The method must also match all three host-scoped selectors through existing registry metadata:
 
 - `validated_domains`: exact domain identifier;
