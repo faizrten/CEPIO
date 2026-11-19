@@ -58,10 +58,14 @@ def record(**updates):
         "semantic_terms": {"urn:cepio:type:Compressor"},
         "competencies": {"condition-review"},
         "evidence_requirements": REQUIRED,
-        "evidence": [{
-            "id": "fixture:assurance", "domain": "refinery",
-            "kind": "synthetic-contract", "artifact": "synthetic-tests",
-        }],
+        "evidence": [
+            {
+                "id": "fixture:assurance",
+                "domain": "refinery",
+                "kind": "synthetic-contract",
+                "artifact": "synthetic-tests",
+            }
+        ],
         "provenance": {"mode": "synthetic-contract"},
     }
     value.update(updates)
@@ -82,14 +86,16 @@ def alternate():
 
 def registry(*items):
     return CapabilityRegistry(
-        id="fixture:registry", version="0.1",
+        id="fixture:registry",
+        version="0.1",
         capabilities=list(items) if items else [record(), alternate()],
     )
 
 
 def scope(**changes):
     value = {
-        "actor_id": "fixture:engineer", "tenant_id": "fixture:tenant",
+        "actor_id": "fixture:engineer",
+        "tenant_id": "fixture:tenant",
         "permitted_asset_ids": {ASSET, OTHER},
         "permitted_capability_ids": {CAP, R3},
         "permitted_evidence_refs": set(EVIDENCE_REFS.values()),
@@ -105,10 +111,13 @@ def task(query=LONG_MISSING, asset_id=ASSET):
 
 def context(**changes):
     value = {
-        "actor_id": "fixture:engineer", "tenant_id": "fixture:tenant",
+        "actor_id": "fixture:engineer",
+        "tenant_id": "fixture:tenant",
         "asset_id": ASSET,
-        "domain": "refinery-reliability", "asset_kind": "Compressor",
-        "workflow_kind": "condition-review", "source_ref": REF,
+        "domain": "refinery-reliability",
+        "asset_kind": "Compressor",
+        "workflow_kind": "condition-review",
+        "source_ref": REF,
         "observed_at": AT - timedelta(days=1),
         "valid_until": AT + timedelta(days=1),
     }
@@ -120,7 +129,8 @@ def receipt(requirement, **changes):
     value = {
         "requirement": requirement,
         "reference": EVIDENCE_REFS[requirement],
-        "tenant_id": "fixture:tenant", "asset_id": ASSET,
+        "tenant_id": "fixture:tenant",
+        "asset_id": ASSET,
         "observed_at": AT - timedelta(minutes=10),
         "valid_until": AT + timedelta(minutes=10),
         "state": "HOST_ADMITTED",
@@ -133,8 +143,16 @@ def full_evidence():
     return [receipt(requirement) for requirement in sorted(REQUIRED)]
 
 
-def run(*, query=LONG_MISSING, host=True, evidence=None, rules=None,
-        ctx=None, actor_scope=None, records=None):
+def run(
+    *,
+    query=LONG_MISSING,
+    host=True,
+    evidence=None,
+    rules=None,
+    ctx=None,
+    actor_scope=None,
+    records=None,
+):
     arguments = {
         "task": task(query),
         "scope": actor_scope if actor_scope is not None else scope(),
@@ -187,14 +205,17 @@ def test_contextless_legacy_path_keeps_the_original_route_threshold():
     assert result.routing_basis is None
 
 
-@pytest.mark.parametrize("changes", [
-    {"actor_id": "fixture:other"},
-    {"tenant_id": "fixture:other-tenant"},
-    {"asset_id": OTHER},
-    {"source_ref": "fixture:unpermitted"},
-    {"observed_at": AT - timedelta(days=3), "valid_until": AT},
-    {"observed_at": AT + timedelta(minutes=1), "valid_until": AT + timedelta(days=1)},
-])
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"actor_id": "fixture:other"},
+        {"tenant_id": "fixture:other-tenant"},
+        {"asset_id": OTHER},
+        {"source_ref": "fixture:unpermitted"},
+        {"observed_at": AT - timedelta(days=3), "valid_until": AT},
+        {"observed_at": AT + timedelta(minutes=1), "valid_until": AT + timedelta(days=1)},
+    ],
+)
 def test_unadmitted_host_context_fails_closed_before_capability_disclosure(changes):
     result = run(ctx=context(**changes))
     assert result.status == ActivationStatus.BLOCKED
@@ -216,11 +237,14 @@ def test_denied_asset_is_never_routed_even_with_host_context():
     assert denied.capability_id is None
 
 
-@pytest.mark.parametrize("changes", [
-    {"domain": "subsurface-reservoir-engineering"},
-    {"asset_kind": "Pump"},
-    {"workflow_kind": "model-review"},
-])
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"domain": "subsurface-reservoir-engineering"},
+        {"asset_kind": "Pump"},
+        {"workflow_kind": "model-review"},
+    ],
+)
 def test_exact_domain_asset_type_and_work_kind_are_required(changes):
     result = run(ctx=context(**changes))
     assert result.status == ActivationStatus.NO_MATCH
@@ -270,13 +294,16 @@ def test_host_scoped_fallback_requires_two_meaningful_task_terms():
     assert result.status == ActivationStatus.NO_MATCH
 
 
-@pytest.mark.parametrize("changes", [
-    {"observed_at": datetime(2026, 11, 19, 7, 0)},
-    {"valid_until": AT - timedelta(days=2)},
-    {"domain": "   "},
-    {"workflow_kind": " "},
-    {"source_ref": ""},
-])
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"observed_at": datetime(2026, 11, 19, 7, 0)},
+        {"valid_until": AT - timedelta(days=2)},
+        {"domain": "   "},
+        {"workflow_kind": " "},
+        {"source_ref": ""},
+    ],
+)
 def test_blank_or_unbounded_host_context_is_rejected(changes):
     with pytest.raises(ValidationError):
         context(**changes)
@@ -284,14 +311,18 @@ def test_blank_or_unbounded_host_context_is_rejected(changes):
 
 def test_unknown_host_authority_fields_are_not_accepted():
     with pytest.raises(ValidationError):
-        ActivationHostContext.model_validate({
-            **context().model_dump(), "admin": True,
-        })
+        ActivationHostContext.model_validate(
+            {
+                **context().model_dump(),
+                "admin": True,
+            }
+        )
 
 
 def test_unscoped_factual_route_remains_possible_without_context():
     result = run(
-        host=False, query="Compressor vibration condition assessment",
+        host=False,
+        query="Compressor vibration condition assessment",
     )
     assert result.status == ActivationStatus.CANDIDATE
     assert result.capability_id == CAP
