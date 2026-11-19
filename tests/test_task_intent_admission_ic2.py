@@ -334,6 +334,8 @@ def test_future_freeze_of_task_event_time_is_required():
         event(issued_at=AT, expires_at=AT)
     with pytest.raises(ValidationError):
         event(issued_at=datetime(2026, 11, 19, 8, 0))
+    with pytest.raises(ValidationError):
+        event(issued_at=AT - timedelta(hours=1), expires_at=AT + timedelta(minutes=1))
 
 
 def test_schema_does_not_accept_caller_self_attestation_flags():
